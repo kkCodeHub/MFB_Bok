@@ -24,7 +24,8 @@ Forvantad signal:
 ## 3) Starta Steg 2.3 (forsta arbetsuppgift)
 
 - Hitta schema-boot i `SSDB.createNewTables()`.
-- Trada in V2-schema (`create_tables_v2.sql`) for ny databas.
+- Trada in V2-schema (`create_tables_v2.sql`) for ny databas via system property:
+  - `-Dfribok.schema.version=v2`
 - Validera med en liten integrationstest-slice (kunder/produkter/leverantorer).
 
 ## 4) Klartecken innan commit
@@ -40,5 +41,6 @@ Forvantad signal:
 
 Lagg till en kort changelog-rad med datum, commit och status, t.ex.:
 
+- `2026-05-04`: Session A klar - schema wiring i `SSDB.createNewTables()` med `fribok.schema.version` (`v2` aktiverar `create_tables_v2.sql`).
 - `YYYY-MM-DD`: Migrerade `tbl_customer` path till V2, commit `<hash>`.
 

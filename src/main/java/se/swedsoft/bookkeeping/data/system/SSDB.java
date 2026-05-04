@@ -56,6 +56,9 @@ import org.slf4j.LoggerFactory;
  */
 public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger(SSDB.class);
 
+    private static final String SCHEMA_VERSION_PROPERTY = "fribok.schema.version";
+    private static final String SCHEMA_V2 = "v2";
+
 
     // The instance of the database
     private static SSDB cInstance;
@@ -7730,13 +7733,23 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
         return new File(Path.get(Path.USER_DATA), "db/" + iFileName + ".data");
     }
 
+    private String getSchemaResource() {
+        String schemaVersion = System.getProperty(SCHEMA_VERSION_PROPERTY, "v1").trim();
+        if (SCHEMA_V2.equalsIgnoreCase(schemaVersion)) {
+            return "sql/create_tables_v2.sql";
+        }
+        return "sql/create_tables.sql";
+    }
+
     public void createNewTables() {
         try {
             if (iConnection == null || iConnection.isClosed()) {
                 return;
             }
 
-            String q = SSUtil.readResourceToString("sql/create_tables.sql");
+            String schemaResource = getSchemaResource();
+            String q = SSUtil.readResourceToString(schemaResource);
+            LOG.info("createNewTables using schema resource: {}", schemaResource);
 
             // Split SQL script into individual statements (separated by ';') and
             // execute each separately, since PreparedStatement.executeUpdate() can
@@ -7763,7 +7776,8 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
                             LOG.warn("createNewTables fallback failed: {}", ignored.getMessage());
                         }
                     } else {
-                        LOG.warn("createNewTables skipping statement: {}", e.getMessage());
+                        LOG.warn("createNewTables skipping statement from {}: {}", schemaResource,
+                                e.getMessage());
                     }
                 }
             }
