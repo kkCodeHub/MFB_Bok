@@ -38,6 +38,9 @@ public class SSMainFrame extends JFrame {    private static final Logger LOG = L
      * @return
      */
     public static SSMainFrame getInstance() {
+        if (java.awt.GraphicsEnvironment.isHeadless()) {
+            return null;
+        }
         if (cInstance == null) {
             cInstance = new SSMainFrame();
         }

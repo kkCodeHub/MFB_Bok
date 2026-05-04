@@ -79,6 +79,10 @@ public class SSErrorDialog {
      * @param iMessage
      */
     public static void showDialog(JFrame iFrame, String iTitle, String iMessage) {
+        if (iFrame == null) {
+            // Headless environment (e.g. automated tests): dialog cannot be shown.
+            return;
+        }
         Icon iIcon = SSIcon.getIcon("ICON_DIALOG_ERROR");
 
         // Manually construct an warning popup

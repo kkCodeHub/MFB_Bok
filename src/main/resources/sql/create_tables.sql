@@ -84,7 +84,7 @@ CREATE CACHED TABLE tbl_suppliercreditinvoice(
   ) ;
 
 CREATE CACHED TABLE tbl_vouchertemplate(
-  name VARCHAR,
+  name VARCHAR(255),
   vouchertemplate OBJECT,
   companyid INTEGER,
   FOREIGN KEY(companyid) REFERENCES tbl_company(id),
@@ -92,7 +92,7 @@ CREATE CACHED TABLE tbl_vouchertemplate(
   ) ;
 
 CREATE CACHED TABLE tbl_project(
-  number VARCHAR,
+  number VARCHAR(255),
   project OBJECT,
   companyid INTEGER,
   FOREIGN KEY(companyid) REFERENCES tbl_company(id),
@@ -100,16 +100,16 @@ CREATE CACHED TABLE tbl_project(
   ) ;
 
 CREATE CACHED TABLE tbl_resultunit(
-  number VARCHAR,
+  number VARCHAR(255),
   resultunit OBJECT,
   companyid INTEGER,
   FOREIGN KEY(companyid) REFERENCES tbl_company(id),
   PRIMARY KEY(number,companyid)
-  ) 
+  ) ;
 
 CREATE CACHED TABLE tbl_product(
   id INTEGER IDENTITY,
-  number VARCHAR,
+  number VARCHAR(255),
   product OBJECT,
   companyid INTEGER,
   FOREIGN KEY(companyid) REFERENCES tbl_company(id)
@@ -117,7 +117,7 @@ CREATE CACHED TABLE tbl_product(
 
 CREATE CACHED TABLE tbl_customer(
   id INTEGER IDENTITY,
-  number VARCHAR,
+  number VARCHAR(255),
   customer OBJECT,
   companyid INTEGER,
   FOREIGN KEY(companyid) REFERENCES tbl_company(id)
@@ -125,7 +125,7 @@ CREATE CACHED TABLE tbl_customer(
 
 CREATE CACHED TABLE tbl_supplier(
   id INTEGER IDENTITY,
-  number VARCHAR,
+  number VARCHAR(255),
   supplier OBJECT,
   companyid INTEGER,
   FOREIGN KEY(companyid) REFERENCES tbl_company(id)
@@ -164,27 +164,27 @@ CREATE CACHED TABLE tbl_inventory(
   ) ;
 
 CREATE CACHED TABLE tbl_currency(
-  code VARCHAR PRIMARY KEY,
+  code VARCHAR(255) PRIMARY KEY,
   currency OBJECT
   ) ;
 
 CREATE CACHED TABLE tbl_unit(
-  name VARCHAR PRIMARY KEY,
+  name VARCHAR(255) PRIMARY KEY,
   unit OBJECT
   ) ;
 
 CREATE CACHED TABLE tbl_deliveryway(
-  name VARCHAR PRIMARY KEY,
+  name VARCHAR(255) PRIMARY KEY,
   deliveryway OBJECT
   ) ;
 
 CREATE CACHED TABLE tbl_deliveryterm(
-  name VARCHAR PRIMARY KEY,
+  name VARCHAR(255) PRIMARY KEY,
   deliveryterm OBJECT
   ) ;
 
 CREATE CACHED TABLE tbl_paymentterm(
-  name VARCHAR PRIMARY KEY,
+  name VARCHAR(255) PRIMARY KEY,
   paymentterm OBJECT
   ) ;
 
@@ -209,7 +209,7 @@ CREATE CACHED TABLE tbl_voucher(
   ) ;
 
 CREATE CACHED TABLE tbl_license(
-  licensekey VARCHAR PRIMARY KEY
+  licensekey VARCHAR(255) PRIMARY KEY
   );
 
 CREATE CACHED TABLE tbl_ownreport(

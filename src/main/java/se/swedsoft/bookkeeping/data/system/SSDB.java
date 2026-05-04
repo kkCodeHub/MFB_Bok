@@ -141,9 +141,13 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
             iStatement.setObject(1, iLastCompany);
             iResultSet = iStatement.executeQuery();
             if (iResultSet.next()) {
-                SSNewCompany iCompany = (SSNewCompany) iResultSet.getObject("company");
-
-                setCurrentCompany(iCompany);
+                try {
+                    SSNewCompany iCompany = (SSNewCompany) iResultSet.getObject("company");
+                    setCurrentCompany(iCompany);
+                } catch (RuntimeException e) {
+                    LOG.warn("Could not restore last company (possible HSQLDB format mismatch): {}",
+                            e.getMessage());
+                }
             }
             iResultSet.close();
             iStatement.close();
@@ -156,10 +160,14 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
             iResultSet = iStatement.executeQuery();
 
             if (iResultSet.next()) {
-                SSNewAccountingYear iYear = (SSNewAccountingYear) iResultSet.getObject(
-                        "accountingyear");
-
-                setCurrentYear(iYear);
+                try {
+                    SSNewAccountingYear iYear = (SSNewAccountingYear) iResultSet.getObject(
+                            "accountingyear");
+                    setCurrentYear(iYear);
+                } catch (RuntimeException e) {
+                    LOG.warn("Could not restore last year (possible HSQLDB format mismatch): {}",
+                            e.getMessage());
+                }
             }
             iResultSet.close();
             iStatement.close();
@@ -171,7 +179,7 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
             return;
         }
 
-        if (iShowDialog) {
+        if (iShowDialog && !java.awt.GraphicsEnvironment.isHeadless()) {
             SSInitDialog.runProgress(SSMainFrame.getInstance(), "Läser in data",
                     () -> {
 
@@ -512,7 +520,12 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
             ResultSet iResultSet = iStatement.executeQuery();
 
             while (iResultSet.next()) {
-                iCompanies.add((SSNewCompany) iResultSet.getObject("company"));
+                try {
+                    iCompanies.add((SSNewCompany) iResultSet.getObject("company"));
+                } catch (RuntimeException e) {
+                    LOG.warn("Skipping company row with unreadable data (HSQLDB format mismatch): {}",
+                            e.getMessage());
+                }
             }
             iResultSet.close();
             iStatement.close();
@@ -7739,15 +7752,26 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
                     ps.executeUpdate();
                     ps.close();
                 } catch (SQLException e) {
-                    // Table already exists or syntax error; proceed anyway.
-                    // (HSQLDB 1.8 and 2.7 have different expectations.)
+                    // "CREATE CACHED TABLE" is not supported in in-memory (test) databases.
+                    // Fall back to "CREATE TABLE IF NOT EXISTS" for compatibility.
+                    if (trimmed.toUpperCase().contains("CREATE CACHED TABLE")) {
+                        String fallback = trimmed.replaceFirst("(?i)CREATE CACHED TABLE",
+                                "CREATE TABLE IF NOT EXISTS");
+                        try (PreparedStatement ps2 = iConnection.prepareStatement(fallback)) {
+                            ps2.executeUpdate();
+                        } catch (SQLException ignored) {
+                            LOG.warn("createNewTables fallback failed: {}", ignored.getMessage());
+                        }
+                    } else {
+                        LOG.warn("createNewTables skipping statement: {}", e.getMessage());
+                    }
                 }
             }
             iConnection.commit();
 
             dropTriggers();
         } catch (SQLException e) {
-            // LOG.error("Unexpected error", e);
+            LOG.error("Unexpected error in createNewTables", e);
         }
     }
 
