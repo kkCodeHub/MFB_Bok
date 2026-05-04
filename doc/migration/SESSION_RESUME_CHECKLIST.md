@@ -43,5 +43,6 @@ Lagg till en kort changelog-rad med datum, commit och status, t.ex.:
 
 - `2026-05-04`: Session A klar - schema wiring i `SSDB.createNewTables()` med `fribok.schema.version` (`v2` aktiverar `create_tables_v2.sql`).
 - `2026-05-04`: Session B klar - kund-CRUD i `SSDB` migrerad till V2-tabell `tbl_customer` nar `fribok.schema.version=v2`; ny testklass `SSCustomerV2IntegrationTest` passerar.
+- `2026-05-04`: Session C klar - produkt- och leverantors-CRUD i `SSDB` migrerad till V2-tabeller `tbl_product`/`tbl_supplier`; nya testklasser `SSProductV2IntegrationTest` och `SSSupplierV2IntegrationTest` passerar.
 - `YYYY-MM-DD`: Migrerade `tbl_customer` path till V2, commit `<hash>`.
 
