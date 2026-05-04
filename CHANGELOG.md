@@ -12,6 +12,18 @@ diverging from upstream version 2.2-SNAPSHOT.
 ## [Unreleased]
 
 ### Added
+- Schema V2 invoice core slice (Session E): `SSDB` now supports minimal
+  invoice CRUD (`getInvoices`, `getInvoice`, `addInvoice`, `updateInvoice`,
+  `deleteInvoice`) against `tbl_invoice` and `tbl_invoice_row` behind
+  `fribok.schema.version=v2`.
+- Integration test `SSInvoiceV2IntegrationTest` validating V2 invoice
+  add/fetch/update/delete flow including row round-trip mapping.
+- Schema V2 order core slice (Session F): `SSDB` now supports minimal
+  order CRUD (`getOrders`, `getOrder`, `addOrder`, `updateOrder`,
+  `deleteOrder`) against `tbl_order` and `tbl_order_row` behind
+  `fribok.schema.version=v2`.
+- Integration test `SSOrderV2IntegrationTest` validating V2 order
+  add/fetch/update/delete flow including row round-trip mapping.
 - Integration tests now pass in headless (CI) environments:
   - `SSDB.init()` skips the `SSInitDialog` popup when
     `GraphicsEnvironment.isHeadless()` returns true.
