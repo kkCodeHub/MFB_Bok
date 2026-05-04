@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- $Id$ -->
+
+<!DOCTYPE article
+  PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN" "http://www.oasis-open.org/docbook/xml/4.1.2/docbookx.dtd">
+<article lang="sv">
+   <informaltable frame="all">
+      <tgroup cols="1"><tbody><row>
+            <entry>
+               <para>
+                  <note>
+                     <remark>HTML: &lt;META HTTP-EQUIV="Content-Language" CONTENT="sv"&gt;</remark>
+                  </note>
+                  <inlinegraphic fileref="../images/header.png" width="18.522cm" depth="0.53cm"/> Radera utleveranser</para>
+               <para/>
+               <para>Du tar bort en utleverans genom att du markerar önskad utleverans i listan över utleveranser och trycker på knappen "Radera valda utleveranser". Du får ett varningsmeddelande när du trycker på knappen "Radera" och du kan därmed ångra din innan utleveransen raderas.</para>
+               <para/>
+               <para>Copyright 2006-2018 - Fribok.org</para>
+            </entry>
+         </row></tbody></tgroup>
+   </informaltable>
+   <para/>
+</article>

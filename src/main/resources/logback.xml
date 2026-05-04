@@ -1,0 +1,41 @@
+<configuration>
+
+    <!-- Console appender: INFO and above -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>INFO</level>
+        </filter>
+    </appender>
+
+    <!-- Rolling file appender: DEBUG and above -->
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${user.home}/.fribok/logs/fribok.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${user.home}/.fribok/logs/fribok.%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
+            <maxFileSize>10MB</maxFileSize>
+            <maxHistory>30</maxHistory>
+            <totalSizeCap>100MB</totalSizeCap>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%thread] %logger{60} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- Application loggers -->
+    <logger name="se.swedsoft.bookkeeping" level="DEBUG"/>
+    <logger name="org.fribok.bookkeeping" level="DEBUG"/>
+
+    <!-- Third-party noise reduction -->
+    <logger name="net.sf.jasperreports" level="WARN"/>
+    <logger name="org.springframework" level="WARN"/>
+    <logger name="hsqldb" level="WARN"/>
+
+    <root level="INFO">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="FILE"/>
+    </root>
+
+</configuration>

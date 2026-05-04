@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- $Id$ -->
+
+<!DOCTYPE article
+  PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN" "http://www.oasis-open.org/docbook/xml/4.1.2/docbookx.dtd">
+<article lang="sv">
+   <informaltable frame="all">
+      <tgroup cols="1"><tbody><row>
+            <entry>
+               <para>
+                  <note>
+                     <remark>HTML: &lt;META HTTP-EQUIV="Content-Language" CONTENT="sv"&gt;</remark>
+                  </note>
+                  <inlinegraphic fileref="../images/header.png" width="18.522cm" depth="0.53cm"/> Säkerhetskopiering</para>
+               <para/>
+               <para>Vi rekommenderar att du säkerhetskopierar all data i Fribok Administration minst en gång i veckan. Du bör säkerhetskopiera till två separata CD skivor som du förvarar säkert på två olika platser.Du väljer ett alternativ i "Arkiv" och "Säkerhetskopiering" och bestämmer vad filen skall heta och väljer på vilken enhet och i vilken mapp du vill att säkerhetskopian skall sparas.När du vill återskapa data från en säkerhetskopia väljer du alternativet "Återställ från säkerhetskopia" under "Arkiv" och "Säkerhetskopiering" och letar upp säkerhetskopian på den enhet och i den mapp där du har sparat säkerhetskopian för att sedan välja den här filen.Om du arbetar i nätverk skall säkerhetskopiering och återställning från säkerhetskopia ske i Fribok Server.Följande alternativ finns för säkerhetskopiering:Säkerhetskopiera hela databasenDet här alternativet innebär att du skapar en säkerhetskopia för all data som finns sparad för alla företag som du har skapat.Återställ från säkerhetskopiaDet här alternativet innebär att du kan återskapa all data för alla företag som finns sparade på säkerhetskopian.</para>
+               <para/>
+               <para>Copyright 2006-2018 - Fribok.org</para>
+            </entry>
+         </row></tbody></tgroup>
+   </informaltable>
+   <para/>
+</article>

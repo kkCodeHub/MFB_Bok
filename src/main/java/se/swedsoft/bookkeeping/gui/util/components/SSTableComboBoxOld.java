@@ -1,0 +1,788 @@
+package se.swedsoft.bookkeeping.gui.util.components;
+
+
+import se.swedsoft.bookkeeping.gui.util.SSSelectionListener;
+import se.swedsoft.bookkeeping.gui.util.model.SSDefaultTableModel;
+import se.swedsoft.bookkeeping.gui.util.table.SSTable;
+import se.swedsoft.bookkeeping.gui.util.table.SSTableSearchable;
+
+import javax.swing.*;
+import javax.swing.border.EmptyBorder;
+import javax.swing.table.TableModel;
+import javax.swing.text.Document;
+import java.awt.*;
+import java.awt.event.*;
+import java.util.EventObject;
+import java.util.LinkedList;
+import java.util.List;
+
+
+/**
+ * Date: 2006-jan-30
+ * Time: 10:59:12
+ */
+public class SSTableComboBoxOld<T extends SSTableSearchable> extends JPanel {
+
+    // Our textfield
+    protected SSTextField iTextField;
+
+    // Dropdown button
+    protected JButton    iDropdownButton;
+
+    // Popup menu
+    protected JPopupMenu iPopup;
+
+    // The table in the popup menu
+    protected SSTable    iTable;
+
+    // The table model for the dropdown
+    protected SSDefaultTableModel<T> iModel;
+
+    // The original objects
+    private List<T> iObjects;
+
+    // The columns to search
+    private int[] iSearchColumns;
+
+    // Allow to select values not in the dropdown
+    private boolean iAllowCustomValues;
+
+    // The selectef value
+    private T       iSelected;
+
+    private List<SSSelectionListener> iSelectionListeners;
+    // Our current editor
+    protected CellEditor iEditor;
+
+    private static final int[] EMPTY_INT_ARRAY = {};
+
+    /**
+     * Creates a new {@code JPanel} with a double buffer
+     * and a flow layout.
+     */
+    public SSTableComboBoxOld() {
+        iSelectionListeners = new LinkedList<>();
+        iSelected = null;
+        iSearchColumns = EMPTY_INT_ARRAY;
+        iAllowCustomValues = false;
+        iModel = createDefaultModel();
+
+        iTextField = new SSTextField();
+
+        iDropdownButton = new SSButton("ICON_DROPDOWN16");
+        iDropdownButton.setPreferredSize(new Dimension(20, 20));
+        iDropdownButton.setMaximumSize(new Dimension(20, 20));
+        iDropdownButton.setMinimumSize(new Dimension(20, 20));
+
+        createLayout();
+
+        // Create the popup here.
+        iTable = new SSTable();
+        iTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+
+        iPopup = new JPopupMenu();
+        iPopup.add(new JScrollPane(iTable));
+        iPopup.setPreferredSize(new Dimension(350, 200));
+        iPopup.setLightWeightPopupEnabled(true);
+
+        // Listener for pressing the button
+        iDropdownButton.addActionListener(e -> {
+
+                startEdit();
+                searchTable();
+
+            });
+
+        // Select the null value
+        Action iSelectNull = new AbstractAction() {
+            public void actionPerformed(ActionEvent e) {
+
+                setSelected(null);
+
+                notifySelectionListeners(iSelected);
+
+                if (iEditor != null) {
+                    SwingUtilities.invokeLater(() -> {
+
+                            iEditor.stopCellEditing();
+                            iEditor.transferFocusToTable();
+
+                        });
+                }
+                stopEdit();
+            }
+        };
+
+        // Select an item and close.
+        final Action iSelectAndClose = new AbstractAction() {
+            public void actionPerformed(ActionEvent e) {
+
+                int selected = iTable.getSelectedRow();
+
+                if (selected >= 0 && iModel.getRowCount() > selected) {
+                    T value = iModel.getObject(selected);
+
+                    setSelected(value);
+
+                    notifySelectionListeners(iSelected);
+                }
+
+                if (iEditor != null) {
+                    SwingUtilities.invokeLater(() -> {
+
+                            iEditor.stopCellEditing();
+                            iEditor.transferFocusToTable();
+
+                        });
+                }
+                stopEdit();
+            }
+        };
+        // The action for transferring the focus to the search table.
+        Action iFocusTable = new AbstractAction() {
+            public void actionPerformed(ActionEvent e) {
+                iTable.requestFocus();
+            }
+        };
+
+        // Listener for textfield
+        iTextField.addKeyListener(
+                new KeyAdapter() {
+            @Override
+            public void keyReleased(KeyEvent e) {
+                // Dont do anything if disabled
+                if (!isEnabled()) {
+                    return;
+                }
+
+                // Dont process enter or escape keys
+                if (e.getKeyCode() == KeyEvent.VK_ENTER
+                        || e.getKeyCode() == KeyEvent.VK_ESCAPE) {
+                    return;
+                }
+
+                // Search the model after the text
+                if (searchTable()) {
+
+                    // The text matches one item, select the fist one
+                    if (iModel != null && iModel.getRowCount() > 0) {
+                        iSelected = iModel.getObject(0);
+
+                        iTable.setRowSelectionInterval(0, 0);
+                    } else {
+                        // Nothing to select
+                        iSelected = null;
+                    }
+
+                } else {
+                    // The text doesnt match the selected
+                    iSelected = null;
+                }
+                // If we dont allow custom values color the textfield according to the selected value
+                if (!iAllowCustomValues) {
+                    iTextField.setForeground(iSelected == null ? Color.RED : Color.BLACK);
+                }
+
+                // Show the dropdown
+                startEdit();
+                iTextField.requestFocus();
+            }
+        });
+
+        iTable.addDblClickListener(e -> iSelectAndClose.actionPerformed(null));
+
+        iTextField.getInputMap(WHEN_FOCUSED).put(
+                KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), "SELECT_NULL");
+
+        iTextField.getInputMap(WHEN_FOCUSED).put(
+                KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0),
+                "SELECT_ROW_AND_CLOSE_DROP_DOWN");
+        iTextField.getInputMap(WHEN_FOCUSED).put(KeyStroke.getKeyStroke(KeyEvent.VK_UP, 0),
+                "FOCUS_DROP_DOWN_TABLE");
+        iTextField.getInputMap(WHEN_FOCUSED).put(
+                KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, 0), "FOCUS_DROP_DOWN_TABLE");
+
+        iTable.getInputMap(WHEN_FOCUSED).put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0),
+                "SELECT_ROW_AND_CLOSE_DROP_DOWN");
+        iTable.getInputMap(WHEN_FOCUSED).put(KeyStroke.getKeyStroke(KeyEvent.VK_TAB, 0),
+                "SELECT_ROW_AND_CLOSE_DROP_DOWN");
+        iTable.getInputMap(WHEN_FOCUSED).put(
+                KeyStroke.getKeyStroke(KeyEvent.VK_TAB, KeyEvent.SHIFT_DOWN_MASK),
+                "SELECT_ROW_AND_CLOSE_DROP_DOWN");
+
+        iTextField.getActionMap().put("SELECT_NULL", iSelectNull);
+        iTextField.getActionMap().put("FOCUS_DROP_DOWN_TABLE", iFocusTable);
+        iTextField.getActionMap().put("SELECT_ROW_AND_CLOSE_DROP_DOWN", iSelectAndClose);
+        iTable.getActionMap().put("SELECT_ROW_AND_CLOSE_DROP_DOWN", iSelectAndClose);
+    }
+
+    /**
+     *
+     * @return the model
+     */
+    private SSDefaultTableModel<T> createDefaultModel() {
+        return new SSDefaultTableModel<>() {
+            @Override
+            public Class<?> getType() {
+                return null;
+            }
+
+            public Object getValueAt(int rowIndex, int columnIndex) {
+                return null;
+            }
+        };
+    }
+
+    /**
+     *
+     */
+    protected void createLayout() {
+        setLayout(new BorderLayout());
+
+        JPanel iPanel = new JPanel();
+
+        iPanel.setBorder(new EmptyBorder(1, 1, 1, 1));
+        iPanel.setLayout(new BorderLayout());
+        iPanel.add(iDropdownButton, BorderLayout.CENTER);
+
+        add(iTextField, BorderLayout.CENTER);
+        add(iPanel, BorderLayout.EAST);
+    }
+
+    /**
+     *
+     * @param iModel
+     */
+    public void setModel(SSDefaultTableModel<T> iModel) {
+        this.iModel = iModel;
+
+        iObjects = iModel.getObjects();
+
+        iTable.setModel(iModel);
+    }
+
+    /**
+     *
+     * @param pSearchColumns
+     */
+    public void setSearchColumns(int... pSearchColumns) {
+        iSearchColumns = pSearchColumns;
+    }
+
+    /**
+     *
+     * @param pColumnWidths
+     */
+    public void setColumnWidths(int... pColumnWidths) {
+        int index = 0;
+
+        for (int pColumnWidth: pColumnWidths) {
+            iTable.getColumnModel().getColumn(index).setPreferredWidth(pColumnWidth);
+            index++;
+        }
+    }
+
+    /**
+     *
+     * @param pPopupSize
+     */
+    public void setPopupSize(Dimension pPopupSize) {
+        iPopup.setPreferredSize(pPopupSize);
+    }
+
+    /**
+     *
+     * @param pWidth
+     * @param pHeight
+     */
+    public void setPopupSize(int pWidth, int pHeight) {
+        setPopupSize(new Dimension(pWidth, pHeight));
+    }
+
+    /**
+     * Set if the user can select items not in the dropdown
+     *
+     * @param iAllowCustomValues
+     */
+    public void setAllowCustomValues(boolean iAllowCustomValues) {
+        this.iAllowCustomValues = iAllowCustomValues;
+
+        if (iAllowCustomValues) {
+            iTextField.setForeground(Color.BLACK);
+        } else {
+            iTextField.setForeground(iSelected == null ? Color.RED : Color.BLACK);
+        }
+
+    }
+
+    /**
+     *
+     * @return if the user can select a not existing items
+     */
+    public boolean doAllowCustomValues() {
+        return iAllowCustomValues;
+    }
+
+    /**
+     * Set the selected value
+     *
+     * @param pSelected the value
+     * @param pNotifyListeners if the listeners shall be notifyed
+     */
+    public void setSelected(T pSelected, boolean pNotifyListeners) {
+        iSelected = pSelected;
+
+        if (iSelected != null) {
+            iTextField.setText(iSelected.toRenderString());
+        } else {
+            iTextField.setText("");
+        }
+
+        if (iAllowCustomValues) {
+            iTextField.setForeground(Color.BLACK);
+        } else {
+            iTextField.setForeground(iSelected == null ? Color.RED : Color.BLACK);
+        }
+
+        if (pNotifyListeners) {
+            notifySelectionListeners(pSelected);
+        }
+    }
+
+    /**
+     *
+     * @param pSelected
+     */
+    public void setSelected(T pSelected) {
+        setSelected(pSelected, false);
+    }
+
+    /**
+     *
+     * @return The selected object
+     */
+    public T getSelected() {
+        return iSelected;
+    }
+
+    /**
+     *
+     * @return If the combobox has a selected value
+     */
+    public boolean hasSelected() {
+        return iSelected != null;
+    }
+
+    /**
+     *
+     * @return The first object
+     */
+    public T getFirst() {
+        if (!iObjects.isEmpty()) {
+            return iObjects.get(0);
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     *
+     * @return The text
+     */
+    public String getText() {
+        if (iAllowCustomValues) {
+            return iTextField.getText();
+        } else {
+            return iSelected == null ? null : iSelected.toRenderString();
+        }
+
+    }
+
+    /**
+     *
+     * @param pText
+     */
+    public void setText(String pText) {
+        iTextField.setText(pText);
+
+        searchTable();
+    }
+
+    /**
+     *
+     * @return
+     */
+    private boolean searchTable() {
+        String iText = iTextField.getText();
+
+        if (iSearchColumns.length == 0) {
+            return true;
+        }
+        List<T> iVisible = new LinkedList<>();
+
+        // Restore the models objects
+        iModel.setObjects(iObjects);
+
+        for (int i = 0, size = iObjects.size(); i < size; i++) {
+
+            for (int c : iSearchColumns) {
+                Object value = iModel.getValueAt(i, c);
+
+                if (compareTo(c, iText, value)) {
+                    iVisible.add(iModel.getObject(i));
+                    break;
+                }
+            }
+        }
+
+        iModel.setObjects(iVisible);
+        iModel.fireTableDataChanged();
+
+        return !iVisible.isEmpty();
+    }
+
+    /**
+     *
+     * @param column
+     * @param text
+     * @param value
+     *
+     * @return boolean
+     */
+    protected boolean compareTo(int column, String text, Object value) {
+        if (value == null || text == null) {
+            return true;
+        }
+
+        String iString = value.toString();
+
+        return iString.length() == 0
+                || iString.toLowerCase().startsWith(text.toLowerCase());
+    }
+
+    /**
+     * Start the editing.
+     */
+    public void startEdit() {
+        iPopup.show(this, 0, getHeight());
+
+        // iTextField.requestFocusInWindow();
+    }
+
+    /**
+     * Stop the editing.
+     */
+    public void stopEdit() {
+        iModel.setObjects(iObjects);
+        iModel.fireTableDataChanged();
+
+        iPopup.setVisible(false);
+    }
+
+    /**
+     * Tells the editor to cancel editing and not accept any partially
+     * edited value.
+     */
+    public void cancelCellEditing() {
+        stopEdit();
+    }
+
+    @Override
+    protected boolean processKeyBinding(KeyStroke ks, KeyEvent e, int condition, boolean pressed) {
+        super.processKeyBinding(ks, e, condition, pressed);
+
+        return iTextField.processKeyBinding(ks, e, condition, pressed);
+    }
+
+    /**
+     *
+     * @param pAction
+     */
+    public void addChangeListener(final ActionListener pAction) {
+        iTextField.addKeyListener(new KeyListener() {
+            public void keyTyped(KeyEvent e) {}
+
+            public void keyPressed(KeyEvent e) {}
+
+            public void keyReleased(KeyEvent e) {
+                pAction.actionPerformed(null);
+            }
+        });
+    }
+
+    /**
+     *
+     * @param pAction
+     */
+    public void addSelectionListener(SSSelectionListener<T> pAction) {
+        iSelectionListeners.add(pAction);
+    }
+
+    /**
+     *
+     * @param pSelected
+     */
+    private void notifySelectionListeners(SSTableSearchable pSelected) {
+
+        for (SSSelectionListener<SSTableSearchable> iSelectionListener : iSelectionListeners) {
+            iSelectionListener.selected(pSelected);
+        }
+    }
+
+    /**
+     *
+     * @param enabled
+     */
+    @Override
+    public void setEnabled(boolean enabled) {
+        iTextField.setEditable(enabled);
+        iDropdownButton.setEnabled(enabled);
+
+        super.setEnabled(enabled);
+    }
+
+    /**
+     * Fetches the model associated with the editor.  This is
+     * primarily for the UI to get at the minimal amount of
+     * state required to be a text editor.  Subclasses will
+     * return the actual type of the model which will typically
+     * be something that extends Document.
+     *
+     * @return the model
+     */
+    public Document getDocument() {
+        return iTextField.getDocument();
+    }
+
+    /**
+     *
+     * @return
+     */
+    public SSDefaultTableModel<T> getModel() {
+        return iModel;
+    }
+
+    /**
+     *
+     * @param iModel
+     * @return The tablecell editor
+     */
+    public static CellEditor<?> createAsCellEditor(SSDefaultTableModel<?> iModel) {
+        return new CellEditor(iModel);
+    }
+
+    /**
+     *
+     */
+    public static class CellEditor<T extends SSTableSearchable> extends DefaultCellEditor {
+        // The combobox were using
+        private SSTableComboBoxOld<T> iComboBox;
+
+        // The current table
+        private JTable  iCurrentTable;
+        // The current row
+        private int     iCurrentRow;
+        // The current colunb
+        private int     iCurrentColumn;
+
+        /**
+         *
+         */
+        public CellEditor() {
+            super(new JTextField());
+            iComboBox = new SSTableComboBoxOld<>();
+            iComboBox.iEditor = this;
+        }
+
+        /**
+         *
+         * @param pModel
+         */
+        public CellEditor(SSDefaultTableModel<T> pModel) {
+            this();
+            setModel(pModel);
+        }
+
+        /**
+         *
+         * @param pModel
+         */
+        protected void setModel(SSDefaultTableModel<T> pModel) {
+            iComboBox.setModel(pModel);
+        }
+
+        @Override
+        public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
+            iCurrentTable = table;
+            iCurrentRow = row;
+            iCurrentColumn = column;
+
+            if (value != null && value instanceof SSTableSearchable) {
+                iComboBox.iSelected = (T) value;
+                iComboBox.iTextField.setText(((SSTableSearchable) value).toRenderString());
+
+                if (iComboBox.searchTable()) {
+                    iComboBox.iTable.setRowSelectionInterval(0, 0);
+                }
+            } else {
+                if (value == null) {
+                    iComboBox.iTextField.setText("");
+                } else {
+                    iComboBox.iTextField.setText(value.toString());
+                }
+                iComboBox.searchTable();
+            }
+
+            // Request focus to receive input.
+            SwingUtilities.invokeLater(() -> iComboBox.iTextField.requestFocus());
+
+            return iComboBox;
+        }
+
+        @Override
+        public Component getComponent() {
+            return  iComboBox.iTextField;
+        }
+
+        @Override
+        public Object getCellEditorValue() {
+            if (iComboBox.getSelected() == null && iComboBox.doAllowCustomValues()) {
+                return iComboBox.getText();
+            }
+            return iComboBox.getSelected();
+        }
+
+        @Override
+        public boolean isCellEditable(EventObject anEvent) {
+
+            if (anEvent == null) {
+                return true;
+            }
+            if (anEvent instanceof MouseEvent) {
+                MouseEvent e = (MouseEvent) anEvent;
+
+                if (e.getClickCount() != 2) {
+                    return false;
+                }
+            }
+            JTable table = (JTable) anEvent.getSource();
+            TableModel model = table.getModel();
+            int row = table.getSelectedRow();
+            int col = table.getSelectedColumn();
+
+            return row == -1 || model.isCellEditable(row, col);
+        }
+
+        @Override
+        public boolean shouldSelectCell(EventObject anEvent) {
+            return true;
+        }
+
+        /**
+         *
+         * @return
+         */
+        @Override
+        public boolean stopCellEditing() {
+            iComboBox.iPopup.setVisible(false);
+            return super.stopCellEditing();
+        }
+
+        /**
+         *
+         */
+        @Override
+        public void cancelCellEditing() {
+            iComboBox.iPopup.setVisible(false);
+            super.fireEditingCanceled();
+        }
+
+        /**
+         *
+         */
+        private void transferFocusToTable() {
+            iCurrentTable.changeSelection(iCurrentRow, iCurrentColumn, false, false);
+            iCurrentTable.requestFocusInWindow();
+        }
+
+        /**
+         *
+         * @param pSearchColumns
+         */
+        public void setSearchColumns(int... pSearchColumns) {
+            iComboBox.setSearchColumns(pSearchColumns);
+
+        }
+
+        /**
+         *
+         * @param pColumnWidths
+         */
+        public void setColumnWidths(int... pColumnWidths) {
+            iComboBox.setColumnWidths(pColumnWidths);
+        }
+
+        /**
+         *
+         * @param pPopupSize
+         */
+        public void setPopupSize(Dimension pPopupSize) {
+            iComboBox.setPopupSize(pPopupSize);
+        }
+
+        /**
+         *
+         * @param pWidth
+         * @param pHeight
+         */
+        public void setPopupSize(int pWidth, int pHeight) {
+            iComboBox.setPopupSize(pWidth, pHeight);
+        }
+
+        /**
+         *
+         * @param iAllowCustomValues
+         */
+        public void setAllowCustomValues(boolean iAllowCustomValues) {
+            iComboBox.setAllowCustomValues(iAllowCustomValues);
+        }
+
+        @Override
+        public String toString() {
+            final StringBuilder sb = new StringBuilder();
+
+            sb.append(
+                    "se.swedsoft.bookkeeping.gui.util.components.SSTableComboBoxOld.CellEditor");
+            sb.append("{iComboBox=").append(iComboBox);
+            sb.append(", iCurrentColumn=").append(iCurrentColumn);
+            sb.append(", iCurrentRow=").append(iCurrentRow);
+            sb.append(", iCurrentTable=").append(iCurrentTable);
+            sb.append('}');
+            return sb.toString();
+        }
+    }
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder();
+
+        sb.append("se.swedsoft.bookkeeping.gui.util.components.SSTableComboBoxOld");
+        sb.append("{iAllowCustomValues=").append(iAllowCustomValues);
+        sb.append(", iDropdownButton=").append(iDropdownButton);
+        sb.append(", iEditor=").append(iEditor);
+        sb.append(", iModel=").append(iModel);
+        sb.append(", iObjects=").append(iObjects);
+        sb.append(", iPopup=").append(iPopup);
+        sb.append(", iSearchColumns=").append(iSearchColumns == null ? "null" : "");
+        for (int i = 0; iSearchColumns != null && i < iSearchColumns.length; ++i) {
+            sb.append(i == 0 ? "" : ", ").append(iSearchColumns[i]);
+        }
+        sb.append(", iSelected=").append(iSelected);
+        sb.append(", iSelectionListeners=").append(iSelectionListeners);
+        sb.append(", iTable=").append(iTable);
+        sb.append(", iTextField=").append(iTextField);
+        sb.append('}');
+        return sb.toString();
+    }
+}
+

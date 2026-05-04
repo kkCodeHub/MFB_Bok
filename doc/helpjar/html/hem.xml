@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- $Id$ -->
+
+<!DOCTYPE article
+  PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN" "http://www.oasis-open.org/docbook/xml/4.1.2/docbookx.dtd">
+<article lang="sv">
+   <para>
+      <note>
+         <remark>HTML: &lt;META HTTP-EQUIV="Content-Language" CONTENT="sv"&gt;</remark>
+      </note> </para>
+   <para>Manual<inlinegraphic fileref="../images/logo.png" width="3.308cm" depth="4.472cm"/>Copyright 2006-2018 - Fribok.org</para>
+</article>

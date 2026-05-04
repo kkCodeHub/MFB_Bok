@@ -1,0 +1,207 @@
+package se.swedsoft.bookkeeping.importexport.supplierpayments;
+
+
+import se.swedsoft.bookkeeping.calc.math.SSSupplierInvoiceMath;
+import se.swedsoft.bookkeeping.data.SSOutpayment;
+import se.swedsoft.bookkeeping.data.SSOutpaymentRow;
+import se.swedsoft.bookkeeping.data.SSSupplierInvoice;
+import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.gui.util.SSBundle;
+import se.swedsoft.bookkeeping.importexport.supplierpayments.poster.*;
+import se.swedsoft.bookkeeping.importexport.supplierpayments.util.LBinLine;
+import se.swedsoft.bookkeeping.importexport.util.SSImportException;
+import se.swedsoft.bookkeeping.util.SSDateUtil;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.text.DateFormat;
+import java.time.LocalDate;
+import java.util.Date;
+import java.util.LinkedList;
+import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+
+/**
+ * $Id$
+ */
+public class SSSupplierPaymentImporter {    private static final Logger LOG = LoggerFactory.getLogger(SSSupplierPaymentImporter.class);
+
+    private SSSupplierPaymentImporter() {}
+
+    /**
+     *
+     * @param iFile
+     * @throws SSImportException
+     * @return
+     */
+    public static List<SSOutpayment> Import(File iFile) throws SSImportException {
+        List<String> iLines = new LinkedList<>();
+
+        try {
+            BufferedReader iReader = new BufferedReader(new FileReader(iFile));
+
+            String iLine;
+
+            while ((iLine = iReader.readLine()) != null) {
+                iLines.add(iLine);
+            }
+        } catch (IOException e) {
+            LOG.error("Unexpected error", e);
+        }
+        List<LBinPost> iPosts = new LinkedList<>();
+
+        for (String iLine : iLines) {
+
+            LBinLine iReader = new LBinLine(iLine);
+
+            String iPostTyp = iReader.readString(1, 2);
+
+            LBinPost iPost = getPost(iPostTyp);
+
+            if (iPost != null) {
+                // LOG.info(iLine);
+                iPost.read(iReader);
+
+                iPosts.add(iPost);
+            } else {
+                LOG.info("Oidentifierad posttyp: " + iPostTyp);
+            }
+        }
+        List<SSOutpayment> iOutpayments = new LinkedList<>();
+
+        SSOutpayment iOutpayment = null;
+        boolean paymentRead = false;
+
+        for (LBinPost iPost : iPosts) {
+            if (iPost instanceof LBinPostTK11) {
+                LBinPostTK11 iPostTK11 = (LBinPostTK11) iPost;
+
+                Date iPaymentDate = iPostTK11.getPaymentDate();
+                LocalDate iPaymentLocalDate = SSDateUtil.toLocalDate(iPaymentDate);
+
+                DateFormat iFormat = DateFormat.getDateInstance(DateFormat.SHORT);
+
+                iOutpayment = new SSOutpayment();
+                iOutpayment.setText("Leverantörsbetalning");
+                iOutpayment.setLocalDate(iPaymentLocalDate);
+                iOutpayment.setText(
+                        "Leverantörsbetalning " + iFormat.format(iPaymentDate));
+
+                iOutpayments.add(iOutpayment);
+            }
+
+            if (iOutpayment == null) {
+                continue;
+            }
+
+            SSSupplierInvoice iSupplierInvoice;
+
+            if (iPost instanceof LBinPostTK14) {
+                LBinPostTK14 iPostTK14 = (LBinPostTK14) iPost;
+
+                String  iReference = iPostTK14.getReference().trim();
+                Integer iInvoiceNr = iPostTK14.getInvoiceNr();
+
+                iSupplierInvoice = SSSupplierInvoiceMath.getSupplierInvoiceByNumber(
+                        SSDB.getInstance().getSupplierInvoices(), iInvoiceNr).orElse(null);
+
+                if (iSupplierInvoice == null) {
+                    iSupplierInvoice = SSSupplierInvoiceMath.getSupplierInvoiceByReference(
+                            SSDB.getInstance().getSupplierInvoices(), iReference).orElse(null);
+                }
+
+                if (iSupplierInvoice != null) {
+                    SSOutpaymentRow iRow = new SSOutpaymentRow();
+
+                    iRow.setSupplierInvoice(iSupplierInvoice);
+
+                    iRow.setValue(iPostTK14.getValue());
+
+                    iOutpayment.getRows().add(iRow);
+                    paymentRead = true;
+                } else {
+                    throw new SSImportException(SSBundle.getBundle(),
+                            "supplierpaymentimport.error.invalidreference", iReference);
+                }
+
+            }
+
+            if (iPost instanceof LBinPostTK54) {
+                LBinPostTK54 iPostTK54 = (LBinPostTK54) iPost;
+
+                String  iReference = iPostTK54.getReference().trim();
+                Integer iInvoiceNr = iPostTK54.getInvoiceNr();
+
+                iSupplierInvoice = SSSupplierInvoiceMath.getSupplierInvoiceByNumber(
+                        SSDB.getInstance().getSupplierInvoices(), iInvoiceNr).orElse(null);
+
+                if (iSupplierInvoice == null) {
+                    iSupplierInvoice = SSSupplierInvoiceMath.getSupplierInvoiceByReference(
+                            SSDB.getInstance().getSupplierInvoices(), iReference).orElse(null);
+                }
+
+                if (iSupplierInvoice != null) {
+                    SSOutpaymentRow iRow = new SSOutpaymentRow();
+
+                    iRow.setSupplierInvoice(iSupplierInvoice);
+
+                    iRow.setValue(iPostTK54.getValue());
+
+                    iOutpayment.getRows().add(iRow);
+                    paymentRead = true;
+                } else {
+                    throw new SSImportException(SSBundle.getBundle(),
+                            "supplierpaymentimport.error.invalidreference", iReference);
+                }
+
+            }
+        }
+	if (paymentRead == false) {
+	    throw new SSImportException(SSBundle.getBundle(),
+                            "supplierpaymentimport.error.nopaymentread");
+	}
+        return iOutpayments;
+    }
+
+    /**
+     *
+     * @param iPostTyp
+     * @return
+     */
+    private static LBinPost getPost(String iPostTyp) {
+        if (iPostTyp.equals("11")) {
+            return new LBinPostTK11();
+        }
+        if (iPostTyp.equals("12")) {
+            return new LBinPostTK12();
+        }
+        if (iPostTyp.equals("13")) {
+            return new LBinPostTK13();
+        }
+        if (iPostTyp.equals("14")) {
+            return new LBinPostTK14();
+        }
+        if (iPostTyp.equals("26")) {
+            return new LBinPostTK26();
+        }
+        if (iPostTyp.equals("27")) {
+            return new LBinPostTK27();
+        }
+        if (iPostTyp.equals("29")) {
+            return new LBinPostTK29();
+        }
+        if (iPostTyp.equals("40")) {
+            return new LBinPostTK40();
+        }
+        if (iPostTyp.equals("54")) {
+            return new LBinPostTK54();
+        }
+
+        return null;
+    }
+
+}

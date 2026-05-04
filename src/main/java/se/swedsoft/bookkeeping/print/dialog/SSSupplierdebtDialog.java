@@ -1,0 +1,61 @@
+package se.swedsoft.bookkeeping.print.dialog;
+
+
+import se.swedsoft.bookkeeping.gui.SSMainFrame;
+import se.swedsoft.bookkeeping.gui.util.SSBundle;
+import se.swedsoft.bookkeeping.gui.util.SSButtonPanel;
+import se.swedsoft.bookkeeping.gui.util.datechooser.SSDateChooser;
+import se.swedsoft.bookkeeping.gui.util.dialogs.SSDialog;
+
+import javax.swing.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.Date;
+
+
+/**
+ * $Id$
+ *
+ */
+public class SSSupplierdebtDialog extends SSDialog {
+
+    private JPanel iPanel;
+
+    private SSDateChooser iDate;
+
+    private SSButtonPanel iButtonPanel;
+
+    /**
+     * @param iFrame
+     */
+    public SSSupplierdebtDialog(SSMainFrame iFrame) {
+        super(iFrame, SSBundle.getBundle().getString("supplierdebtreport.dialog.title"));
+
+        setPanel(iPanel);
+
+        iButtonPanel.addCancelActionListener(e -> setModalResult(JOptionPane.CANCEL_OPTION, true));
+        iButtonPanel.addOkActionListener(e -> setModalResult(JOptionPane.OK_OPTION, true));
+
+	getRootPane().setDefaultButton(iButtonPanel.getOkButton());
+    }
+
+    /**
+     *
+     * @return
+     */
+    public Date getDate() {
+        return iDate.getDate();
+    }
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder();
+
+        sb.append("se.swedsoft.bookkeeping.print.dialog.SSSupplierdebtDialog");
+        sb.append("{iButtonPanel=").append(iButtonPanel);
+        sb.append(", iDate=").append(iDate);
+        sb.append(", iPanel=").append(iPanel);
+        sb.append('}');
+        return sb.toString();
+    }
+}

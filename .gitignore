@@ -1,0 +1,7 @@
+target/
+dist/
+.codenomad/
+.classpath
+new_directory/
+.project
+.settings/

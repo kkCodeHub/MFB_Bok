@@ -1,0 +1,211 @@
+/*
+ * 2005-2010
+ * $Id$
+ */
+package se.swedsoft.bookkeeping.gui.budget;
+
+
+import se.swedsoft.bookkeeping.data.SSBudget;
+import se.swedsoft.bookkeeping.data.SSNewAccountingYear;
+import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.gui.SSMainFrame;
+import se.swedsoft.bookkeeping.gui.budget.panel.SSBudgetMainPanel;
+import se.swedsoft.bookkeeping.gui.util.SSBundle;
+import se.swedsoft.bookkeeping.gui.util.components.SSButton;
+import se.swedsoft.bookkeeping.gui.util.dialogs.SSProgressDialog;
+import se.swedsoft.bookkeeping.gui.util.dialogs.SSQueryDialog;
+import se.swedsoft.bookkeeping.gui.util.frame.SSDefaultTableFrame;
+import se.swedsoft.bookkeeping.print.report.SSBudgetPrinter;
+import se.swedsoft.bookkeeping.util.SSDateUtil;
+
+import javax.swing.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.Date;
+
+
+/**
+ */
+public class SSBudgetFrame extends SSDefaultTableFrame {
+
+    private static SSBudgetFrame cInstance;
+
+    /**
+     *
+     * @param pMainFrame
+     * @param pWidth
+     * @param pHeight
+     */
+    public static void showFrame(SSMainFrame pMainFrame, int pWidth, int pHeight) {
+        if (cInstance == null || cInstance.isClosed()) {
+            cInstance = new SSBudgetFrame(pMainFrame, pWidth, pHeight);
+        }
+        cInstance.setVisible(true);
+        cInstance.deIconize();
+    }
+
+    /**
+     *
+     * @return The SSNewAccountingYearFrame
+     */
+    public static SSBudgetFrame getInstance() {
+        return cInstance;
+    }
+
+    private SSNewAccountingYear  iAccountingYear;
+
+    private SSBudgetMainPanel iBudgetMainPanel;
+
+    /**
+     * Default constructor.
+     * @param pMainFrame
+     * @param pWidth
+     * @param pHeight
+     */
+    private SSBudgetFrame(SSMainFrame pMainFrame, int pWidth, int pHeight) {
+        super(pMainFrame, SSBundle.getBundle().getString("budgetframe.title"), pWidth,
+                pHeight);
+        iAccountingYear = SSDB.getInstance().getCurrentYear();
+        // iBudgetMainPanel.setBudget(iAccountingYear.getBudget());
+        addCloseListener(
+                e -> {
+
+                        if (cInstance != null) {
+                            SSQueryDialog iDialog = new SSQueryDialog(getMainFrame(),
+                                    SSBundle.getBundle(), "budgetframe.saveonclose");
+                            int iResponce = iDialog.getResponce();
+
+                            if (iResponce != JOptionPane.YES_OPTION) {
+                                return;
+                            }
+                            iAccountingYear.setBudget(iBudgetMainPanel.getBudget());
+                            SSDB.getInstance().updateAccountingYear(iAccountingYear);
+                        }
+
+                    });
+    }
+
+    /**
+     * This method should return a toolbar if the sub-class wants one.
+     * Otherwise, it may return null.
+     *
+     * @return A JToolBar or null.
+     */
+    @Override
+    public JToolBar getToolBar() {
+        JToolBar toolBar = new JToolBar();
+
+        // Save
+        // ***************************
+        SSButton iButton = new SSButton("ICON_SAVEITEM", "budgetframe.savebutton",
+                e -> {
+
+                        iAccountingYear.setBudget(iBudgetMainPanel.getBudget());
+                        SSDB.getInstance().updateAccountingYear(iAccountingYear);
+
+                        cInstance = null;
+                        setVisible(false);
+
+                    });
+
+        toolBar.add(iButton);
+
+        // Cancel
+        // ***************************
+        iButton = new SSButton("ICON_CANCELITEM", "budgetframe.cancelbutton",
+                e -> {
+
+                        cInstance = null;
+                        setVisible(false);
+
+                    });
+        toolBar.add(iButton);
+        toolBar.addSeparator();
+
+        // Print
+        // ******************
+        iButton = new SSButton("ICON_PRINT", "budgetframe.printbutton",
+                e -> {
+
+                        final SSMainFrame iMainFrame = getMainFrame();
+
+                        final Date iFrom = SSDateUtil.toDate(
+                                SSDB.getInstance().getCurrentYear().getLocalFrom());
+                        final Date iTo = SSDateUtil.toDate(
+                                SSDB.getInstance().getCurrentYear().getLocalTo());
+
+                        SSProgressDialog.runProgress(iMainFrame, () -> {
+
+                                SSBudgetPrinter iPrinter = new SSBudgetPrinter(iFrom, iTo);
+
+                                iPrinter.preview(iMainFrame);
+
+                            });
+
+                    });
+        toolBar.add(iButton);
+
+        return toolBar;
+
+    }
+
+    /**
+     * This method should return the main content for the frame.
+     * Such as an object table.
+     *
+     * @return The main content for this frame.
+     */
+    @Override
+    public JComponent getMainContent() {
+        SSBudget iBudget = new SSBudget(SSDB.getInstance().getCurrentYear().getBudget());
+
+        iBudgetMainPanel = new SSBudgetMainPanel(iBudget);
+
+        return iBudgetMainPanel.getPanel();
+    }
+
+    /**
+     * This method should return the status bar content, if any.
+     *
+     * @return The content for the status bar or null if none is wanted.
+     */
+    @Override
+    public JComponent getStatusBar() {
+        return null;
+    }
+
+    /**
+     *
+     * @return boolean
+     */
+    @Override
+    public boolean isCompanyFrame() {
+        return true;
+    }
+
+    /**
+     *
+     * @return boolean
+     */
+    @Override
+    public boolean isYearDataFrame() {
+        return true;
+    }
+
+    public void actionPerformed(ActionEvent e) {
+        iAccountingYear = null;
+        iBudgetMainPanel = null;
+        cInstance = null;
+    }
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder();
+
+        sb.append("se.swedsoft.bookkeeping.gui.budget.SSBudgetFrame");
+        sb.append("{iAccountingYear=").append(iAccountingYear);
+        sb.append(", iBudgetMainPanel=").append(iBudgetMainPanel);
+        sb.append('}');
+        return sb.toString();
+    }
+}

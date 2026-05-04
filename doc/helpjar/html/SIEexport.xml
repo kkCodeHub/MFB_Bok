@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- $Id$ -->
+
+<!DOCTYPE article
+  PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN" "http://www.oasis-open.org/docbook/xml/4.1.2/docbookx.dtd">
+<article lang="sv">
+   <informaltable frame="all">
+      <tgroup cols="1"><tbody><row>
+            <entry>
+               <para>
+                  <note>
+                     <remark>HTML: &lt;META HTTP-EQUIV="Content-Language" CONTENT="sv"&gt;</remark>
+                  </note>
+                  <inlinegraphic fileref="../images/header.png" width="18.522cm" depth="0.53cm"/> SIE Export</para>
+               <para/>
+               <para>Du kan exportera din räkenskapsinformation till en fil enligt det standardiserade SIE-formatet. De filer som du har exporterat i SIE-format kan läsas in (importeras) av andra program, exempelvis bokförings-, deklarations- och bokslutsprogram.SIE-exporten kan göras i fyra olika filtyper som innehåller olika bokföringsinformation. När du vill exportera bokföringsinformation till en fil enligt det standardiserad SIE-formatet trycker du på "Företagsexport" och "SIE" i menyn "Arkiv" och väljer vilken bokföringsinformation som du vill exportera.Följande alternativ finns för SIE-export:SIE 1 – Årssaldon.Den här typen av fil innehåller ingående och utgående balanser för samtliga konton i kontoplanen.SIE 2 – PeriodsaldonDen här typen av fil innehåller all information från SIE 1 och månadsvisa saldoförändringar för samtliga konton.SIE 3 – ObjektsaldonDen här typen av fil innehåller samma information som SIE 2, men saldon förekommer även på objektnivå på resultatenheter och projekt.SIE 4 – TransaktionerDen här typen av fil innehåller kontoplan, ingående balanser, utgående balanser, projekt, resultatenheter, periodsaldon, budget och verifikationerna för aktivt bokföringsår. De här filerna kan importeras av bokföringsprogram.</para>
+               <para/>
+               <para>Copyright 2006-2018 - Fribok.org</para>
+            </entry>
+         </row></tbody></tgroup>
+   </informaltable>
+   <para/>
+</article>

@@ -1,0 +1,159 @@
+package se.swedsoft.bookkeeping.importexport.bgmax.dialog;
+
+
+import se.swedsoft.bookkeeping.calc.math.SSInvoiceMath;
+import se.swedsoft.bookkeeping.data.SSInvoice;
+import se.swedsoft.bookkeeping.gui.invoice.util.SSInvoiceTableModel;
+import se.swedsoft.bookkeeping.gui.util.SSBundle;
+import se.swedsoft.bookkeeping.gui.util.SSButtonPanel;
+import se.swedsoft.bookkeeping.gui.util.components.SSCurrencyTextField;
+import se.swedsoft.bookkeeping.gui.util.components.SSTableComboBox;
+import se.swedsoft.bookkeeping.gui.util.dialogs.SSDialog;
+import se.swedsoft.bookkeeping.importexport.bgmax.data.BgMaxBetalning;
+import se.swedsoft.bookkeeping.importexport.bgmax.data.BgMaxReferens;
+
+import javax.swing.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+
+
+/**
+ * $Id$
+ *
+ */
+public class BgMaxSelectInvoiceDialog extends SSDialog {
+
+    private JPanel iPanel;
+
+    private SSButtonPanel iButtonPanel;
+
+    private JTextField iReference;
+
+    private SSCurrencyTextField iBelopp;
+
+    private SSTableComboBox<SSInvoice> iInvoices;
+    private JTextField iCurrency;
+    private JTextPane iInformationsText;
+    private JTextField iBetalarensNamn;
+    private JTextField iBetalarensOrt;
+    private JTextField iBetalarensPostnummer;
+    private JTextField iBetalarensAdress;
+    private JTextField iBetalarensLand;
+    private JTextField iBetalarensOrganisationsnr;
+    private JList list1;
+    private JTextPane textPane1;
+
+    /**
+     * @param iFrame
+     */
+    public BgMaxSelectInvoiceDialog(JFrame iFrame) {
+        super(iFrame, SSBundle.getBundle().getString("bgmaximport.selectinvoice.title"));
+
+        SSInvoiceTableModel iModel = new SSInvoiceTableModel(
+                SSInvoiceMath.getNonPayedOrCreditedInvoices());
+
+        iModel.addColumn(SSInvoiceTableModel.COLUMN_NUMBER);
+        iModel.addColumn(SSInvoiceTableModel.COLUMN_OCRNUMBER);
+        iModel.addColumn(SSInvoiceTableModel.COLUMN_CUSTOMER_NR);
+        iModel.addColumn(SSInvoiceTableModel.COLUMN_CUSTOMER_NAME);
+        iModel.addColumn(SSInvoiceTableModel.COLUMN_DATE);
+        iModel.addColumn(SSInvoiceTableModel.COLUMN_TOTAL_SUM);
+        iModel.addColumn(SSInvoiceTableModel.getSaldoColumn());
+        iModel.addColumn(SSInvoiceTableModel.COLUMN_CURRENCY);
+
+        setPanel(iPanel);
+
+        iInvoices.setModel(iModel);
+
+        iButtonPanel.addOkActionListener(e -> closeDialog(JOptionPane.OK_OPTION));
+
+        iButtonPanel.addCancelActionListener(e -> closeDialog(JOptionPane.CANCEL_OPTION));
+
+	getRootPane().setDefaultButton(iButtonPanel.getOkButton());
+    }
+
+    /**
+     *
+     * @return
+     */
+    public SSInvoice getInvoice() {
+        return iInvoices.getSelected();
+    }
+
+    /**
+     *
+     * @param iBetalning
+     * @return
+     */
+    public int showDialog(BgMaxBetalning iBetalning) {
+        iInvoices.setSelected(null);
+
+        iCurrency.setText(iBetalning.getAvsnitt().getValuta());
+
+        iInformationsText.setText(iBetalning.getInformationsText());
+
+        iReference.setText(getReferenceText(iBetalning));
+
+        iBelopp.setValue(iBetalning.getBelopp());
+
+        iBetalarensNamn.setText(iBetalning.getBetalarensNamn());
+        iBetalarensOrt.setText(iBetalning.getBetalarensOrt());
+        iBetalarensPostnummer.setText(iBetalning.getBetalarensPostnummer());
+        iBetalarensAdress.setText(iBetalning.getBetalarensAdress());
+        iBetalarensLand.setText(iBetalning.getBetalarensLand());
+        iBetalarensOrganisationsnr.setText(iBetalning.getBetalarensOrganisationsnr());
+
+        pack();
+
+        return super.showDialog();
+    }
+
+    /**
+     *
+     * @param iBetalning
+     * @return
+     */
+    private String getReferenceText(BgMaxBetalning iBetalning) {
+        StringBuilder sb = new StringBuilder();
+
+        String iText = iBetalning.getReferens();
+
+        if (iText != null && iText.trim().length() > 0) {
+            sb.append(iText).append('\n');
+        }
+
+        for (BgMaxReferens iReferens : iBetalning.getReferenser()) {
+            iText = iReferens.getReferens();
+
+            if (iText != null && iText.trim().length() > 0) {
+                sb.append(iText).append('\n');
+            }
+        }
+        return sb.toString();
+    }
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder();
+
+        sb.append(
+                "se.swedsoft.bookkeeping.importexport.bgmax.dialog.BgMaxSelectInvoiceDialog");
+        sb.append("{iBelopp=").append(iBelopp);
+        sb.append(", iBetalarensAdress=").append(iBetalarensAdress);
+        sb.append(", iBetalarensLand=").append(iBetalarensLand);
+        sb.append(", iBetalarensNamn=").append(iBetalarensNamn);
+        sb.append(", iBetalarensOrganisationsnr=").append(iBetalarensOrganisationsnr);
+        sb.append(", iBetalarensOrt=").append(iBetalarensOrt);
+        sb.append(", iBetalarensPostnummer=").append(iBetalarensPostnummer);
+        sb.append(", iButtonPanel=").append(iButtonPanel);
+        sb.append(", iCurrency=").append(iCurrency);
+        sb.append(", iInformationsText=").append(iInformationsText);
+        sb.append(", iInvoices=").append(iInvoices);
+        sb.append(", iPanel=").append(iPanel);
+        sb.append(", iReference=").append(iReference);
+        sb.append(", list1=").append(list1);
+        sb.append(", textPane1=").append(textPane1);
+        sb.append('}');
+        return sb.toString();
+    }
+}

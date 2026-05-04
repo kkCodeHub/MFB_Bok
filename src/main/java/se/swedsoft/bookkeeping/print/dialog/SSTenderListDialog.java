@@ -1,0 +1,161 @@
+package se.swedsoft.bookkeeping.print.dialog;
+
+
+import se.swedsoft.bookkeeping.calc.math.SSInvoiceMath;
+import se.swedsoft.bookkeeping.calc.util.SSFilter;
+import se.swedsoft.bookkeeping.calc.util.SSFilterFactory;
+import se.swedsoft.bookkeeping.data.SSCustomer;
+import se.swedsoft.bookkeeping.data.SSTender;
+import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.gui.SSMainFrame;
+import se.swedsoft.bookkeeping.gui.customer.util.SSCustomerDropdownModel;
+import se.swedsoft.bookkeeping.gui.util.SSBundle;
+import se.swedsoft.bookkeeping.gui.util.SSButtonPanel;
+import se.swedsoft.bookkeeping.gui.util.components.SSTableComboBoxOld;
+import se.swedsoft.bookkeeping.gui.util.datechooser.SSDateChooser;
+import se.swedsoft.bookkeeping.gui.util.dialogs.SSDialog;
+import se.swedsoft.bookkeeping.util.SSDateUtil;
+
+import javax.swing.*;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.time.LocalDate;
+import java.util.Date;
+import java.util.List;
+
+
+/**
+ * $Id$
+ *
+ */
+public class SSTenderListDialog extends SSDialog {
+
+    private JPanel iPanel;
+
+    private SSButtonPanel iButtonPanel;
+
+    private JRadioButton iRadioAll;
+    private JRadioButton iRadioActive;
+
+    private JCheckBox iCheckDate;
+    private JCheckBox iCheckCustomer;
+
+    private SSTableComboBoxOld<SSCustomer> iCustomer;
+    private SSDateChooser iToDate;
+    private SSDateChooser iFromDate;
+
+    /**
+     *
+     * @param iMainFrame
+     */
+    public SSTenderListDialog(SSMainFrame iMainFrame) {
+        super(iMainFrame, SSBundle.getBundle().getString("tenderlistreport.dialog.title"));
+
+        setPanel(iPanel);
+
+        iButtonPanel.addCancelActionListener(e -> setModalResult(JOptionPane.CANCEL_OPTION, true));
+        iButtonPanel.addOkActionListener(e -> setModalResult(JOptionPane.OK_OPTION, true));
+
+	getRootPane().setDefaultButton(iButtonPanel.getOkButton());
+
+        iCustomer.setModel(new SSCustomerDropdownModel());
+        iCustomer.setSearchColumns(0);
+        iCustomer.setColumnWidths(60, 200);
+        iCustomer.setPopupSize(250, 150);
+
+        ChangeListener iChangeListener = e -> {
+
+                iCustomer.setEnabled(iCheckCustomer.isSelected());
+
+                iFromDate.setEnabled(iCheckDate.isSelected());
+                iToDate.setEnabled(iCheckDate.isSelected());
+
+            };
+
+        iCheckDate.addChangeListener(iChangeListener);
+        iCheckCustomer.addChangeListener(iChangeListener);
+
+        ButtonGroup iGroup = new ButtonGroup();
+
+        iGroup.add(iRadioAll);
+        iGroup.add(iRadioActive);
+
+        iChangeListener.stateChanged(null);
+    }
+
+    /**
+     *
+     * @return
+     */
+    public JPanel getPanel() {
+        return iPanel;
+    }
+
+    /**
+     * Returns the invoices to print depending on the user selections
+     *
+     * @return
+     */
+    public List<SSTender> getTendersToPrint() {
+        final List<SSCustomer> iCustomers = SSDB.getInstance().getCustomers();
+
+        List<SSTender> iTenders = SSDB.getInstance().getTenders();
+
+        SSFilterFactory<SSTender> iFactory = new SSFilterFactory<>(iTenders);
+
+        // Filter by non payed invoices
+        if (iRadioActive.isSelected()) {
+
+            iFactory.applyFilter(new SSFilter<>() {
+                public boolean applyFilter(SSTender iTender) {
+                    return !iTender.isExpired();
+                }
+            });
+        }
+
+        // Filter by a customer
+        if (iCheckCustomer.isSelected() && iCustomer.hasSelected()) {
+            final SSCustomer iCustomer = this.iCustomer.getSelected();
+
+            iFactory.applyFilter(new SSFilter<>() {
+                public boolean applyFilter(SSTender iTender) {
+                    return iCustomer.equals(iTender.getCustomer(iCustomers));
+                }
+            });
+
+        }
+        // Filter by date
+        if (iCheckDate.isSelected()) {
+            final LocalDate iDateFrom = iFromDate.getLocalDate();
+            final LocalDate iDateTo = iToDate.getLocalDate();
+
+            iFactory.applyFilter(new SSFilter<>() {
+                public boolean applyFilter(SSTender iTender) {
+                    return SSInvoiceMath.inPeriod(iTender, SSDateUtil.toDate(iDateFrom), SSDateUtil.toDate(iDateTo));
+                }
+            });
+        }
+
+        return iFactory.getObjects();
+    }
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder();
+
+        sb.append("se.swedsoft.bookkeeping.print.dialog.SSTenderListDialog");
+        sb.append("{iButtonPanel=").append(iButtonPanel);
+        sb.append(", iCheckCustomer=").append(iCheckCustomer);
+        sb.append(", iCheckDate=").append(iCheckDate);
+        sb.append(", iCustomer=").append(iCustomer);
+        sb.append(", iFromDate=").append(iFromDate);
+        sb.append(", iPanel=").append(iPanel);
+        sb.append(", iRadioActive=").append(iRadioActive);
+        sb.append(", iRadioAll=").append(iRadioAll);
+        sb.append(", iToDate=").append(iToDate);
+        sb.append('}');
+        return sb.toString();
+    }
+}

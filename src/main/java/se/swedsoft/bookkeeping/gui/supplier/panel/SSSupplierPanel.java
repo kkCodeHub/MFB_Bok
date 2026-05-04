@@ -1,0 +1,479 @@
+package se.swedsoft.bookkeeping.gui.supplier.panel;
+
+
+import se.swedsoft.bookkeeping.data.SSSupplier;
+import se.swedsoft.bookkeeping.data.common.SSCurrency;
+import se.swedsoft.bookkeeping.data.common.SSDeliveryTerm;
+import se.swedsoft.bookkeeping.data.common.SSDeliveryWay;
+import se.swedsoft.bookkeeping.data.common.SSPaymentTerm;
+import se.swedsoft.bookkeeping.gui.company.panel.SSAdressPanel;
+import se.swedsoft.bookkeeping.gui.util.SSButtonPanel;
+import se.swedsoft.bookkeeping.gui.util.SSInputVerifier;
+import se.swedsoft.bookkeeping.gui.util.components.SSEditableTableComboBox;
+import se.swedsoft.bookkeeping.gui.util.components.SSIntegerTextField;
+import se.swedsoft.bookkeeping.gui.util.dialogs.SSDialog;
+import se.swedsoft.bookkeeping.gui.util.model.SSCurrencyTableModel;
+import se.swedsoft.bookkeeping.gui.util.model.SSDeliveryTermTableModel;
+import se.swedsoft.bookkeeping.gui.util.model.SSDeliveryWayTableModel;
+import se.swedsoft.bookkeeping.gui.util.model.SSPaymentTermTableModel;
+
+import javax.swing.*;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+
+
+/**
+ * User: Andreas Lago
+ * Date: 2006-mar-24
+ * Time: 10:00:21
+ */
+public class SSSupplierPanel {
+
+    private SSSupplier iSupplier;
+
+    private JPanel iPanel;
+
+    private SSButtonPanel iButtonPanel;
+
+    private JTextField iHomepage;
+    private JTextField iOurContact;
+    private JTextField iYourContact;
+    private JTextField iRegistrationNumber;
+    private JTextField iEmail;
+    private JTextField iTeleFax;
+    private JTextField iPhone;
+    private JTextField iPhone2;
+    private JTextField iName;
+    private JTextField iSupplierNr;
+    private SSAdressPanel iAddress;
+
+    private SSEditableTableComboBox<SSDeliveryWay > iDeliveryWay;
+    private SSEditableTableComboBox<SSDeliveryTerm> iDeliveryTerm;
+    private SSEditableTableComboBox<SSPaymentTerm > iPaymentTerm;
+    private SSEditableTableComboBox<SSCurrency    > iCurrency;
+
+    private JTextField iOurCustomerNr;
+
+    private JTextField iPlusGiroNumber;
+
+    private JTextField iBankGiroNumber;
+
+    private SSIntegerTextField iOutpaymentNumber;
+
+    private SSInputVerifier iInputVerifier;
+
+    private JTextPane iComment;
+
+    /**
+     *
+     * @param iOwner
+     * @param iEdit
+     */
+    public SSSupplierPanel(final SSDialog iOwner, boolean iEdit) {
+
+        iSupplierNr.setEnabled(!iEdit);
+
+        iCurrency.getComboBox().setModel(SSCurrencyTableModel.getDropDownModel());
+        iCurrency.getComboBox().setSearchColumns();
+        iCurrency.setEditingFactory(SSCurrencyTableModel.getEditingFactory(iOwner));
+
+        iDeliveryWay.getComboBox().setModel(SSDeliveryWayTableModel.getDropDownModel());
+        iDeliveryWay.getComboBox().setSearchColumns();
+        iDeliveryWay.setEditingFactory(SSDeliveryWayTableModel.getEditingFactory(iOwner));
+
+        iDeliveryTerm.getComboBox().setModel(SSDeliveryTermTableModel.getDropDownModel());
+        iDeliveryTerm.getComboBox().setSearchColumns();
+        iDeliveryTerm.setEditingFactory(SSDeliveryTermTableModel.getEditingFactory(iOwner));
+
+        iPaymentTerm.getComboBox().setModel(SSPaymentTermTableModel.getDropDownModel());
+        iPaymentTerm.getComboBox().setSearchColumns();
+        iPaymentTerm.setEditingFactory(SSPaymentTermTableModel.getEditingFactory(iOwner));
+
+        iInputVerifier = new SSInputVerifier();
+
+        iInputVerifier.add(iSupplierNr);
+        iInputVerifier.addListener(new SSInputVerifier.SSVerifierListener() {
+            public void updated(SSInputVerifier iVerifier, boolean iValid) {
+                iButtonPanel.getOkButton().setEnabled(iValid);
+            }
+        });
+
+        addKeyListeners();
+    }
+
+    /**
+     *
+     * @return
+     */
+
+    public boolean isValid() {
+        return iInputVerifier.isValid();
+    }
+
+    /**
+     *
+     * @return
+     */
+    public JPanel getPanel() {
+        return iPanel;
+    }
+
+    /**
+     * @return
+     */
+    public SSSupplier getSupplier() {
+        // Leverantörsnummer
+        iSupplier.setNumber(iSupplierNr.getText());
+        // Namn
+        iSupplier.setName(iName.getText());
+        // Telefon
+        iSupplier.setPhone1(iPhone.getText());
+        // Telefon 2
+        iSupplier.setPhone2(iPhone2.getText());
+        // Fax nummer
+        iSupplier.setTelefax(iTeleFax.getText());
+        // E-Post
+        iSupplier.setEMail(iEmail.getText());
+        // Hemsida
+        iSupplier.setHomepage(iHomepage.getText());
+        // Orginisationsnummer
+        iSupplier.setRegistrationNumber(iRegistrationNumber.getText());
+        // Er kontaktperson
+        iSupplier.setYourContact(iYourContact.getText());
+        // Vår kontaktperson
+        iSupplier.setOurContact(iOurContact.getText());
+        // Vårt kund nummer
+        iSupplier.setOurCustomerNr(iOurCustomerNr.getText());
+        // Bankgiro nummer:
+        iSupplier.setBankGiro(iBankGiroNumber.getText());
+        // Plusgiro nummer:
+        iSupplier.setPlusGiro(iPlusGiroNumber.getText());
+        // Utbetalningsnummer
+        iSupplier.setOutpaymentNumber(iOutpaymentNumber.getValue());
+        // Valuta
+        iSupplier.setCurrency(iCurrency.getSelected());
+        // Betalningsvilkor
+        iSupplier.setPaymentTerm(iPaymentTerm.getSelected());
+        // Leveransvilkor
+        iSupplier.setDeliveryTerm(iDeliveryTerm.getSelected());
+        // Leveranssätt
+        iSupplier.setDeliveryWay(iDeliveryWay.getSelected());
+        // Address
+        iSupplier.setAddress(iAddress.getAddress());
+
+        iSupplier.setComment(iComment.getText());
+
+        if (iSupplier.getAddress().getName() == null
+                || iSupplier.getAddress().getName().length() == 0) {
+            iSupplier.getAddress().setName(iSupplier.getName());
+        }
+
+        return iSupplier;
+
+    }
+
+    /**
+     * @param iSupplier
+     * @param newSupplier
+     */
+    public void setSupplier(SSSupplier iSupplier, boolean newSupplier) {
+        this.iSupplier = iSupplier;
+
+        // Leverantörsnummer
+        iSupplierNr.setText(iSupplier.getNumber());
+        // Namn
+        iName.setText(iSupplier.getName());
+        // Telefon
+        iPhone.setText(iSupplier.getPhone1());
+        // Telefon 2
+        iPhone2.setText(iSupplier.getPhone2());
+        // Fax nummer
+        iTeleFax.setText(iSupplier.getTelefax());
+        // E-Post
+        iEmail.setText(iSupplier.getEMail());
+        // Hemsida
+        iHomepage.setText(iSupplier.getHomepage());
+        // Orginisationsnummer
+        iRegistrationNumber.setText(iSupplier.getRegistrationNumber());
+        // Er kontaktperson
+        iYourContact.setText(iSupplier.getYourContact());
+        // Vår kontaktperson
+        iOurContact.setText(iSupplier.getOurContact());
+        // Vårt kund nummer
+        iOurCustomerNr.setText(iSupplier.getOurCustomerNr());
+        // Bankgiro nummer:
+        iBankGiroNumber.setText(iSupplier.getBankgiro());
+        // Plusgiro nummer:
+        iPlusGiroNumber.setText(iSupplier.getPlusgiro());
+        // Utbetalningsnummer
+        if (newSupplier) {
+            iOutpaymentNumber.setValue(null);
+        } else {
+            iOutpaymentNumber.setValue(iSupplier.getOutpaymentNumber());
+        }
+        // Valuta
+        iCurrency.setSelected(iSupplier.getCurrency());
+        // Betalningsvilkor
+        iPaymentTerm.setSelected(iSupplier.getPaymentTerm());
+        // Leveransvilkor
+        iDeliveryTerm.setSelected(iSupplier.getDeliveryTerm());
+        // Leveranssätt
+        iDeliveryWay.setSelected(iSupplier.getDeliveryWay());
+        // Address
+        iAddress.setAdress(iSupplier.getAddress());
+
+        iComment.setText(iSupplier.getComment());
+    }
+
+    /**
+     *
+     * @param pActionListener
+     */
+
+    public void addOkAction(ActionListener pActionListener) {
+        iButtonPanel.addOkActionListener(pActionListener);
+    }
+
+    /**
+     *
+     * @param pActionListener
+     */
+    public void addCancelAction(ActionListener pActionListener) {
+        iButtonPanel.addCancelActionListener(pActionListener);
+    }
+
+    public void setEditPanel(boolean iEdit) {
+        iSupplierNr.setEditable(!iEdit);
+    }
+
+    public void addKeyListeners() {
+        SwingUtilities.invokeLater(() -> {
+
+                if (iSupplierNr.isEnabled()) {
+                    iSupplierNr.requestFocusInWindow();
+                } else {
+                    iName.requestFocusInWindow();
+                }
+
+            });
+
+        iSupplierNr.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+                if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+                    SwingUtilities.invokeLater(() -> iName.requestFocusInWindow());
+                }
+            }
+        });
+
+        iName.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+                if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+                    SwingUtilities.invokeLater(() -> iHomepage.requestFocusInWindow());
+                }
+            }
+        });
+
+        iHomepage.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+                if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+                    SwingUtilities.invokeLater(() -> iEmail.requestFocusInWindow());
+                }
+            }
+        });
+
+        iEmail.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+                if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+                    SwingUtilities.invokeLater(() -> iRegistrationNumber.requestFocusInWindow());
+                }
+            }
+        });
+
+        iRegistrationNumber.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+                if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+                    SwingUtilities.invokeLater(() -> iOurContact.requestFocusInWindow());
+                }
+            }
+        });
+
+        iOurContact.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+                if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+                    SwingUtilities.invokeLater(() -> iYourContact.requestFocusInWindow());
+                }
+            }
+        });
+
+        iYourContact.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+                if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+                    SwingUtilities.invokeLater(() -> iPhone.requestFocusInWindow());
+                }
+            }
+        });
+
+        iPhone.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+                if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+                    SwingUtilities.invokeLater(() -> iPhone2.requestFocusInWindow());
+                }
+            }
+        });
+
+        iPhone2.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+                if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+                    SwingUtilities.invokeLater(() -> iTeleFax.requestFocusInWindow());
+                }
+            }
+        });
+
+        iTeleFax.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+                if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+                    SwingUtilities.invokeLater(() -> iButtonPanel.getOkButton().requestFocusInWindow());
+                }
+            }
+        });
+
+        iButtonPanel.getOkButton().addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+                if (e.getKeyCode() == KeyEvent.VK_RIGHT) {
+                    SwingUtilities.invokeLater(() -> iButtonPanel.getCancelButton().requestFocusInWindow());
+                }
+            }
+        });
+
+        iButtonPanel.getCancelButton().addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+                if (e.getKeyCode() == KeyEvent.VK_LEFT) {
+                    SwingUtilities.invokeLater(() -> iButtonPanel.getOkButton().requestFocusInWindow());
+                }
+            }
+        });
+
+        iCurrency.getComboBox().getComponent(0).addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+                if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+                    SwingUtilities.invokeLater(
+                            () -> iPaymentTerm.getComboBox().getComponent(0).requestFocusInWindow());
+                }
+            }
+        });
+
+        iPaymentTerm.getComboBox().getComponent(0).addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+                if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+                    SwingUtilities.invokeLater(
+                            () -> iDeliveryTerm.getComboBox().getComponent(0).requestFocusInWindow());
+                }
+            }
+        });
+
+        iDeliveryTerm.getComboBox().getComponent(0).addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+                if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+                    SwingUtilities.invokeLater(
+                            () -> iDeliveryWay.getComboBox().getComponent(0).requestFocusInWindow());
+                }
+            }
+        });
+
+        iDeliveryWay.getComboBox().getComponent(0).addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+                if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+                    SwingUtilities.invokeLater(() -> iOurCustomerNr.requestFocusInWindow());
+                }
+            }
+        });
+
+        iOurCustomerNr.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+                if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+                    SwingUtilities.invokeLater(() -> iOutpaymentNumber.requestFocusInWindow());
+                }
+            }
+        });
+
+        iOutpaymentNumber.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+                if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+                    SwingUtilities.invokeLater(() -> iBankGiroNumber.requestFocusInWindow());
+                }
+            }
+        });
+
+        iBankGiroNumber.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+                if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+                    SwingUtilities.invokeLater(() -> iPlusGiroNumber.requestFocusInWindow());
+                }
+            }
+        });
+
+        iPlusGiroNumber.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+                if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+                    SwingUtilities.invokeLater(() -> iComment.requestFocusInWindow());
+                }
+            }
+        });
+
+        iAddress.addKeyListeners();
+    }
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder();
+
+        sb.append("se.swedsoft.bookkeeping.gui.supplier.panel.SSSupplierPanel");
+        sb.append("{iAddress=").append(iAddress);
+        sb.append(", iBankGiroNumber=").append(iBankGiroNumber);
+        sb.append(", iButtonPanel=").append(iButtonPanel);
+        sb.append(", iComment=").append(iComment);
+        sb.append(", iCurrency=").append(iCurrency);
+        sb.append(", iDeliveryTerm=").append(iDeliveryTerm);
+        sb.append(", iDeliveryWay=").append(iDeliveryWay);
+        sb.append(", iEmail=").append(iEmail);
+        sb.append(", iHomepage=").append(iHomepage);
+        sb.append(", iInputVerifier=").append(iInputVerifier);
+        sb.append(", iName=").append(iName);
+        sb.append(", iOurContact=").append(iOurContact);
+        sb.append(", iOurCustomerNr=").append(iOurCustomerNr);
+        sb.append(", iOutpaymentNumber=").append(iOutpaymentNumber);
+        sb.append(", iPanel=").append(iPanel);
+        sb.append(", iPaymentTerm=").append(iPaymentTerm);
+        sb.append(", iPhone=").append(iPhone);
+        sb.append(", iPhone2=").append(iPhone2);
+        sb.append(", iPlusGiroNumber=").append(iPlusGiroNumber);
+        sb.append(", iRegistrationNumber=").append(iRegistrationNumber);
+        sb.append(", iSupplier=").append(iSupplier);
+        sb.append(", iSupplierNr=").append(iSupplierNr);
+        sb.append(", iTeleFax=").append(iTeleFax);
+        sb.append(", iYourContact=").append(iYourContact);
+        sb.append('}');
+        return sb.toString();
+    }
+}

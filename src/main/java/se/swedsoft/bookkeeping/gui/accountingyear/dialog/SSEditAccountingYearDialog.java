@@ -1,0 +1,69 @@
+/*
+ * 2006-2010
+ * $Id$
+ */
+package se.swedsoft.bookkeeping.gui.accountingyear.dialog;
+
+
+import se.swedsoft.bookkeeping.data.SSNewAccountingYear;
+import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.gui.SSMainFrame;
+import se.swedsoft.bookkeeping.gui.accountingyear.panel.SSAccountingYearPanel;
+import se.swedsoft.bookkeeping.gui.util.SSBundle;
+import se.swedsoft.bookkeeping.gui.util.dialogs.SSDialog;
+import se.swedsoft.bookkeeping.gui.util.model.SSDefaultTableModel;
+
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.util.ResourceBundle;
+
+
+public class SSEditAccountingYearDialog {
+
+    private static ResourceBundle bundle = SSBundle.getBundle();
+
+    private SSEditAccountingYearDialog() {}
+
+    /**
+     *
+     * @param iMainFrame
+     * @param pAccountingYear
+     * @param pModel
+     */
+    public static void showDialog(final SSMainFrame iMainFrame, final SSNewAccountingYear pAccountingYear, final SSDefaultTableModel<SSNewAccountingYear> pModel) {
+        final SSDialog              iDialog = new SSDialog(iMainFrame,
+                bundle.getString("accountingyearframe.edit.title"));
+        final SSAccountingYearPanel iPanel = new SSAccountingYearPanel();
+
+        iPanel.setShowAccountPlanPanel(false);
+        iPanel.setAccountingYear(pAccountingYear);
+
+        iPanel.addOkAction(e -> {
+
+                SSNewAccountingYear iYear = iPanel.getAccountingYear();
+
+                iYear.setId(pAccountingYear.getId());
+
+                SSDB.getInstance().updateAccountingYear(iYear);
+
+                iDialog.closeDialog();
+
+            });
+
+        iPanel.addCancelAction(e -> iDialog.closeDialog());
+
+        iDialog.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+            }
+        });
+        iDialog.add(iPanel.getPanel(), BorderLayout.CENTER);
+        iDialog.pack();
+        iDialog.setLocationRelativeTo(iMainFrame);
+        iDialog.setVisible();
+    }
+
+}

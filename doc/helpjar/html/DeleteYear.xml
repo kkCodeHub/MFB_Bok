@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- $Id$ -->
+
+<!DOCTYPE article
+  PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN" "http://www.oasis-open.org/docbook/xml/4.1.2/docbookx.dtd">
+<article lang="sv">
+   <informaltable frame="all">
+      <tgroup cols="1"><tbody><row>
+            <entry>
+               <para>
+                  <note>
+                     <remark>HTML: &lt;META HTTP-EQUIV="Content-Language" CONTENT="sv"&gt;</remark>
+                  </note>
+                  <inlinegraphic fileref="../images/header.png" width="18.522cm" depth="0.53cm"/> Radera bokföringsår</para>
+               <para/>
+               <para>Du tar bort ett bokföringsår genom att du markerar önskat bokföringsår i listan över bokföringsår och trycker på knappen "Radera valt bokföringsår". När du har raderat ett bokföringsår så försvinner allt arbete du gjort på det här bokföringsåret i programmet och du kan inte ångra din efteråt. Du får givetvis ett varningsmeddelande när du trycker på knappen "Radera valt bokföringsår" och du kan därmed ångra din innan bokföringsåret raderas.</para>
+               <para/>
+               <para>Copyright 2006-2018 - Fribok.org</para>
+            </entry>
+         </row></tbody></tgroup>
+   </informaltable>
+   <para/>
+</article>

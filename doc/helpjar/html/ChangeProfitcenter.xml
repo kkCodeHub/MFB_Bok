@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- $Id$ -->
+
+<!DOCTYPE article
+  PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN" "http://www.oasis-open.org/docbook/xml/4.1.2/docbookx.dtd">
+<article lang="sv">
+   <informaltable frame="all">
+      <tgroup cols="1"><tbody><row>
+            <entry>
+               <para>
+                  <note>
+                     <remark>HTML: &lt;META HTTP-EQUIV="Content-Language" CONTENT="sv"&gt;</remark>
+                  </note>
+                  <inlinegraphic fileref="../images/header.png" width="18.522cm" depth="0.53cm"/> Ändra resultatenhet</para>
+               <para/>
+               <para>I det här formuläret kan du ändra uppgifterna i en redan skapad resultatenhet. Du ändrar uppgifterna genom att ersätta texten i ifyllda fält eller genom att skriva in text i tomma fält.Följande fält finns när du ska ändra uppgifter i en resultatenhet:NummerHär skriver du in ett unikt nummer för att kunna identifiera en resultatenhet.NamnHär skriver du in resultatenhetens namn.BeskrivningHär skriver du in en längre beskrivning av resultatenheten.</para>
+               <para/>
+               <para>Copyright 2006-2018 - Fribok.org</para>
+            </entry>
+         </row></tbody></tgroup>
+   </informaltable>
+   <para/>
+</article>

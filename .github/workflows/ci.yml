@@ -1,0 +1,127 @@
+name: Java CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+
+jobs:
+  build_and_test:
+    if: github.event_name == 'pull_request'
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up JDK
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '21'
+
+    - name: Build and test
+      run: mvn clean install -Pcoverage
+
+    - name: Upload coverage report
+      if: runner.os == 'Linux'
+      uses: actions/upload-artifact@v4
+      with:
+        name: jacoco-report
+        path: target/site/jacoco/
+
+    - name: Run Checkstyle
+      if: runner.os == 'Linux'
+      run: mvn checkstyle:check -q
+      continue-on-error: true
+
+  build_and_publish:
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up JDK
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '21'
+
+    - name: Test
+      run: mvn test -Pcoverage
+
+    - name: Build
+      shell: bash
+      run: |
+        # Sanitize version for jpackage: strip -SNAPSHOT, ensure 3 numeric components
+        RAW=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+        VERSION="${RAW%-SNAPSHOT}"
+        [[ "$VERSION" != *.*.* ]] && VERSION="${VERSION}.0"
+        mvn clean package -DskipTests -Djpackage.profile=true -Djpackage.appVersion="$VERSION"
+
+    - name: List dist contents
+      shell: bash
+      run: ls -lR dist/ || echo "dist/ directory not found"
+
+    # --- Linux steps ---
+    - name: Install libfuse2
+      if: runner.os == 'Linux'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libfuse2
+
+    - name: Create AppImage
+      if: runner.os == 'Linux'
+      working-directory: dist
+      run: |
+        # Create AppDir structure from jpackage app-image
+        mkdir -p Fribok.AppDir/usr
+        cp -r Fribok/* Fribok.AppDir/usr/
+
+        # Create AppRun script
+        printf '#!/bin/bash\nSELF=$(readlink -f "$0")\nHERE=${SELF%%/*}\nexec "${HERE}/usr/bin/Fribok" "$@"\n' > Fribok.AppDir/AppRun
+        chmod +x Fribok.AppDir/AppRun
+
+        # Create .desktop file
+        printf '[Desktop Entry]\nName=Fribok\nExec=Fribok\nIcon=fribok\nType=Application\nCategories=Office;Finance;\n' > Fribok.AppDir/Fribok.desktop
+
+        # Copy icon
+        cp ../src/main/resources/graphics/logo.png Fribok.AppDir/fribok.png
+
+        # Download and run appimagetool
+        wget -q https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage
+        chmod +x appimagetool-x86_64.AppImage
+        ARCH=x86_64 ./appimagetool-x86_64.AppImage Fribok.AppDir Fribok-x86_64.AppImage
+
+    - name: Upload Linux artifact
+      if: runner.os == 'Linux'
+      uses: actions/upload-artifact@v4
+      with:
+        name: fribok-linux
+        path: dist/Fribok-x86_64.AppImage
+
+    # --- Windows steps ---
+    - name: Upload Windows artifact
+      if: runner.os == 'Windows'
+      uses: actions/upload-artifact@v4
+      with:
+        name: fribok-windows
+        path: dist/*.msi
+
+    # --- macOS steps ---
+    - name: Upload macOS artifact
+      if: runner.os == 'macOS'
+      uses: actions/upload-artifact@v4
+      with:
+        name: fribok-macos
+        path: dist/*.dmg

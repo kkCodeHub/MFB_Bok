@@ -1,0 +1,256 @@
+package se.swedsoft.bookkeeping.print.report;
+
+
+import se.swedsoft.bookkeeping.calc.math.SSCreditInvoiceMath;
+import se.swedsoft.bookkeeping.calc.math.SSInvoiceMath;
+import se.swedsoft.bookkeeping.data.*;
+import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.gui.util.model.SSDefaultTableModel;
+import se.swedsoft.bookkeeping.print.SSPrinter;
+import se.swedsoft.bookkeeping.print.report.sales.SSSalePrinterUtils;
+
+import java.math.BigDecimal;
+import java.text.DateFormatSymbols;
+import java.util.*;
+
+
+/**
+ * Date: 2006-mar-03
+ * Time: 15:32:42
+ */
+public class SSQuarterReportPrinter extends SSPrinter {
+
+    private Locale iLocale;
+
+    private Date iFrom;
+
+    private Date iTo;
+
+    private List<SSCustomer> iCustomers;
+
+    private Map<SSCustomer, BigDecimal> iEuSaleCommodity;
+
+    private Map<SSCustomer, BigDecimal> iEuSaleThirdPartCommodity;
+
+    /**
+     *
+     * @param iLocale
+     * @param iFrom
+     * @param iTo
+     */
+    public SSQuarterReportPrinter(Locale iLocale, Date iFrom, Date iTo) {
+        // Get all orders
+        iCustomers = SSDB.getInstance().getCustomers();
+        this.iLocale = iLocale;
+        this.iFrom = iFrom;
+        this.iTo = iTo;
+
+        ResourceBundle iBundle = ResourceBundle.getBundle("reports.quarterreport"); // ", iLocale);
+
+        setBundle(iBundle);
+        setLocale(iLocale);
+
+        setPageHeader("quarterreport.jrxml");
+        setDetail("quarterreport.jrxml");
+        setColumnHeader("quarterreport.jrxml");
+        setSummary("quarterreport.jrxml");
+        setPageFooter("quarterreport.jrxml");
+
+        addParameters();
+
+        iEuSaleCommodity = new HashMap<>();
+        iEuSaleThirdPartCommodity = new HashMap<>();
+
+        Map<String, List<SSInvoice>> iInvoicesForCustomers = SSInvoiceMath.getInvoicesforCustomers();
+        Map<String, List<SSCreditInvoice>> iCreditInvoicesForCustomers = SSCreditInvoiceMath.getCreditInvoicesforCustomers();
+
+        // List<SSInvoice>       iInvoices       = SSDB.getInstance().getInvoices();
+        // List<SSCreditInvoice> iCreditInvoices = SSDB.getInstance().getCreditInvoices();
+
+        for (SSCustomer iCustomer : iCustomers) {
+            List<SSInvoice>       iInvoicesForCustomer = iInvoicesForCustomers.get(
+                    iCustomer.getNumber());
+            List<SSCreditInvoice> iCreditInvoicesForCustomer = iCreditInvoicesForCustomers.get(
+                    iCustomer.getNumber());
+
+            iEuSaleCommodity.put(iCustomer, new BigDecimal(0));
+            iEuSaleThirdPartCommodity.put(iCustomer, new BigDecimal(0));
+
+            if (iInvoicesForCustomer != null) {
+                for (SSInvoice iInvoice : iInvoicesForCustomer) {
+
+                    if (!SSInvoiceMath.inPeriod(iInvoice, iFrom, iTo)) {
+                        continue;
+                    }
+
+                    BigDecimal iTotalSum = SSInvoiceMath.getTotalSum(iInvoice);
+
+                    iTotalSum = SSInvoiceMath.convertToLocal(iInvoice, iTotalSum);
+
+                    if (iInvoice.getEuSaleCommodity()) {
+                        BigDecimal iSum = iEuSaleCommodity.get(iCustomer);
+
+                        iEuSaleCommodity.put(iCustomer, iSum.add(iTotalSum));
+                    }
+                    if (iInvoice.getEuSaleThirdPartCommodity()) {
+                        BigDecimal iSum = iEuSaleThirdPartCommodity.get(iCustomer);
+
+                        iEuSaleThirdPartCommodity.put(iCustomer, iSum.add(iTotalSum));
+                    }
+                }
+            }
+            if (iCreditInvoicesForCustomer != null) {
+                for (SSCreditInvoice iCreditInvoice : iCreditInvoicesForCustomer) {
+
+                    if (!SSCreditInvoiceMath.inPeriod(iCreditInvoice, iFrom, iTo)) {
+                        continue;
+                    }
+
+                    BigDecimal iTotalSum = SSCreditInvoiceMath.getTotalSum(iCreditInvoice);
+
+                    iTotalSum = SSCreditInvoiceMath.convertToLocal(iCreditInvoice,
+                            iTotalSum);
+
+                    if (iCreditInvoice.getEuSaleCommodity()) {
+                        BigDecimal iSum = iEuSaleCommodity.get(iCustomer);
+
+                        iEuSaleCommodity.put(iCustomer, iSum.subtract(iTotalSum));
+                    }
+
+                    if (iCreditInvoice.getEuSaleThirdPartCommodity()) {
+                        BigDecimal iSum = iEuSaleThirdPartCommodity.get(iCustomer);
+
+                        iEuSaleThirdPartCommodity.put(iCustomer, iSum.subtract(iTotalSum));
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Gets the title file for this repport
+     *
+     * @return
+     */
+    @Override
+    public String getTitle() {
+        return iBundle.getString("quarterreport.title");
+    }
+
+    /**
+     *
+     */
+    private void addParameters() {
+        SSNewCompany iCompany = SSDB.getInstance().getCurrentCompany();
+
+        SSSalePrinterUtils.addParametersForCompany(iCompany, this);
+
+        // Sale parameters
+        addParameter("number", iCompany.getVATNumber());
+        addParameter("date", getPeriodText());
+        addParameter("quarter", getQuarterText());
+    }
+
+    /**
+     *
+     * @return
+     */
+    private String getQuarterText() {
+        java.time.LocalDate localFrom = se.swedsoft.bookkeeping.util.SSDateUtil.toLocalDate(iFrom);
+
+        String iYear = Integer.toString(localFrom.getYear()).substring(2);
+        String iMonth = Integer.toString((localFrom.getMonthValue() - 1) / 3 + 1);
+
+        return iYear + '-' + iMonth;
+    }
+
+    /**
+     *
+     * @return
+     */
+    private String getPeriodText() {
+        String[] iMonths = new DateFormatSymbols().getMonths();
+
+        java.time.LocalDate localFrom = se.swedsoft.bookkeeping.util.SSDateUtil.toLocalDate(iFrom);
+        java.time.LocalDate localTo = se.swedsoft.bookkeeping.util.SSDateUtil.toLocalDate(iTo);
+
+        String iMonthFrom = iMonths[localFrom.getMonthValue() - 1];
+        String iMonthTo = iMonths[localTo.getMonthValue() - 1];
+        String iYear = Integer.toString(localTo.getYear());
+
+        return iMonthFrom + " - " + iMonthTo + ' ' + iYear;
+
+    }
+
+    /**
+     *
+     * @return
+     */
+    @Override
+    protected SSDefaultTableModel getModel() {
+
+        SSDefaultTableModel<SSCustomer> iModel = new SSDefaultTableModel<>() {
+
+            @Override
+            public Class<?> getType() {
+                return SSAccount.class;
+            }
+
+            public Object getValueAt(int rowIndex, int columnIndex) {
+                Object value = null;
+
+                SSCustomer iCustomer = getObject(rowIndex);
+
+                switch (columnIndex) {
+                case 0:
+                    value = iCustomer.getNumber();
+                    break;
+
+                case 1:
+                    value = iCustomer.getName();
+                    break;
+
+                case 2:
+                    value = iCustomer.getVATNumber();
+                    break;
+
+                case 3:
+                    value = iEuSaleCommodity.get(iCustomer);
+                    break;
+
+                case 4:
+                    value = iEuSaleThirdPartCommodity.get(iCustomer);
+                    break;
+                }
+                return value;
+            }
+        };
+
+        iModel.addColumn("customer.number");
+        iModel.addColumn("customer.name");
+        iModel.addColumn("customer.vatnumber");
+        iModel.addColumn("customer.eusalecommodity");
+        iModel.addColumn("customer.eusalethirdpartcommodity");
+
+        Collections.sort(iCustomers, (o1, o2) -> o1.getNumber().compareTo(o2.getNumber()));
+
+        iModel.setObjects(iCustomers);
+
+        return iModel;
+    }
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder();
+
+        sb.append("se.swedsoft.bookkeeping.print.report.SSQuarterReportPrinter");
+        sb.append("{iCustomers=").append(iCustomers);
+        sb.append(", iEuSaleCommodity=").append(iEuSaleCommodity);
+        sb.append(", iEuSaleThirdPartCommodity=").append(iEuSaleThirdPartCommodity);
+        sb.append(", iFrom=").append(iFrom);
+        sb.append(", iLocale=").append(iLocale);
+        sb.append(", iTo=").append(iTo);
+        sb.append('}');
+        return sb.toString();
+    }
+}
