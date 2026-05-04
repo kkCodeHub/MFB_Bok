@@ -128,6 +128,11 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
         // dropTriggers();
         createLocalTriggers();
 
+        if (useSchemaV2()) {
+            LOG.info("startupLocal running in schema V2 mode; skipping legacy seed/import and last-company restore");
+            return;
+        }
+
         checkCreateExampleCompany();
         checkImportDefaultAccountPlans();
 
@@ -471,7 +476,11 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
     }
 
     public void setCurrentCompany(SSNewCompany iCompany) {
-        iCurrentCompany = getCompany(iCompany).orElse(null);
+        if (useSchemaV2()) {
+            iCurrentCompany = iCompany;
+        } else {
+            iCurrentCompany = getCompany(iCompany).orElse(null);
+        }
         iProducts = null;
         iCustomers = null;
         iSuppliers = null;
@@ -494,7 +503,9 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
     }
 
     public SSNewCompany getCurrentCompany() {
-        iCurrentCompany = getCompany(iCurrentCompany).orElse(null);
+        if (!useSchemaV2()) {
+            iCurrentCompany = getCompany(iCurrentCompany).orElse(null);
+        }
         return iCurrentCompany;
     }
 
@@ -521,6 +532,18 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
             PreparedStatement iStatement = iConnection.prepareStatement(
                     "SELECT * FROM tbl_company");
             ResultSet iResultSet = iStatement.executeQuery();
+
+            if (useSchemaV2()) {
+                while (iResultSet.next()) {
+                    SSNewCompany iCompany = new SSNewCompany();
+                    iCompany.setId(iResultSet.getInt("id"));
+                    iCompany.setName(iResultSet.getString("name"));
+                    iCompanies.add(iCompany);
+                }
+                iResultSet.close();
+                iStatement.close();
+                return iCompanies;
+            }
 
             while (iResultSet.next()) {
                 try {
@@ -556,6 +579,15 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
             ResultSet iResultSet = iStatement.executeQuery();
 
             if (iResultSet.next()) {
+                if (useSchemaV2()) {
+                    SSNewCompany iCompany = new SSNewCompany();
+                    iCompany.setId(iResultSet.getInt("id"));
+                    iCompany.setName(iResultSet.getString("name"));
+                    iResultSet.close();
+                    iStatement.close();
+                    return Optional.of(iCompany);
+                }
+
                 SSNewCompany iCompany = (SSNewCompany) iResultSet.getObject("company");
 
                 iResultSet.close();
@@ -4083,6 +4115,89 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
      *
      * @return  A List of customers or an empty list.
      */
+    private SSAddress mapAddressV2(ResultSet iResultSet, String iPrefix) throws SQLException {
+        SSAddress iAddress = new SSAddress();
+        iAddress.setName(iResultSet.getString(iPrefix + "_name"));
+        iAddress.setAddress1(iResultSet.getString(iPrefix + "_address"));
+        iAddress.setAddress2(iResultSet.getString(iPrefix + "_street"));
+        iAddress.setZipCode(iResultSet.getString(iPrefix + "_zipcode"));
+        iAddress.setCity(iResultSet.getString(iPrefix + "_city"));
+        iAddress.setCountry(iResultSet.getString(iPrefix + "_country"));
+        return iAddress;
+    }
+
+    private SSCustomer mapCustomerV2(ResultSet iResultSet) throws SQLException {
+        SSCustomer iCustomer = new SSCustomer();
+
+        iCustomer.setNumber(iResultSet.getString("number"));
+        iCustomer.setName(iResultSet.getString("name"));
+        iCustomer.setEMail(iResultSet.getString("email"));
+        iCustomer.setPhone1(iResultSet.getString("phone"));
+        iCustomer.setPhone2(iResultSet.getString("phone2"));
+        iCustomer.setTelefax(iResultSet.getString("telefax"));
+        iCustomer.setRegistrationNumber(iResultSet.getString("registration_number"));
+        iCustomer.setOurContactPerson(iResultSet.getString("our_contact"));
+        iCustomer.setYourContactPerson(iResultSet.getString("your_contact"));
+        iCustomer.setVATNumber(iResultSet.getString("vat_number"));
+        iCustomer.setBankgiro(iResultSet.getString("bankgiro"));
+        iCustomer.setPlusgiro(iResultSet.getString("plusgiro"));
+        iCustomer.setAccountNumber(iResultSet.getString("account_number"));
+        iCustomer.setClearingNumber(iResultSet.getString("clearing_number"));
+        iCustomer.setEuSaleCommodity(iResultSet.getBoolean("eu_sale_commodity"));
+        iCustomer.setEuSaleYhirdPartCommodity(iResultSet.getBoolean("eu_sale_third_part"));
+        iCustomer.setTaxFree(iResultSet.getBoolean("vat_free_sale"));
+        iCustomer.setHideUnitprice(iResultSet.getBoolean("hide_unitprice"));
+        iCustomer.setCreditLimit(iResultSet.getBigDecimal("credit_limit"));
+        iCustomer.setDiscount(iResultSet.getBigDecimal("discount"));
+        iCustomer.setComment(iResultSet.getString("comment"));
+
+        String iCurrencyCode = iResultSet.getString("currency_code");
+        if (iCurrencyCode != null) {
+            iCustomer.setInvoiceCurrency(new SSCurrency(iCurrencyCode, iCurrencyCode));
+        }
+
+        String iPaymentTerm = iResultSet.getString("payment_term");
+        if (iPaymentTerm != null) {
+            iCustomer.setPaymentTerm(new SSPaymentTerm(iPaymentTerm, iPaymentTerm));
+        }
+
+        String iDeliveryTerm = iResultSet.getString("delivery_term");
+        if (iDeliveryTerm != null) {
+            iCustomer.setDeliveryTerm(new SSDeliveryTerm(iDeliveryTerm, iDeliveryTerm));
+        }
+
+        String iDeliveryWay = iResultSet.getString("delivery_way");
+        if (iDeliveryWay != null) {
+            iCustomer.setDeliveryWay(new SSDeliveryWay(iDeliveryWay, iDeliveryWay));
+        }
+
+        iCustomer.setInvoiceAddress(mapAddressV2(iResultSet, "inv_addr"));
+        iCustomer.setDeliveryAddress(mapAddressV2(iResultSet, "del_addr"));
+
+        return iCustomer;
+    }
+
+    private int bindAddressV2(PreparedStatement iStatement, int iIndex, SSAddress iAddress)
+            throws SQLException {
+        SSAddress iSafeAddress = iAddress == null ? new SSAddress() : iAddress;
+        iStatement.setObject(iIndex++, iSafeAddress.getName());
+        iStatement.setObject(iIndex++, iSafeAddress.getAddress1());
+        iStatement.setObject(iIndex++, iSafeAddress.getAddress2());
+        iStatement.setObject(iIndex++, iSafeAddress.getZipCode());
+        iStatement.setObject(iIndex++, iSafeAddress.getCity());
+        iStatement.setObject(iIndex++, iSafeAddress.getCountry());
+        return iIndex;
+    }
+
+    private String getCustomerCurrencyCodeV2(SSCustomer iCustomer) {
+        try {
+            SSCurrency iCurrency = iCustomer.getInvoiceCurrency();
+            return iCurrency == null ? null : iCurrency.getName();
+        } catch (RuntimeException ignored) {
+            return null;
+        }
+    }
+
     public List<SSCustomer> getCustomers() {
         if (iCustomers != null) {
             return iCustomers;
@@ -4107,7 +4222,11 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
 
                 while (iResultSet.next()) {
                     iMax = iResultSet.getInt(1);
-                    iCustomers.add((SSCustomer) iResultSet.getObject(3));
+                    if (useSchemaV2()) {
+                        iCustomers.add(mapCustomerV2(iResultSet));
+                    } else {
+                        iCustomers.add((SSCustomer) iResultSet.getObject(3));
+                    }
                     i++;
                 }
                 if (i != 1024) {
@@ -4143,7 +4262,9 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
             ResultSet iResultSet = iStatement.executeQuery();
 
             if (iResultSet.next()) {
-                SSCustomer iCustomer = (SSCustomer) iResultSet.getObject(3);
+                SSCustomer iCustomer = useSchemaV2()
+                        ? mapCustomerV2(iResultSet)
+                        : (SSCustomer) iResultSet.getObject(3);
 
                 iStatement.close();
                 return Optional.of(iCustomer);
@@ -4170,14 +4291,16 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
         }
         try {
             PreparedStatement iStatement = iConnection.prepareStatement(
-                    "SELECT * FROM tbl_customer WHERE LOWER(number)=LOWER('"
-                            + iCustomerNumber + "') AND companyid=?");
+                    "SELECT * FROM tbl_customer WHERE LOWER(number)=LOWER(?) AND companyid=?");
 
-            iStatement.setObject(1, iCurrentCompany.getId());
+            iStatement.setObject(1, iCustomerNumber);
+            iStatement.setObject(2, iCurrentCompany.getId());
             ResultSet iResultSet = iStatement.executeQuery();
 
             if (iResultSet.next()) {
-                SSCustomer iCustomer = (SSCustomer) iResultSet.getObject(3);
+                SSCustomer iCustomer = useSchemaV2()
+                        ? mapCustomerV2(iResultSet)
+                        : (SSCustomer) iResultSet.getObject(3);
 
                 iStatement.close();
                 return Optional.of(iCustomer);
@@ -4222,7 +4345,11 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
                 ResultSet iResultSet = iStatement.executeQuery();
 
                 if (iResultSet.next()) {
-                    iCustomers.add((SSCustomer) iResultSet.getObject(3));
+                    if (useSchemaV2()) {
+                        iCustomers.add(mapCustomerV2(iResultSet));
+                    } else {
+                        iCustomers.add((SSCustomer) iResultSet.getObject(3));
+                    }
                 }
                 iStatement.close();
             }
@@ -4247,12 +4374,61 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
             return;
         }
         try {
-            PreparedStatement iStatement = iConnection.prepareStatement(
-                    "INSERT INTO tbl_customer VALUES(NULL,?,?,?)");
+            PreparedStatement iStatement;
 
-            iStatement.setObject(1, iCustomer.getNumber());
-            iStatement.setObject(2, iCustomer);
-            iStatement.setObject(3, iCurrentCompany.getId());
+            if (useSchemaV2()) {
+                iStatement = iConnection.prepareStatement(
+                        "INSERT INTO tbl_customer(" +
+                                "number,companyid,name,email,phone,phone2,telefax,registration_number," +
+                                "our_contact,your_contact,vat_number,bankgiro,plusgiro,account_number," +
+                                "clearing_number,eu_sale_commodity,eu_sale_third_part,vat_free_sale," +
+                                "hide_unitprice,credit_limit,discount,comment,currency_code,payment_term," +
+                                "delivery_term,delivery_way,inv_addr_name,inv_addr_address,inv_addr_street," +
+                                "inv_addr_zipcode,inv_addr_city,inv_addr_country,del_addr_name,del_addr_address," +
+                                "del_addr_street,del_addr_zipcode,del_addr_city,del_addr_country) " +
+                                "VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
+
+                int i = 1;
+                iStatement.setObject(i++, iCustomer.getNumber());
+                iStatement.setObject(i++, iCurrentCompany.getId());
+                iStatement.setObject(i++, iCustomer.getName());
+                iStatement.setObject(i++, iCustomer.getEMail());
+                iStatement.setObject(i++, iCustomer.getPhone1());
+                iStatement.setObject(i++, iCustomer.getPhone2());
+                iStatement.setObject(i++, iCustomer.getTelefax());
+                iStatement.setObject(i++, iCustomer.getRegistrationNumber());
+                iStatement.setObject(i++, iCustomer.getOurContactPerson());
+                iStatement.setObject(i++, iCustomer.getYourContactPerson());
+                iStatement.setObject(i++, iCustomer.getVATNumber());
+                iStatement.setObject(i++, iCustomer.getBankgiro());
+                iStatement.setObject(i++, iCustomer.getPlusgiro());
+                iStatement.setObject(i++, iCustomer.getAccountNumber());
+                iStatement.setObject(i++, iCustomer.getClearingNumber());
+                iStatement.setObject(i++, iCustomer.getEuSaleCommodity());
+                iStatement.setObject(i++, iCustomer.getEuSaleYhirdPartCommodity());
+                iStatement.setObject(i++, iCustomer.getTaxFree());
+                iStatement.setObject(i++, iCustomer.getHideUnitprice());
+                iStatement.setObject(i++, iCustomer.getCreditLimit());
+                iStatement.setObject(i++, iCustomer.getDiscount());
+                iStatement.setObject(i++, iCustomer.getComment());
+                iStatement.setObject(i++, getCustomerCurrencyCodeV2(iCustomer));
+                iStatement.setObject(i++, iCustomer.getPaymentTerm() == null
+                        ? null : iCustomer.getPaymentTerm().getName());
+                iStatement.setObject(i++, iCustomer.getDeliveryTerm() == null
+                        ? null : iCustomer.getDeliveryTerm().getName());
+                iStatement.setObject(i++, iCustomer.getDeliveryWay() == null
+                        ? null : iCustomer.getDeliveryWay().getName());
+                i = bindAddressV2(iStatement, i, iCustomer.getInvoiceAddress());
+                bindAddressV2(iStatement, i, iCustomer.getDeliveryAddress());
+            } else {
+                iStatement = iConnection.prepareStatement(
+                        "INSERT INTO tbl_customer VALUES(NULL,?,?,?)");
+
+                iStatement.setObject(1, iCustomer.getNumber());
+                iStatement.setObject(2, iCustomer);
+                iStatement.setObject(3, iCurrentCompany.getId());
+            }
+
             iStatement.executeUpdate();
             iConnection.commit();
             iStatement.close();
@@ -4271,12 +4447,62 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
             return;
         }
         try {
-            PreparedStatement iStatement = iConnection.prepareStatement(
-                    "UPDATE tbl_customer SET customer=? WHERE number=? AND companyid=?");
+            PreparedStatement iStatement;
 
-            iStatement.setObject(1, iCustomer);
-            iStatement.setObject(2, iCustomer.getNumber());
-            iStatement.setObject(3, iCurrentCompany.getId());
+            if (useSchemaV2()) {
+                iStatement = iConnection.prepareStatement(
+                        "UPDATE tbl_customer SET " +
+                                "name=?,email=?,phone=?,phone2=?,telefax=?,registration_number=?," +
+                                "our_contact=?,your_contact=?,vat_number=?,bankgiro=?,plusgiro=?," +
+                                "account_number=?,clearing_number=?,eu_sale_commodity=?,eu_sale_third_part=?," +
+                                "vat_free_sale=?,hide_unitprice=?,credit_limit=?,discount=?,comment=?," +
+                                "currency_code=?,payment_term=?,delivery_term=?,delivery_way=?," +
+                                "inv_addr_name=?,inv_addr_address=?,inv_addr_street=?,inv_addr_zipcode=?," +
+                                "inv_addr_city=?,inv_addr_country=?,del_addr_name=?,del_addr_address=?," +
+                                "del_addr_street=?,del_addr_zipcode=?,del_addr_city=?,del_addr_country=? " +
+                                "WHERE number=? AND companyid=?");
+
+                int i = 1;
+                iStatement.setObject(i++, iCustomer.getName());
+                iStatement.setObject(i++, iCustomer.getEMail());
+                iStatement.setObject(i++, iCustomer.getPhone1());
+                iStatement.setObject(i++, iCustomer.getPhone2());
+                iStatement.setObject(i++, iCustomer.getTelefax());
+                iStatement.setObject(i++, iCustomer.getRegistrationNumber());
+                iStatement.setObject(i++, iCustomer.getOurContactPerson());
+                iStatement.setObject(i++, iCustomer.getYourContactPerson());
+                iStatement.setObject(i++, iCustomer.getVATNumber());
+                iStatement.setObject(i++, iCustomer.getBankgiro());
+                iStatement.setObject(i++, iCustomer.getPlusgiro());
+                iStatement.setObject(i++, iCustomer.getAccountNumber());
+                iStatement.setObject(i++, iCustomer.getClearingNumber());
+                iStatement.setObject(i++, iCustomer.getEuSaleCommodity());
+                iStatement.setObject(i++, iCustomer.getEuSaleYhirdPartCommodity());
+                iStatement.setObject(i++, iCustomer.getTaxFree());
+                iStatement.setObject(i++, iCustomer.getHideUnitprice());
+                iStatement.setObject(i++, iCustomer.getCreditLimit());
+                iStatement.setObject(i++, iCustomer.getDiscount());
+                iStatement.setObject(i++, iCustomer.getComment());
+                iStatement.setObject(i++, getCustomerCurrencyCodeV2(iCustomer));
+                iStatement.setObject(i++, iCustomer.getPaymentTerm() == null
+                        ? null : iCustomer.getPaymentTerm().getName());
+                iStatement.setObject(i++, iCustomer.getDeliveryTerm() == null
+                        ? null : iCustomer.getDeliveryTerm().getName());
+                iStatement.setObject(i++, iCustomer.getDeliveryWay() == null
+                        ? null : iCustomer.getDeliveryWay().getName());
+                i = bindAddressV2(iStatement, i, iCustomer.getInvoiceAddress());
+                i = bindAddressV2(iStatement, i, iCustomer.getDeliveryAddress());
+                iStatement.setObject(i++, iCustomer.getNumber());
+                iStatement.setObject(i, iCurrentCompany.getId());
+            } else {
+                iStatement = iConnection.prepareStatement(
+                        "UPDATE tbl_customer SET customer=? WHERE number=? AND companyid=?");
+
+                iStatement.setObject(1, iCustomer);
+                iStatement.setObject(2, iCustomer.getNumber());
+                iStatement.setObject(3, iCurrentCompany.getId());
+            }
+
             iStatement.executeUpdate();
             iConnection.commit();
             iStatement.close();
@@ -7741,6 +7967,10 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
         return "sql/create_tables.sql";
     }
 
+    private boolean useSchemaV2() {
+        return "sql/create_tables_v2.sql".equals(getSchemaResource());
+    }
+
     public void createNewTables() {
         try {
             if (iConnection == null || iConnection.isClosed()) {
@@ -7751,10 +7981,20 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
             String q = SSUtil.readResourceToString(schemaResource);
             LOG.info("createNewTables using schema resource: {}", schemaResource);
 
+            // Strip SQL line comments before splitting on ';' so semicolons inside
+            // comments do not produce invalid fragments.
+            StringBuilder scriptBuilder = new StringBuilder();
+            for (String line : q.split("\\r?\\n")) {
+                if (!line.trim().startsWith("--")) {
+                    scriptBuilder.append(line).append('\n');
+                }
+            }
+            String script = scriptBuilder.toString();
+
             // Split SQL script into individual statements (separated by ';') and
             // execute each separately, since PreparedStatement.executeUpdate() can
             // only handle one statement at a time.
-            String[] statements = q.split(";");
+            String[] statements = script.split(";");
             for (String statement : statements) {
                 String trimmed = statement.trim();
                 if (trimmed.isEmpty()) {
