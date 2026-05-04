@@ -9,7 +9,7 @@ Completed work belongs in `CHANGELOG.md` and git history, not here.
 | Area | Current state |
 |------|---------------|
 | Java target | 21 |
-| Tests | JUnit 5 + integration tests in place |
+| Tests | JUnit 5 + integration tests passing (headless & in-memory HSQLDB) |
 | Logging | SLF4J + Logback in place |
 | Build tooling | Checkstyle, SpotBugs, JaCoCo, and CI are configured |
 | Date/time migration | `Calendar` and `SimpleDateFormat` are gone; legacy `Date` boundaries remain |

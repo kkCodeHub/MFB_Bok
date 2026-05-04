@@ -12,6 +12,21 @@ diverging from upstream version 2.2-SNAPSHOT.
 ## [Unreleased]
 
 ### Added
+- Integration tests now pass in headless (CI) environments:
+  - `SSDB.init()` skips the `SSInitDialog` popup when
+    `GraphicsEnvironment.isHeadless()` returns true.
+  - `SSMainFrame.getInstance()` returns `null` in headless mode instead of
+    throwing `HeadlessException`.
+  - `SSErrorDialog.showDialog()` accepts a `null` frame and silently skips
+    the dialog, so callers work correctly in headless contexts.
+  - `SSDB.createNewTables()` falls back from `CREATE CACHED TABLE` (file-backed)
+    to `CREATE TABLE IF NOT EXISTS` (in-memory) when the primary DDL statement
+    fails; required for HSQLDB in-memory databases used in integration tests.
+  - `create_tables.sql` now uses explicit `VARCHAR(255)` instead of bare
+    `VARCHAR` throughout; HSQLDB 2.7 requires an explicit length in DDL.
+  - `SSDB.java` collapses redundant `ClassCastException | RuntimeException`
+    multi-catch arms (the former is a subclass of the latter; JDK 21 rejects
+    the redundant union).
 - Repository abstraction layer (`se.swedsoft.bookkeeping.persistence`) introducing
   `CustomerRepository`, `ProductRepository` and `SupplierRepository` interfaces
   for the masterdata domain.  Legacy implementations in the `persistence.legacy`
@@ -26,8 +41,8 @@ diverging from upstream version 2.2-SNAPSHOT.
   (from ~2005) to modern HSQLDB 2.7.2 (2023). Compilation succeeds; unit tests pass
   with HSQLDB 2.7.2. Fixed `SSDB.createNewTables()` to execute SQL statements
   separately (PreparedStatement limitation). Includes `HSQLDB_2X_UPGRADE_PLAN.md`
-  documenting migration path. Integration tests have separate headless/GUI issue
-  (not a database problem).
+  integration tests have separate headless/GUI issue
+  (not a database problem). (Headless/in-memory issue subsequently fixed.)
 - Modernization plan (`MODERNIZATION.md`) documenting a phased approach to
   bring the codebase from Java 5/6-era style to modern Java.
 - `AGENTS.md` with build, test, lint commands and code style guidelines for
