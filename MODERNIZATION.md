@@ -58,26 +58,29 @@ Done when:
 
 ### 2. Replace Serialization-Based Persistence
 
-Status: not started
+Status: in progress
 
 Current repo state:
 - `46` production classes still implement `Serializable`
 - storage is still built around serialized objects in HSQLDB
-- HSQLDB is still `1.8.0.10`
+- HSQLDB is now upgraded to `2.7.2`
+- Step 2.1 mapping is documented in `OBJECT_COLUMN_MAPPING.md`
+- Step 2.2 normalized schema is implemented in `src/main/resources/sql/create_tables_v2.sql`
+- schema syntax validation test exists in `src/test/java/se/swedsoft/bookkeeping/data/system/SchemaV2ValidatorTest.java`
+- session handoff docs for continuation:
+  - `doc/migration/STEP2_STATUS_2026-05-04.md`
+  - `doc/migration/STEP2_3_EXECUTION_PLAN.md`
+  - `doc/migration/SESSION_RESUME_CHECKLIST.md`
 
 Remaining tasks:
-- Decide the target persistence strategy
-  - normalized SQL schema
-  - JSON/text document storage
-  - another transitional approach on newer HSQLDB
-- Design a migration path from existing user databases
-- Build a migration tool that can read old serialized-object data and write the new format
-- Incrementally remove `Serializable` from domain and backup models once the storage layer no longer depends on it
-- Keep backup/restore working across the migration
+- Wire runtime database bootstrap to use V2 schema (`create_tables_v2.sql`)
+- Move CRUD flows from OBJECT serialization to normalized SQL tables (Steg 2.3)
+- Incrementally remove `Serializable` from domain and backup models once storage no longer depends on it
+- Keep backup/restore strategy explicit after forward-only cutover
 
 Done when:
-- new persistence format is implemented
-- existing user data can be migrated safely
+- new persistence format is used by runtime flows
+- existing V1 OBJECT paths are removed from active code paths
 - domain model evolution no longer depends on Java serialization compatibility
 
 ### 3. Replace or Remove Obsolete Dependencies
