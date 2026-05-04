@@ -860,8 +860,12 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
                 ResultSet iResultSet = iStatement.executeQuery();
 
                 while (iResultSet.next()) {
-                    iYears.add(
-                            (SSNewAccountingYear) iResultSet.getObject("accountingyear"));
+                    if (useSchemaV2()) {
+                        iYears.add(mapAccountingYearV2(iResultSet));
+                    } else {
+                        iYears.add(
+                                (SSNewAccountingYear) iResultSet.getObject("accountingyear"));
+                    }
                 }
                 iResultSet.close();
                 iStatement.close();
@@ -889,8 +893,12 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
                 ResultSet iResultSet = iStatement.executeQuery();
 
                 while (iResultSet.next()) {
-                    iYears.add(
-                            (SSNewAccountingYear) iResultSet.getObject("accountingyear"));
+                    if (useSchemaV2()) {
+                        iYears.add(mapAccountingYearV2(iResultSet));
+                    } else {
+                        iYears.add(
+                                (SSNewAccountingYear) iResultSet.getObject("accountingyear"));
+                    }
                 }
                 iResultSet.close();
                 iStatement.close();
@@ -919,8 +927,14 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
             ResultSet iResultSet = iStatement.executeQuery();
 
             if (iResultSet.next()) {
-                SSNewAccountingYear iAccountingYear = (SSNewAccountingYear) iResultSet.getObject(
-                        "accountingyear");
+                SSNewAccountingYear iAccountingYear;
+
+                if (useSchemaV2()) {
+                    iAccountingYear = mapAccountingYearV2(iResultSet);
+                } else {
+                    iAccountingYear = (SSNewAccountingYear) iResultSet.getObject(
+                            "accountingyear");
+                }
 
                 iResultSet.close();
                 iStatement.close();
@@ -947,6 +961,29 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
             return;
         }
         try {
+            if (useSchemaV2()) {
+                PreparedStatement iStatement = iConnection.prepareStatement(
+                        "INSERT INTO tbl_accountingyear(companyid,from_date,to_date,accountplan_id) VALUES(?,?,?,?)",
+                        Statement.RETURN_GENERATED_KEYS);
+
+                iStatement.setObject(1, iCurrentCompany.getId());
+                iStatement.setObject(2, java.sql.Date.valueOf(iAccountingYear.getLocalFrom()));
+                iStatement.setObject(3, java.sql.Date.valueOf(iAccountingYear.getLocalTo()));
+                iStatement.setObject(4, iAccountingYear.getAccountPlan() == null
+                        ? null : iAccountingYear.getAccountPlan().getId());
+                iStatement.executeUpdate();
+
+                try (ResultSet iKeys = iStatement.getGeneratedKeys()) {
+                    if (iKeys.next()) {
+                        iAccountingYear.setId(iKeys.getInt(1));
+                    }
+                }
+
+                iConnection.commit();
+                iStatement.close();
+                return;
+            }
+
             PreparedStatement iStatement = iConnection.prepareStatement(
                     "INSERT INTO tbl_accountingyear VALUES(NULL,?,?)");
 
@@ -992,6 +1029,26 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
             return;
         }
         try {
+            if (useSchemaV2()) {
+                PreparedStatement iStatement = iConnection.prepareStatement(
+                        "UPDATE tbl_accountingyear SET from_date=?,to_date=?,accountplan_id=? WHERE id=?");
+
+                iStatement.setObject(1, java.sql.Date.valueOf(iAccountingYear.getLocalFrom()));
+                iStatement.setObject(2, java.sql.Date.valueOf(iAccountingYear.getLocalTo()));
+                iStatement.setObject(3, iAccountingYear.getAccountPlan() == null
+                        ? null : iAccountingYear.getAccountPlan().getId());
+                iStatement.setObject(4, iAccountingYear.getId());
+                iStatement.executeUpdate();
+                iConnection.commit();
+                iStatement.close();
+
+                if (iAccountingYear.equals(iCurrentYear)) {
+                    iCurrentYear = iAccountingYear;
+                    notifyListeners("YEAR", iAccountingYear, null);
+                }
+                return;
+            }
+
             PreparedStatement iStatement = iConnection.prepareStatement(
                     "UPDATE tbl_accountingyear SET accountingyear=? WHERE id=?");
 
@@ -1021,6 +1078,44 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
             return;
         }
         try {
+            if (useSchemaV2()) {
+                PreparedStatement iStatement = iConnection.prepareStatement(
+                        "DELETE FROM tbl_voucher_row WHERE voucher_id IN (SELECT id FROM tbl_voucher WHERE yearid=?)");
+                iStatement.setObject(1, iAccountingYear.getId());
+                iStatement.executeUpdate();
+                iConnection.commit();
+                iStatement.close();
+
+                iStatement = iConnection.prepareStatement(
+                        "DELETE FROM tbl_voucher WHERE yearid=?");
+                iStatement.setObject(1, iAccountingYear.getId());
+                iStatement.executeUpdate();
+                iConnection.commit();
+                iStatement.close();
+
+                iStatement = iConnection.prepareStatement(
+                        "DELETE FROM tbl_year_balance WHERE year_id=?");
+                iStatement.setObject(1, iAccountingYear.getId());
+                iStatement.executeUpdate();
+                iConnection.commit();
+                iStatement.close();
+
+                iStatement = iConnection.prepareStatement(
+                        "DELETE FROM tbl_budget_row WHERE year_id=?");
+                iStatement.setObject(1, iAccountingYear.getId());
+                iStatement.executeUpdate();
+                iConnection.commit();
+                iStatement.close();
+
+                iStatement = iConnection.prepareStatement(
+                        "DELETE FROM tbl_accountingyear WHERE id=?");
+                iStatement.setObject(1, iAccountingYear.getId());
+                iStatement.executeUpdate();
+                iConnection.commit();
+                iStatement.close();
+                return;
+            }
+
             PreparedStatement iStatement = iConnection.prepareStatement(
                     "DELETE FROM tbl_voucher WHERE yearid=?");
 
@@ -1044,6 +1139,23 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
             SSErrorDialog.showDialog(SSMainFrame.getInstance(), "SQL Error",
                     e.getMessage());
         }
+    }
+
+    private SSNewAccountingYear mapAccountingYearV2(ResultSet iResultSet) throws SQLException {
+        SSNewAccountingYear iAccountingYear = new SSNewAccountingYear();
+        iAccountingYear.setId(iResultSet.getInt("id"));
+
+        java.sql.Date iFromDate = iResultSet.getDate("from_date");
+        if (iFromDate != null) {
+            iAccountingYear.setLocalFrom(iFromDate.toLocalDate());
+        }
+
+        java.sql.Date iToDate = iResultSet.getDate("to_date");
+        if (iToDate != null) {
+            iAccountingYear.setLocalTo(iToDate.toLocalDate());
+        }
+
+        return iAccountingYear;
     }
 
     public Optional<SSNewAccountingYear> getPreviousYear() {
@@ -1191,7 +1303,11 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
 
                 while (iResultSet.next()) {
                     iMax = iResultSet.getInt(1);
-                    freshList.add((SSVoucher) iResultSet.getObject(3));
+                    if (useSchemaV2()) {
+                        freshList.add(mapVoucherV2(iResultSet));
+                    } else {
+                        freshList.add((SSVoucher) iResultSet.getObject(3));
+                    }
                     i++;
                 }
                 if (i != 1024) {
@@ -1235,7 +1351,11 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
 
                 while (iResultSet.next()) {
                     iMax = iResultSet.getInt(1);
-                    iVoucherList.add((SSVoucher) iResultSet.getObject(3));
+                    if (useSchemaV2()) {
+                        iVoucherList.add(mapVoucherV2(iResultSet));
+                    } else {
+                        iVoucherList.add((SSVoucher) iResultSet.getObject(3));
+                    }
                     i++;
                 }
                 if (i != 1024) {
@@ -1269,7 +1389,9 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
             ResultSet iResultSet = iStatement.executeQuery();
 
             if (iResultSet.next()) {
-                SSVoucher iVoucher = (SSVoucher) iResultSet.getObject(3);
+                SSVoucher iVoucher = useSchemaV2()
+                        ? mapVoucherV2(iResultSet)
+                        : (SSVoucher) iResultSet.getObject(3);
 
                 iStatement.close();
                 return Optional.of(iVoucher);
@@ -1303,7 +1425,11 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
                 ResultSet iResultSet = iStatement.executeQuery();
 
                 if (iResultSet.next()) {
-                    iVouchers.add((SSVoucher) iResultSet.getObject("voucher"));
+                    if (useSchemaV2()) {
+                        iVouchers.add(mapVoucherV2(iResultSet));
+                    } else {
+                        iVouchers.add((SSVoucher) iResultSet.getObject("voucher"));
+                    }
                 }
                 iStatement.close();
             }
@@ -1344,12 +1470,40 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
                 iStatement.close();
             }
 
-            iStatement = iConnection.prepareStatement(
-                    "INSERT INTO tbl_voucher VALUES(NULL,?,?,?)");
-            iStatement.setObject(1, iVoucher.getNumber());
-            iStatement.setObject(2, iVoucher);
-            iStatement.setObject(3, iCurrentYear.getId());
+            Integer iVoucherId = null;
+            if (useSchemaV2()) {
+                iStatement = iConnection.prepareStatement(
+                        "INSERT INTO tbl_voucher(number,yearid,vdate,description,corrects_id,corrected_by_id) VALUES(?,?,?,?,?,?)",
+                        Statement.RETURN_GENERATED_KEYS);
+                iStatement.setObject(1, iVoucher.getNumber());
+                iStatement.setObject(2, iCurrentYear.getId());
+                iStatement.setObject(3, java.sql.Date.valueOf(iVoucher.getLocalDate()));
+                iStatement.setObject(4, iVoucher.getDescription());
+                iStatement.setObject(5, getVoucherIdByNumberV2(iVoucher.getCorrects()));
+                iStatement.setObject(6, getVoucherIdByNumberV2(iVoucher.getCorrectedBy()));
+            } else {
+                iStatement = iConnection.prepareStatement(
+                        "INSERT INTO tbl_voucher VALUES(NULL,?,?,?)");
+                iStatement.setObject(1, iVoucher.getNumber());
+                iStatement.setObject(2, iVoucher);
+                iStatement.setObject(3, iCurrentYear.getId());
+            }
             iStatement.executeUpdate();
+
+            if (useSchemaV2()) {
+                try (ResultSet iKeys = iStatement.getGeneratedKeys()) {
+                    if (iKeys.next()) {
+                        iVoucherId = iKeys.getInt(1);
+                    }
+                }
+                if (iVoucherId == null) {
+                    iVoucherId = getVoucherIdV2(iVoucher.getNumber(), iCurrentYear.getId());
+                }
+                if (iVoucherId != null) {
+                    replaceVoucherRowsV2(iVoucherId, iVoucher);
+                }
+            }
+
             iConnection.commit();
             iStatement.close();
         } catch (SQLException e) {
@@ -1398,13 +1552,35 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
             return;
         }
         try {
-            PreparedStatement iStatement = iConnection.prepareStatement(
-                    "UPDATE tbl_voucher SET voucher=? WHERE number=? AND yearid=?");
+            PreparedStatement iStatement;
+            Integer iVoucherId = null;
 
-            iStatement.setObject(1, iVoucher);
-            iStatement.setObject(2, iVoucher.getNumber());
-            iStatement.setObject(3, iCurrentYear.getId());
+            if (useSchemaV2()) {
+                iStatement = iConnection.prepareStatement(
+                        "UPDATE tbl_voucher SET vdate=?,description=?,corrects_id=?,corrected_by_id=? WHERE number=? AND yearid=?");
+                iStatement.setObject(1, java.sql.Date.valueOf(iVoucher.getLocalDate()));
+                iStatement.setObject(2, iVoucher.getDescription());
+                iStatement.setObject(3, getVoucherIdByNumberV2(iVoucher.getCorrects()));
+                iStatement.setObject(4, getVoucherIdByNumberV2(iVoucher.getCorrectedBy()));
+                iStatement.setObject(5, iVoucher.getNumber());
+                iStatement.setObject(6, iCurrentYear.getId());
+            } else {
+                iStatement = iConnection.prepareStatement(
+                        "UPDATE tbl_voucher SET voucher=? WHERE number=? AND yearid=?");
+
+                iStatement.setObject(1, iVoucher);
+                iStatement.setObject(2, iVoucher.getNumber());
+                iStatement.setObject(3, iCurrentYear.getId());
+            }
             iStatement.executeUpdate();
+
+            if (useSchemaV2()) {
+                iVoucherId = getVoucherIdV2(iVoucher.getNumber(), iCurrentYear.getId());
+                if (iVoucherId != null) {
+                    replaceVoucherRowsV2(iVoucherId, iVoucher);
+                }
+            }
+
             iConnection.commit();
             iStatement.close();
 
@@ -1423,6 +1599,17 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
             return;
         }
         try {
+            if (useSchemaV2()) {
+                Integer iVoucherId = getVoucherIdV2(iVoucher.getNumber(), iCurrentYear.getId());
+                if (iVoucherId != null) {
+                    PreparedStatement iDeleteRows = iConnection.prepareStatement(
+                            "DELETE FROM tbl_voucher_row WHERE voucher_id=?");
+                    iDeleteRows.setObject(1, iVoucherId);
+                    iDeleteRows.executeUpdate();
+                    iDeleteRows.close();
+                }
+            }
+
             PreparedStatement iStatement = iConnection.prepareStatement(
                     "DELETE FROM tbl_voucher WHERE number=? AND yearid=?");
 
@@ -1440,6 +1627,130 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
             SSErrorDialog.showDialog(SSMainFrame.getInstance(), "SQL Error",
                     e.getMessage());
         }
+    }
+
+    private Integer getVoucherIdByNumberV2(SSVoucher iVoucher) throws SQLException {
+        if (iVoucher == null || iCurrentYear == null) {
+            return null;
+        }
+        return getVoucherIdV2(iVoucher.getNumber(), iCurrentYear.getId());
+    }
+
+    private Integer getVoucherIdV2(Integer iVoucherNumber, Integer iYearId) throws SQLException {
+        if (iVoucherNumber == null || iYearId == null) {
+            return null;
+        }
+        PreparedStatement iStatement = iConnection.prepareStatement(
+                "SELECT id FROM tbl_voucher WHERE number=? AND yearid=?");
+        iStatement.setObject(1, iVoucherNumber);
+        iStatement.setObject(2, iYearId);
+        ResultSet iResultSet = iStatement.executeQuery();
+        try {
+            if (iResultSet.next()) {
+                return iResultSet.getInt(1);
+            }
+            return null;
+        } finally {
+            iResultSet.close();
+            iStatement.close();
+        }
+    }
+
+    private Integer getVoucherNumberForIdV2(Integer iVoucherId) throws SQLException {
+        if (iVoucherId == null) {
+            return null;
+        }
+        PreparedStatement iStatement = iConnection.prepareStatement(
+                "SELECT number FROM tbl_voucher WHERE id=?");
+        iStatement.setObject(1, iVoucherId);
+        ResultSet iResultSet = iStatement.executeQuery();
+        try {
+            if (iResultSet.next()) {
+                return iResultSet.getInt(1);
+            }
+            return null;
+        } finally {
+            iResultSet.close();
+            iStatement.close();
+        }
+    }
+
+    private List<SSVoucherRow> getVoucherRowsV2(Integer iVoucherId) throws SQLException {
+        List<SSVoucherRow> iRows = new LinkedList<>();
+        PreparedStatement iStatement = iConnection.prepareStatement(
+                "SELECT * FROM tbl_voucher_row WHERE voucher_id=? ORDER BY id");
+        iStatement.setObject(1, iVoucherId);
+        ResultSet iResultSet = iStatement.executeQuery();
+        while (iResultSet.next()) {
+            SSVoucherRow iRow = new SSVoucherRow();
+            iRow.setAccountNr((Integer) iResultSet.getObject("account_nr"));
+            iRow.setProjectNr(iResultSet.getString("project_number"));
+            iRow.setResultUnitNr(iResultSet.getString("result_unit_number"));
+            iRow.setDebet(iResultSet.getBigDecimal("debet"));
+            iRow.setCredit(iResultSet.getBigDecimal("credit"));
+            iRow.setEditedDate(iResultSet.getDate("edited_date"));
+            iRow.setEditedSignature(iResultSet.getString("edited_signature"));
+            iRow.setCrossed(iResultSet.getBoolean("crossed"));
+            iRow.setAdded(iResultSet.getBoolean("added"));
+            iRows.add(iRow);
+        }
+        iResultSet.close();
+        iStatement.close();
+        return iRows;
+    }
+
+    private void replaceVoucherRowsV2(Integer iVoucherId, SSVoucher iVoucher) throws SQLException {
+        PreparedStatement iDelete = iConnection.prepareStatement(
+                "DELETE FROM tbl_voucher_row WHERE voucher_id=?");
+        iDelete.setObject(1, iVoucherId);
+        iDelete.executeUpdate();
+        iDelete.close();
+
+        for (SSVoucherRow iRow : iVoucher.getRows()) {
+            PreparedStatement iInsert = iConnection.prepareStatement(
+                    "INSERT INTO tbl_voucher_row(voucher_id,account_nr,project_number,result_unit_number,debet,credit,edited_date,edited_signature,crossed,added) VALUES(?,?,?,?,?,?,?,?,?,?)");
+            iInsert.setObject(1, iVoucherId);
+            iInsert.setObject(2, iRow.getAccountNr());
+            iInsert.setObject(3, iRow.getProjectNr());
+            iInsert.setObject(4, iRow.getResultUnitNr());
+            iInsert.setObject(5, iRow.getDebet());
+            iInsert.setObject(6, iRow.getCredit());
+            if (iRow.getEditedDate() == null) {
+                iInsert.setNull(7, Types.DATE);
+            } else {
+                iInsert.setObject(7, new java.sql.Date(iRow.getEditedDate().getTime()));
+            }
+            iInsert.setObject(8, iRow.getEditedSignature());
+            iInsert.setObject(9, iRow.isCrossed());
+            iInsert.setObject(10, iRow.isAdded());
+            iInsert.executeUpdate();
+            iInsert.close();
+        }
+    }
+
+    private SSVoucher mapVoucherV2(ResultSet iResultSet) throws SQLException {
+        SSVoucher iVoucher = new SSVoucher(iResultSet.getInt("number"));
+        java.sql.Date iDate = iResultSet.getDate("vdate");
+        if (iDate != null) {
+            iVoucher.setLocalDate(iDate.toLocalDate());
+        }
+        iVoucher.setDescription(iResultSet.getString("description"));
+
+        Integer iCorrectsId = (Integer) iResultSet.getObject("corrects_id");
+        Integer iCorrectedById = (Integer) iResultSet.getObject("corrected_by_id");
+        Integer iCorrectsNumber = getVoucherNumberForIdV2(iCorrectsId);
+        Integer iCorrectedByNumber = getVoucherNumberForIdV2(iCorrectedById);
+        if (iCorrectsNumber != null) {
+            iVoucher.setCorrects(new SSVoucher(iCorrectsNumber));
+        }
+        if (iCorrectedByNumber != null) {
+            iVoucher.setCorrectedBy(new SSVoucher(iCorrectedByNumber));
+        }
+
+        List<SSVoucherRow> iRows = getVoucherRowsV2(iResultSet.getInt("id"));
+        iVoucher.getRows().clear();
+        iVoucher.getRows().addAll(iRows);
+        return iVoucher;
     }
 
     public List<SSVoucherTemplate> getVoucherTemplates() {
