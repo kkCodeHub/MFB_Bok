@@ -24,6 +24,27 @@ diverging from upstream version 2.2-SNAPSHOT.
   `fribok.schema.version=v2`.
 - Integration test `SSOrderV2IntegrationTest` validating V2 order
   add/fetch/update/delete flow including row round-trip mapping.
+- Schema V2 tender core slice (Session G): `SSDB` now supports minimal
+  tender CRUD (`getTenders`, `getTender`, `addTender`, `updateTender`,
+  `deleteTender`) against `tbl_tender` and `tbl_tender_row` behind
+  `fribok.schema.version=v2`.
+- Integration test `SSTenderV2IntegrationTest` validating V2 tender
+  add/fetch/update/delete flow including row round-trip mapping.
+- Schema V2 credit invoice core slice (Session H): `SSDB` now supports
+  minimal credit invoice CRUD (`getCreditInvoices`, `getCreditInvoice`,
+  `addCreditInvoice`, `updateCreditInvoice`, `deleteCreditInvoice`) against
+  `tbl_creditinvoice` and `tbl_creditinvoice_row` behind
+  `fribok.schema.version=v2`.
+- Integration test `SSCreditInvoiceV2IntegrationTest` validating V2 credit
+  invoice add/fetch/update/delete flow including row round-trip mapping.
+- Schema V2 periodic invoice core slice (Session I): `SSDB` now supports
+  minimal periodic invoice CRUD (`getPeriodicInvoices`, `getPeriodicInvoice`,
+  `addPeriodicInvoice`, `updatePeriodicInvoice`, `deletePeriodicInvoice`)
+  against `tbl_periodicinvoice` and `tbl_periodicinvoice_row` behind
+  `fribok.schema.version=v2`.
+- Integration test `SSPeriodicInvoiceV2IntegrationTest` validating V2
+  periodic invoice add/fetch/update/delete flow including template row
+  round-trip mapping.
 - Integration tests now pass in headless (CI) environments:
   - `SSDB.init()` skips the `SSInitDialog` popup when
     `GraphicsEnvironment.isHeadless()` returns true.
@@ -46,6 +67,14 @@ diverging from upstream version 2.2-SNAPSHOT.
   class provides the single wiring point.  No existing call sites were changed;
   this is the foundation for future incremental migration away from the SSDB
   God-object (Phase 1 of the persistence modernization plan).
+- Session K repository V2 wiring: added `persistence.v2` implementations
+  `V2CustomerRepository`, `V2ProductRepository`, and `V2SupplierRepository`.
+  `Repositories.init(SSDB)` now selects V2 implementations when
+  `fribok.schema.version=v2`, otherwise keeps legacy adapters.
+- Integration test `SSMasterdataV2RepositoryTest` validating repository-level
+  V2 CRUD flows (customer, product, supplier) plus subset lookups through
+  `Repositories.customers()`, `Repositories.products()`, and
+  `Repositories.suppliers()`.
 - Unit test `SSDBCustomerRepositoryTest` covering constructor contract of the
   customer repository adapter.
 - PR_DRAFT.md with detailed description of the repository-layer pull request.

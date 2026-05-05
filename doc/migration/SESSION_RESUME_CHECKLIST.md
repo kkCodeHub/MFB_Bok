@@ -45,5 +45,12 @@ Lagg till en kort changelog-rad med datum, commit och status, t.ex.:
 - `2026-05-04`: Session B klar - kund-CRUD i `SSDB` migrerad till V2-tabell `tbl_customer` nar `fribok.schema.version=v2`; ny testklass `SSCustomerV2IntegrationTest` passerar.
 - `2026-05-04`: Session C klar - produkt- och leverantors-CRUD i `SSDB` migrerad till V2-tabeller `tbl_product`/`tbl_supplier`; nya testklasser `SSProductV2IntegrationTest` och `SSSupplierV2IntegrationTest` passerar.
 - `2026-05-04`: Session D klar - minimal V2-karnslice for `tbl_accountingyear`, `tbl_voucher` och `tbl_voucher_row`; ny testklass `SSVoucherV2IntegrationTest` passerar.
+- `2026-05-04`: Session E klar - minimal V2-karnslice for `tbl_invoice` och `tbl_invoice_row`; ny testklass `SSInvoiceV2IntegrationTest` passerar.
+- `2026-05-04`: Session F klar - minimal V2-karnslice for `tbl_order` och `tbl_order_row`; ny testklass `SSOrderV2IntegrationTest` passerar.
+- `2026-05-04`: Session G klar - minimal V2-karnslice for `tbl_tender` och `tbl_tender_row`; ny testklass `SSTenderV2IntegrationTest` passerar.
+- `2026-05-05`: Session H klar - minimal V2-karnslice for `tbl_creditinvoice` och `tbl_creditinvoice_row`; ny testklass `SSCreditInvoiceV2IntegrationTest` passerar.
+- `2026-05-05`: Session I klar - minimal V2-karnslice for `tbl_periodicinvoice` och `tbl_periodicinvoice_row`; ny testklass `SSPeriodicInvoiceV2IntegrationTest` passerar.
+- `2026-05-05`: Session J klar - repository interfaces + legacy adapters + `Repositories` factory etablerad for masterdata.
+- `2026-05-05`: Session K klar - `persistence.v2` implementationer (`V2CustomerRepository`, `V2ProductRepository`, `V2SupplierRepository`) inkopplade via `Repositories.init()` nar `fribok.schema.version=v2`; `SSMasterdataV2RepositoryTest` passerar.
 - `YYYY-MM-DD`: Migrerade `tbl_customer` path till V2, commit `<hash>`.
 

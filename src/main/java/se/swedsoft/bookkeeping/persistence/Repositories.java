@@ -4,6 +4,9 @@ import se.swedsoft.bookkeeping.data.system.SSDB;
 import se.swedsoft.bookkeeping.persistence.legacy.SSDBCustomerRepository;
 import se.swedsoft.bookkeeping.persistence.legacy.SSDBProductRepository;
 import se.swedsoft.bookkeeping.persistence.legacy.SSDBSupplierRepository;
+import se.swedsoft.bookkeeping.persistence.v2.V2CustomerRepository;
+import se.swedsoft.bookkeeping.persistence.v2.V2ProductRepository;
+import se.swedsoft.bookkeeping.persistence.v2.V2SupplierRepository;
 
 /**
  * Central access point for repository instances.
@@ -12,6 +15,11 @@ import se.swedsoft.bookkeeping.persistence.legacy.SSDBSupplierRepository;
  * then available through static getters.  Call sites should obtain
  * repositories through this class rather than instantiating implementations
  * directly.</p>
+ *
+ * <p>When {@code fribok.schema.version=v2} the factory wires in the
+ * {@link V2CustomerRepository}, {@link V2ProductRepository} and
+ * {@link V2SupplierRepository} implementations.  Otherwise the legacy
+ * SSDB-delegating implementations are used.</p>
  *
  * <p>Usage during application startup:</p>
  * <pre>{@code
@@ -25,6 +33,8 @@ import se.swedsoft.bookkeeping.persistence.legacy.SSDBSupplierRepository;
  */
 public final class Repositories {
 
+    private static final String SCHEMA_PROPERTY = "fribok.schema.version";
+
     private static CustomerRepository customerRepository;
     private static ProductRepository productRepository;
     private static SupplierRepository supplierRepository;
@@ -34,9 +44,20 @@ public final class Repositories {
     }
 
     /**
+     * Returns {@code true} when the V2 schema is active.
+     *
+     * @return {@code true} if {@code fribok.schema.version=v2}
+     */
+    public static boolean isSchemaV2() {
+        return "v2".equalsIgnoreCase(System.getProperty(SCHEMA_PROPERTY, "v1"));
+    }
+
+    /**
      * Initialises all repository instances backed by the given {@link SSDB}.
      *
-     * <p>Must be called once before any getter is used.
+     * <p>When {@code fribok.schema.version=v2} the V2 repository implementations
+     * are used; otherwise the legacy SSDB-delegating ones are created.
+     * Must be called once before any getter is used.
      * Calling again replaces the existing instances.</p>
      *
      * @param db the SSDB instance; must not be {@code null}
@@ -45,9 +66,15 @@ public final class Repositories {
         if (db == null) {
             throw new NullPointerException("db must not be null");
         }
-        customerRepository = new SSDBCustomerRepository(db);
-        productRepository = new SSDBProductRepository(db);
-        supplierRepository = new SSDBSupplierRepository(db);
+        if (isSchemaV2()) {
+            customerRepository = new V2CustomerRepository(db);
+            productRepository = new V2ProductRepository(db);
+            supplierRepository = new V2SupplierRepository(db);
+        } else {
+            customerRepository = new SSDBCustomerRepository(db);
+            productRepository = new SSDBProductRepository(db);
+            supplierRepository = new SSDBSupplierRepository(db);
+        }
     }
 
     /**
