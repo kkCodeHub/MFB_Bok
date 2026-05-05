@@ -84,6 +84,9 @@ class SSAccountingCoreV2RepositoryTest {
         year.setLocalFrom(LocalDate.of(2026, 1, 1));
         year.setLocalTo(LocalDate.of(2026, 12, 31));
         year.setAccountPlan(plan);
+        year.setInBalance(cash, new BigDecimal("5000.00"));
+        year.getBudget().setSaldoForAccountAndMonth(cash, year.getBudget().getMonths().get(0),
+                new BigDecimal("800.00"));
         Repositories.accountingYears().add(year);
         SSDB.getInstance().setCurrentYear(year);
 
@@ -101,6 +104,7 @@ class SSAccountingCoreV2RepositoryTest {
         assertThat(fetchedPlan).isPresent();
         assertThat(fetchedVoucher).isPresent();
         assertThat(currentYear).isPresent();
+        assertThat(currentYear.get().getInBalance(new SSAccount(1910))).isEqualByComparingTo("5000.00");
         assertThat(fetchedVoucher.get().getRows()).hasSize(2);
 
         Repositories.vouchers().delete(fetchedVoucher.get());

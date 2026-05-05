@@ -38,6 +38,7 @@ import se.swedsoft.bookkeeping.gui.vouchertemplate.SSVoucherTemplateFrame;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.*;
+import java.math.BigDecimal;
 import java.rmi.server.UID;
 import java.sql.*;
 import java.util.*;
@@ -979,6 +980,9 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
                     }
                 }
 
+                replaceYearBalancesV2(iAccountingYear);
+                replaceBudgetRowsV2(iAccountingYear);
+
                 iConnection.commit();
                 iStatement.close();
                 return;
@@ -1039,6 +1043,10 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
                         ? null : iAccountingYear.getAccountPlan().getId());
                 iStatement.setObject(4, iAccountingYear.getId());
                 iStatement.executeUpdate();
+
+                replaceYearBalancesV2(iAccountingYear);
+                replaceBudgetRowsV2(iAccountingYear);
+
                 iConnection.commit();
                 iStatement.close();
 
@@ -1162,7 +1170,173 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
             getAccountPlan(iPlanProbe).ifPresent(iAccountingYear::setAccountPlan);
         }
 
+        iAccountingYear.setInBalance(loadYearBalancesV2(iAccountingYear));
+        iAccountingYear.setBudget(loadBudgetV2(iAccountingYear));
+
         return iAccountingYear;
+    }
+
+    private Map<SSAccount, BigDecimal> loadYearBalancesV2(SSNewAccountingYear iAccountingYear) throws SQLException {
+        Map<SSAccount, BigDecimal> iBalances = new HashMap<>();
+        if (iAccountingYear == null || iAccountingYear.getId() == null) {
+            return iBalances;
+        }
+
+        PreparedStatement iStatement = iConnection.prepareStatement(
+                "SELECT account_nr,balance FROM tbl_year_balance WHERE year_id=?");
+        iStatement.setObject(1, iAccountingYear.getId());
+        ResultSet iResultSet = iStatement.executeQuery();
+        try {
+            while (iResultSet.next()) {
+                Integer iAccountNr = (Integer) iResultSet.getObject("account_nr");
+                if (iAccountNr == null) {
+                    continue;
+                }
+
+                SSAccount iAccount = iAccountingYear.getAccountPlan() == null
+                        ? null
+                        : iAccountingYear.getAccountPlan().getAccount(iAccountNr);
+                if (iAccount == null) {
+                    iAccount = new SSAccount();
+                    iAccount.setNumber(iAccountNr);
+                }
+                iBalances.put(iAccount, iResultSet.getBigDecimal("balance"));
+            }
+            return iBalances;
+        } finally {
+            iResultSet.close();
+            iStatement.close();
+        }
+    }
+
+    private SSBudget loadBudgetV2(SSNewAccountingYear iAccountingYear) throws SQLException {
+        SSBudget iBudget = new SSBudget();
+        if (iAccountingYear == null || iAccountingYear.getId() == null) {
+            return iBudget;
+        }
+
+        // Ensure month buckets follow the current year boundaries before loading rows.
+        iBudget.setYear(iAccountingYear);
+
+        PreparedStatement iStatement = iConnection.prepareStatement(
+                "SELECT account_nr,month,amount FROM tbl_budget_row WHERE year_id=?");
+        iStatement.setObject(1, iAccountingYear.getId());
+        ResultSet iResultSet = iStatement.executeQuery();
+        try {
+            List<SSMonth> iMonths = iBudget.getMonths();
+            while (iResultSet.next()) {
+                Integer iAccountNr = (Integer) iResultSet.getObject("account_nr");
+                Integer iMonthNumber = (Integer) iResultSet.getObject("month");
+                BigDecimal iAmount = iResultSet.getBigDecimal("amount");
+
+                if (iAccountNr == null || iMonthNumber == null || iAmount == null) {
+                    continue;
+                }
+
+                SSAccount iAccount = iAccountingYear.getAccountPlan() == null
+                        ? null
+                        : iAccountingYear.getAccountPlan().getAccount(iAccountNr);
+                if (iAccount == null) {
+                    iAccount = new SSAccount();
+                    iAccount.setNumber(iAccountNr);
+                }
+
+                for (SSMonth iMonth : iMonths) {
+                    if (iMonth.getLocalFrom() != null
+                            && iMonth.getLocalFrom().getMonthValue() == iMonthNumber) {
+                        iBudget.setSaldoForAccountAndMonth(iAccount, iMonth, iAmount);
+                        break;
+                    }
+                }
+            }
+            return iBudget;
+        } finally {
+            iResultSet.close();
+            iStatement.close();
+        }
+    }
+
+    private void replaceYearBalancesV2(SSNewAccountingYear iAccountingYear) throws SQLException {
+        if (iAccountingYear == null || iAccountingYear.getId() == null) {
+            return;
+        }
+
+        PreparedStatement iDelete = iConnection.prepareStatement(
+                "DELETE FROM tbl_year_balance WHERE year_id=?");
+        iDelete.setObject(1, iAccountingYear.getId());
+        iDelete.executeUpdate();
+        iDelete.close();
+
+        Map<SSAccount, BigDecimal> iBalances = iAccountingYear.getInBalance();
+        if (iBalances == null) {
+            return;
+        }
+
+        for (Map.Entry<SSAccount, BigDecimal> iEntry : iBalances.entrySet()) {
+            SSAccount iAccount = iEntry.getKey();
+            BigDecimal iAmount = iEntry.getValue();
+            if (iAccount == null || iAccount.getNumber() == null || iAmount == null) {
+                continue;
+            }
+
+            PreparedStatement iInsert = iConnection.prepareStatement(
+                    "INSERT INTO tbl_year_balance(year_id,account_nr,balance) VALUES(?,?,?)");
+            iInsert.setObject(1, iAccountingYear.getId());
+            iInsert.setObject(2, iAccount.getNumber());
+            iInsert.setObject(3, iAmount);
+            iInsert.executeUpdate();
+            iInsert.close();
+        }
+    }
+
+    private void replaceBudgetRowsV2(SSNewAccountingYear iAccountingYear) throws SQLException {
+        if (iAccountingYear == null || iAccountingYear.getId() == null) {
+            return;
+        }
+
+        PreparedStatement iDelete = iConnection.prepareStatement(
+                "DELETE FROM tbl_budget_row WHERE year_id=?");
+        iDelete.setObject(1, iAccountingYear.getId());
+        iDelete.executeUpdate();
+        iDelete.close();
+
+        SSBudget iBudget = iAccountingYear.getBudget();
+        if (iBudget == null) {
+            return;
+        }
+
+        iBudget.setYear(iAccountingYear);
+
+        for (SSMonth iMonth : iBudget.getMonths()) {
+            Integer iMonthNumber = iMonth.getLocalFrom() == null
+                    ? null
+                    : iMonth.getLocalFrom().getMonthValue();
+            if (iMonthNumber == null) {
+                continue;
+            }
+
+            Map<SSAccount, BigDecimal> iMonthBudget = iBudget.getBudget(iMonth);
+            if (iMonthBudget == null) {
+                continue;
+            }
+
+            for (Map.Entry<SSAccount, BigDecimal> iEntry : iMonthBudget.entrySet()) {
+                SSAccount iAccount = iEntry.getKey();
+                BigDecimal iAmount = iEntry.getValue();
+                if (iAccount == null || iAccount.getNumber() == null || iAmount == null) {
+                    continue;
+                }
+
+                PreparedStatement iInsert = iConnection.prepareStatement(
+                        "INSERT INTO tbl_budget_row(year_id,account_nr,month,amount) VALUES(?,?,?,?)");
+                iInsert.setObject(1, iAccountingYear.getId());
+                iInsert.setObject(2, iAccount.getNumber());
+                iInsert.setObject(3, iMonthNumber);
+                iInsert.setObject(4, iAmount);
+                iInsert.executeUpdate();
+                iInsert.close();
+            }
+        }
     }
 
     public Optional<SSNewAccountingYear> getPreviousYear() {
