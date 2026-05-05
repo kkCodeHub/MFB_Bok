@@ -111,6 +111,13 @@ diverging from upstream version 2.2-SNAPSHOT.
   (Phase 3 Step 15) (PR #9).
 
 ### Changed
+- Session L migration documentation is now locked for implementation start:
+  - `doc/migration/SESSION_L_ACCOUNTING_REPOSITORY.md` defines binding scope for
+    `AccountingYearRepository` in L (`findAll/findCurrent/add/update/delete` only),
+    defers budget/year-balance mapping to Session M, and locks voucher-add behavior
+    to require explicit accounting-year on the voucher object.
+  - `doc/migration/SESSION_RESUME_CHECKLIST.md` now includes a verified baseline
+    commit (`474a715`) and an explicit Definition of Done checklist for Session L.
 - Persistence modernization policy: target database migration is now defined as
   a forward-only cutover. After cutover, restoring older legacy backup formats
   directly into the new database model is not supported.
