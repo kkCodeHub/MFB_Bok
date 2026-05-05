@@ -10297,6 +10297,78 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
         return iIndelivery;
     }
 
+    private List<SSInventoryRow> getInventoryRowsV2(Integer iInventoryId) throws SQLException {
+        List<SSInventoryRow> iRows = new LinkedList<>();
+        PreparedStatement iStatement = iConnection.prepareStatement(
+                "SELECT * FROM tbl_inventory_row WHERE inventory_id=? ORDER BY id");
+        iStatement.setObject(1, iInventoryId);
+        ResultSet iResultSet = iStatement.executeQuery();
+        while (iResultSet.next()) {
+            SSInventoryRow iRow = new SSInventoryRow();
+            iRow.setProductNr(iResultSet.getString("product_nr"));
+            iRow.setStockQuantity((Integer) iResultSet.getObject("quantity"));
+            iRow.setChange((Integer) iResultSet.getObject("change_qty"));
+            iRows.add(iRow);
+        }
+        iResultSet.close();
+        iStatement.close();
+        return iRows;
+    }
+
+    private void replaceInventoryRowsV2(Integer iInventoryId, SSInventory iInventory) throws SQLException {
+        PreparedStatement iDelete = iConnection.prepareStatement(
+                "DELETE FROM tbl_inventory_row WHERE inventory_id=?");
+        iDelete.setObject(1, iInventoryId);
+        iDelete.executeUpdate();
+        iDelete.close();
+
+        for (SSInventoryRow iRow : iInventory.getRows()) {
+            PreparedStatement iInsert = iConnection.prepareStatement(
+                    "INSERT INTO tbl_inventory_row(inventory_id,product_nr,quantity,change_qty) VALUES(?,?,?,?)");
+            iInsert.setObject(1, iInventoryId);
+            iInsert.setObject(2, iRow.getProductNr());
+            iInsert.setObject(3, iRow.getStockQuantity());
+            iInsert.setObject(4, iRow.getChange());
+            iInsert.executeUpdate();
+            iInsert.close();
+        }
+    }
+
+    private Integer getInventoryIdV2(Integer iInventoryNumber, Integer iCompanyId) throws SQLException {
+        if (iInventoryNumber == null || iCompanyId == null) {
+            return null;
+        }
+        PreparedStatement iStatement = iConnection.prepareStatement(
+                "SELECT id FROM tbl_inventory WHERE number=? AND companyid=?");
+        iStatement.setObject(1, iInventoryNumber);
+        iStatement.setObject(2, iCompanyId);
+        ResultSet iResultSet = iStatement.executeQuery();
+        try {
+            if (iResultSet.next()) {
+                return iResultSet.getInt(1);
+            }
+            return null;
+        } finally {
+            iResultSet.close();
+            iStatement.close();
+        }
+    }
+
+    private SSInventory mapInventoryV2(ResultSet iResultSet) throws SQLException {
+        SSInventory iInventory = new SSInventory();
+        iInventory.setNumber((Integer) iResultSet.getObject("number"));
+
+        java.sql.Date iDate = iResultSet.getDate("vdate");
+        if (iDate != null) {
+            iInventory.setLocalDate(iDate.toLocalDate());
+        }
+
+        iInventory.setText(iResultSet.getString("itext"));
+        iInventory.getRows().clear();
+        iInventory.getRows().addAll(getInventoryRowsV2(iResultSet.getInt("id")));
+        return iInventory;
+    }
+
     /**
      *
      * @return
@@ -10326,7 +10398,11 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
 
                 while (iResultSet.next()) {
                     iMax = iResultSet.getInt(1);
-                    iInventories.add((SSInventory) iResultSet.getObject(3));
+                    if (useSchemaV2()) {
+                        iInventories.add(mapInventoryV2(iResultSet));
+                    } else {
+                        iInventories.add((SSInventory) iResultSet.getObject(3));
+                    }
                     i++;
                 }
                 if (i != 1024) {
@@ -10359,7 +10435,9 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
             ResultSet iResultSet = iStatement.executeQuery();
 
             if (iResultSet.next()) {
-                SSInventory iInventory = (SSInventory) iResultSet.getObject(3);
+                SSInventory iInventory = useSchemaV2()
+                        ? mapInventoryV2(iResultSet)
+                        : (SSInventory) iResultSet.getObject(3);
 
                 iStatement.close();
                 return Optional.of(iInventory);
@@ -10406,12 +10484,38 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
             iResultSet.close();
             iStatement.close();
 
-            iStatement = iConnection.prepareStatement(
-                    "INSERT INTO tbl_inventory VALUES(NULL,?,?,?)");
-            iStatement.setObject(1, iInventory.getNumber());
-            iStatement.setObject(2, iInventory);
-            iStatement.setObject(3, iCurrentCompany.getId());
+            Integer iInventoryId = null;
+            if (useSchemaV2()) {
+                iStatement = iConnection.prepareStatement(
+                        "INSERT INTO tbl_inventory(number,companyid,vdate,itext) VALUES(?,?,?,?)",
+                        Statement.RETURN_GENERATED_KEYS);
+                iStatement.setObject(1, iInventory.getNumber());
+                iStatement.setObject(2, iCurrentCompany.getId());
+                bindLocalDateV2(iStatement, 3, iInventory.getLocalDate());
+                iStatement.setObject(4, iInventory.getText());
+            } else {
+                iStatement = iConnection.prepareStatement(
+                        "INSERT INTO tbl_inventory VALUES(NULL,?,?,?)");
+                iStatement.setObject(1, iInventory.getNumber());
+                iStatement.setObject(2, iInventory);
+                iStatement.setObject(3, iCurrentCompany.getId());
+            }
             iStatement.executeUpdate();
+
+            if (useSchemaV2()) {
+                try (ResultSet iKeys = iStatement.getGeneratedKeys()) {
+                    if (iKeys.next()) {
+                        iInventoryId = iKeys.getInt(1);
+                    }
+                }
+                if (iInventoryId == null) {
+                    iInventoryId = getInventoryIdV2(iInventory.getNumber(), iCurrentCompany.getId());
+                }
+                if (iInventoryId != null) {
+                    replaceInventoryRowsV2(iInventoryId, iInventory);
+                }
+            }
+
             iConnection.commit();
             iStatement.close();
 
@@ -10431,13 +10535,31 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
             return;
         }
         try {
-            PreparedStatement iStatement = iConnection.prepareStatement(
-                    "UPDATE tbl_inventory SET inventory=? WHERE number=? AND companyid=?");
-
-            iStatement.setObject(1, iInventory);
-            iStatement.setObject(2, iInventory.getNumber());
-            iStatement.setObject(3, iCurrentCompany.getId());
+            PreparedStatement iStatement;
+            Integer iInventoryId = null;
+            if (useSchemaV2()) {
+                iStatement = iConnection.prepareStatement(
+                        "UPDATE tbl_inventory SET vdate=?,itext=? WHERE number=? AND companyid=?");
+                bindLocalDateV2(iStatement, 1, iInventory.getLocalDate());
+                iStatement.setObject(2, iInventory.getText());
+                iStatement.setObject(3, iInventory.getNumber());
+                iStatement.setObject(4, iCurrentCompany.getId());
+            } else {
+                iStatement = iConnection.prepareStatement(
+                        "UPDATE tbl_inventory SET inventory=? WHERE number=? AND companyid=?");
+                iStatement.setObject(1, iInventory);
+                iStatement.setObject(2, iInventory.getNumber());
+                iStatement.setObject(3, iCurrentCompany.getId());
+            }
             iStatement.executeUpdate();
+
+            if (useSchemaV2()) {
+                iInventoryId = getInventoryIdV2(iInventory.getNumber(), iCurrentCompany.getId());
+                if (iInventoryId != null) {
+                    replaceInventoryRowsV2(iInventoryId, iInventory);
+                }
+            }
+
             iConnection.commit();
             iStatement.close();
 
@@ -10456,6 +10578,17 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
             return;
         }
         try {
+            if (useSchemaV2()) {
+                Integer iInventoryId = getInventoryIdV2(iInventory.getNumber(), iCurrentCompany.getId());
+                if (iInventoryId != null) {
+                    PreparedStatement iDeleteRows = iConnection.prepareStatement(
+                            "DELETE FROM tbl_inventory_row WHERE inventory_id=?");
+                    iDeleteRows.setObject(1, iInventoryId);
+                    iDeleteRows.executeUpdate();
+                    iDeleteRows.close();
+                }
+            }
+
             PreparedStatement iStatement = iConnection.prepareStatement(
                     "DELETE FROM tbl_inventory WHERE number=? AND companyid=?");
 
