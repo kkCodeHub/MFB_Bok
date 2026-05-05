@@ -4,6 +4,7 @@ import se.swedsoft.bookkeeping.data.system.SSDB;
 import se.swedsoft.bookkeeping.persistence.legacy.SSDBAccountPlanRepository;
 import se.swedsoft.bookkeeping.persistence.legacy.SSDBAccountingYearRepository;
 import se.swedsoft.bookkeeping.persistence.legacy.SSDBCustomerRepository;
+import se.swedsoft.bookkeeping.persistence.legacy.SSDBOrderRepository;
 import se.swedsoft.bookkeeping.persistence.legacy.SSDBProductRepository;
 import se.swedsoft.bookkeeping.persistence.legacy.SSDBPurchaseOrderRepository;
 import se.swedsoft.bookkeeping.persistence.legacy.SSDBSupplierRepository;
@@ -13,6 +14,7 @@ import se.swedsoft.bookkeeping.persistence.legacy.SSDBVoucherRepository;
 import se.swedsoft.bookkeeping.persistence.v2.V2AccountPlanRepository;
 import se.swedsoft.bookkeeping.persistence.v2.V2AccountingYearRepository;
 import se.swedsoft.bookkeeping.persistence.v2.V2CustomerRepository;
+import se.swedsoft.bookkeeping.persistence.v2.V2OrderRepository;
 import se.swedsoft.bookkeeping.persistence.v2.V2ProductRepository;
 import se.swedsoft.bookkeeping.persistence.v2.V2PurchaseOrderRepository;
 import se.swedsoft.bookkeeping.persistence.v2.V2SupplierRepository;
@@ -48,6 +50,7 @@ public final class Repositories {
     private static final String SCHEMA_PROPERTY = "fribok.schema.version";
 
     private static CustomerRepository customerRepository;
+    private static OrderRepository orderRepository;
     private static ProductRepository productRepository;
     private static PurchaseOrderRepository purchaseOrderRepository;
     private static SupplierRepository supplierRepository;
@@ -86,6 +89,7 @@ public final class Repositories {
         }
         if (isSchemaV2()) {
             customerRepository = new V2CustomerRepository(db);
+            orderRepository = new V2OrderRepository(db);
             productRepository = new V2ProductRepository(db);
             purchaseOrderRepository = new V2PurchaseOrderRepository(db);
             supplierRepository = new V2SupplierRepository(db);
@@ -96,6 +100,7 @@ public final class Repositories {
             accountingYearRepository = new V2AccountingYearRepository(db);
         } else {
             customerRepository = new SSDBCustomerRepository(db);
+            orderRepository = new SSDBOrderRepository(db);
             productRepository = new SSDBProductRepository(db);
             purchaseOrderRepository = new SSDBPurchaseOrderRepository(db);
             supplierRepository = new SSDBSupplierRepository(db);
@@ -118,6 +123,19 @@ public final class Repositories {
             throw new IllegalStateException("Repositories.init() has not been called");
         }
         return customerRepository;
+    }
+
+    /**
+     * Returns the {@link OrderRepository}.
+     *
+     * @return the order repository; never {@code null} after {@link #init}
+     * @throws IllegalStateException if {@link #init} has not been called
+     */
+    public static OrderRepository orders() {
+        if (orderRepository == null) {
+            throw new IllegalStateException("Repositories.init() has not been called");
+        }
+        return orderRepository;
     }
 
     /**
