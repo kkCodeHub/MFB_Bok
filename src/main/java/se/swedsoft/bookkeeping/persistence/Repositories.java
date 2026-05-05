@@ -6,6 +6,7 @@ import se.swedsoft.bookkeeping.persistence.legacy.SSDBAccountingYearRepository;
 import se.swedsoft.bookkeeping.persistence.legacy.SSDBCustomerRepository;
 import se.swedsoft.bookkeeping.persistence.legacy.SSDBProductRepository;
 import se.swedsoft.bookkeeping.persistence.legacy.SSDBSupplierRepository;
+import se.swedsoft.bookkeeping.persistence.legacy.SSDBSupplierCreditInvoiceRepository;
 import se.swedsoft.bookkeeping.persistence.legacy.SSDBSupplierInvoiceRepository;
 import se.swedsoft.bookkeeping.persistence.legacy.SSDBVoucherRepository;
 import se.swedsoft.bookkeeping.persistence.v2.V2AccountPlanRepository;
@@ -13,6 +14,7 @@ import se.swedsoft.bookkeeping.persistence.v2.V2AccountingYearRepository;
 import se.swedsoft.bookkeeping.persistence.v2.V2CustomerRepository;
 import se.swedsoft.bookkeeping.persistence.v2.V2ProductRepository;
 import se.swedsoft.bookkeeping.persistence.v2.V2SupplierRepository;
+import se.swedsoft.bookkeeping.persistence.v2.V2SupplierCreditInvoiceRepository;
 import se.swedsoft.bookkeeping.persistence.v2.V2SupplierInvoiceRepository;
 import se.swedsoft.bookkeeping.persistence.v2.V2VoucherRepository;
 
@@ -47,6 +49,7 @@ public final class Repositories {
     private static ProductRepository productRepository;
     private static SupplierRepository supplierRepository;
     private static SupplierInvoiceRepository supplierInvoiceRepository;
+    private static SupplierCreditInvoiceRepository supplierCreditInvoiceRepository;
     private static AccountPlanRepository accountPlanRepository;
     private static VoucherRepository voucherRepository;
     private static AccountingYearRepository accountingYearRepository;
@@ -83,6 +86,7 @@ public final class Repositories {
             productRepository = new V2ProductRepository(db);
             supplierRepository = new V2SupplierRepository(db);
             supplierInvoiceRepository = new V2SupplierInvoiceRepository(db);
+            supplierCreditInvoiceRepository = new V2SupplierCreditInvoiceRepository(db);
             accountPlanRepository = new V2AccountPlanRepository(db);
             voucherRepository = new V2VoucherRepository(db);
             accountingYearRepository = new V2AccountingYearRepository(db);
@@ -91,6 +95,7 @@ public final class Repositories {
             productRepository = new SSDBProductRepository(db);
             supplierRepository = new SSDBSupplierRepository(db);
             supplierInvoiceRepository = new SSDBSupplierInvoiceRepository(db);
+            supplierCreditInvoiceRepository = new SSDBSupplierCreditInvoiceRepository(db);
             accountPlanRepository = new SSDBAccountPlanRepository(db);
             voucherRepository = new SSDBVoucherRepository(db);
             accountingYearRepository = new SSDBAccountingYearRepository(db);
@@ -147,6 +152,19 @@ public final class Repositories {
             throw new IllegalStateException("Repositories.init() has not been called");
         }
         return supplierInvoiceRepository;
+    }
+
+    /**
+     * Returns the {@link SupplierCreditInvoiceRepository}.
+     *
+     * @return the supplier-credit-invoice repository; never {@code null} after {@link #init}
+     * @throws IllegalStateException if {@link #init} has not been called
+     */
+    public static SupplierCreditInvoiceRepository supplierCreditInvoices() {
+        if (supplierCreditInvoiceRepository == null) {
+            throw new IllegalStateException("Repositories.init() has not been called");
+        }
+        return supplierCreditInvoiceRepository;
     }
 
     /**
