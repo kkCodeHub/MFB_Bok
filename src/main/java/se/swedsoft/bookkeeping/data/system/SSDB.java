@@ -2526,6 +2526,215 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
 
     // //////////////////////////////////////////////////////////////////////////////////////
 
+    private List<SSPurchaseOrderRow> getPurchaseOrderRowsV2(Integer iPurchaseOrderId) throws SQLException {
+        List<SSPurchaseOrderRow> iRows = new LinkedList<>();
+        PreparedStatement iStatement = iConnection.prepareStatement(
+                "SELECT * FROM tbl_purchaseorder_row WHERE purchaseorder_id=? ORDER BY id");
+        iStatement.setObject(1, iPurchaseOrderId);
+        ResultSet iResultSet = iStatement.executeQuery();
+        while (iResultSet.next()) {
+            SSPurchaseOrderRow iRow = new SSPurchaseOrderRow();
+            iRow.setProductNr(iResultSet.getString("product_nr"));
+            iRow.setDescription(iResultSet.getString("description"));
+            iRow.setSupplierArticleNr(iResultSet.getString("supplier_article_nr"));
+            iRow.setUnitPrice(iResultSet.getBigDecimal("unitprice"));
+            iRow.setQuantity((Integer) iResultSet.getObject("quantity"));
+
+            String iUnit = iResultSet.getString("unit");
+            if (iUnit != null) {
+                iRow.setUnit(new SSUnit(iUnit, iUnit));
+            }
+
+            iRow.setAccountNr((Integer) iResultSet.getObject("account_nr"));
+            iRows.add(iRow);
+        }
+        iResultSet.close();
+        iStatement.close();
+        return iRows;
+    }
+
+    private void replacePurchaseOrderRowsV2(Integer iPurchaseOrderId, SSPurchaseOrder iPurchaseOrder)
+            throws SQLException {
+        PreparedStatement iDelete = iConnection.prepareStatement(
+                "DELETE FROM tbl_purchaseorder_row WHERE purchaseorder_id=?");
+        iDelete.setObject(1, iPurchaseOrderId);
+        iDelete.executeUpdate();
+        iDelete.close();
+
+        for (SSPurchaseOrderRow iRow : iPurchaseOrder.getRows()) {
+            PreparedStatement iInsert = iConnection.prepareStatement(
+                    "INSERT INTO tbl_purchaseorder_row(purchaseorder_id,product_nr,description,supplier_article_nr,unitprice,quantity,unit,account_nr) VALUES(?,?,?,?,?,?,?,?)");
+            iInsert.setObject(1, iPurchaseOrderId);
+            iInsert.setObject(2, iRow.getProductNr());
+            iInsert.setObject(3, iRow.getDescription());
+            iInsert.setObject(4, iRow.getSupplierArticleNr());
+            iInsert.setObject(5, iRow.getUnitPrice());
+            iInsert.setObject(6, iRow.getQuantity());
+            iInsert.setObject(7, iRow.getUnit() == null ? null : iRow.getUnit().getName());
+            iInsert.setObject(8, iRow.getAccountNr());
+            iInsert.executeUpdate();
+            iInsert.close();
+        }
+    }
+
+    private Map<SSDefaultAccount, Integer> getPurchaseOrderDefaultAccountsV2(Integer iPurchaseOrderId)
+            throws SQLException {
+        Map<SSDefaultAccount, Integer> iMap = new HashMap<>();
+        PreparedStatement iStatement = iConnection.prepareStatement(
+                "SELECT account_type,account_nr FROM tbl_purchaseorder_account WHERE purchaseorder_id=?");
+        iStatement.setObject(1, iPurchaseOrderId);
+        ResultSet iResultSet = iStatement.executeQuery();
+        while (iResultSet.next()) {
+            String iType = iResultSet.getString("account_type");
+            Integer iAccountNr = (Integer) iResultSet.getObject("account_nr");
+            if (iType == null || iAccountNr == null) {
+                continue;
+            }
+            try {
+                iMap.put(SSDefaultAccount.valueOf(iType), iAccountNr);
+            } catch (IllegalArgumentException ignored) {
+                // Ignore unknown enum values from partial migrations.
+            }
+        }
+        iResultSet.close();
+        iStatement.close();
+        return iMap;
+    }
+
+    private void replacePurchaseOrderDefaultAccountsV2(Integer iPurchaseOrderId, SSPurchaseOrder iPurchaseOrder)
+            throws SQLException {
+        PreparedStatement iDelete = iConnection.prepareStatement(
+                "DELETE FROM tbl_purchaseorder_account WHERE purchaseorder_id=?");
+        iDelete.setObject(1, iPurchaseOrderId);
+        iDelete.executeUpdate();
+        iDelete.close();
+
+        Map<SSDefaultAccount, Integer> iDefaults = iPurchaseOrder.getDefaultAccounts();
+        if (iDefaults == null || iDefaults.isEmpty()) {
+            return;
+        }
+
+        for (Map.Entry<SSDefaultAccount, Integer> iEntry : iDefaults.entrySet()) {
+            if (iEntry.getKey() == null || iEntry.getValue() == null) {
+                continue;
+            }
+            PreparedStatement iInsert = iConnection.prepareStatement(
+                    "INSERT INTO tbl_purchaseorder_account(purchaseorder_id,account_type,account_nr) VALUES(?,?,?)");
+            iInsert.setObject(1, iPurchaseOrderId);
+            iInsert.setObject(2, iEntry.getKey().name());
+            iInsert.setObject(3, iEntry.getValue());
+            iInsert.executeUpdate();
+            iInsert.close();
+        }
+    }
+
+    private Integer getPurchaseOrderIdV2(Integer iPurchaseOrderNumber, Integer iCompanyId)
+            throws SQLException {
+        if (iPurchaseOrderNumber == null || iCompanyId == null) {
+            return null;
+        }
+        PreparedStatement iStatement = iConnection.prepareStatement(
+                "SELECT id FROM tbl_purchaseorder WHERE number=? AND companyid=?");
+        iStatement.setObject(1, iPurchaseOrderNumber);
+        iStatement.setObject(2, iCompanyId);
+        ResultSet iResultSet = iStatement.executeQuery();
+        try {
+            if (iResultSet.next()) {
+                return iResultSet.getInt(1);
+            }
+            return null;
+        } finally {
+            iResultSet.close();
+            iStatement.close();
+        }
+    }
+
+    private int bindPurchaseOrderColumnsV2(
+            PreparedStatement iStatement,
+            int iIndex,
+            SSPurchaseOrder iPurchaseOrder) throws SQLException {
+        iStatement.setObject(iIndex++, iPurchaseOrder.getInvoiceNr());
+        bindLocalDateV2(iStatement, iIndex++, iPurchaseOrder.getLocalDate());
+        iStatement.setObject(iIndex++, iPurchaseOrder.getSupplierNr());
+        iStatement.setObject(iIndex++, iPurchaseOrder.getSupplierName());
+        bindLocalDateV2(iStatement, iIndex++, iPurchaseOrder.getLocalEstimatedDelivery());
+        iStatement.setObject(iIndex++, iPurchaseOrder.getPaymentTerm() == null
+                ? null
+                : iPurchaseOrder.getPaymentTerm().getName());
+        iStatement.setObject(iIndex++, iPurchaseOrder.getDeliveryTerm() == null
+                ? null
+                : iPurchaseOrder.getDeliveryTerm().getName());
+        iStatement.setObject(iIndex++, iPurchaseOrder.getDeliveryWay() == null
+                ? null
+                : iPurchaseOrder.getDeliveryWay().getName());
+        iStatement.setObject(iIndex++, iPurchaseOrder.getOurContact());
+        iStatement.setObject(iIndex++, iPurchaseOrder.getYourContact());
+        iStatement.setObject(iIndex++, getCurrencyCodeV2(iPurchaseOrder.getCurrency()));
+        iStatement.setObject(iIndex++, iPurchaseOrder.getCurrencyRate());
+        iStatement.setObject(iIndex++, iPurchaseOrder.getText());
+        iStatement.setObject(iIndex++, iPurchaseOrder.isPrinted());
+        iStatement.setObject(iIndex++, iPurchaseOrder.isStockInfluencing());
+        iIndex = bindAddressV2(iStatement, iIndex, iPurchaseOrder.getDeliveryAddress());
+        return bindAddressV2(iStatement, iIndex, iPurchaseOrder.getSupplierAddress());
+    }
+
+    private SSPurchaseOrder mapPurchaseOrderV2(ResultSet iResultSet) throws SQLException {
+        SSPurchaseOrder iPurchaseOrder = new SSPurchaseOrder();
+
+        iPurchaseOrder.setNumber((Integer) iResultSet.getObject("number"));
+        iPurchaseOrder.setInvoiceNr((Integer) iResultSet.getObject("invoice_nr"));
+
+        java.sql.Date iDate = iResultSet.getDate("vdate");
+        if (iDate != null) {
+            iPurchaseOrder.setLocalDate(iDate.toLocalDate());
+        }
+
+        iPurchaseOrder.setSupplierNr(iResultSet.getString("supplier_nr"));
+        iPurchaseOrder.setSupplierName(iResultSet.getString("supplier_name"));
+
+        java.sql.Date iEstimatedDelivery = iResultSet.getDate("estimated_delivery");
+        if (iEstimatedDelivery != null) {
+            iPurchaseOrder.setLocalEstimatedDelivery(iEstimatedDelivery.toLocalDate());
+        }
+
+        String iPaymentTerm = iResultSet.getString("payment_term");
+        if (iPaymentTerm != null) {
+            iPurchaseOrder.setPaymentTerm(new SSPaymentTerm(iPaymentTerm, iPaymentTerm));
+        }
+
+        String iDeliveryTerm = iResultSet.getString("delivery_term");
+        if (iDeliveryTerm != null) {
+            iPurchaseOrder.setDeliveryTerm(new SSDeliveryTerm(iDeliveryTerm, iDeliveryTerm));
+        }
+
+        String iDeliveryWay = iResultSet.getString("delivery_way");
+        if (iDeliveryWay != null) {
+            iPurchaseOrder.setDeliveryWay(new SSDeliveryWay(iDeliveryWay, iDeliveryWay));
+        }
+
+        iPurchaseOrder.setOurContact(iResultSet.getString("our_contact"));
+        iPurchaseOrder.setYourContact(iResultSet.getString("your_contact"));
+
+        String iCurrencyCode = iResultSet.getString("currency_code");
+        if (iCurrencyCode != null) {
+            iPurchaseOrder.setCurrency(new SSCurrency(iCurrencyCode, iCurrencyCode));
+        }
+
+        iPurchaseOrder.setCurrencyRate(iResultSet.getBigDecimal("currency_rate"));
+        iPurchaseOrder.setText(iResultSet.getString("sale_text"));
+        iPurchaseOrder.setPrinted(iResultSet.getBoolean("printed"));
+        iPurchaseOrder.setStockInfluencing(iResultSet.getBoolean("stock_influencing"));
+        iPurchaseOrder.setDeliveryAddress(mapAddressV2(iResultSet, "del_addr"));
+        iPurchaseOrder.setSupplierAddress(mapAddressV2(iResultSet, "supp_addr"));
+
+        Integer iPurchaseOrderId = iResultSet.getInt("id");
+        iPurchaseOrder.getRows().clear();
+        iPurchaseOrder.getRows().addAll(getPurchaseOrderRowsV2(iPurchaseOrderId));
+        iPurchaseOrder.setDefaultAccounts(getPurchaseOrderDefaultAccountsV2(iPurchaseOrderId));
+
+        return iPurchaseOrder;
+    }
+
     private List<SSSaleRow> getPeriodicInvoiceRowsV2(Integer iPeriodicInvoiceId) throws SQLException {
         List<SSSaleRow> iRows = new LinkedList<>();
         PreparedStatement iStatement = iConnection.prepareStatement(
@@ -8870,7 +9079,11 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
 
                 while (iResultSet.next()) {
                     iMax = iResultSet.getInt(1);
-                    iPurchaseOrders.add((SSPurchaseOrder) iResultSet.getObject(3));
+                    if (useSchemaV2()) {
+                        iPurchaseOrders.add(mapPurchaseOrderV2(iResultSet));
+                    } else {
+                        iPurchaseOrders.add((SSPurchaseOrder) iResultSet.getObject(3));
+                    }
                     i++;
                 }
                 if (i != 1024) {
@@ -8903,7 +9116,9 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
             ResultSet iResultSet = iStatement.executeQuery();
 
             if (iResultSet.next()) {
-                SSPurchaseOrder iPurchaseOrder = (SSPurchaseOrder) iResultSet.getObject(3);
+                SSPurchaseOrder iPurchaseOrder = useSchemaV2()
+                        ? mapPurchaseOrderV2(iResultSet)
+                        : (SSPurchaseOrder) iResultSet.getObject(3);
 
                 iStatement.close();
                 return Optional.of(iPurchaseOrder);
@@ -8948,7 +9163,11 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
                 ResultSet iResultSet = iStatement.executeQuery();
 
                 if (iResultSet.next()) {
-                    iPurchaseOrders.add((SSPurchaseOrder) iResultSet.getObject(3));
+                    if (useSchemaV2()) {
+                        iPurchaseOrders.add(mapPurchaseOrderV2(iResultSet));
+                    } else {
+                        iPurchaseOrders.add((SSPurchaseOrder) iResultSet.getObject(3));
+                    }
                 }
                 iStatement.close();
             }
@@ -8994,12 +9213,45 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
             iResultSet.close();
             iStatement.close();
 
-            iStatement = iConnection.prepareStatement(
-                    "INSERT INTO tbl_purchaseorder VALUES(NULL,?,?,?)");
-            iStatement.setObject(1, iPurchaseOrder.getNumber());
-            iStatement.setObject(2, iPurchaseOrder);
-            iStatement.setObject(3, iCurrentCompany.getId());
+            Integer iPurchaseOrderId = null;
+            if (useSchemaV2()) {
+                iStatement = iConnection.prepareStatement(
+                        "INSERT INTO tbl_purchaseorder(" +
+                                "number,companyid,invoice_nr,vdate,supplier_nr,supplier_name,estimated_delivery," +
+                                "payment_term,delivery_term,delivery_way,our_contact,your_contact,currency_code," +
+                                "currency_rate,sale_text,printed,stock_influencing,del_addr_name,del_addr_address," +
+                                "del_addr_street,del_addr_zipcode,del_addr_city,del_addr_country,supp_addr_name," +
+                                "supp_addr_address,supp_addr_street,supp_addr_zipcode,supp_addr_city,supp_addr_country) " +
+                                "VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                        Statement.RETURN_GENERATED_KEYS);
+                int i = 1;
+                iStatement.setObject(i++, iPurchaseOrder.getNumber());
+                iStatement.setObject(i++, iCurrentCompany.getId());
+                bindPurchaseOrderColumnsV2(iStatement, i, iPurchaseOrder);
+            } else {
+                iStatement = iConnection.prepareStatement(
+                        "INSERT INTO tbl_purchaseorder VALUES(NULL,?,?,?)");
+                iStatement.setObject(1, iPurchaseOrder.getNumber());
+                iStatement.setObject(2, iPurchaseOrder);
+                iStatement.setObject(3, iCurrentCompany.getId());
+            }
             iStatement.executeUpdate();
+
+            if (useSchemaV2()) {
+                try (ResultSet iKeys = iStatement.getGeneratedKeys()) {
+                    if (iKeys.next()) {
+                        iPurchaseOrderId = iKeys.getInt(1);
+                    }
+                }
+                if (iPurchaseOrderId == null) {
+                    iPurchaseOrderId = getPurchaseOrderIdV2(iPurchaseOrder.getNumber(), iCurrentCompany.getId());
+                }
+                if (iPurchaseOrderId != null) {
+                    replacePurchaseOrderRowsV2(iPurchaseOrderId, iPurchaseOrder);
+                    replacePurchaseOrderDefaultAccountsV2(iPurchaseOrderId, iPurchaseOrder);
+                }
+            }
+
             iConnection.commit();
             iStatement.close();
 
@@ -9019,13 +9271,39 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
             return;
         }
         try {
-            PreparedStatement iStatement = iConnection.prepareStatement(
-                    "UPDATE tbl_purchaseorder SET purchaseorder=? WHERE number=? AND companyid=?");
+            PreparedStatement iStatement;
+            Integer iPurchaseOrderId = null;
 
-            iStatement.setObject(1, iPurchaseOrder);
-            iStatement.setObject(2, iPurchaseOrder.getNumber());
-            iStatement.setObject(3, iCurrentCompany.getId());
+            if (useSchemaV2()) {
+                iStatement = iConnection.prepareStatement(
+                        "UPDATE tbl_purchaseorder SET " +
+                                "invoice_nr=?,vdate=?,supplier_nr=?,supplier_name=?,estimated_delivery=?," +
+                                "payment_term=?,delivery_term=?,delivery_way=?,our_contact=?,your_contact=?," +
+                                "currency_code=?,currency_rate=?,sale_text=?,printed=?,stock_influencing=?," +
+                                "del_addr_name=?,del_addr_address=?,del_addr_street=?,del_addr_zipcode=?,del_addr_city=?," +
+                                "del_addr_country=?,supp_addr_name=?,supp_addr_address=?,supp_addr_street=?,supp_addr_zipcode=?," +
+                                "supp_addr_city=?,supp_addr_country=? WHERE number=? AND companyid=?");
+                int i = bindPurchaseOrderColumnsV2(iStatement, 1, iPurchaseOrder);
+                iStatement.setObject(i++, iPurchaseOrder.getNumber());
+                iStatement.setObject(i, iCurrentCompany.getId());
+            } else {
+                iStatement = iConnection.prepareStatement(
+                        "UPDATE tbl_purchaseorder SET purchaseorder=? WHERE number=? AND companyid=?");
+
+                iStatement.setObject(1, iPurchaseOrder);
+                iStatement.setObject(2, iPurchaseOrder.getNumber());
+                iStatement.setObject(3, iCurrentCompany.getId());
+            }
             iStatement.executeUpdate();
+
+            if (useSchemaV2()) {
+                iPurchaseOrderId = getPurchaseOrderIdV2(iPurchaseOrder.getNumber(), iCurrentCompany.getId());
+                if (iPurchaseOrderId != null) {
+                    replacePurchaseOrderRowsV2(iPurchaseOrderId, iPurchaseOrder);
+                    replacePurchaseOrderDefaultAccountsV2(iPurchaseOrderId, iPurchaseOrder);
+                }
+            }
+
             iConnection.commit();
             iStatement.close();
 
@@ -9044,6 +9322,23 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
             return;
         }
         try {
+            if (useSchemaV2()) {
+                Integer iPurchaseOrderId = getPurchaseOrderIdV2(iPurchaseOrder.getNumber(), iCurrentCompany.getId());
+                if (iPurchaseOrderId != null) {
+                    PreparedStatement iDeleteRows = iConnection.prepareStatement(
+                            "DELETE FROM tbl_purchaseorder_row WHERE purchaseorder_id=?");
+                    iDeleteRows.setObject(1, iPurchaseOrderId);
+                    iDeleteRows.executeUpdate();
+                    iDeleteRows.close();
+
+                    PreparedStatement iDeleteDefaults = iConnection.prepareStatement(
+                            "DELETE FROM tbl_purchaseorder_account WHERE purchaseorder_id=?");
+                    iDeleteDefaults.setObject(1, iPurchaseOrderId);
+                    iDeleteDefaults.executeUpdate();
+                    iDeleteDefaults.close();
+                }
+            }
+
             PreparedStatement iStatement = iConnection.prepareStatement(
                     "DELETE FROM tbl_purchaseorder WHERE number=? AND companyid=?");
 
