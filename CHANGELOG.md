@@ -12,6 +12,17 @@ diverging from upstream version 2.2-SNAPSHOT.
 ## [Unreleased]
 
 ### Added
+- Slice N (D/E) supplier invoice V2 migration:
+  - `SSDB` now supports V2 CRUD for supplier invoices (`getSupplierInvoices`,
+    `getSupplierInvoice`, `addSupplierInvoice`, `updateSupplierInvoice`,
+    `deleteSupplierInvoice`) against `tbl_supplierinvoice` and
+    `tbl_supplierinvoice_row` behind `fribok.schema.version=v2`.
+  - New repository interface `SupplierInvoiceRepository` with legacy and V2
+    adapters (`SSDBSupplierInvoiceRepository`, `V2SupplierInvoiceRepository`).
+  - `Repositories.init(SSDB)` now wires supplier-invoice repositories and
+    exposes `Repositories.supplierInvoices()`.
+  - Integration tests: `SSSupplierInvoiceV2IntegrationTest` (SSDB layer) and
+    `SSSupplierInvoiceV2RepositoryTest` (repository wiring).
 - Accounting-core repository layer (Session L):
   - New repository interfaces: `AccountPlanRepository`, `VoucherRepository`,
     and `AccountingYearRepository`.

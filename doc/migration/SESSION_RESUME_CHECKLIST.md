@@ -2,6 +2,24 @@
 
 Använd denna checklista när arbetet ska återupptas i en ny session.
 
+## Planlåsning (godkänd 2026-05-05)
+
+Denna plan är låst tills nytt explicit godkännande ges.
+
+- Scope: Slice N, O, O.5, P.
+- Ordning: N -> O -> O.5 -> P.
+- Slice N: Försäljning/Inköp (D/E) - V2-repositories + relevanta tester passerar.
+- Slice O: Betalning/Lager/Misc (F/G/H) - V2-repositories + relevanta tester passerar.
+- Slice O.5: Bokföring (C) - `accountplan`, `accountingyear`, `voucher` i V2 + relevanta tester passerar.
+- Slice P: Cutover/städning - inga aktiva `OBJECT`-paths i persistenslagret (V2-only).
+
+Bindande guardrails:
+
+- Ingen scope-utökning mitt i pågående slice.
+- Ingen API-signaturändring utan nytt explicit godkännande.
+- Nästa slice får starta först när föregående slice uppfyller sin DoD.
+- Avvikelser dokumenteras i `doc/migration/STEP2_3_EXECUTION_PLAN.md` och kräver nytt godkännande.
+
 ## 1) Snabb läsordning
 
 **För Session L (nuvarande sessionstart):**
@@ -85,3 +103,5 @@ Lägg till en kort changelog-rad med datum, commit och status, t.ex.:
 - `2026-05-05`: Session M steg 1 klar - `SSDB` persisterar och laddar `tbl_year_balance` + `tbl_budget_row` för V2 accounting year; berörda repositorytester passerar.
 - `2026-05-05`: Session M steg 2 klar - null-normalisering i `SSNewAccountingYear` för budget/in-balance (`setBudget(null)` och `setInBalance(null)`) med verifierande integrationstester.
 - `2026-05-05`: Session M steg 3 klar - budgetvärden bevaras vid ändrade year-boundaries via `SSBudget#setYear(...)`; nytt test `updateAccountingYearBoundaryPreservesBudgetRows` i `SSAccountingYearV2RepositoryTest` verifierar bevarade månadsrader i `tbl_budget_row`.
+- `2026-05-05`: Planlåsning uppdaterad - exekveringsordning låst till N (D/E) -> O (F/G/H) -> O.5 (C bokföring) -> P (V2-only cutover), med bindande guardrails.
+- `2026-05-05`: Slice N steg (supplier invoice) klar - `SSDB` V2-CRUD för `tbl_supplierinvoice`/`tbl_supplierinvoice_row` samt repositorylager (`SupplierInvoiceRepository`, `SSDBSupplierInvoiceRepository`, `V2SupplierInvoiceRepository`) inkopplat i `Repositories`; tester `SSSupplierInvoiceV2IntegrationTest` och `SSSupplierInvoiceV2RepositoryTest` passerar.
