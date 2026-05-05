@@ -111,6 +111,61 @@ class SSAccountingYearV2RepositoryTest {
         Repositories.accountPlans().delete(plan);
     }
 
+    @Test
+    void addAccountingYearWithNullBudgetStoresNoBudgetRows() throws Exception {
+        SSAccountPlan plan = new SSAccountPlan();
+        plan.setName("PLAN-YEAR-M-NULL-BUDGET");
+        Repositories.accountPlans().add(plan);
+
+        SSNewAccountingYear year = new SSNewAccountingYear();
+        year.setLocalFrom(LocalDate.of(2029, 1, 1));
+        year.setLocalTo(LocalDate.of(2029, 12, 31));
+        year.setAccountPlan(plan);
+        year.setBudget(null);
+
+        Repositories.accountingYears().add(year);
+
+        assertThat(year.getId()).isNotNull();
+        assertThat(countChildRows("tbl_budget_row", year.getId())).isZero();
+
+        Repositories.accountingYears().delete(year);
+        Repositories.accountPlans().delete(plan);
+    }
+
+    @Test
+    void updateAccountingYearWithNullBudgetAndInBalanceClearsChildRows() throws Exception {
+        SSAccountPlan plan = new SSAccountPlan();
+        plan.setName("PLAN-YEAR-M-NULL-UPDATE");
+
+        SSAccount account = new SSAccount();
+        account.setNumber(1940);
+        account.setDescription("Bank");
+        plan.addAccount(account);
+        Repositories.accountPlans().add(plan);
+
+        SSNewAccountingYear year = new SSNewAccountingYear();
+        year.setLocalFrom(LocalDate.of(2030, 1, 1));
+        year.setLocalTo(LocalDate.of(2030, 12, 31));
+        year.setAccountPlan(plan);
+        year.setInBalance(account, new BigDecimal("999.00"));
+        year.getBudget().setSaldoForAccountAndMonth(account, year.getBudget().getMonths().get(0),
+                new BigDecimal("123.00"));
+
+        Repositories.accountingYears().add(year);
+        assertThat(countChildRows("tbl_year_balance", year.getId())).isGreaterThan(0);
+        assertThat(countChildRows("tbl_budget_row", year.getId())).isGreaterThan(0);
+
+        year.setInBalance(null);
+        year.setBudget(null);
+        Repositories.accountingYears().update(year);
+
+        assertThat(countChildRows("tbl_year_balance", year.getId())).isZero();
+        assertThat(countChildRows("tbl_budget_row", year.getId())).isZero();
+
+        Repositories.accountingYears().delete(year);
+        Repositories.accountPlans().delete(plan);
+    }
+
     private static int countChildRows(String tableName, Integer yearId) throws Exception {
         String sql = "SELECT COUNT(*) FROM " + tableName + " WHERE year_id=?";
         try (PreparedStatement statement = connection.prepareStatement(sql)) {

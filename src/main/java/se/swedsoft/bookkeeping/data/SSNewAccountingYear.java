@@ -207,7 +207,7 @@ public class SSNewAccountingYear implements Serializable, SSTableSearchable {
      * @param iBudget
      */
     public void setBudget(SSBudget iBudget) {
-        this.iBudget = iBudget;
+        this.iBudget = iBudget == null ? new SSBudget() : iBudget;
     }
 
     /**
@@ -223,7 +223,7 @@ public class SSNewAccountingYear implements Serializable, SSTableSearchable {
      * @param pInBalance
      */
     public void setInBalance(Map<SSAccount, BigDecimal> pInBalance) {
-        iInBalance = pInBalance;
+        iInBalance = pInBalance == null ? new HashMap<>() : pInBalance;
     }
 
     /**
