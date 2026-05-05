@@ -2526,6 +2526,161 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
 
     // //////////////////////////////////////////////////////////////////////////////////////
 
+    private List<SSSupplierInvoiceRow> getSupplierCreditInvoiceRowsV2(Integer iSupplierCreditInvoiceId)
+            throws SQLException {
+        List<SSSupplierInvoiceRow> iRows = new LinkedList<>();
+        PreparedStatement iStatement = iConnection.prepareStatement(
+                "SELECT * FROM tbl_suppliercreditinvoice_row WHERE suppliercreditinvoice_id=? ORDER BY id");
+        iStatement.setObject(1, iSupplierCreditInvoiceId);
+        ResultSet iResultSet = iStatement.executeQuery();
+        while (iResultSet.next()) {
+            SSSupplierInvoiceRow iRow = new SSSupplierInvoiceRow();
+            iRow.setProductNr(iResultSet.getString("product_nr"));
+            iRow.setDescription(iResultSet.getString("description"));
+            iRow.setUnitprice(iResultSet.getBigDecimal("unitprice"));
+            iRow.setQuantity((Integer) iResultSet.getObject("quantity"));
+
+            String iUnit = iResultSet.getString("unit");
+            if (iUnit != null) {
+                iRow.setUnit(new SSUnit(iUnit, iUnit));
+            }
+
+            iRow.setUnitFreight(iResultSet.getBigDecimal("unit_freight"));
+            iRow.setAccountNr((Integer) iResultSet.getObject("account_nr"));
+            iRow.setProjectNr(iResultSet.getString("project_number"));
+            iRow.setResultUnitNr(iResultSet.getString("result_unit_number"));
+            iRows.add(iRow);
+        }
+        iResultSet.close();
+        iStatement.close();
+        return iRows;
+    }
+
+    private void replaceSupplierCreditInvoiceRowsV2(
+            Integer iSupplierCreditInvoiceId,
+            SSSupplierCreditInvoice iSupplierCreditInvoice) throws SQLException {
+        PreparedStatement iDelete = iConnection.prepareStatement(
+                "DELETE FROM tbl_suppliercreditinvoice_row WHERE suppliercreditinvoice_id=?");
+        iDelete.setObject(1, iSupplierCreditInvoiceId);
+        iDelete.executeUpdate();
+        iDelete.close();
+
+        for (SSSupplierInvoiceRow iRow : iSupplierCreditInvoice.getRows()) {
+            PreparedStatement iInsert = iConnection.prepareStatement(
+                    "INSERT INTO tbl_suppliercreditinvoice_row(suppliercreditinvoice_id,product_nr,description,unitprice,quantity,unit,unit_freight,account_nr,project_number,result_unit_number) VALUES(?,?,?,?,?,?,?,?,?,?)");
+            iInsert.setObject(1, iSupplierCreditInvoiceId);
+            iInsert.setObject(2, iRow.getProductNr());
+            iInsert.setObject(3, iRow.getDescription());
+            iInsert.setObject(4, iRow.getUnitprice());
+            iInsert.setObject(5, iRow.getQuantity());
+            iInsert.setObject(6, iRow.getUnit() == null ? null : iRow.getUnit().getName());
+            iInsert.setObject(7, iRow.getUnitFreight());
+            iInsert.setObject(8, iRow.getAccountNr());
+            iInsert.setObject(9, iRow.getProjectNr());
+            iInsert.setObject(10, iRow.getResultUnitNr());
+            iInsert.executeUpdate();
+            iInsert.close();
+        }
+    }
+
+    private Integer getSupplierCreditInvoiceIdV2(Integer iSupplierCreditInvoiceNumber, Integer iCompanyId)
+            throws SQLException {
+        if (iSupplierCreditInvoiceNumber == null || iCompanyId == null) {
+            return null;
+        }
+        PreparedStatement iStatement = iConnection.prepareStatement(
+                "SELECT id FROM tbl_suppliercreditinvoice WHERE number=? AND companyid=?");
+        iStatement.setObject(1, iSupplierCreditInvoiceNumber);
+        iStatement.setObject(2, iCompanyId);
+        ResultSet iResultSet = iStatement.executeQuery();
+        try {
+            if (iResultSet.next()) {
+                return iResultSet.getInt(1);
+            }
+            return null;
+        } finally {
+            iResultSet.close();
+            iStatement.close();
+        }
+    }
+
+    private int bindSupplierCreditInvoiceColumnsV2(
+            PreparedStatement iStatement,
+            int iIndex,
+            SSSupplierCreditInvoice iSupplierCreditInvoice) throws SQLException {
+        iStatement.setObject(iIndex++, iSupplierCreditInvoice.getCreditingNr());
+        bindLocalDateV2(iStatement, iIndex++, iSupplierCreditInvoice.getLocalDate());
+        bindLocalDateV2(iStatement, iIndex++, iSupplierCreditInvoice.getLocalDueDate());
+        iStatement.setObject(iIndex++, iSupplierCreditInvoice.getSupplierNr());
+        iStatement.setObject(iIndex++, iSupplierCreditInvoice.getSupplierName());
+        iStatement.setObject(iIndex++, iSupplierCreditInvoice.getReferencenumber());
+        iStatement.setObject(iIndex++, getCurrencyCodeV2(iSupplierCreditInvoice.getCurrency()));
+        iStatement.setObject(iIndex++, iSupplierCreditInvoice.getCurrencyRate());
+        // SSSupplierInvoice currently has no public payment-term getter.
+        iStatement.setObject(iIndex++, null);
+        iStatement.setObject(iIndex++, iSupplierCreditInvoice.getTaxSum());
+        iStatement.setObject(iIndex++, iSupplierCreditInvoice.getRoundingSum());
+        iStatement.setObject(iIndex++, iSupplierCreditInvoice.isEntered());
+        iStatement.setObject(iIndex++, iSupplierCreditInvoice.isStockInfluencing());
+        iStatement.setObject(iIndex++, iSupplierCreditInvoice.isBGCEntered());
+        iStatement.setObject(iIndex++, getVoucherIdByNumberV2(iSupplierCreditInvoice.getVoucher()));
+        iStatement.setObject(iIndex++, getVoucherIdByNumberV2(iSupplierCreditInvoice.getCorrection()));
+        return iIndex;
+    }
+
+    private SSSupplierCreditInvoice mapSupplierCreditInvoiceV2(ResultSet iResultSet) throws SQLException {
+        SSSupplierCreditInvoice iSupplierCreditInvoice = new SSSupplierCreditInvoice();
+        iSupplierCreditInvoice.setNumber((Integer) iResultSet.getObject("number"));
+        iSupplierCreditInvoice.setCreditingNr((Integer) iResultSet.getObject("crediting_nr"));
+
+        java.sql.Date iDate = iResultSet.getDate("vdate");
+        if (iDate != null) {
+            iSupplierCreditInvoice.setLocalDate(iDate.toLocalDate());
+        }
+
+        java.sql.Date iDueDate = iResultSet.getDate("due_date");
+        if (iDueDate != null) {
+            iSupplierCreditInvoice.setLocalDueDate(iDueDate.toLocalDate());
+        }
+
+        iSupplierCreditInvoice.setSupplierNr(iResultSet.getString("supplier_nr"));
+        iSupplierCreditInvoice.setSupplierName(iResultSet.getString("supplier_name"));
+        iSupplierCreditInvoice.setReferencenumber(iResultSet.getString("reference_number"));
+
+        String iCurrencyCode = iResultSet.getString("currency_code");
+        if (iCurrencyCode != null) {
+            iSupplierCreditInvoice.setCurrency(new SSCurrency(iCurrencyCode, iCurrencyCode));
+        }
+
+        String iPaymentTerm = iResultSet.getString("payment_term");
+        if (iPaymentTerm != null) {
+            iSupplierCreditInvoice.setPaymentTerm(new SSPaymentTerm(iPaymentTerm, iPaymentTerm));
+        }
+
+        iSupplierCreditInvoice.setCurrencyRate(iResultSet.getBigDecimal("currency_rate"));
+        iSupplierCreditInvoice.setTaxSum(iResultSet.getBigDecimal("tax_sum"));
+        iSupplierCreditInvoice.setRoundingSum(iResultSet.getBigDecimal("rounding_sum"));
+        iSupplierCreditInvoice.setEntered(iResultSet.getBoolean("entered"));
+        iSupplierCreditInvoice.setStockInfluencing(iResultSet.getBoolean("stock_influencing"));
+        iSupplierCreditInvoice.setBGCEntered(iResultSet.getBoolean("bgc_entered"));
+
+        Integer iVoucherId = (Integer) iResultSet.getObject("voucher_id");
+        Integer iVoucherNumber = getVoucherNumberForIdV2(iVoucherId);
+        if (iVoucherNumber != null) {
+            iSupplierCreditInvoice.setVoucher(new SSVoucher(iVoucherNumber));
+        }
+
+        Integer iCorrectionVoucherId = (Integer) iResultSet.getObject("correction_voucher_id");
+        Integer iCorrectionVoucherNumber = getVoucherNumberForIdV2(iCorrectionVoucherId);
+        if (iCorrectionVoucherNumber != null) {
+            iSupplierCreditInvoice.setCorrection(new SSVoucher(iCorrectionVoucherNumber));
+        }
+
+        iSupplierCreditInvoice.getRows().clear();
+        iSupplierCreditInvoice.getRows().addAll(getSupplierCreditInvoiceRowsV2(iResultSet.getInt("id")));
+        return iSupplierCreditInvoice;
+    }
+
     private List<SSPurchaseOrderRow> getPurchaseOrderRowsV2(Integer iPurchaseOrderId) throws SQLException {
         List<SSPurchaseOrderRow> iRows = new LinkedList<>();
         PreparedStatement iStatement = iConnection.prepareStatement(
@@ -9845,8 +10000,12 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
 
                 while (iResultSet.next()) {
                     iMax = iResultSet.getInt(1);
-                    iSupplierCreditInvoices.add(
-                            (SSSupplierCreditInvoice) iResultSet.getObject(3));
+                    if (useSchemaV2()) {
+                        iSupplierCreditInvoices.add(mapSupplierCreditInvoiceV2(iResultSet));
+                    } else {
+                        iSupplierCreditInvoices.add(
+                                (SSSupplierCreditInvoice) iResultSet.getObject(3));
+                    }
                     i++;
                 }
                 if (i != 1024) {
@@ -9879,8 +10038,9 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
             ResultSet iResultSet = iStatement.executeQuery();
 
             if (iResultSet.next()) {
-                SSSupplierCreditInvoice iSupplierCreditInvoice = (SSSupplierCreditInvoice) iResultSet.getObject(
-                        3);
+                SSSupplierCreditInvoice iSupplierCreditInvoice = useSchemaV2()
+                        ? mapSupplierCreditInvoiceV2(iResultSet)
+                        : (SSSupplierCreditInvoice) iResultSet.getObject(3);
 
                 iStatement.close();
                 return Optional.of(iSupplierCreditInvoice);
@@ -9927,12 +10087,44 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
             iResultSet.close();
             iStatement.close();
 
-            iStatement = iConnection.prepareStatement(
-                    "INSERT INTO tbl_suppliercreditinvoice VALUES(NULL,?,?,?)");
-            iStatement.setObject(1, iSupplierCreditInvoice.getNumber());
-            iStatement.setObject(2, iSupplierCreditInvoice);
-            iStatement.setObject(3, iCurrentCompany.getId());
+            Integer iSupplierCreditInvoiceId = null;
+            if (useSchemaV2()) {
+                iStatement = iConnection.prepareStatement(
+                        "INSERT INTO tbl_suppliercreditinvoice(" +
+                                "number,companyid,crediting_nr,vdate,due_date,supplier_nr,supplier_name,reference_number," +
+                                "currency_code,currency_rate,payment_term,tax_sum,rounding_sum,entered,stock_influencing," +
+                                "bgc_entered,voucher_id,correction_voucher_id) " +
+                                "VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                        Statement.RETURN_GENERATED_KEYS);
+                int i = 1;
+                iStatement.setObject(i++, iSupplierCreditInvoice.getNumber());
+                iStatement.setObject(i++, iCurrentCompany.getId());
+                bindSupplierCreditInvoiceColumnsV2(iStatement, i, iSupplierCreditInvoice);
+            } else {
+                iStatement = iConnection.prepareStatement(
+                        "INSERT INTO tbl_suppliercreditinvoice VALUES(NULL,?,?,?)");
+                iStatement.setObject(1, iSupplierCreditInvoice.getNumber());
+                iStatement.setObject(2, iSupplierCreditInvoice);
+                iStatement.setObject(3, iCurrentCompany.getId());
+            }
             iStatement.executeUpdate();
+
+            if (useSchemaV2()) {
+                try (ResultSet iKeys = iStatement.getGeneratedKeys()) {
+                    if (iKeys.next()) {
+                        iSupplierCreditInvoiceId = iKeys.getInt(1);
+                    }
+                }
+                if (iSupplierCreditInvoiceId == null) {
+                    iSupplierCreditInvoiceId = getSupplierCreditInvoiceIdV2(
+                            iSupplierCreditInvoice.getNumber(),
+                            iCurrentCompany.getId());
+                }
+                if (iSupplierCreditInvoiceId != null) {
+                    replaceSupplierCreditInvoiceRowsV2(iSupplierCreditInvoiceId, iSupplierCreditInvoice);
+                }
+            }
+
             iConnection.commit();
             iStatement.close();
 
@@ -9952,13 +10144,37 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
             return;
         }
         try {
-            PreparedStatement iStatement = iConnection.prepareStatement(
-                    "UPDATE tbl_suppliercreditinvoice SET suppliercreditinvoice=? WHERE number=? AND companyid=?");
+            PreparedStatement iStatement;
+            Integer iSupplierCreditInvoiceId = null;
+            if (useSchemaV2()) {
+                iStatement = iConnection.prepareStatement(
+                        "UPDATE tbl_suppliercreditinvoice SET " +
+                                "crediting_nr=?,vdate=?,due_date=?,supplier_nr=?,supplier_name=?,reference_number=?," +
+                                "currency_code=?,currency_rate=?,payment_term=?,tax_sum=?,rounding_sum=?,entered=?," +
+                                "stock_influencing=?,bgc_entered=?,voucher_id=?,correction_voucher_id=? " +
+                                "WHERE number=? AND companyid=?");
+                int i = bindSupplierCreditInvoiceColumnsV2(iStatement, 1, iSupplierCreditInvoice);
+                iStatement.setObject(i++, iSupplierCreditInvoice.getNumber());
+                iStatement.setObject(i, iCurrentCompany.getId());
+            } else {
+                iStatement = iConnection.prepareStatement(
+                        "UPDATE tbl_suppliercreditinvoice SET suppliercreditinvoice=? WHERE number=? AND companyid=?");
 
-            iStatement.setObject(1, iSupplierCreditInvoice);
-            iStatement.setObject(2, iSupplierCreditInvoice.getNumber());
-            iStatement.setObject(3, iCurrentCompany.getId());
+                iStatement.setObject(1, iSupplierCreditInvoice);
+                iStatement.setObject(2, iSupplierCreditInvoice.getNumber());
+                iStatement.setObject(3, iCurrentCompany.getId());
+            }
             iStatement.executeUpdate();
+
+            if (useSchemaV2()) {
+                iSupplierCreditInvoiceId = getSupplierCreditInvoiceIdV2(
+                        iSupplierCreditInvoice.getNumber(),
+                        iCurrentCompany.getId());
+                if (iSupplierCreditInvoiceId != null) {
+                    replaceSupplierCreditInvoiceRowsV2(iSupplierCreditInvoiceId, iSupplierCreditInvoice);
+                }
+            }
+
             iConnection.commit();
             iStatement.close();
 
@@ -9977,6 +10193,19 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
             return;
         }
         try {
+            if (useSchemaV2()) {
+                Integer iSupplierCreditInvoiceId = getSupplierCreditInvoiceIdV2(
+                        iSupplierCreditInvoice.getNumber(),
+                        iCurrentCompany.getId());
+                if (iSupplierCreditInvoiceId != null) {
+                    PreparedStatement iDeleteRows = iConnection.prepareStatement(
+                            "DELETE FROM tbl_suppliercreditinvoice_row WHERE suppliercreditinvoice_id=?");
+                    iDeleteRows.setObject(1, iSupplierCreditInvoiceId);
+                    iDeleteRows.executeUpdate();
+                    iDeleteRows.close();
+                }
+            }
+
             PreparedStatement iStatement = iConnection.prepareStatement(
                     "DELETE FROM tbl_suppliercreditinvoice WHERE number=? AND companyid=?");
 
