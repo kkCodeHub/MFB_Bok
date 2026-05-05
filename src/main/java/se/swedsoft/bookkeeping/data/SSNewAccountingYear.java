@@ -14,6 +14,7 @@ import se.swedsoft.bookkeeping.util.SSDateUtil;
 import javax.swing.*;
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.io.Serial;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.text.DateFormat;
@@ -26,7 +27,8 @@ import java.util.*;
 public class SSNewAccountingYear implements Serializable, SSTableSearchable {
 
     // / Constant for serialization versioning.
-    static final long serialVersionUID = 1L;
+    @Serial
+    private static final long serialVersionUID = 1L;
 
     private Integer iId;
 
@@ -322,6 +324,7 @@ public class SSNewAccountingYear implements Serializable, SSTableSearchable {
      * via {@link SSDateUtil#readLocalDate(Object)}.
      */
     @SuppressWarnings("unchecked")
+    @Serial
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
         ObjectInputStream.GetField fields = in.readFields();
         iId = (Integer) fields.get("iId", null);
