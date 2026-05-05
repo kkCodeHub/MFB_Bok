@@ -12,6 +12,19 @@ diverging from upstream version 2.2-SNAPSHOT.
 ## [Unreleased]
 
 ### Added
+- Accounting-core repository layer (Session L):
+  - New repository interfaces: `AccountPlanRepository`, `VoucherRepository`,
+    and `AccountingYearRepository`.
+  - Legacy adapters: `SSDBAccountPlanRepository`, `SSDBVoucherRepository`,
+    and `SSDBAccountingYearRepository`.
+  - V2 adapters: `V2AccountPlanRepository`, `V2VoucherRepository`,
+    and `V2AccountingYearRepository`.
+  - `Repositories.init(SSDB)` now wires these repositories for both V1 and V2,
+    and new getters are available via `Repositories.accountPlans()`,
+    `Repositories.vouchers()`, and `Repositories.accountingYears()`.
+  - Integration tests: `SSAccountPlanV2RepositoryTest`,
+    `SSVoucherV2RepositoryTest`, `SSAccountingYearV2RepositoryTest`, and
+    `SSAccountingCoreV2RepositoryTest`.
 - Schema V2 invoice core slice (Session E): `SSDB` now supports minimal
   invoice CRUD (`getInvoices`, `getInvoice`, `addInvoice`, `updateInvoice`,
   `deleteInvoice`) against `tbl_invoice` and `tbl_invoice_row` behind
@@ -111,6 +124,15 @@ diverging from upstream version 2.2-SNAPSHOT.
   (Phase 3 Step 15) (PR #9).
 
 ### Changed
+- `SSDB` account-plan persistence now supports schema V2 mapping against
+  `tbl_accountplan` and `tbl_account` (read/add/update/delete) while keeping
+  legacy object-column behaviour for V1.
+- `SSDB` now exposes voucher lookup by explicit year and number:
+  `getVoucher(SSNewAccountingYear, int)`.
+- `SSDB` accounting-year V2 mapping now hydrates `accountplan_id` into
+  `SSNewAccountingYear#setAccountPlan(...)` when available.
+- `SSVoucher` gained a mapping-safe constructor used by V2 hydration to avoid
+  recursive voucher-list lookups during `SSDB.mapVoucherV2(...)`.
 - Session L migration documentation is now locked for implementation start:
   - `doc/migration/SESSION_L_ACCOUNTING_REPOSITORY.md` defines binding scope for
     `AccountingYearRepository` in L (`findAll/findCurrent/add/update/delete` only),

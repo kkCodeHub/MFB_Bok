@@ -1,12 +1,18 @@
 package se.swedsoft.bookkeeping.persistence;
 
 import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.persistence.legacy.SSDBAccountPlanRepository;
+import se.swedsoft.bookkeeping.persistence.legacy.SSDBAccountingYearRepository;
 import se.swedsoft.bookkeeping.persistence.legacy.SSDBCustomerRepository;
 import se.swedsoft.bookkeeping.persistence.legacy.SSDBProductRepository;
 import se.swedsoft.bookkeeping.persistence.legacy.SSDBSupplierRepository;
+import se.swedsoft.bookkeeping.persistence.legacy.SSDBVoucherRepository;
+import se.swedsoft.bookkeeping.persistence.v2.V2AccountPlanRepository;
+import se.swedsoft.bookkeeping.persistence.v2.V2AccountingYearRepository;
 import se.swedsoft.bookkeeping.persistence.v2.V2CustomerRepository;
 import se.swedsoft.bookkeeping.persistence.v2.V2ProductRepository;
 import se.swedsoft.bookkeeping.persistence.v2.V2SupplierRepository;
+import se.swedsoft.bookkeeping.persistence.v2.V2VoucherRepository;
 
 /**
  * Central access point for repository instances.
@@ -38,6 +44,9 @@ public final class Repositories {
     private static CustomerRepository customerRepository;
     private static ProductRepository productRepository;
     private static SupplierRepository supplierRepository;
+    private static AccountPlanRepository accountPlanRepository;
+    private static VoucherRepository voucherRepository;
+    private static AccountingYearRepository accountingYearRepository;
 
     private Repositories() {
         // utility class
@@ -70,10 +79,16 @@ public final class Repositories {
             customerRepository = new V2CustomerRepository(db);
             productRepository = new V2ProductRepository(db);
             supplierRepository = new V2SupplierRepository(db);
+            accountPlanRepository = new V2AccountPlanRepository(db);
+            voucherRepository = new V2VoucherRepository(db);
+            accountingYearRepository = new V2AccountingYearRepository(db);
         } else {
             customerRepository = new SSDBCustomerRepository(db);
             productRepository = new SSDBProductRepository(db);
             supplierRepository = new SSDBSupplierRepository(db);
+            accountPlanRepository = new SSDBAccountPlanRepository(db);
+            voucherRepository = new SSDBVoucherRepository(db);
+            accountingYearRepository = new SSDBAccountingYearRepository(db);
         }
     }
 
@@ -114,6 +129,45 @@ public final class Repositories {
             throw new IllegalStateException("Repositories.init() has not been called");
         }
         return supplierRepository;
+    }
+
+    /**
+     * Returns the {@link AccountPlanRepository}.
+     *
+     * @return the account-plan repository; never {@code null} after {@link #init}
+     * @throws IllegalStateException if {@link #init} has not been called
+     */
+    public static AccountPlanRepository accountPlans() {
+        if (accountPlanRepository == null) {
+            throw new IllegalStateException("Repositories.init() has not been called");
+        }
+        return accountPlanRepository;
+    }
+
+    /**
+     * Returns the {@link VoucherRepository}.
+     *
+     * @return the voucher repository; never {@code null} after {@link #init}
+     * @throws IllegalStateException if {@link #init} has not been called
+     */
+    public static VoucherRepository vouchers() {
+        if (voucherRepository == null) {
+            throw new IllegalStateException("Repositories.init() has not been called");
+        }
+        return voucherRepository;
+    }
+
+    /**
+     * Returns the {@link AccountingYearRepository}.
+     *
+     * @return the accounting-year repository; never {@code null} after {@link #init}
+     * @throws IllegalStateException if {@link #init} has not been called
+     */
+    public static AccountingYearRepository accountingYears() {
+        if (accountingYearRepository == null) {
+            throw new IllegalStateException("Repositories.init() has not been called");
+        }
+        return accountingYearRepository;
     }
 }
 

@@ -1,6 +1,6 @@
 # Session L — Accounting-Core Repository Layer (Steg 2.3 Phase 3)
 
-**Status:** READY TO START  
+**Status:** COMPLETED  
 **Date:** 2026-05-05  
 **Estimated Effort:** 1–2 sessions (L, possibly M)  
 **Risk Level:** MEDIUM-HIGH — vouchers depend on accounting-year and account-plan FK chains  

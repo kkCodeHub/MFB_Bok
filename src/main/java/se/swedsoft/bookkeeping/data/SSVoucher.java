@@ -58,6 +58,19 @@ public class SSVoucher implements Serializable, Cloneable, SSTableSearchable {
     }
 
     /**
+     * Internal constructor used by persistence mapping to avoid recursive
+     * lookups while hydrating vouchers from the database.
+     *
+     * @param iNumber voucher number
+     * @param skipAutoDateInit true to skip next-voucher-date calculation
+     */
+    public SSVoucher(Integer iNumber, boolean skipAutoDateInit) {
+        iVoucherRows = new ArrayList<>();
+        this.iNumber = iNumber == null ? 0 : iNumber;
+        iDate = skipAutoDateInit ? null : SSVoucherMath.getNextVoucherLocalDate();
+    }
+
+    /**
      * Copy constructor.
      *
      * @param voucher The voucher to copy.

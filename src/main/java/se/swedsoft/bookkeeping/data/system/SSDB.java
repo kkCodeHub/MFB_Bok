@@ -1155,6 +1155,13 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
             iAccountingYear.setLocalTo(iToDate.toLocalDate());
         }
 
+        Integer iAccountPlanId = (Integer) iResultSet.getObject("accountplan_id");
+        if (iAccountPlanId != null) {
+            SSAccountPlan iPlanProbe = new SSAccountPlan();
+            iPlanProbe.setId(iAccountPlanId);
+            getAccountPlan(iPlanProbe).ifPresent(iAccountingYear::setAccountPlan);
+        }
+
         return iAccountingYear;
     }
 
@@ -1393,6 +1400,40 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
                         ? mapVoucherV2(iResultSet)
                         : (SSVoucher) iResultSet.getObject(3);
 
+                iStatement.close();
+                return Optional.of(iVoucher);
+            }
+            iResultSet.close();
+            iStatement.close();
+        } catch (SQLException e) {
+            LOG.error("Unexpected error", e);
+            try {
+                iConnection.rollback();
+            } catch (SQLException ignored) {}
+            SSErrorDialog.showDialog(SSMainFrame.getInstance(), "SQL Error",
+                    e.getMessage());
+        }
+        return Optional.empty();
+    }
+
+    public Optional<SSVoucher> getVoucher(SSNewAccountingYear iAccountingYear, int iNumber) {
+        if (iAccountingYear == null) {
+            return Optional.empty();
+        }
+
+        try {
+            PreparedStatement iStatement = iConnection.prepareStatement(
+                    "SELECT * FROM tbl_voucher WHERE number=? AND yearid=?");
+
+            iStatement.setObject(1, iNumber);
+            iStatement.setObject(2, iAccountingYear.getId());
+            ResultSet iResultSet = iStatement.executeQuery();
+
+            if (iResultSet.next()) {
+                SSVoucher iVoucher = useSchemaV2()
+                        ? mapVoucherV2(iResultSet)
+                        : (SSVoucher) iResultSet.getObject(3);
+                iResultSet.close();
                 iStatement.close();
                 return Optional.of(iVoucher);
             }
@@ -1729,7 +1770,7 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
     }
 
     private SSVoucher mapVoucherV2(ResultSet iResultSet) throws SQLException {
-        SSVoucher iVoucher = new SSVoucher(iResultSet.getInt("number"));
+        SSVoucher iVoucher = new SSVoucher(iResultSet.getInt("number"), true);
         java.sql.Date iDate = iResultSet.getDate("vdate");
         if (iDate != null) {
             iVoucher.setLocalDate(iDate.toLocalDate());
@@ -1741,10 +1782,10 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
         Integer iCorrectsNumber = getVoucherNumberForIdV2(iCorrectsId);
         Integer iCorrectedByNumber = getVoucherNumberForIdV2(iCorrectedById);
         if (iCorrectsNumber != null) {
-            iVoucher.setCorrects(new SSVoucher(iCorrectsNumber));
+            iVoucher.setCorrects(new SSVoucher(iCorrectsNumber, true));
         }
         if (iCorrectedByNumber != null) {
-            iVoucher.setCorrectedBy(new SSVoucher(iCorrectedByNumber));
+            iVoucher.setCorrectedBy(new SSVoucher(iCorrectedByNumber, true));
         }
 
         List<SSVoucherRow> iRows = getVoucherRowsV2(iResultSet.getInt("id"));
@@ -1899,7 +1940,11 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
             ResultSet iResultSet = iStatement.executeQuery();
 
             while (iResultSet.next()) {
-                iAccountPlans.add((SSAccountPlan) iResultSet.getObject("accountplan"));
+                if (useSchemaV2()) {
+                    iAccountPlans.add(mapAccountPlanV2(iResultSet));
+                } else {
+                    iAccountPlans.add((SSAccountPlan) iResultSet.getObject("accountplan"));
+                }
             }
             iResultSet.close();
             iStatement.close();
@@ -1926,8 +1971,12 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
             ResultSet iResultSet = iStatement.executeQuery();
 
             if (iResultSet.next()) {
-                SSAccountPlan iAccountPlan = (SSAccountPlan) iResultSet.getObject(
-                        "accountplan");
+                SSAccountPlan iAccountPlan;
+                if (useSchemaV2()) {
+                    iAccountPlan = mapAccountPlanV2(iResultSet);
+                } else {
+                    iAccountPlan = (SSAccountPlan) iResultSet.getObject("accountplan");
+                }
 
                 iStatement.close();
                 return Optional.of(iAccountPlan);
@@ -1950,6 +1999,32 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
             return;
         }
         try {
+            if (useSchemaV2()) {
+                PreparedStatement iStatement = iConnection.prepareStatement(
+                        "INSERT INTO tbl_accountplan(name,base_name,assessment_year,plan_type) VALUES(?,?,?,?)",
+                        Statement.RETURN_GENERATED_KEYS);
+
+                iStatement.setObject(1, iAccountPlan.getName());
+                iStatement.setObject(2, iAccountPlan.getBaseName());
+                iStatement.setObject(3, iAccountPlan.getAssessementYear());
+                iStatement.setObject(4, iAccountPlan.getType() == null ? null : iAccountPlan.getType().getName());
+                iStatement.executeUpdate();
+
+                try (ResultSet iKeys = iStatement.getGeneratedKeys()) {
+                    if (iKeys.next()) {
+                        iAccountPlan.setId(iKeys.getInt(1));
+                    }
+                }
+
+                if (iAccountPlan.getId() != null) {
+                    replaceAccountRowsV2(iAccountPlan.getId(), iAccountPlan);
+                }
+
+                iConnection.commit();
+                iStatement.close();
+                return;
+            }
+
             PreparedStatement iStatement = iConnection.prepareStatement(
                     "INSERT INTO tbl_accountplan VALUES(NULL,?)");
 
@@ -1994,6 +2069,32 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
         }
 
         try {
+            if (useSchemaV2()) {
+                Integer iPlanId = iAccountPlan.getId();
+                if (iPlanId == null) {
+                    iPlanId = resolveAccountPlanIdByNameV2(iAccountPlan.getName());
+                    iAccountPlan.setId(iPlanId);
+                }
+
+                PreparedStatement iStatement = iConnection.prepareStatement(
+                        "UPDATE tbl_accountplan SET name=?,base_name=?,assessment_year=?,plan_type=? WHERE id=?");
+
+                iStatement.setObject(1, iAccountPlan.getName());
+                iStatement.setObject(2, iAccountPlan.getBaseName());
+                iStatement.setObject(3, iAccountPlan.getAssessementYear());
+                iStatement.setObject(4, iAccountPlan.getType() == null ? null : iAccountPlan.getType().getName());
+                iStatement.setObject(5, iPlanId);
+                iStatement.executeUpdate();
+
+                if (iPlanId != null) {
+                    replaceAccountRowsV2(iPlanId, iAccountPlan);
+                }
+
+                iConnection.commit();
+                iStatement.close();
+                return;
+            }
+
             PreparedStatement iStatement = iConnection.prepareStatement(
                     "UPDATE tbl_accountplan SET accountplan=? WHERE id=?");
 
@@ -2018,6 +2119,30 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
             return;
         }
         try {
+            if (useSchemaV2()) {
+                Integer iPlanId = iAccountPlan.getId();
+                if (iPlanId == null) {
+                    iPlanId = resolveAccountPlanIdByNameV2(iAccountPlan.getName());
+                }
+                if (iPlanId == null) {
+                    return;
+                }
+
+                PreparedStatement iDeleteAccounts = iConnection.prepareStatement(
+                        "DELETE FROM tbl_account WHERE accountplan_id=?");
+                iDeleteAccounts.setObject(1, iPlanId);
+                iDeleteAccounts.executeUpdate();
+                iDeleteAccounts.close();
+
+                PreparedStatement iStatement = iConnection.prepareStatement(
+                        "DELETE FROM tbl_accountplan WHERE id=?");
+                iStatement.setObject(1, iPlanId);
+                iStatement.executeUpdate();
+                iConnection.commit();
+                iStatement.close();
+                return;
+            }
+
             PreparedStatement iStatement = iConnection.prepareStatement(
                     "DELETE FROM tbl_accountplan WHERE id=?");
 
@@ -2033,6 +2158,101 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
             } catch (SQLException ignored) {}
             SSErrorDialog.showDialog(SSMainFrame.getInstance(), "SQL Error",
                     e.getMessage());
+        }
+    }
+
+    private SSAccountPlan mapAccountPlanV2(ResultSet iResultSet) throws SQLException {
+        SSAccountPlan iAccountPlan = new SSAccountPlan();
+        iAccountPlan.setId(iResultSet.getInt("id"));
+        iAccountPlan.setName(iResultSet.getString("name"));
+        iAccountPlan.setBaseName(iResultSet.getString("base_name"));
+        iAccountPlan.setAssessementYear(iResultSet.getString("assessment_year"));
+
+        String iPlanType = iResultSet.getString("plan_type");
+        if (iPlanType != null) {
+            iAccountPlan.setType(iPlanType);
+        }
+
+        iAccountPlan.setAccounts(loadAccountsForPlanV2(iAccountPlan.getId()));
+        return iAccountPlan;
+    }
+
+    private List<SSAccount> loadAccountsForPlanV2(Integer iPlanId) throws SQLException {
+        List<SSAccount> iAccounts = new LinkedList<>();
+        if (iPlanId == null) {
+            return iAccounts;
+        }
+
+        PreparedStatement iStatement = iConnection.prepareStatement(
+                "SELECT * FROM tbl_account WHERE accountplan_id=? ORDER BY number");
+        iStatement.setObject(1, iPlanId);
+        ResultSet iResultSet = iStatement.executeQuery();
+
+        try {
+            while (iResultSet.next()) {
+                SSAccount iAccount = new SSAccount();
+                iAccount.setNumber(iResultSet.getInt("number"));
+                iAccount.setDescription(iResultSet.getString("description"));
+                iAccount.setSRUCode(iResultSet.getString("sru_code"));
+                iAccount.setVATCode(iResultSet.getString("vat_code"));
+                iAccount.setReportCode(iResultSet.getString("report_code"));
+                iAccount.setActive(iResultSet.getBoolean("active"));
+                iAccount.setProjectRequired(iResultSet.getBoolean("project_required"));
+                iAccount.setResultUnitRequired(iResultSet.getBoolean("result_unit_required"));
+                iAccounts.add(iAccount);
+            }
+            return iAccounts;
+        } finally {
+            iResultSet.close();
+            iStatement.close();
+        }
+    }
+
+    private void replaceAccountRowsV2(Integer iPlanId, SSAccountPlan iAccountPlan) throws SQLException {
+        if (iPlanId == null || iAccountPlan == null) {
+            return;
+        }
+
+        PreparedStatement iDelete = iConnection.prepareStatement(
+                "DELETE FROM tbl_account WHERE accountplan_id=?");
+        iDelete.setObject(1, iPlanId);
+        iDelete.executeUpdate();
+        iDelete.close();
+
+        for (SSAccount iAccount : iAccountPlan.getAccounts()) {
+            PreparedStatement iInsert = iConnection.prepareStatement(
+                    "INSERT INTO tbl_account(accountplan_id,number,description,sru_code,vat_code,report_code,active,project_required,result_unit_required) VALUES(?,?,?,?,?,?,?,?,?)");
+            iInsert.setObject(1, iPlanId);
+            iInsert.setObject(2, iAccount.getNumber());
+            iInsert.setObject(3, iAccount.getDescription());
+            iInsert.setObject(4, iAccount.getSRUCode());
+            iInsert.setObject(5, iAccount.getVATCode());
+            iInsert.setObject(6, iAccount.getReportCode());
+            iInsert.setBoolean(7, iAccount.isActive());
+            iInsert.setBoolean(8, iAccount.isProjectRequired());
+            iInsert.setBoolean(9, iAccount.isResultUnitRequired());
+            iInsert.executeUpdate();
+            iInsert.close();
+        }
+    }
+
+    private Integer resolveAccountPlanIdByNameV2(String iPlanName) throws SQLException {
+        if (iPlanName == null) {
+            return null;
+        }
+
+        PreparedStatement iStatement = iConnection.prepareStatement(
+                "SELECT id FROM tbl_accountplan WHERE name=?");
+        iStatement.setObject(1, iPlanName);
+        ResultSet iResultSet = iStatement.executeQuery();
+        try {
+            if (iResultSet.next()) {
+                return iResultSet.getInt(1);
+            }
+            return null;
+        } finally {
+            iResultSet.close();
+            iStatement.close();
         }
     }
 
