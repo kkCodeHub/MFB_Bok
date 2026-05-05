@@ -124,6 +124,9 @@ diverging from upstream version 2.2-SNAPSHOT.
   (Phase 3 Step 15) (PR #9).
 
 ### Changed
+- Session M step 3: accounting-year boundary updates now preserve existing
+  monthly budget values by month number instead of flattening distribution
+  during `SSBudget#setYear(...)` remapping.
 - `SSDB` account-plan persistence now supports schema V2 mapping against
   `tbl_accountplan` and `tbl_account` (read/add/update/delete) while keeping
   legacy object-column behaviour for V1.

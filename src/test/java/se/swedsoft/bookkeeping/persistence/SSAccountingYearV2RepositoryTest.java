@@ -166,6 +166,58 @@ class SSAccountingYearV2RepositoryTest {
         Repositories.accountPlans().delete(plan);
     }
 
+    @Test
+    void updateAccountingYearBoundaryPreservesBudgetRows() throws Exception {
+        SSAccountPlan plan = new SSAccountPlan();
+        plan.setName("PLAN-YEAR-M-BOUNDARY");
+
+        SSAccount account = new SSAccount();
+        account.setNumber(1930);
+        account.setDescription("Operating account");
+        plan.addAccount(account);
+        Repositories.accountPlans().add(plan);
+
+        SSNewAccountingYear year = new SSNewAccountingYear();
+        year.setLocalFrom(LocalDate.of(2031, 1, 1));
+        year.setLocalTo(LocalDate.of(2031, 12, 31));
+        year.setAccountPlan(plan);
+
+        SSMonth january = findMonth(year, 1);
+        SSMonth february = findMonth(year, 2);
+        year.getBudget().setSaldoForAccountAndMonth(account, january, new BigDecimal("100.00"));
+        year.getBudget().setSaldoForAccountAndMonth(account, february, new BigDecimal("250.00"));
+
+        Repositories.accountingYears().add(year);
+
+        year.setLocalFrom(LocalDate.of(2031, 7, 1));
+        year.setLocalTo(LocalDate.of(2032, 6, 30));
+        Repositories.accountingYears().update(year);
+
+        Optional<SSNewAccountingYear> reloaded = SSDB.getInstance().getAccountingYear(year);
+        assertThat(reloaded).isPresent();
+        assertThat(reloaded.get().getLocalFrom()).isEqualTo(LocalDate.of(2031, 7, 1));
+        assertThat(reloaded.get().getLocalTo()).isEqualTo(LocalDate.of(2032, 6, 30));
+
+        SSMonth reloadedJanuary = findMonth(reloaded.get(), 1);
+        SSMonth reloadedFebruary = findMonth(reloaded.get(), 2);
+        SSAccount reloadedAccount = new SSAccount(1930);
+        assertThat(reloaded.get().getBudget().getValueForAccountAndMonth(reloadedAccount, reloadedJanuary))
+                .hasValueSatisfying(value -> assertThat(value).isEqualByComparingTo("100.00"));
+        assertThat(reloaded.get().getBudget().getValueForAccountAndMonth(reloadedAccount, reloadedFebruary))
+                .hasValueSatisfying(value -> assertThat(value).isEqualByComparingTo("250.00"));
+        assertThat(countChildRows("tbl_budget_row", year.getId())).isEqualTo(2);
+
+        Repositories.accountingYears().delete(year);
+        Repositories.accountPlans().delete(plan);
+    }
+
+    private static SSMonth findMonth(SSNewAccountingYear year, int monthNumber) {
+        return year.getBudget().getMonths().stream()
+                .filter(month -> month.getLocalFrom() != null && month.getLocalFrom().getMonthValue() == monthNumber)
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException("Missing month " + monthNumber + " in budget"));
+    }
+
     private static int countChildRows(String tableName, Integer yearId) throws Exception {
         String sql = "SELECT COUNT(*) FROM " + tableName + " WHERE year_id=?";
         try (PreparedStatement statement = connection.prepareStatement(sql)) {

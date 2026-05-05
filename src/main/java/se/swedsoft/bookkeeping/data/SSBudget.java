@@ -149,10 +149,53 @@ public class SSBudget implements Serializable {
 
         if (!iAccountingYear.getLocalFrom().equals(SSDateUtil.toLocalDate(iFrom))
                 || !iAccountingYear.getLocalTo().equals(SSDateUtil.toLocalDate(iTo))) {
+            Map<Integer, Map<SSAccount, BigDecimal>> iExistingByMonthNumber = snapshotBudgetByMonthNumber();
+
             iFrom = SSDateUtil.toDate(iAccountingYear.getLocalFrom());
             iTo = SSDateUtil.toDate(iAccountingYear.getLocalTo());
 
-            iBudget = createBudgetForYear();
+            iBudget = createEmptyBudgetForYear();
+            restoreBudgetByMonthNumber(iExistingByMonthNumber);
+        }
+    }
+
+    private Map<Integer, Map<SSAccount, BigDecimal>> snapshotBudgetByMonthNumber() {
+        Map<Integer, Map<SSAccount, BigDecimal>> iSnapshot = new HashMap<>();
+        if (iBudget == null) {
+            return iSnapshot;
+        }
+
+        for (Map.Entry<SSMonth, Map<SSAccount, BigDecimal>> iEntry : iBudget.entrySet()) {
+            if (iEntry.getKey() == null || iEntry.getKey().getLocalFrom() == null || iEntry.getValue() == null) {
+                continue;
+            }
+
+            int iMonthNumber = iEntry.getKey().getLocalFrom().getMonthValue();
+            Map<SSAccount, BigDecimal> iTarget = iSnapshot.computeIfAbsent(iMonthNumber, k -> new HashMap<>());
+            iTarget.putAll(iEntry.getValue());
+        }
+        return iSnapshot;
+    }
+
+    private void restoreBudgetByMonthNumber(Map<Integer, Map<SSAccount, BigDecimal>> iSnapshot) {
+        if (iSnapshot == null || iSnapshot.isEmpty() || iBudget == null) {
+            return;
+        }
+
+        for (SSMonth iMonth : getMonths()) {
+            if (iMonth == null || iMonth.getLocalFrom() == null) {
+                continue;
+            }
+
+            Map<SSAccount, BigDecimal> iSavedMonth = iSnapshot.get(iMonth.getLocalFrom().getMonthValue());
+            if (iSavedMonth == null || iSavedMonth.isEmpty()) {
+                continue;
+            }
+
+            Map<SSAccount, BigDecimal> iCurrentMonth = iBudget.get(iMonth);
+            if (iCurrentMonth != null) {
+                iCurrentMonth.putAll(iSavedMonth);
+            }
         }
     }
 
@@ -358,22 +401,23 @@ public class SSBudget implements Serializable {
      * @return the new map
      */
     private Map <SSMonth, Map<SSAccount, BigDecimal>> createBudgetForYear() {
-        Map<SSMonth, Map<SSAccount, BigDecimal>> iNewBudget = new HashMap<>();
-
+        Map<SSMonth, Map<SSAccount, BigDecimal>> iNewBudget = createEmptyBudgetForYear();
         Map<SSAccount, BigDecimal> iSum = getSumForAccounts();
-
-        List<SSMonth> iMonths = SSMonth.splitYearIntoMonths(iAccountingYear);
-
-        for (SSMonth iMonth: iMonths) {
-            Map<SSAccount, BigDecimal> iMontlyBudget = new HashMap<>();
-
-            iNewBudget.put(iMonth, iMontlyBudget);
-        }
 
         // Set the sums
         for (Map.Entry<SSAccount, BigDecimal> ssAccountBigDecimalEntry : iSum.entrySet()) {
             setSumForAccount(ssAccountBigDecimalEntry.getKey(),
                     ssAccountBigDecimalEntry.getValue());
+        }
+        return iNewBudget;
+    }
+
+    private Map<SSMonth, Map<SSAccount, BigDecimal>> createEmptyBudgetForYear() {
+        Map<SSMonth, Map<SSAccount, BigDecimal>> iNewBudget = new HashMap<>();
+        List<SSMonth> iMonths = SSMonth.splitYearIntoMonths(iAccountingYear);
+
+        for (SSMonth iMonth : iMonths) {
+            iNewBudget.put(iMonth, new HashMap<>());
         }
         return iNewBudget;
     }
