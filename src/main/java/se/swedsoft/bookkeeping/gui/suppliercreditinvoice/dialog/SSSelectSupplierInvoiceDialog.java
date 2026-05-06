@@ -9,6 +9,7 @@ import se.swedsoft.bookkeeping.gui.util.SSBundle;
 import se.swedsoft.bookkeeping.gui.util.SSButtonPanel;
 import se.swedsoft.bookkeeping.gui.util.components.SSTableComboBox;
 import se.swedsoft.bookkeeping.gui.util.dialogs.SSDialog;
+import se.swedsoft.bookkeeping.persistence.Repositories;
 
 import javax.swing.*;
 import java.awt.*;
@@ -18,7 +19,7 @@ import java.awt.event.ActionListener;
 
 /**
  * $Id$
- * 
+ *
  */
 public class SSSelectSupplierInvoiceDialog extends SSDialog {
 
@@ -106,7 +107,7 @@ public class SSSelectSupplierInvoiceDialog extends SSDialog {
 
         SSSupplierInvoice selected = iDialog.iInvoices.getSelected();
 
-        return SSDB.getInstance().getSupplierInvoice(selected).orElse(null);
+        return Repositories.supplierInvoices().findBySupplierInvoice(selected).orElse(null);
     }
 
     @Override

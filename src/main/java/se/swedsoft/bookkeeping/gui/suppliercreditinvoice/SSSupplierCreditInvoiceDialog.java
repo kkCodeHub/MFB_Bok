@@ -6,6 +6,7 @@ import se.swedsoft.bookkeeping.data.SSSupplierCreditInvoice;
 import se.swedsoft.bookkeeping.data.SSSupplierInvoice;
 import se.swedsoft.bookkeeping.data.SSSupplierInvoiceRow;
 import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.persistence.Repositories;
 
 import se.swedsoft.bookkeeping.gui.SSMainFrame;
 import se.swedsoft.bookkeeping.gui.suppliercreditinvoice.dialog.SSSelectSupplierInvoiceDialog;
@@ -73,7 +74,7 @@ public class SSSupplierCreditInvoiceDialog {
 
                 SSSupplierCreditInvoice iSupplierCreditInvoice1 = iPanel.getSupplierCreditInvoice();
 
-                SSDB.getInstance().addSupplierCreditInvoice(iSupplierCreditInvoice1);
+                Repositories.supplierCreditInvoices().add(iSupplierCreditInvoice1);
 
                 if (pModel != null) {
                     pModel.fireTableDataChanged();
@@ -154,7 +155,7 @@ public class SSSupplierCreditInvoiceDialog {
 
                 SSSupplierCreditInvoice iSupplierCreditInvoice1 = iPanel.getSupplierCreditInvoice();
 
-                SSDB.getInstance().addSupplierCreditInvoice(iSupplierCreditInvoice1);
+                Repositories.supplierCreditInvoices().add(iSupplierCreditInvoice1);
 
                 if (pModel != null) {
                     pModel.fireTableDataChanged();
@@ -216,7 +217,7 @@ public class SSSupplierCreditInvoiceDialog {
 
                 SSSupplierCreditInvoice iSupplierCreditInvoice1 = iPanel.getSupplierCreditInvoice();
 
-                SSDB.getInstance().updateSupplierCreditInvoice(iSupplierCreditInvoice1);
+                Repositories.supplierCreditInvoices().update(iSupplierCreditInvoice1);
 
                 if (pModel != null) {
                     pModel.fireTableDataChanged();
@@ -289,7 +290,7 @@ public class SSSupplierCreditInvoiceDialog {
 
                 SSSupplierCreditInvoice iSupplierCreditInvoice1 = iPanel.getSupplierCreditInvoice();
 
-                SSDB.getInstance().addSupplierCreditInvoice(iSupplierCreditInvoice1);
+                Repositories.supplierCreditInvoices().add(iSupplierCreditInvoice1);
 
                 if (pModel != null) {
                     pModel.fireTableDataChanged();

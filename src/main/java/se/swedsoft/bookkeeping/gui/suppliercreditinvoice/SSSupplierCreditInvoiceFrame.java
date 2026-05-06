@@ -3,7 +3,7 @@ package se.swedsoft.bookkeeping.gui.suppliercreditinvoice;
 
 import se.swedsoft.bookkeeping.calc.math.SSSupplierInvoiceMath;
 import se.swedsoft.bookkeeping.data.SSSupplierCreditInvoice;
-import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.persistence.Repositories;
 
 import se.swedsoft.bookkeeping.gui.SSMainFrame;
 import se.swedsoft.bookkeeping.gui.suppliercreditinvoice.panel.SSSupplierCreditInvoiceSearchPanel;
@@ -289,13 +289,14 @@ public class SSSupplierCreditInvoiceFrame extends SSDefaultTableFrame {
                                     SSSupplierInvoiceMath.getTotalSum(
                                             iSupplierCreditInvoice)));
                 }
-                SSDB.getInstance().deleteSupplierCreditInvoice(iSupplierCreditInvoice);
+                Repositories.supplierCreditInvoices().delete(iSupplierCreditInvoice);
             }
         }
     }
 
     private SSSupplierCreditInvoice getSupplierCreditInvoice(SSSupplierCreditInvoice iSupplierCreditInvoice) {
-        return SSDB.getInstance().getSupplierCreditInvoice(iSupplierCreditInvoice).orElse(null);
+        return Repositories.supplierCreditInvoices().findBySupplierCreditInvoice(iSupplierCreditInvoice)
+                .orElse(null);
     }
 
     public void updateFrame() {

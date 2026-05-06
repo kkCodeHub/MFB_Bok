@@ -5,6 +5,7 @@ import se.swedsoft.bookkeeping.calc.math.SSSupplierInvoiceMath;
 import se.swedsoft.bookkeeping.data.*;
 import se.swedsoft.bookkeeping.data.common.SSCurrency;
 import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.persistence.Repositories;
 import se.swedsoft.bookkeeping.gui.SSMainFrame;
 import se.swedsoft.bookkeeping.gui.company.panel.SSDefaultAccountPanel;
 import se.swedsoft.bookkeeping.gui.supplier.util.SSSupplierTableModel;
@@ -477,7 +478,7 @@ public class SSSupplierCreditInvoicePanel {
         iSupplierCreditInvoice = iSSSupplierInvoice;
 
         List<SSSupplier> iSuppliers = SSDB.getInstance().getSuppliers();
-        List<SSSupplierInvoice   > iSupplierInvoices = SSDB.getInstance().getSupplierInvoices();
+        List<SSSupplierInvoice   > iSupplierInvoices = Repositories.supplierInvoices().findAll();
 
         iVoucherTableModel.setVoucher(iSSSupplierInvoice.getVoucher());
         iCorrectionTableModel.setVoucher(iSSSupplierInvoice.getCorrection());
