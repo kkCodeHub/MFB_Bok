@@ -6,10 +6,12 @@ import se.swedsoft.bookkeeping.persistence.legacy.SSDBAccountingYearRepository;
 import se.swedsoft.bookkeeping.persistence.legacy.SSDBCreditInvoiceRepository;
 import se.swedsoft.bookkeeping.persistence.legacy.SSDBCustomerRepository;
 import se.swedsoft.bookkeeping.persistence.legacy.SSDBIndeliveryRepository;
+import se.swedsoft.bookkeeping.persistence.legacy.SSDBInpaymentRepository;
 import se.swedsoft.bookkeeping.persistence.legacy.SSDBInventoryRepository;
 import se.swedsoft.bookkeeping.persistence.legacy.SSDBInvoiceRepository;
 import se.swedsoft.bookkeeping.persistence.legacy.SSDBOrderRepository;
 import se.swedsoft.bookkeeping.persistence.legacy.SSDBOutdeliveryRepository;
+import se.swedsoft.bookkeeping.persistence.legacy.SSDBOutpaymentRepository;
 import se.swedsoft.bookkeeping.persistence.legacy.SSDBPeriodicInvoiceRepository;
 import se.swedsoft.bookkeeping.persistence.legacy.SSDBProductRepository;
 import se.swedsoft.bookkeeping.persistence.legacy.SSDBPurchaseOrderRepository;
@@ -23,10 +25,12 @@ import se.swedsoft.bookkeeping.persistence.v2.V2AccountingYearRepository;
 import se.swedsoft.bookkeeping.persistence.v2.V2CreditInvoiceRepository;
 import se.swedsoft.bookkeeping.persistence.v2.V2CustomerRepository;
 import se.swedsoft.bookkeeping.persistence.v2.V2IndeliveryRepository;
+import se.swedsoft.bookkeeping.persistence.v2.V2InpaymentRepository;
 import se.swedsoft.bookkeeping.persistence.v2.V2InventoryRepository;
 import se.swedsoft.bookkeeping.persistence.v2.V2InvoiceRepository;
 import se.swedsoft.bookkeeping.persistence.v2.V2OrderRepository;
 import se.swedsoft.bookkeeping.persistence.v2.V2OutdeliveryRepository;
+import se.swedsoft.bookkeeping.persistence.v2.V2OutpaymentRepository;
 import se.swedsoft.bookkeeping.persistence.v2.V2PeriodicInvoiceRepository;
 import se.swedsoft.bookkeeping.persistence.v2.V2ProductRepository;
 import se.swedsoft.bookkeeping.persistence.v2.V2PurchaseOrderRepository;
@@ -66,10 +70,12 @@ public final class Repositories {
     private static CustomerRepository customerRepository;
     private static CreditInvoiceRepository creditInvoiceRepository;
     private static IndeliveryRepository indeliveryRepository;
+    private static InpaymentRepository inpaymentRepository;
     private static InventoryRepository inventoryRepository;
     private static InvoiceRepository invoiceRepository;
     private static OrderRepository orderRepository;
     private static OutdeliveryRepository outdeliveryRepository;
+    private static OutpaymentRepository outpaymentRepository;
     private static PeriodicInvoiceRepository periodicInvoiceRepository;
     private static ProductRepository productRepository;
     private static PurchaseOrderRepository purchaseOrderRepository;
@@ -112,10 +118,12 @@ public final class Repositories {
             customerRepository = new V2CustomerRepository(db);
             creditInvoiceRepository = new V2CreditInvoiceRepository(db);
             indeliveryRepository = new V2IndeliveryRepository(db);
+            inpaymentRepository = new V2InpaymentRepository(db);
             inventoryRepository = new V2InventoryRepository(db);
             invoiceRepository = new V2InvoiceRepository(db);
             orderRepository = new V2OrderRepository(db);
             outdeliveryRepository = new V2OutdeliveryRepository(db);
+            outpaymentRepository = new V2OutpaymentRepository(db);
             periodicInvoiceRepository = new V2PeriodicInvoiceRepository(db);
             productRepository = new V2ProductRepository(db);
             purchaseOrderRepository = new V2PurchaseOrderRepository(db);
@@ -130,10 +138,12 @@ public final class Repositories {
             customerRepository = new SSDBCustomerRepository(db);
             creditInvoiceRepository = new SSDBCreditInvoiceRepository(db);
             indeliveryRepository = new SSDBIndeliveryRepository(db);
+            inpaymentRepository = new SSDBInpaymentRepository(db);
             inventoryRepository = new SSDBInventoryRepository(db);
             invoiceRepository = new SSDBInvoiceRepository(db);
             orderRepository = new SSDBOrderRepository(db);
             outdeliveryRepository = new SSDBOutdeliveryRepository(db);
+            outpaymentRepository = new SSDBOutpaymentRepository(db);
             periodicInvoiceRepository = new SSDBPeriodicInvoiceRepository(db);
             productRepository = new SSDBProductRepository(db);
             purchaseOrderRepository = new SSDBPurchaseOrderRepository(db);
@@ -187,6 +197,19 @@ public final class Repositories {
     }
 
     /**
+     * Returns the {@link InpaymentRepository}.
+     *
+     * @return the inpayment repository; never {@code null} after {@link #init}
+     * @throws IllegalStateException if {@link #init} has not been called
+     */
+    public static InpaymentRepository inpayments() {
+        if (inpaymentRepository == null) {
+            throw new IllegalStateException("Repositories.init() has not been called");
+        }
+        return inpaymentRepository;
+    }
+
+    /**
      * Returns the {@link InventoryRepository}.
      *
      * @return the inventory repository; never {@code null} after {@link #init}
@@ -236,6 +259,19 @@ public final class Repositories {
             throw new IllegalStateException("Repositories.init() has not been called");
         }
         return outdeliveryRepository;
+    }
+
+    /**
+     * Returns the {@link OutpaymentRepository}.
+     *
+     * @return the outpayment repository; never {@code null} after {@link #init}
+     * @throws IllegalStateException if {@link #init} has not been called
+     */
+    public static OutpaymentRepository outpayments() {
+        if (outpaymentRepository == null) {
+            throw new IllegalStateException("Repositories.init() has not been called");
+        }
+        return outpaymentRepository;
     }
 
     /**

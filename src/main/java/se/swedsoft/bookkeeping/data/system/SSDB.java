@@ -8058,6 +8058,101 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
 
     // //////////////////////////////////////////////////////////////////////////////////////
 
+    private List<SSInpaymentRow> getInpaymentRowsV2(Integer iInpaymentId) throws SQLException {
+        List<SSInpaymentRow> iRows = new LinkedList<>();
+        PreparedStatement iStatement = iConnection.prepareStatement(
+                "SELECT * FROM tbl_inpayment_row WHERE inpayment_id=? ORDER BY id");
+        iStatement.setObject(1, iInpaymentId);
+        ResultSet iResultSet = iStatement.executeQuery();
+        while (iResultSet.next()) {
+            SSInpaymentRow iRow = new SSInpaymentRow();
+            iRow.setInvoiceNr((Integer) iResultSet.getObject("invoice_nr"));
+
+            String iCurrencyCode = iResultSet.getString("invoice_currency_code");
+            if (iCurrencyCode != null) {
+                iRow.setInvoiceCurrency(new SSCurrency(iCurrencyCode, iCurrencyCode));
+            }
+
+            iRow.setInvoiceCurrencyRate(iResultSet.getBigDecimal("invoice_currency_rate"));
+            iRow.setValue(iResultSet.getBigDecimal("value"));
+            iRow.setCurrencyRate(iResultSet.getBigDecimal("currency_rate"));
+            iRows.add(iRow);
+        }
+        iResultSet.close();
+        iStatement.close();
+        return iRows;
+    }
+
+    private void replaceInpaymentRowsV2(Integer iInpaymentId, SSInpayment iInpayment) throws SQLException {
+        PreparedStatement iDelete = iConnection.prepareStatement(
+                "DELETE FROM tbl_inpayment_row WHERE inpayment_id=?");
+        iDelete.setObject(1, iInpaymentId);
+        iDelete.executeUpdate();
+        iDelete.close();
+
+        for (SSInpaymentRow iRow : iInpayment.getRows()) {
+            PreparedStatement iInsert = iConnection.prepareStatement(
+                    "INSERT INTO tbl_inpayment_row(inpayment_id,invoice_nr,invoice_currency_code,invoice_currency_rate,value,currency_rate) VALUES(?,?,?,?,?,?)");
+            iInsert.setObject(1, iInpaymentId);
+            iInsert.setObject(2, iRow.getInvoiceNr());
+            iInsert.setObject(3, iRow.getInvoiceCurrency() == null ? null : iRow.getInvoiceCurrency().getName());
+            iInsert.setObject(4, iRow.getInvoiceCurrencyRate());
+            iInsert.setObject(5, iRow.getValue());
+            iInsert.setObject(6, iRow.getCurrencyRate());
+            iInsert.executeUpdate();
+            iInsert.close();
+        }
+    }
+
+    private Integer getInpaymentIdV2(Integer iInpaymentNumber, Integer iCompanyId) throws SQLException {
+        if (iInpaymentNumber == null || iCompanyId == null) {
+            return null;
+        }
+        PreparedStatement iStatement = iConnection.prepareStatement(
+                "SELECT id FROM tbl_inpayment WHERE number=? AND companyid=?");
+        iStatement.setObject(1, iInpaymentNumber);
+        iStatement.setObject(2, iCompanyId);
+        ResultSet iResultSet = iStatement.executeQuery();
+        try {
+            if (iResultSet.next()) {
+                return iResultSet.getInt(1);
+            }
+            return null;
+        } finally {
+            iResultSet.close();
+            iStatement.close();
+        }
+    }
+
+    private SSInpayment mapInpaymentV2(ResultSet iResultSet) throws SQLException {
+        SSInpayment iInpayment = new SSInpayment();
+        iInpayment.setNumber((Integer) iResultSet.getObject("number"));
+
+        java.sql.Date iDate = iResultSet.getDate("vdate");
+        if (iDate != null) {
+            iInpayment.setLocalDate(iDate.toLocalDate());
+        }
+
+        iInpayment.setText(iResultSet.getString("itext"));
+        iInpayment.setEntered(iResultSet.getBoolean("entered"));
+
+        Integer iVoucherId = (Integer) iResultSet.getObject("voucher_id");
+        Integer iVoucherNumber = getVoucherNumberForIdV2(iVoucherId);
+        if (iVoucherNumber != null) {
+            iInpayment.setVoucher(new SSVoucher(iVoucherNumber));
+        }
+
+        Integer iDifferenceVoucherId = (Integer) iResultSet.getObject("difference_voucher_id");
+        Integer iDifferenceVoucherNumber = getVoucherNumberForIdV2(iDifferenceVoucherId);
+        if (iDifferenceVoucherNumber != null) {
+            iInpayment.setDifference(new SSVoucher(iDifferenceVoucherNumber));
+        }
+
+        iInpayment.getRows().clear();
+        iInpayment.getRows().addAll(getInpaymentRowsV2(iResultSet.getInt("id")));
+        return iInpayment;
+    }
+
     /**
      * Returns the inpayments in the current company.
      *
@@ -8088,7 +8183,11 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
 
                 while (iResultSet.next()) {
                     iMax = iResultSet.getInt(1);
-                    iInpayments.add((SSInpayment) iResultSet.getObject(3));
+                    if (useSchemaV2()) {
+                        iInpayments.add(mapInpaymentV2(iResultSet));
+                    } else {
+                        iInpayments.add((SSInpayment) iResultSet.getObject(3));
+                    }
                     i++;
                 }
                 if (i != 1024) {
@@ -8121,7 +8220,9 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
             ResultSet iResultSet = iStatement.executeQuery();
 
             if (iResultSet.next()) {
-                SSInpayment iInpayment = (SSInpayment) iResultSet.getObject(3);
+                SSInpayment iInpayment = useSchemaV2()
+                        ? mapInpaymentV2(iResultSet)
+                        : (SSInpayment) iResultSet.getObject(3);
 
                 iStatement.close();
                 return Optional.of(iInpayment);
@@ -8168,12 +8269,43 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
             iResultSet.close();
             iStatement.close();
 
-            iStatement = iConnection.prepareStatement(
-                    "INSERT INTO tbl_inpayment VALUES(NULL,?,?,?)");
-            iStatement.setObject(1, iInpayment.getNumber());
-            iStatement.setObject(2, iInpayment);
-            iStatement.setObject(3, iCurrentCompany.getId());
+            Integer iInpaymentId = null;
+            if (useSchemaV2()) {
+                Integer iVoucherId = getVoucherIdByNumberV2(iInpayment.getVoucher());
+                Integer iDifferenceVoucherId = getVoucherIdByNumberV2(iInpayment.getDifference());
+                iStatement = iConnection.prepareStatement(
+                        "INSERT INTO tbl_inpayment(number,companyid,vdate,itext,entered,voucher_id,difference_voucher_id) VALUES(?,?,?,?,?,?,?)",
+                        Statement.RETURN_GENERATED_KEYS);
+                iStatement.setObject(1, iInpayment.getNumber());
+                iStatement.setObject(2, iCurrentCompany.getId());
+                bindLocalDateV2(iStatement, 3, iInpayment.getLocalDate());
+                iStatement.setObject(4, iInpayment.getText());
+                iStatement.setObject(5, iInpayment.isEntered());
+                iStatement.setObject(6, iVoucherId);
+                iStatement.setObject(7, iDifferenceVoucherId);
+            } else {
+                iStatement = iConnection.prepareStatement(
+                        "INSERT INTO tbl_inpayment VALUES(NULL,?,?,?)");
+                iStatement.setObject(1, iInpayment.getNumber());
+                iStatement.setObject(2, iInpayment);
+                iStatement.setObject(3, iCurrentCompany.getId());
+            }
             iStatement.executeUpdate();
+
+            if (useSchemaV2()) {
+                try (ResultSet iKeys = iStatement.getGeneratedKeys()) {
+                    if (iKeys.next()) {
+                        iInpaymentId = iKeys.getInt(1);
+                    }
+                }
+                if (iInpaymentId == null) {
+                    iInpaymentId = getInpaymentIdV2(iInpayment.getNumber(), iCurrentCompany.getId());
+                }
+                if (iInpaymentId != null) {
+                    replaceInpaymentRowsV2(iInpaymentId, iInpayment);
+                }
+            }
+
             iConnection.commit();
             iStatement.close();
 
@@ -8193,13 +8325,36 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
             return;
         }
         try {
-            PreparedStatement iStatement = iConnection.prepareStatement(
-                    "UPDATE tbl_inpayment SET inpayment=? WHERE number=? AND companyid=?");
-
-            iStatement.setObject(1, iInpayment);
-            iStatement.setObject(2, iInpayment.getNumber());
-            iStatement.setObject(3, iCurrentCompany.getId());
+            PreparedStatement iStatement;
+            Integer iInpaymentId = null;
+            if (useSchemaV2()) {
+                Integer iVoucherId = getVoucherIdByNumberV2(iInpayment.getVoucher());
+                Integer iDifferenceVoucherId = getVoucherIdByNumberV2(iInpayment.getDifference());
+                iStatement = iConnection.prepareStatement(
+                        "UPDATE tbl_inpayment SET vdate=?,itext=?,entered=?,voucher_id=?,difference_voucher_id=? WHERE number=? AND companyid=?");
+                bindLocalDateV2(iStatement, 1, iInpayment.getLocalDate());
+                iStatement.setObject(2, iInpayment.getText());
+                iStatement.setObject(3, iInpayment.isEntered());
+                iStatement.setObject(4, iVoucherId);
+                iStatement.setObject(5, iDifferenceVoucherId);
+                iStatement.setObject(6, iInpayment.getNumber());
+                iStatement.setObject(7, iCurrentCompany.getId());
+            } else {
+                iStatement = iConnection.prepareStatement(
+                        "UPDATE tbl_inpayment SET inpayment=? WHERE number=? AND companyid=?");
+                iStatement.setObject(1, iInpayment);
+                iStatement.setObject(2, iInpayment.getNumber());
+                iStatement.setObject(3, iCurrentCompany.getId());
+            }
             iStatement.executeUpdate();
+
+            if (useSchemaV2()) {
+                iInpaymentId = getInpaymentIdV2(iInpayment.getNumber(), iCurrentCompany.getId());
+                if (iInpaymentId != null) {
+                    replaceInpaymentRowsV2(iInpaymentId, iInpayment);
+                }
+            }
+
             iConnection.commit();
             iStatement.close();
 
@@ -8218,6 +8373,17 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
             return;
         }
         try {
+            if (useSchemaV2()) {
+                Integer iInpaymentId = getInpaymentIdV2(iInpayment.getNumber(), iCurrentCompany.getId());
+                if (iInpaymentId != null) {
+                    PreparedStatement iDeleteRows = iConnection.prepareStatement(
+                            "DELETE FROM tbl_inpayment_row WHERE inpayment_id=?");
+                    iDeleteRows.setObject(1, iInpaymentId);
+                    iDeleteRows.executeUpdate();
+                    iDeleteRows.close();
+                }
+            }
+
             PreparedStatement iStatement = iConnection.prepareStatement(
                     "DELETE FROM tbl_inpayment WHERE number=? AND companyid=?");
 
@@ -8235,6 +8401,101 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
             SSErrorDialog.showDialog(SSMainFrame.getInstance(), "SQL Error",
                     e.getMessage());
         }
+    }
+
+    private List<SSOutpaymentRow> getOutpaymentRowsV2(Integer iOutpaymentId) throws SQLException {
+        List<SSOutpaymentRow> iRows = new LinkedList<>();
+        PreparedStatement iStatement = iConnection.prepareStatement(
+                "SELECT * FROM tbl_outpayment_row WHERE outpayment_id=? ORDER BY id");
+        iStatement.setObject(1, iOutpaymentId);
+        ResultSet iResultSet = iStatement.executeQuery();
+        while (iResultSet.next()) {
+            SSOutpaymentRow iRow = new SSOutpaymentRow();
+            iRow.setInvoiceNr((Integer) iResultSet.getObject("invoice_nr"));
+
+            String iCurrencyCode = iResultSet.getString("invoice_currency_code");
+            if (iCurrencyCode != null) {
+                iRow.setInvoiceCurrency(new SSCurrency(iCurrencyCode, iCurrencyCode));
+            }
+
+            iRow.setInvoiceCurrencyRate(iResultSet.getBigDecimal("invoice_currency_rate"));
+            iRow.setValue(iResultSet.getBigDecimal("value"));
+            iRow.setCurrencyRate(iResultSet.getBigDecimal("currency_rate"));
+            iRows.add(iRow);
+        }
+        iResultSet.close();
+        iStatement.close();
+        return iRows;
+    }
+
+    private void replaceOutpaymentRowsV2(Integer iOutpaymentId, SSOutpayment iOutpayment) throws SQLException {
+        PreparedStatement iDelete = iConnection.prepareStatement(
+                "DELETE FROM tbl_outpayment_row WHERE outpayment_id=?");
+        iDelete.setObject(1, iOutpaymentId);
+        iDelete.executeUpdate();
+        iDelete.close();
+
+        for (SSOutpaymentRow iRow : iOutpayment.getRows()) {
+            PreparedStatement iInsert = iConnection.prepareStatement(
+                    "INSERT INTO tbl_outpayment_row(outpayment_id,invoice_nr,invoice_currency_code,invoice_currency_rate,value,currency_rate) VALUES(?,?,?,?,?,?)");
+            iInsert.setObject(1, iOutpaymentId);
+            iInsert.setObject(2, iRow.getInvoiceNr());
+            iInsert.setObject(3, iRow.getInvoiceCurrency() == null ? null : iRow.getInvoiceCurrency().getName());
+            iInsert.setObject(4, iRow.getInvoiceCurrencyRate());
+            iInsert.setObject(5, iRow.getValue());
+            iInsert.setObject(6, iRow.getCurrencyRate());
+            iInsert.executeUpdate();
+            iInsert.close();
+        }
+    }
+
+    private Integer getOutpaymentIdV2(Integer iOutpaymentNumber, Integer iCompanyId) throws SQLException {
+        if (iOutpaymentNumber == null || iCompanyId == null) {
+            return null;
+        }
+        PreparedStatement iStatement = iConnection.prepareStatement(
+                "SELECT id FROM tbl_outpayment WHERE number=? AND companyid=?");
+        iStatement.setObject(1, iOutpaymentNumber);
+        iStatement.setObject(2, iCompanyId);
+        ResultSet iResultSet = iStatement.executeQuery();
+        try {
+            if (iResultSet.next()) {
+                return iResultSet.getInt(1);
+            }
+            return null;
+        } finally {
+            iResultSet.close();
+            iStatement.close();
+        }
+    }
+
+    private SSOutpayment mapOutpaymentV2(ResultSet iResultSet) throws SQLException {
+        SSOutpayment iOutpayment = new SSOutpayment();
+        iOutpayment.setNumber((Integer) iResultSet.getObject("number"));
+
+        java.sql.Date iDate = iResultSet.getDate("vdate");
+        if (iDate != null) {
+            iOutpayment.setLocalDate(iDate.toLocalDate());
+        }
+
+        iOutpayment.setText(iResultSet.getString("itext"));
+        iOutpayment.setEntered(iResultSet.getBoolean("entered"));
+
+        Integer iVoucherId = (Integer) iResultSet.getObject("voucher_id");
+        Integer iVoucherNumber = getVoucherNumberForIdV2(iVoucherId);
+        if (iVoucherNumber != null) {
+            iOutpayment.setVoucher(new SSVoucher(iVoucherNumber));
+        }
+
+        Integer iDifferenceVoucherId = (Integer) iResultSet.getObject("difference_voucher_id");
+        Integer iDifferenceVoucherNumber = getVoucherNumberForIdV2(iDifferenceVoucherId);
+        if (iDifferenceVoucherNumber != null) {
+            iOutpayment.setDifference(new SSVoucher(iDifferenceVoucherNumber));
+        }
+
+        iOutpayment.getRows().clear();
+        iOutpayment.getRows().addAll(getOutpaymentRowsV2(iResultSet.getInt("id")));
+        return iOutpayment;
     }
 
     /**
@@ -8267,7 +8528,11 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
 
                 while (iResultSet.next()) {
                     iMax = iResultSet.getInt(1);
-                    iOutpayments.add((SSOutpayment) iResultSet.getObject(3));
+                    if (useSchemaV2()) {
+                        iOutpayments.add(mapOutpaymentV2(iResultSet));
+                    } else {
+                        iOutpayments.add((SSOutpayment) iResultSet.getObject(3));
+                    }
                     i++;
                 }
                 if (i != 1024) {
@@ -8300,7 +8565,9 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
             ResultSet iResultSet = iStatement.executeQuery();
 
             if (iResultSet.next()) {
-                SSOutpayment iOutpayment = (SSOutpayment) iResultSet.getObject(3);
+                SSOutpayment iOutpayment = useSchemaV2()
+                        ? mapOutpaymentV2(iResultSet)
+                        : (SSOutpayment) iResultSet.getObject(3);
 
                 iStatement.close();
                 return Optional.of(iOutpayment);
@@ -8347,12 +8614,43 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
             iResultSet.close();
             iStatement.close();
 
-            iStatement = iConnection.prepareStatement(
-                    "INSERT INTO tbl_outpayment VALUES(NULL,?,?,?)");
-            iStatement.setObject(1, iOutpayment.getNumber());
-            iStatement.setObject(2, iOutpayment);
-            iStatement.setObject(3, iCurrentCompany.getId());
+            Integer iOutpaymentId = null;
+            if (useSchemaV2()) {
+                Integer iVoucherId = getVoucherIdByNumberV2(iOutpayment.getVoucher());
+                Integer iDifferenceVoucherId = getVoucherIdByNumberV2(iOutpayment.getDifference());
+                iStatement = iConnection.prepareStatement(
+                        "INSERT INTO tbl_outpayment(number,companyid,vdate,itext,entered,voucher_id,difference_voucher_id) VALUES(?,?,?,?,?,?,?)",
+                        Statement.RETURN_GENERATED_KEYS);
+                iStatement.setObject(1, iOutpayment.getNumber());
+                iStatement.setObject(2, iCurrentCompany.getId());
+                bindLocalDateV2(iStatement, 3, iOutpayment.getLocalDate());
+                iStatement.setObject(4, iOutpayment.getText());
+                iStatement.setObject(5, iOutpayment.isEntered());
+                iStatement.setObject(6, iVoucherId);
+                iStatement.setObject(7, iDifferenceVoucherId);
+            } else {
+                iStatement = iConnection.prepareStatement(
+                        "INSERT INTO tbl_outpayment VALUES(NULL,?,?,?)");
+                iStatement.setObject(1, iOutpayment.getNumber());
+                iStatement.setObject(2, iOutpayment);
+                iStatement.setObject(3, iCurrentCompany.getId());
+            }
             iStatement.executeUpdate();
+
+            if (useSchemaV2()) {
+                try (ResultSet iKeys = iStatement.getGeneratedKeys()) {
+                    if (iKeys.next()) {
+                        iOutpaymentId = iKeys.getInt(1);
+                    }
+                }
+                if (iOutpaymentId == null) {
+                    iOutpaymentId = getOutpaymentIdV2(iOutpayment.getNumber(), iCurrentCompany.getId());
+                }
+                if (iOutpaymentId != null) {
+                    replaceOutpaymentRowsV2(iOutpaymentId, iOutpayment);
+                }
+            }
+
             iConnection.commit();
             iStatement.close();
 
@@ -8372,13 +8670,36 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
             return;
         }
         try {
-            PreparedStatement iStatement = iConnection.prepareStatement(
-                    "UPDATE tbl_outpayment SET outpayment=? WHERE number=? AND companyid=?");
-
-            iStatement.setObject(1, iOutpayment);
-            iStatement.setObject(2, iOutpayment.getNumber());
-            iStatement.setObject(3, iCurrentCompany.getId());
+            PreparedStatement iStatement;
+            Integer iOutpaymentId = null;
+            if (useSchemaV2()) {
+                Integer iVoucherId = getVoucherIdByNumberV2(iOutpayment.getVoucher());
+                Integer iDifferenceVoucherId = getVoucherIdByNumberV2(iOutpayment.getDifference());
+                iStatement = iConnection.prepareStatement(
+                        "UPDATE tbl_outpayment SET vdate=?,itext=?,entered=?,voucher_id=?,difference_voucher_id=? WHERE number=? AND companyid=?");
+                bindLocalDateV2(iStatement, 1, iOutpayment.getLocalDate());
+                iStatement.setObject(2, iOutpayment.getText());
+                iStatement.setObject(3, iOutpayment.isEntered());
+                iStatement.setObject(4, iVoucherId);
+                iStatement.setObject(5, iDifferenceVoucherId);
+                iStatement.setObject(6, iOutpayment.getNumber());
+                iStatement.setObject(7, iCurrentCompany.getId());
+            } else {
+                iStatement = iConnection.prepareStatement(
+                        "UPDATE tbl_outpayment SET outpayment=? WHERE number=? AND companyid=?");
+                iStatement.setObject(1, iOutpayment);
+                iStatement.setObject(2, iOutpayment.getNumber());
+                iStatement.setObject(3, iCurrentCompany.getId());
+            }
             iStatement.executeUpdate();
+
+            if (useSchemaV2()) {
+                iOutpaymentId = getOutpaymentIdV2(iOutpayment.getNumber(), iCurrentCompany.getId());
+                if (iOutpaymentId != null) {
+                    replaceOutpaymentRowsV2(iOutpaymentId, iOutpayment);
+                }
+            }
+
             iConnection.commit();
             iStatement.close();
 
@@ -8397,6 +8718,17 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
             return;
         }
         try {
+            if (useSchemaV2()) {
+                Integer iOutpaymentId = getOutpaymentIdV2(iOutpayment.getNumber(), iCurrentCompany.getId());
+                if (iOutpaymentId != null) {
+                    PreparedStatement iDeleteRows = iConnection.prepareStatement(
+                            "DELETE FROM tbl_outpayment_row WHERE outpayment_id=?");
+                    iDeleteRows.setObject(1, iOutpaymentId);
+                    iDeleteRows.executeUpdate();
+                    iDeleteRows.close();
+                }
+            }
+
             PreparedStatement iStatement = iConnection.prepareStatement(
                     "DELETE FROM tbl_outpayment WHERE number=? AND companyid=?");
 
