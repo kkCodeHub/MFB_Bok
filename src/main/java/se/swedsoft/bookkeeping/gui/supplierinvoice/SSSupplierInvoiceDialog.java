@@ -276,7 +276,7 @@ public class SSSupplierInvoiceDialog {
                 for (SSPurchaseOrder iPurchaseOrder : iOrders) {
                     // Set the sales for the selected order to the new one
                     iPurchaseOrder.setInvoice(iSupplierInvoice1);
-                    SSDB.getInstance().updatePurchaseOrder(iPurchaseOrder);
+                    Repositories.purchaseOrders().update(iPurchaseOrder);
                 }
 
                 if (iModel != null) {

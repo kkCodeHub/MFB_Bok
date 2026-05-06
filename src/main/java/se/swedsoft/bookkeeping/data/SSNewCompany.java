@@ -969,7 +969,7 @@ public class SSNewCompany implements Serializable {    private static final Logg
     public Double getPurchaseOrderValueForMonth(SSMonth iMonth) {
         Double sum = 0.0;
 
-        for (SSPurchaseOrder iPurchaseOrder : SSDB.getInstance().getPurchaseOrders()) {
+        for (SSPurchaseOrder iPurchaseOrder : Repositories.purchaseOrders().findAll()) {
             if (iMonth.isDateInMonth(iPurchaseOrder.getLocalDate())) {
                 if (iPurchaseOrder.getSum() != null) {
                     sum += iPurchaseOrder.getSum().doubleValue()
@@ -985,7 +985,7 @@ public class SSNewCompany implements Serializable {    private static final Logg
     public Double getSupplierInvoiceValueForMonth(SSMonth iMonth) {
         Double sumSupplierInvoices = 0.0;
 
-        for (SSSupplierInvoice iSupplierInvoice:SSDB.getInstance().getSupplierInvoices()) {
+        for (SSSupplierInvoice iSupplierInvoice: Repositories.supplierInvoices().findAll()) {
             if (iMonth.isDateInMonth(iSupplierInvoice.getLocalDate())) {
                 if (SSSupplierInvoiceMath.getNetSum(iSupplierInvoice) != null) {
                     sumSupplierInvoices += SSSupplierInvoiceMath.getNetSum(iSupplierInvoice).doubleValue()
@@ -995,7 +995,7 @@ public class SSNewCompany implements Serializable {    private static final Logg
         }
         Double sumSupplierCreditInvoices = 0.0;
 
-        for (SSSupplierCreditInvoice iSupplierCreditInvoice:SSDB.getInstance().getSupplierCreditInvoices()) {
+        for (SSSupplierCreditInvoice iSupplierCreditInvoice : Repositories.supplierCreditInvoices().findAll()) {
             if (iMonth.isDateInMonth(iSupplierCreditInvoice.getLocalDate())) {
                 if (SSSupplierInvoiceMath.getNetSum(iSupplierCreditInvoice) != null) {
                     sumSupplierCreditInvoices += SSSupplierInvoiceMath.getNetSum(iSupplierCreditInvoice).doubleValue()

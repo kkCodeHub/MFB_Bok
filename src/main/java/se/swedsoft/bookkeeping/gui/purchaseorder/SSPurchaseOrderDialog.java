@@ -15,6 +15,7 @@ import se.swedsoft.bookkeeping.gui.util.SSBundle;
 import se.swedsoft.bookkeeping.gui.util.dialogs.SSDialog;
 import se.swedsoft.bookkeeping.gui.util.dialogs.SSInformationDialog;
 import se.swedsoft.bookkeeping.gui.util.dialogs.SSQueryDialog;
+import se.swedsoft.bookkeeping.persistence.Repositories;
 import se.swedsoft.bookkeeping.util.SSDateUtil;
 
 import javax.swing.*;
@@ -57,7 +58,7 @@ public class SSPurchaseOrderDialog {
 
                 SSPurchaseOrder iOrder = iPanel.getOrder();
 
-                SSDB.getInstance().addPurchaseOrder(iOrder);
+                Repositories.purchaseOrders().add(iOrder);
 
                 if (pModel != null) {
                     pModel.fireTableDataChanged();
@@ -121,7 +122,7 @@ public class SSPurchaseOrderDialog {
 
                 SSPurchaseOrder iPurchaseOrder1 = iPanel.getOrder();
 
-                SSDB.getInstance().addPurchaseOrder(iPurchaseOrder1);
+                Repositories.purchaseOrders().add(iPurchaseOrder1);
 
                 for (SSOrder iOrder : iSelected) {
                     if (SSDB.getInstance().getOrders().contains(iOrder)) {
@@ -184,7 +185,7 @@ public class SSPurchaseOrderDialog {
 
                 SSPurchaseOrder iOrder = iPanel.getOrder();
 
-                SSDB.getInstance().updatePurchaseOrder(iOrder);
+                Repositories.purchaseOrders().update(iOrder);
 
                 if (pModel != null) {
                     pModel.fireTableDataChanged();
@@ -253,7 +254,7 @@ public class SSPurchaseOrderDialog {
 
                 SSPurchaseOrder iOrder = iPanel.getOrder();
 
-                SSDB.getInstance().addPurchaseOrder(iOrder);
+                Repositories.purchaseOrders().add(iOrder);
 
                 if (pModel != null) {
                     pModel.fireTableDataChanged();
@@ -356,7 +357,7 @@ public class SSPurchaseOrderDialog {
          SSPurchaseOrder iOrder = iOrders.get(0);
 
          // if the selected order already has a sales assosiated we can't create a new one
-         if(iOrder.getInvoice(SSDB.getInstance().getSupplierInvoices()) != null){
+         if(iOrder.getInvoice(Repositories.supplierInvoices().findAll()) != null){
          SSInformationDialog.showDialog(iMainFrame, "orderframe.orderhasinvoice", iOrder.getNumber());
          return;
          }
@@ -379,7 +380,7 @@ public class SSPurchaseOrderDialog {
          for (SSPurchaseOrder iCurrent : iFiltered) {
 
          // if the selected order already has a sales assosiated we can't create a new one
-         if(iCurrent.getInvoice(SSDB.getInstance().getSupplierInvoices()) != null){
+         if(iCurrent.getInvoice(Repositories.supplierInvoices().findAll()) != null){
          SSInformationDialog.showDialog(iMainFrame, "purchaseorderframe.orderhasinvoice", iCurrent.getNumber());
          return;
          }

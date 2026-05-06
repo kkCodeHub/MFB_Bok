@@ -5,9 +5,9 @@ import se.swedsoft.bookkeeping.data.SSAccount;
 import se.swedsoft.bookkeeping.data.SSPurchaseOrder;
 import se.swedsoft.bookkeeping.data.SSPurchaseOrderRow;
 import se.swedsoft.bookkeeping.data.base.SSSaleRow;
-import se.swedsoft.bookkeeping.data.system.SSDB;
 import se.swedsoft.bookkeeping.gui.util.SSBundle;
 import se.swedsoft.bookkeeping.gui.util.model.SSDefaultTableModel;
+import se.swedsoft.bookkeeping.persistence.Repositories;
 import se.swedsoft.bookkeeping.print.SSPrinter;
 import se.swedsoft.bookkeeping.print.util.SSDefaultJasperDataSource;
 
@@ -34,7 +34,7 @@ public class SSPurchaseOrderListPrinter extends SSPrinter {
      *
      */
     public SSPurchaseOrderListPrinter() {
-        this(SSDB.getInstance().getPurchaseOrders());
+        this(Repositories.purchaseOrders().findAll());
     }
 
     /**

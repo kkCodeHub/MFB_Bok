@@ -16,6 +16,7 @@ import se.swedsoft.bookkeeping.gui.util.dialogs.SSErrorDialog;
 import se.swedsoft.bookkeeping.gui.util.dialogs.SSInformationDialog;
 import se.swedsoft.bookkeeping.gui.util.table.SSTable;
 import se.swedsoft.bookkeeping.gui.util.table.editors.SSSupplierCellEditor;
+import se.swedsoft.bookkeeping.persistence.Repositories;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
@@ -180,7 +181,7 @@ public class SSPurchaseSuggestionDialog extends SSDialog {
                 SSPurchaseOrder iPurchaseOrder = new SSPurchaseOrder(iUseForPurchaseOrder,
                         iSupplier);
 
-                SSDB.getInstance().addPurchaseOrder(iPurchaseOrder);
+                Repositories.purchaseOrders().add(iPurchaseOrder);
                 iAddedOrders += iPurchaseOrder.getNumber();
             }
         }

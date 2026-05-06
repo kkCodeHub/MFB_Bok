@@ -5,6 +5,7 @@ import se.swedsoft.bookkeeping.calc.util.SSAutoIncrement;
 import se.swedsoft.bookkeeping.data.common.*;
 import se.swedsoft.bookkeeping.data.system.SSDB;
 import se.swedsoft.bookkeeping.gui.util.table.SSTableSearchable;
+import se.swedsoft.bookkeeping.persistence.Repositories;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -176,7 +177,7 @@ public class SSPurchaseOrder implements SSTableSearchable, Serializable {
      * Sets the number of this purchase order as the maxinum mumber + 1
      */
     public void doAutoIncrecement() {
-        List<SSPurchaseOrder> iPurchaseOrders = SSDB.getInstance().getPurchaseOrders();
+        List<SSPurchaseOrder> iPurchaseOrders = Repositories.purchaseOrders().findAll();
 
         int iNumber = SSDB.getInstance().getAutoIncrement().orElse(new SSAutoIncrement()).getNumber("purchaseorder");
 
@@ -605,7 +606,7 @@ public class SSPurchaseOrder implements SSTableSearchable, Serializable {
      * @return
      */
     public SSSupplierInvoice getInvoice() {
-        return getInvoice(SSDB.getInstance().getSupplierInvoices());
+        return getInvoice(Repositories.supplierInvoices().findAll());
     }
 
     /**

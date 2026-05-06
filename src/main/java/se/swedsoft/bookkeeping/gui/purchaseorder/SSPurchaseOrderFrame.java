@@ -17,6 +17,7 @@ import se.swedsoft.bookkeeping.gui.util.dialogs.SSErrorDialog;
 import se.swedsoft.bookkeeping.gui.util.dialogs.SSQueryDialog;
 import se.swedsoft.bookkeeping.gui.util.frame.SSDefaultTableFrame;
 import se.swedsoft.bookkeeping.gui.util.table.SSTable;
+import se.swedsoft.bookkeeping.persistence.Repositories;
 import se.swedsoft.bookkeeping.print.SSReportFactory;
 
 import javax.swing.*;
@@ -304,7 +305,7 @@ public class SSPurchaseOrderFrame extends SSDefaultTableFrame {
         iTabbedPane.add(SSBundle.getBundle().getString("orderframe.filter.2"),
                 new SSTabbedPanePanel());
 
-        iTabbedPane.addChangeListener(e -> iSearchPanel.ApplyFilter(SSDB.getInstance().getPurchaseOrders()));
+        iTabbedPane.addChangeListener(e -> iSearchPanel.ApplyFilter(Repositories.purchaseOrders().findAll()));
         // setFilterIndex(0);
 
         JPanel iPanel = new JPanel();
@@ -331,7 +332,7 @@ public class SSPurchaseOrderFrame extends SSDefaultTableFrame {
 
         List<SSPurchaseOrder> iFiltered = Collections.emptyList();
 
-        List<SSSupplierInvoice> iInvoices = SSDB.getInstance().getSupplierInvoices();
+        List<SSSupplierInvoice> iInvoices = Repositories.supplierInvoices().findAll();
 
         switch (index) {
         // Alla
@@ -407,7 +408,7 @@ public class SSPurchaseOrderFrame extends SSDefaultTableFrame {
                         SSDB.getInstance().updateOrder(iOrder);
                     }
                 }
-                SSDB.getInstance().deletePurchaseOrder(iPurchaseOrder);
+                Repositories.purchaseOrders().delete(iPurchaseOrder);
             }
         }
     }
@@ -421,15 +422,15 @@ public class SSPurchaseOrderFrame extends SSDefaultTableFrame {
     }
 
     private SSPurchaseOrder getPurchaseOrder(SSPurchaseOrder iPurchaseOrder) {
-        return SSDB.getInstance().getPurchaseOrder(iPurchaseOrder).orElse(null);
+        return Repositories.purchaseOrders().findByPurchaseOrder(iPurchaseOrder).orElse(null);
     }
 
     private List<SSPurchaseOrder> getPurchaseOrders(List<SSPurchaseOrder> iPurchaseOrders) {
-        return SSDB.getInstance().getPurchaseOrders(iPurchaseOrders);
+        return Repositories.purchaseOrders().findAll(iPurchaseOrders);
     }
 
     public void updateFrame() {
-        iSearchPanel.ApplyFilter(SSDB.getInstance().getPurchaseOrders());
+        iSearchPanel.ApplyFilter(Repositories.purchaseOrders().findAll());
     }
 
     public void actionPerformed(ActionEvent e) {

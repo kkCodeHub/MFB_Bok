@@ -7,7 +7,6 @@ import se.swedsoft.bookkeeping.calc.util.SSFilterFactory;
 import se.swedsoft.bookkeeping.data.SSPurchaseOrder;
 import se.swedsoft.bookkeeping.data.SSSupplier;
 import se.swedsoft.bookkeeping.data.SSSupplierInvoice;
-import se.swedsoft.bookkeeping.data.system.SSDB;
 import se.swedsoft.bookkeeping.gui.SSMainFrame;
 import se.swedsoft.bookkeeping.gui.supplier.util.SSSupplierTableModel;
 import se.swedsoft.bookkeeping.gui.util.SSBundle;
@@ -100,7 +99,7 @@ public class SSPurchaseOrderListDialog extends SSDialog {
      * @return
      */
     public List<SSPurchaseOrder> getElementsToPrint() {
-        List<SSPurchaseOrder> iPurchaseOrders = SSDB.getInstance().getPurchaseOrders();
+        List<SSPurchaseOrder> iPurchaseOrders = Repositories.purchaseOrders().findAll();
 
         SSFilterFactory<SSPurchaseOrder> iFactory = new SSFilterFactory<>(
                 iPurchaseOrders);

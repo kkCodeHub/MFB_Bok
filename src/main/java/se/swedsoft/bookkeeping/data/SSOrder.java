@@ -3,6 +3,7 @@ package se.swedsoft.bookkeeping.data;
 
 import se.swedsoft.bookkeeping.data.base.SSSale;
 import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.persistence.Repositories;
 
 import java.math.BigDecimal;
 import se.swedsoft.bookkeeping.util.SSDateUtil;
@@ -332,7 +333,7 @@ public class SSOrder extends SSSale {
      * @return
      */
     public SSPurchaseOrder getPurchaseOrder() {
-        return getPurchaseOrder(SSDB.getInstance().getPurchaseOrders());
+        return getPurchaseOrder(Repositories.purchaseOrders().findAll());
     }
 
     /**

@@ -1840,7 +1840,7 @@ public class SSReportFactory {    private static final Logger LOG = LoggerFactor
 
         for (SSPurchaseOrder iPurchaseOrder : iPurchaseOrders) {
             iPurchaseOrder.setPrinted();
-            SSDB.getInstance().updatePurchaseOrder(iPurchaseOrder);
+            Repositories.purchaseOrders().update(iPurchaseOrder);
         }
         final Locale iLanguage = iDialog.getLanguage();
 
@@ -1874,7 +1874,7 @@ public class SSReportFactory {    private static final Logger LOG = LoggerFactor
         final Locale iLanguage = iDialog.getLanguage();
 
         iPurchaseOrder.setPrinted();
-        SSDB.getInstance().updatePurchaseOrder(iPurchaseOrder);
+        Repositories.purchaseOrders().update(iPurchaseOrder);
 
         SSProgressDialog.runProgress(iMainFrame,
                 () -> {

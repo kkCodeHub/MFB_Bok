@@ -7,6 +7,7 @@ import se.swedsoft.bookkeeping.data.*;
 import se.swedsoft.bookkeeping.data.common.SSCurrency;
 import se.swedsoft.bookkeeping.data.common.SSPaymentTerm;
 import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.persistence.Repositories;
 import se.swedsoft.bookkeeping.gui.SSMainFrame;
 import se.swedsoft.bookkeeping.gui.company.panel.SSDefaultAccountPanel;
 import se.swedsoft.bookkeeping.gui.supplier.util.SSSupplierTableModel;
@@ -461,7 +462,7 @@ public class SSSupplierInvoicePanel implements ActionListener {
         this.iSupplierInvoice = iSupplierInvoice;
 
         List<SSSupplier     > iSuppliers = SSDB.getInstance().getSuppliers();
-        List<SSPurchaseOrder> iOrders = SSDB.getInstance().getPurchaseOrders();
+        List<SSPurchaseOrder> iOrders = Repositories.purchaseOrders().findAll();
 
         iVoucherTableModel.setVoucher(iSupplierInvoice.getVoucher());
         iCorrectionTableModel.setVoucher(iSupplierInvoice.getCorrection());

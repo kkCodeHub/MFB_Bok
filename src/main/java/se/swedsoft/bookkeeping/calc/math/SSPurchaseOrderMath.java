@@ -3,6 +3,7 @@ package se.swedsoft.bookkeeping.calc.math;
 
 import se.swedsoft.bookkeeping.data.*;
 import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.persistence.Repositories;
 import se.swedsoft.bookkeeping.util.SSDateUtil;
 
 import java.time.LocalDate;
@@ -52,7 +53,7 @@ public class SSPurchaseOrderMath {
      * @return the order or null
      */
     public static List<SSPurchaseOrder> getOrdersForInvoice(SSSupplierInvoice iInvoice) {
-        return getOrdersForInvoice(SSDB.getInstance().getPurchaseOrders(), iInvoice);
+        return getOrdersForInvoice(Repositories.purchaseOrders().findAll(), iInvoice);
     }
 
     /**
@@ -148,7 +149,7 @@ public class SSPurchaseOrderMath {
      * @param iInvoice
      */
     public static void removeReference(SSSupplierInvoice iInvoice) {
-        removeInvoice(SSDB.getInstance().getPurchaseOrders(), iInvoice);
+        removeInvoice(Repositories.purchaseOrders().findAll(), iInvoice);
     }
 
     /**
@@ -169,7 +170,7 @@ public class SSPurchaseOrderMath {
     public static Integer getNumberOfIncommingProducts(SSProduct iProduct) {
         Integer iSum = 0;
 
-        for (SSPurchaseOrder iPurchaseOrder : SSDB.getInstance().getPurchaseOrders()) {
+        for (SSPurchaseOrder iPurchaseOrder : Repositories.purchaseOrders().findAll()) {
             if (!iPurchaseOrder.hasInvoice()) {
                 for (SSPurchaseOrderRow iRow : iPurchaseOrder.getRows()) {
                     if (iProduct.getNumber().equals(iRow.getProductNr())) {

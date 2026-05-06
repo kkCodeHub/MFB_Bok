@@ -2,9 +2,9 @@ package se.swedsoft.bookkeeping.gui.purchaseorder.panel;
 
 
 import se.swedsoft.bookkeeping.data.SSPurchaseOrder;
-import se.swedsoft.bookkeeping.data.system.SSDB;
 import se.swedsoft.bookkeeping.gui.purchaseorder.SSPurchaseOrderFrame;
 import se.swedsoft.bookkeeping.gui.purchaseorder.util.SSPurchaseOrderTableModel;
+import se.swedsoft.bookkeeping.persistence.Repositories;
 
 import javax.swing.*;
 import java.awt.*;
@@ -36,7 +36,7 @@ public class SSPurchaseOrderSearchPanel extends JPanel {
         iTextField.addKeyListener(new KeyAdapter() {
             @Override
             public void keyReleased(KeyEvent e) {
-                ApplyFilter(SSDB.getInstance().getPurchaseOrders());
+                ApplyFilter(Repositories.purchaseOrders().findAll());
             }
         });
     }

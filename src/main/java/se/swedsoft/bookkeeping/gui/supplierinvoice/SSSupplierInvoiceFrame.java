@@ -458,10 +458,10 @@ public class SSSupplierInvoiceFrame extends SSDefaultTableFrame {
 
         if (iResponce == JOptionPane.YES_OPTION) {
             for (SSSupplierInvoice iSupplierInvoice : delete) {
-                for (SSPurchaseOrder iPurchaseOrder : SSDB.getInstance().getPurchaseOrders()) {
+                for (SSPurchaseOrder iPurchaseOrder : Repositories.purchaseOrders().findAll()) {
                     if (iPurchaseOrder.hasInvoice(iSupplierInvoice)) {
                         iPurchaseOrder.setInvoice(null);
-                        SSDB.getInstance().updatePurchaseOrder(iPurchaseOrder);
+                        Repositories.purchaseOrders().update(iPurchaseOrder);
                     }
                 }
                 int iIndex = SSSupplierMath.iInvoicesForSuppliers.get(iSupplierInvoice.getSupplierNr()).indexOf(
