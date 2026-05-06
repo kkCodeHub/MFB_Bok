@@ -6,9 +6,9 @@ import se.swedsoft.bookkeeping.data.SSAccount;
 import se.swedsoft.bookkeeping.data.SSSupplierCreditInvoice;
 import se.swedsoft.bookkeeping.data.SSSupplierInvoiceRow;
 import se.swedsoft.bookkeeping.data.base.SSSaleRow;
-import se.swedsoft.bookkeeping.data.system.SSDB;
 import se.swedsoft.bookkeeping.gui.util.SSBundle;
 import se.swedsoft.bookkeeping.gui.util.model.SSDefaultTableModel;
+import se.swedsoft.bookkeeping.persistence.Repositories;
 import se.swedsoft.bookkeeping.print.SSPrinter;
 import se.swedsoft.bookkeeping.print.util.SSDefaultJasperDataSource;
 
@@ -35,7 +35,7 @@ public class SSSupplierCreditInvoiceListPrinter extends SSPrinter {
      *
      */
     public SSSupplierCreditInvoiceListPrinter() {
-        this(SSDB.getInstance().getSupplierCreditInvoices());
+        this(Repositories.supplierCreditInvoices().findAll());
     }
 
     /**

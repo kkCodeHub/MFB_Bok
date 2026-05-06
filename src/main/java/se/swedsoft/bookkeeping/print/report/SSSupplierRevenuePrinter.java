@@ -8,6 +8,7 @@ import se.swedsoft.bookkeeping.data.SSSupplier;
 import se.swedsoft.bookkeeping.data.SSSupplierCreditInvoice;
 import se.swedsoft.bookkeeping.data.SSSupplierInvoice;
 import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.persistence.Repositories;
 import se.swedsoft.bookkeeping.gui.util.SSBundle;
 import se.swedsoft.bookkeeping.gui.util.model.SSDefaultTableModel;
 import se.swedsoft.bookkeeping.print.SSPrinter;
@@ -122,7 +123,7 @@ public class SSSupplierRevenuePrinter extends SSPrinter {
 
     private void calculate() {
         iSupplierRevenue = new HashMap<>();
-        List<SSSupplierInvoice> iSupplierInvoices = SSDB.getInstance().getSupplierInvoices();
+        List<SSSupplierInvoice> iSupplierInvoices = Repositories.supplierInvoices().findAll();
         LocalDate localFrom = SSDateUtil.toLocalDate(iDateFrom);
         LocalDate localTo = SSDateUtil.toLocalDate(iDateTo);
 
@@ -159,7 +160,7 @@ public class SSSupplierRevenuePrinter extends SSPrinter {
             }
         }
 
-        List<SSSupplierCreditInvoice> iSupplierCreditInvoices = SSDB.getInstance().getSupplierCreditInvoices();
+        List<SSSupplierCreditInvoice> iSupplierCreditInvoices = Repositories.supplierCreditInvoices().findAll();
 
         for (SSSupplierCreditInvoice iSupplierCreditInvoice : iSupplierCreditInvoices) {
             LocalDate creditLocalDate = iSupplierCreditInvoice.getLocalDate();

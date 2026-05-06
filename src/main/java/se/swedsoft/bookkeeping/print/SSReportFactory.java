@@ -2444,7 +2444,7 @@ public class SSReportFactory {    private static final Logger LOG = LoggerFactor
         if (iResponce != JOptionPane.OK_OPTION) {
             return;
         }
-        List<SSSupplierInvoice> iInvoices = SSDB.getInstance().getSupplierInvoices();
+        List<SSSupplierInvoice> iInvoices = Repositories.supplierInvoices().findAll();
 
         final Date iFrom = iDialog.getFrom();
         final Date iTo = iDialog.getTo();
@@ -2491,7 +2491,7 @@ public class SSReportFactory {    private static final Logger LOG = LoggerFactor
                 // Mark all invoices as entered
                 for (SSSupplierInvoice iInvoice : iFiltered) {
                     iInvoice.setEntered();
-                    SSDB.getInstance().updateSupplierInvoice(iInvoice);
+                    Repositories.supplierInvoices().update(iInvoice);
                 }
                 // Auto increment the invoice journal counter.
                 SSNewCompany iCurrentCompany = SSDB.getInstance().getCurrentCompany();
@@ -2553,7 +2553,7 @@ public class SSReportFactory {    private static final Logger LOG = LoggerFactor
         if (iResponce != JOptionPane.OK_OPTION) {
             return;
         }
-        List<SSSupplierCreditInvoice> iInvoices = SSDB.getInstance().getSupplierCreditInvoices();
+        List<SSSupplierCreditInvoice> iInvoices = Repositories.supplierCreditInvoices().findAll();
 
         final Date iFrom = iDialog.getFrom();
         final Date iTo = iDialog.getTo();
@@ -2602,7 +2602,7 @@ public class SSReportFactory {    private static final Logger LOG = LoggerFactor
                 // Mark all invoices as entered
                 for (SSSupplierCreditInvoice iInvoice : iFiltered) {
                     iInvoice.setEntered();
-                    SSDB.getInstance().updateSupplierCreditInvoice(iInvoice);
+                    Repositories.supplierCreditInvoices().update(iInvoice);
                 }
                 // Auto increment the invoice journal counter.
                 SSNewCompany iCurrentCompany = SSDB.getInstance().getCurrentCompany();
