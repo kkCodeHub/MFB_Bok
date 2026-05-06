@@ -6,6 +6,7 @@ import se.swedsoft.bookkeeping.data.SSInpayment;
 import se.swedsoft.bookkeeping.data.SSInpaymentRow;
 import se.swedsoft.bookkeeping.data.SSInvoice;
 import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.persistence.Repositories;
 import se.swedsoft.bookkeeping.util.SSDateUtil;
 
 import java.math.BigDecimal;
@@ -86,7 +87,7 @@ public class SSInpaymentMath {
      * @return the sum
      */
     public static BigDecimal getSumForInvoice(SSInvoice iInvoice) {
-        List<SSInpayment> iInpayments = SSDB.getInstance().getInpayments();
+        List<SSInpayment> iInpayments = Repositories.inpayments().findAll();
 
         BigDecimal iSum = new BigDecimal(0);
 
@@ -102,7 +103,7 @@ public class SSInpaymentMath {
     public static HashMap<Integer, BigDecimal> getSumsForInvoices() {
         HashMap<Integer, BigDecimal> iSums = new HashMap<>();
 
-        List<SSInpayment> iInpayments = SSDB.getInstance().getInpayments();
+        List<SSInpayment> iInpayments = Repositories.inpayments().findAll();
 
         for (SSInpayment iInpayment : iInpayments) {
             for (SSInpaymentRow iRow : iInpayment.getRows()) {
@@ -122,7 +123,7 @@ public class SSInpaymentMath {
     public static HashMap<Integer, BigDecimal> getSumsForInvoices(Date iDate) {
         HashMap<Integer, BigDecimal> iSums = new HashMap<>();
 
-        List<SSInpayment> iInpayments = SSDB.getInstance().getInpayments();
+        List<SSInpayment> iInpayments = Repositories.inpayments().findAll();
         LocalDate localDate = SSDateUtil.toLocalDate(iDate);
 
         for (SSInpayment iInpayment : iInpayments) {
@@ -151,7 +152,7 @@ public class SSInpaymentMath {
      * @return the sum
      */
     public static BigDecimal getSumForInvoice(SSInvoice iInvoice, Date iDate) {
-        List<SSInpayment> iInpayments = SSDB.getInstance().getInpayments();
+        List<SSInpayment> iInpayments = Repositories.inpayments().findAll();
 
         LocalDate localDate = SSDateUtil.toLocalDate(iDate);
         BigDecimal iSum = new BigDecimal(0);
@@ -177,7 +178,7 @@ public class SSInpaymentMath {
      */
     public static Date getLastInpaymentForInvoice(SSInvoice iInvoice) {
 
-        List<SSInpayment> iInpayments = SSDB.getInstance().getInpayments();
+        List<SSInpayment> iInpayments = Repositories.inpayments().findAll();
 
         LocalDate iDate = null;
 

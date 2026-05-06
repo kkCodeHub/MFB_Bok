@@ -2,13 +2,13 @@ package se.swedsoft.bookkeeping.gui.outpayment;
 
 
 import se.swedsoft.bookkeeping.data.SSOutpayment;
-import se.swedsoft.bookkeeping.data.system.SSDB;
 import se.swedsoft.bookkeeping.gui.SSMainFrame;
 import se.swedsoft.bookkeeping.gui.outpayment.panel.SSOutpaymentPanel;
 import se.swedsoft.bookkeeping.gui.supplierinvoice.SSSupplierInvoiceFrame;
 import se.swedsoft.bookkeeping.gui.util.SSBundle;
 import se.swedsoft.bookkeeping.gui.util.dialogs.SSDialog;
 import se.swedsoft.bookkeeping.gui.util.dialogs.SSQueryDialog;
+import se.swedsoft.bookkeeping.persistence.Repositories;
 
 import javax.swing.*;
 import javax.swing.table.AbstractTableModel;
@@ -51,7 +51,7 @@ public class SSOutpaymentDialog {
 
                 SSOutpayment iOutpayment1 = iPanel.getOutpayment();
 
-                SSDB.getInstance().addOutpayment(iOutpayment1);
+                Repositories.outpayments().add(iOutpayment1);
 
                 if (pModel != null) {
                     pModel.fireTableDataChanged();
@@ -112,7 +112,7 @@ public class SSOutpaymentDialog {
 
                 SSOutpayment iOutpayment1 = iPanel.getOutpayment();
 
-                SSDB.getInstance().addOutpayment(iOutpayment1);
+                Repositories.outpayments().add(iOutpayment1);
 
                 if (pModel != null) {
                     pModel.fireTableDataChanged();
@@ -171,7 +171,7 @@ public class SSOutpaymentDialog {
 
                 SSOutpayment iOutpayment = iPanel.getOutpayment();
 
-                SSDB.getInstance().updateOutpayment(iOutpayment);
+                Repositories.outpayments().update(iOutpayment);
 
                 if (pModel != null) {
                     pModel.fireTableDataChanged();

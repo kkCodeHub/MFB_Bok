@@ -34,6 +34,7 @@ import se.swedsoft.bookkeeping.gui.util.dialogs.SSInitDialog;
 import se.swedsoft.bookkeeping.gui.util.frame.SSFrameManager;
 import se.swedsoft.bookkeeping.gui.voucher.SSVoucherFrame;
 import se.swedsoft.bookkeeping.gui.vouchertemplate.SSVoucherTemplateFrame;
+import se.swedsoft.bookkeeping.persistence.Repositories;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -128,6 +129,7 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
         createNewTables();
         // dropTriggers();
         createLocalTriggers();
+        Repositories.init(this);
 
         if (useSchemaV2()) {
             LOG.info("startupLocal running in schema V2 mode; skipping legacy seed/import and last-company restore");

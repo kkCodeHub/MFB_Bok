@@ -4,7 +4,7 @@ package se.swedsoft.bookkeeping.calc.math;
 import se.swedsoft.bookkeeping.data.SSOutpayment;
 import se.swedsoft.bookkeeping.data.SSOutpaymentRow;
 import se.swedsoft.bookkeeping.data.SSSupplierInvoice;
-import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.persistence.Repositories;
 import se.swedsoft.bookkeeping.util.SSDateUtil;
 
 import java.math.BigDecimal;
@@ -152,7 +152,7 @@ public class SSOutpaymentMath {
      */
     public static BigDecimal getSumForInvoice(SSSupplierInvoice iInvoice) {
         // Get all credit invoices from the db
-        List<SSOutpayment> iOutpayments = SSDB.getInstance().getOutpayments();
+        List<SSOutpayment> iOutpayments = Repositories.outpayments().findAll();
 
         BigDecimal iSum = new BigDecimal(0);
 
@@ -168,7 +168,7 @@ public class SSOutpaymentMath {
     public static HashMap<Integer, BigDecimal> getSumsForSupplierInvoices() {
         HashMap<Integer, BigDecimal> iSums = new HashMap<>();
 
-        List<SSOutpayment> iOutpayments = SSDB.getInstance().getOutpayments();
+        List<SSOutpayment> iOutpayments = Repositories.outpayments().findAll();
 
         for (SSOutpayment iOutpayment : iOutpayments) {
             for (SSOutpaymentRow iRow : iOutpayment.getRows()) {
@@ -188,7 +188,7 @@ public class SSOutpaymentMath {
     public static HashMap<Integer, BigDecimal> getSumsForSupplierInvoices(Date iDate) {
         HashMap<Integer, BigDecimal> iSums = new HashMap<>();
 
-        List<SSOutpayment> iOutpayments = SSDB.getInstance().getOutpayments();
+        List<SSOutpayment> iOutpayments = Repositories.outpayments().findAll();
         LocalDate localDate = SSDateUtil.toLocalDate(iDate);
 
         for (SSOutpayment iOutpayment : iOutpayments) {
@@ -217,7 +217,7 @@ public class SSOutpaymentMath {
      * @return the sum
      */
     public static BigDecimal getSumForInvoice(SSSupplierInvoice iInvoice, Date iDate) {
-        List<SSOutpayment> iOutpayments = SSDB.getInstance().getOutpayments();
+        List<SSOutpayment> iOutpayments = Repositories.outpayments().findAll();
 
         LocalDate localDate = SSDateUtil.toLocalDate(iDate);
         BigDecimal iSum = new BigDecimal(0);

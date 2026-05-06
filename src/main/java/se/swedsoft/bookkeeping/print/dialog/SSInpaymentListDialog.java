@@ -6,7 +6,6 @@ import se.swedsoft.bookkeeping.calc.util.SSFilter;
 import se.swedsoft.bookkeeping.calc.util.SSFilterFactory;
 import se.swedsoft.bookkeeping.data.SSInpayment;
 import se.swedsoft.bookkeeping.data.SSInvoice;
-import se.swedsoft.bookkeeping.data.system.SSDB;
 import se.swedsoft.bookkeeping.gui.SSMainFrame;
 import se.swedsoft.bookkeeping.gui.invoice.util.SSInvoiceTableModel;
 import se.swedsoft.bookkeeping.gui.util.SSBundle;
@@ -14,6 +13,7 @@ import se.swedsoft.bookkeeping.gui.util.SSButtonPanel;
 import se.swedsoft.bookkeeping.gui.util.components.SSTableComboBox;
 import se.swedsoft.bookkeeping.gui.util.datechooser.SSDateChooser;
 import se.swedsoft.bookkeeping.gui.util.dialogs.SSDialog;
+import se.swedsoft.bookkeeping.persistence.Repositories;
 import se.swedsoft.bookkeeping.util.SSDateUtil;
 
 import javax.swing.*;
@@ -90,7 +90,7 @@ public class SSInpaymentListDialog extends SSDialog {
      * @return
      */
     public List<SSInpayment> getElementsToPrint() {
-        List<SSInpayment> iInpayments = SSDB.getInstance().getInpayments();
+        List<SSInpayment> iInpayments = Repositories.inpayments().findAll();
 
         SSFilterFactory<SSInpayment> iFactory = new SSFilterFactory<>(
                 iInpayments);

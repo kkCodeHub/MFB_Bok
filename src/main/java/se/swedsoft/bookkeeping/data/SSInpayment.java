@@ -8,6 +8,7 @@ import se.swedsoft.bookkeeping.data.common.SSDefaultAccount;
 import se.swedsoft.bookkeeping.data.system.SSDB;
 import se.swedsoft.bookkeeping.gui.util.SSBundle;
 import se.swedsoft.bookkeeping.gui.util.table.SSTableSearchable;
+import se.swedsoft.bookkeeping.persistence.Repositories;
 import se.swedsoft.bookkeeping.util.SSDateUtil;
 
 import java.io.IOException;
@@ -115,7 +116,7 @@ public class SSInpayment implements SSTableSearchable, Serializable {
      * Sets the number of this voucher as the maxinum mumber + 1
      */
     public void doAutoIncrecement() {
-        List<SSInpayment> iInpayments = SSDB.getInstance().getInpayments();
+        List<SSInpayment> iInpayments = Repositories.inpayments().findAll();
 
         int iNumber = SSDB.getInstance().getAutoIncrement().orElse(new SSAutoIncrement()).getNumber("inpayment");
 

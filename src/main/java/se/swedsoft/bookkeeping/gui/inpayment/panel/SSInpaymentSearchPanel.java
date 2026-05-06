@@ -2,8 +2,8 @@ package se.swedsoft.bookkeeping.gui.inpayment.panel;
 
 
 import se.swedsoft.bookkeeping.data.SSInpayment;
-import se.swedsoft.bookkeeping.data.system.SSDB;
 import se.swedsoft.bookkeeping.gui.inpayment.util.SSInpaymentTableModel;
+import se.swedsoft.bookkeeping.persistence.Repositories;
 
 import javax.swing.*;
 import java.awt.*;
@@ -41,7 +41,7 @@ public class SSInpaymentSearchPanel extends JPanel {
     }
 
     public void ApplyFilter() {
-        List<SSInpayment> iInpayments = SSDB.getInstance().getInpayments();
+        List<SSInpayment> iInpayments = Repositories.inpayments().findAll();
         List<SSInpayment> iFiltered = new LinkedList<>();
 
         String iText = iTextField.getText();

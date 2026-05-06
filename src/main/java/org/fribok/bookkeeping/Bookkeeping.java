@@ -10,6 +10,7 @@ import com.jgoodies.looks.FontSets;
 import org.fribok.bookkeeping.app.Path;
 import org.fribok.bookkeeping.app.Version;
 import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.persistence.Repositories;
 import se.swedsoft.bookkeeping.data.util.SSConfig;
 import se.swedsoft.bookkeeping.gui.SSMainFrame;
 import se.swedsoft.bookkeeping.gui.util.frame.SSFrameManager;
@@ -54,6 +55,7 @@ public class Bookkeeping {    private static final Logger LOG = LoggerFactory.ge
                     "jdbc:hsqldb:file:" + dbDir.getAbsolutePath() + File.separator + "JFSDB", "sa", "");
 
             SSDB.getInstance().startupLocal(iConnection);
+            Repositories.init(SSDB.getInstance());
 
         } catch (SQLException e) {
             LOG.error("Failed to start local database", e);
@@ -84,7 +86,7 @@ public class Bookkeeping {    private static final Logger LOG = LoggerFactory.ge
 	    FontPolicy fixedPolicy = FontPolicies.createFixedPolicy(fontSet);
 	    Plastic3DLookAndFeel.setFontPolicy(fixedPolicy);
 	    //Plastic3DLookAndFeel.setHighContrastFocusColorsEnabled(true);
-	    String lnfClassName = Plastic3DLookAndFeel.class.getName();  
+	    String lnfClassName = Plastic3DLookAndFeel.class.getName();
 	    if (os.startsWith("Mac OS") || os.startsWith("Windows")) {
 		lnfClassName = UIManager.getSystemLookAndFeelClassName();
 	    } else {

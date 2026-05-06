@@ -15,6 +15,7 @@ import se.swedsoft.bookkeeping.gui.SSMainFrame;
 import se.swedsoft.bookkeeping.gui.util.SSBundle;
 import se.swedsoft.bookkeeping.gui.util.dialogs.*;
 import se.swedsoft.bookkeeping.gui.voucher.SSVoucherFrame;
+import se.swedsoft.bookkeeping.persistence.Repositories;
 import se.swedsoft.bookkeeping.print.dialog.*;
 import se.swedsoft.bookkeeping.print.report.*;
 import se.swedsoft.bookkeeping.print.report.journals.*;
@@ -2335,7 +2336,7 @@ public class SSReportFactory {    private static final Logger LOG = LoggerFactor
         if (iDialog.showDialog() != JOptionPane.OK_OPTION) {
             return;
         }
-        List<SSInpayment> iInpayments = SSDB.getInstance().getInpayments();
+        List<SSInpayment> iInpayments = Repositories.inpayments().findAll();
 
         final Date iFrom = iDialog.getFrom();
         final Date iTo = iDialog.getTo();
@@ -2380,7 +2381,7 @@ public class SSReportFactory {    private static final Logger LOG = LoggerFactor
                 // Mark all invoices as entered
                 for (SSInpayment iInpayment : iFiltered) {
                     iInpayment.setEntered();
-                    SSDB.getInstance().updateInpayment(iInpayment);
+                    Repositories.inpayments().update(iInpayment);
                 }
                 // Auto increment the invoice journal counter.
                 SSNewCompany iCurrentCompany = SSDB.getInstance().getCurrentCompany();
@@ -2662,7 +2663,7 @@ public class SSReportFactory {    private static final Logger LOG = LoggerFactor
         if (iResponce != JOptionPane.OK_OPTION) {
             return;
         }
-        List<SSOutpayment> iOutpayments = SSDB.getInstance().getOutpayments();
+        List<SSOutpayment> iOutpayments = Repositories.outpayments().findAll();
 
         final Date iFrom = iDialog.getFrom();
         final Date iTo = iDialog.getTo();
@@ -2710,7 +2711,7 @@ public class SSReportFactory {    private static final Logger LOG = LoggerFactor
                 // Mark all outpayments as entered
                 for (SSOutpayment iOutpayment : iFiltered) {
                     iOutpayment.setEntered();
-                    SSDB.getInstance().updateOutpayment(iOutpayment);
+                    Repositories.outpayments().update(iOutpayment);
                 }
                 // Auto increment the invoice journal counter.
                 SSNewCompany iCurrentCompany = SSDB.getInstance().getCurrentCompany();

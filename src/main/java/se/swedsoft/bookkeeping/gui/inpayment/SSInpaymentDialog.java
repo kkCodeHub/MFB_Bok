@@ -2,7 +2,6 @@ package se.swedsoft.bookkeeping.gui.inpayment;
 
 
 import se.swedsoft.bookkeeping.data.SSInpayment;
-import se.swedsoft.bookkeeping.data.system.SSDB;
 import se.swedsoft.bookkeeping.gui.SSMainFrame;
 import se.swedsoft.bookkeeping.gui.inpayment.panel.SSInpaymentPanel;
 import se.swedsoft.bookkeeping.gui.invoice.SSInvoiceFrame;
@@ -10,6 +9,7 @@ import se.swedsoft.bookkeeping.gui.util.SSBundle;
 import se.swedsoft.bookkeeping.gui.util.dialogs.SSDialog;
 import se.swedsoft.bookkeeping.gui.util.dialogs.SSQueryDialog;
 import se.swedsoft.bookkeeping.gui.util.model.SSDefaultTableModel;
+import se.swedsoft.bookkeeping.persistence.Repositories;
 
 import javax.swing.*;
 import java.awt.*;
@@ -46,7 +46,7 @@ public class SSInpaymentDialog {
 
                 SSInpayment iInpayment = iPanel.getInpayment();
 
-                SSDB.getInstance().updateInpayment(iInpayment);
+                Repositories.inpayments().update(iInpayment);
 
                 if (pModel != null) {
                     pModel.fireTableDataChanged();
@@ -106,7 +106,7 @@ public class SSInpaymentDialog {
 
                 SSInpayment iInpayment1 = iPanel.getInpayment();
 
-                SSDB.getInstance().addInpayment(iInpayment1);
+                Repositories.inpayments().add(iInpayment1);
                 SSInvoiceFrame.fireTableDataChanged();
 
                 if (pModel != null) {
@@ -169,7 +169,7 @@ public class SSInpaymentDialog {
 
                 SSInpayment iInpayment1 = iPanel.getInpayment();
 
-                SSDB.getInstance().addInpayment(iInpayment1);
+                Repositories.inpayments().add(iInpayment1);
 
                 SSInvoiceFrame.fireTableDataChanged();
 

@@ -4,7 +4,6 @@ package se.swedsoft.bookkeeping.gui.outpayment;
 import se.swedsoft.bookkeeping.calc.math.SSSupplierInvoiceMath;
 import se.swedsoft.bookkeeping.data.SSOutpayment;
 import se.swedsoft.bookkeeping.data.SSOutpaymentRow;
-import se.swedsoft.bookkeeping.data.system.SSDB;
 import se.swedsoft.bookkeeping.gui.SSMainFrame;
 import se.swedsoft.bookkeeping.gui.outpayment.panel.SSOutpaymentSearchPanel;
 import se.swedsoft.bookkeeping.gui.outpayment.util.SSOutpaymentTableModel;
@@ -16,6 +15,7 @@ import se.swedsoft.bookkeeping.gui.util.dialogs.SSQueryDialog;
 import se.swedsoft.bookkeeping.gui.util.frame.SSDefaultTableFrame;
 import se.swedsoft.bookkeeping.gui.util.table.SSTable;
 import se.swedsoft.bookkeeping.gui.util.table.model.SSTableModel;
+import se.swedsoft.bookkeeping.persistence.Repositories;
 import se.swedsoft.bookkeeping.print.SSReportFactory;
 
 import javax.swing.*;
@@ -252,13 +252,13 @@ public class SSOutpaymentFrame extends SSDefaultTableFrame {
                         }
                     }
                 }
-                SSDB.getInstance().deleteOutpayment(iOutpayment);
+                Repositories.outpayments().delete(iOutpayment);
             }
         }
     }
 
     private SSOutpayment getOutpayment(SSOutpayment iOutpayment) {
-        return SSDB.getInstance().getOutpayment(iOutpayment).orElse(null);
+        return Repositories.outpayments().findByOutpayment(iOutpayment).orElse(null);
     }
 
     public void updateFrame() {

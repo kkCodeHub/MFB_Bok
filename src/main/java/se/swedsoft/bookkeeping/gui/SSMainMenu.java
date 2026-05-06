@@ -60,6 +60,7 @@ import se.swedsoft.bookkeeping.importexport.sie.util.SIEType;
 import se.swedsoft.bookkeeping.importexport.supplierpayments.SSSupplierPaymentImporter;
 import se.swedsoft.bookkeeping.importexport.util.SSExportException;
 import se.swedsoft.bookkeeping.importexport.util.SSImportException;
+import se.swedsoft.bookkeeping.persistence.Repositories;
 import se.swedsoft.bookkeeping.print.SSReportFactory;
 import se.swedsoft.bookkeeping.print.dialog.SSInventoryBasisDialog;
 import se.swedsoft.bookkeeping.print.report.SSAccountPlanPrinter;
@@ -411,7 +412,7 @@ public class SSMainMenu {    private static final Logger LOG = LoggerFactory.get
                 }
                 StringBuilder iNumbers = new StringBuilder();
                 for (SSInpayment iInpayment : iInpayments) {
-                    SSDB.getInstance().addInpayment(iInpayment);
+                    Repositories.inpayments().add(iInpayment);
 
                     if(iNumbers.length() > 0) iNumbers.append(", ");
 
@@ -447,7 +448,7 @@ public class SSMainMenu {    private static final Logger LOG = LoggerFactory.get
                 }
                 StringBuilder iNumbers = new StringBuilder();
                 for (SSOutpayment iOutpayment : iOutpayments) {
-                    SSDB.getInstance().addOutpayment(iOutpayment);
+                    Repositories.outpayments().add(iOutpayment);
 
                     if(iNumbers.length() > 0) iNumbers.append(", ");
 
@@ -894,7 +895,7 @@ public class SSMainMenu {    private static final Logger LOG = LoggerFactory.get
 
                         Map<Integer, BigDecimal> iSaldoMap = SSInvoiceMath.getSaldos(SSDateUtil.toDate(iDate));
 
-                        for(SSInpayment iInpayment : SSDB.getInstance().getInpayments()){
+                        for(SSInpayment iInpayment : Repositories.inpayments().findAll()){
                             if(iInpayment.getLocalDate().isBefore(iCutoffDate)){
                                 List<SSInpaymentRow> iSavedRows = new LinkedList<>();
                                 for(SSInpaymentRow iRow : iInpayment.getRows()){
@@ -906,9 +907,9 @@ public class SSMainMenu {    private static final Logger LOG = LoggerFactory.get
                                 iInpayment.setRows(iSavedRows);
 
                                 if(iInpayment.getRows().isEmpty())
-                                    SSDB.getInstance().deleteInpayment(iInpayment);
+                                    Repositories.inpayments().delete(iInpayment);
                                 else
-                                    SSDB.getInstance().updateInpayment(iInpayment);
+                                    Repositories.inpayments().update(iInpayment);
                             }
                         }
 
@@ -947,7 +948,7 @@ public class SSMainMenu {    private static final Logger LOG = LoggerFactory.get
 
                         Map<Integer, BigDecimal> iPurchaseSaldoMap = SSSupplierInvoiceMath.getSaldos(iCutoffDate);
 
-                        for(SSOutpayment iOutpayment : SSDB.getInstance().getOutpayments()){
+                        for(SSOutpayment iOutpayment : Repositories.outpayments().findAll()){
                             if(iOutpayment.getLocalDate().isBefore(iCutoffDate)){
                                 List<SSOutpaymentRow> iSavedRows = new LinkedList<>();
                                 for(SSOutpaymentRow iRow : iOutpayment.getRows()){
@@ -959,9 +960,9 @@ public class SSMainMenu {    private static final Logger LOG = LoggerFactory.get
                                 iOutpayment.setRows(iSavedRows);
 
                                 if(iOutpayment.getRows().isEmpty())
-                                    SSDB.getInstance().deleteOutpayment(iOutpayment);
+                                    Repositories.outpayments().delete(iOutpayment);
                                 else
-                                    SSDB.getInstance().updateOutpayment(iOutpayment);
+                                    Repositories.outpayments().update(iOutpayment);
                             }
                         }
 

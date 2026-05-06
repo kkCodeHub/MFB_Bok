@@ -2,8 +2,8 @@ package se.swedsoft.bookkeeping.gui.outpayment.panel;
 
 
 import se.swedsoft.bookkeeping.data.SSOutpayment;
-import se.swedsoft.bookkeeping.data.system.SSDB;
 import se.swedsoft.bookkeeping.gui.outpayment.util.SSOutpaymentTableModel;
+import se.swedsoft.bookkeeping.persistence.Repositories;
 
 import javax.swing.*;
 import java.awt.*;
@@ -41,7 +41,7 @@ public class SSOutpaymentSearchPanel extends JPanel {
     }
 
     public void ApplyFilter() {
-        List<SSOutpayment> iOutpayments = SSDB.getInstance().getOutpayments();
+        List<SSOutpayment> iOutpayments = Repositories.outpayments().findAll();
         List<SSOutpayment> iFiltered = new LinkedList<>();
 
         String iText = iTextField.getText();

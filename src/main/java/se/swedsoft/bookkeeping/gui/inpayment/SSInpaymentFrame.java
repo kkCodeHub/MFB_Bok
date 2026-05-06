@@ -4,7 +4,6 @@ package se.swedsoft.bookkeeping.gui.inpayment;
 import se.swedsoft.bookkeeping.calc.math.SSInvoiceMath;
 import se.swedsoft.bookkeeping.data.SSInpayment;
 import se.swedsoft.bookkeeping.data.SSInpaymentRow;
-import se.swedsoft.bookkeeping.data.system.SSDB;
 import se.swedsoft.bookkeeping.gui.SSMainFrame;
 import se.swedsoft.bookkeeping.gui.inpayment.panel.SSInpaymentSearchPanel;
 import se.swedsoft.bookkeeping.gui.inpayment.util.SSInpaymentTableModel;
@@ -16,6 +15,7 @@ import se.swedsoft.bookkeeping.gui.util.dialogs.SSQueryDialog;
 import se.swedsoft.bookkeeping.gui.util.frame.SSDefaultTableFrame;
 import se.swedsoft.bookkeeping.gui.util.model.SSDefaultTableModel;
 import se.swedsoft.bookkeeping.gui.util.table.SSTable;
+import se.swedsoft.bookkeeping.persistence.Repositories;
 import se.swedsoft.bookkeeping.print.SSReportFactory;
 
 import javax.swing.*;
@@ -250,13 +250,13 @@ public class SSInpaymentFrame extends SSDefaultTableFrame {
                             }
                         }
                     }
-                    SSDB.getInstance().deleteInpayment(iInpayment);
+                    Repositories.inpayments().delete(iInpayment);
             }
         }
     }
 
     private SSInpayment getInpayment(SSInpayment iInpayment) {
-        return SSDB.getInstance().getInpayment(iInpayment).orElse(null);
+        return Repositories.inpayments().findByInpayment(iInpayment).orElse(null);
     }
 
     public void updateFrame() {
