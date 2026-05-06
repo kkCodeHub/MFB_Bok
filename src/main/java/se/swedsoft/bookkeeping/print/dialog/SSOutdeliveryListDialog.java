@@ -7,7 +7,6 @@ import se.swedsoft.bookkeeping.calc.util.SSFilter;
 import se.swedsoft.bookkeeping.calc.util.SSFilterFactory;
 import se.swedsoft.bookkeeping.data.SSOutdelivery;
 import se.swedsoft.bookkeeping.data.SSProduct;
-import se.swedsoft.bookkeeping.data.system.SSDB;
 import se.swedsoft.bookkeeping.gui.SSMainFrame;
 import se.swedsoft.bookkeeping.gui.product.util.SSProductTableModel;
 import se.swedsoft.bookkeeping.gui.util.SSBundle;
@@ -15,6 +14,7 @@ import se.swedsoft.bookkeeping.gui.util.SSButtonPanel;
 import se.swedsoft.bookkeeping.gui.util.components.SSTableComboBox;
 import se.swedsoft.bookkeeping.gui.util.datechooser.SSDateChooser;
 import se.swedsoft.bookkeeping.gui.util.dialogs.SSDialog;
+import se.swedsoft.bookkeeping.persistence.Repositories;
 import se.swedsoft.bookkeeping.util.SSDateUtil;
 
 import javax.swing.*;
@@ -93,7 +93,7 @@ public class SSOutdeliveryListDialog extends SSDialog {
      * @return
      */
     public List<SSOutdelivery> getElementsToPrint() {
-        List<SSOutdelivery> iOutdeliveries = SSDB.getInstance().getOutdeliveries();
+        List<SSOutdelivery> iOutdeliveries = Repositories.outdeliveries().findAll();
 
         // Filter by a product
         if (iCheckProduct.isSelected() && iProduct.getSelected() != null) {

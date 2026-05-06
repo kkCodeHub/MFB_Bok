@@ -996,9 +996,9 @@ public class SSMainMenu {    private static final Logger LOG = LoggerFactory.get
                             }
                         }
 
-                        for(SSOutdelivery iOutdelivery : SSDB.getInstance().getOutdeliveries()){
+                        for(SSOutdelivery iOutdelivery : Repositories.outdeliveries().findAll()){
                             if(iOutdelivery.getLocalDate().isBefore(iCutoffDate)){
-                                SSDB.getInstance().deleteOutdelivery(iOutdelivery);
+                                Repositories.outdeliveries().delete(iOutdelivery);
                             }
                         }
 

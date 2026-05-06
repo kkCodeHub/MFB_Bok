@@ -59,7 +59,7 @@ public class SSStock {
         List<SSSupplierCreditInvoice> iSupplierCreditInvoices = SSDB.getInstance().getSupplierCreditInvoices();
         List<SSInventory>             iInventories = SSDB.getInstance().getInventories();
         List<SSIndelivery>            iIndeliveries = Repositories.indeliveries().findAll();
-        List<SSOutdelivery>           iOutdeliveries = SSDB.getInstance().getOutdeliveries();
+        List<SSOutdelivery>           iOutdeliveries = Repositories.outdeliveries().findAll();
 
         iOrders = SSOrderMath.getOrdersWithoutInvoice(iOrders);
         iPurchaseOrders = SSPurchaseOrderMath.getOrdersWithoutInvoice(iPurchaseOrders);
@@ -119,7 +119,7 @@ public class SSStock {
         List<SSSupplierCreditInvoice> iSupplierCreditInvoices = SSDB.getInstance().getSupplierCreditInvoices();
         List<SSInventory>             iInventories = SSDB.getInstance().getInventories();
         List<SSIndelivery>            iIndeliveries = Repositories.indeliveries().findAll();
-        List<SSOutdelivery>           iOutdeliveries = SSDB.getInstance().getOutdeliveries();
+        List<SSOutdelivery>           iOutdeliveries = Repositories.outdeliveries().findAll();
 
         iOrders = SSOrderMath.getOrdersWithoutInvoice(iOrders);
         iPurchaseOrders = SSPurchaseOrderMath.getOrdersWithoutInvoice(iPurchaseOrders);
@@ -209,7 +209,7 @@ public class SSStock {
         List<SSSupplierCreditInvoice> iSupplierCreditInvoices = SSDB.getInstance().getSupplierCreditInvoices();
         List<SSInventory>             iInventories = SSDB.getInstance().getInventories();
         List<SSIndelivery>            iIndeliveries = Repositories.indeliveries().findAll();
-        List<SSOutdelivery>           iOutdeliveries = SSDB.getInstance().getOutdeliveries();
+        List<SSOutdelivery>           iOutdeliveries = Repositories.outdeliveries().findAll();
 
         iOrders = SSOrderMath.getOrdersWithoutInvoice(iOrders);
         iPurchaseOrders = SSPurchaseOrderMath.getOrdersWithoutInvoice(iPurchaseOrders);

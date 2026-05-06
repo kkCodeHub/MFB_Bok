@@ -2,7 +2,6 @@ package se.swedsoft.bookkeeping.gui.outdelivery;
 
 
 import se.swedsoft.bookkeeping.data.SSOutdelivery;
-import se.swedsoft.bookkeeping.data.system.SSDB;
 import se.swedsoft.bookkeeping.gui.SSMainFrame;
 import se.swedsoft.bookkeeping.gui.outdelivery.util.SSOutdeliveryTableModel;
 import se.swedsoft.bookkeeping.gui.util.SSBundle;
@@ -12,6 +11,7 @@ import se.swedsoft.bookkeeping.gui.util.dialogs.SSErrorDialog;
 import se.swedsoft.bookkeeping.gui.util.dialogs.SSQueryDialog;
 import se.swedsoft.bookkeeping.gui.util.frame.SSDefaultTableFrame;
 import se.swedsoft.bookkeeping.gui.util.table.SSTable;
+import se.swedsoft.bookkeeping.persistence.Repositories;
 import se.swedsoft.bookkeeping.print.SSReportFactory;
 
 import javax.swing.*;
@@ -262,17 +262,17 @@ public class SSOutdeliveryFrame extends SSDefaultTableFrame {
 
         if (iResponce == JOptionPane.YES_OPTION) {
             for (SSOutdelivery iOutdelivery : delete) {
-                SSDB.getInstance().deleteOutdelivery(iOutdelivery);
+                Repositories.outdeliveries().delete(iOutdelivery);
             }
         }
     }
 
     private SSOutdelivery getOutdelivery(SSOutdelivery iOutdelivery) {
-        return SSDB.getInstance().getOutdelivery(iOutdelivery).orElse(null);
+        return Repositories.outdeliveries().findByOutdelivery(iOutdelivery).orElse(null);
     }
 
     public void updateFrame() {
-        iModel.setObjects(SSDB.getInstance().getOutdeliveries());
+        iModel.setObjects(Repositories.outdeliveries().findAll());
     }
 
     public void actionPerformed(ActionEvent e) {

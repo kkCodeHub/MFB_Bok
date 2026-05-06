@@ -3,10 +3,10 @@ package se.swedsoft.bookkeeping.gui.outdelivery.util;
 
 import se.swedsoft.bookkeeping.calc.math.SSOutdeliveryMath;
 import se.swedsoft.bookkeeping.data.SSOutdelivery;
-import se.swedsoft.bookkeeping.data.system.SSDB;
 import se.swedsoft.bookkeeping.gui.util.SSBundle;
 import se.swedsoft.bookkeeping.gui.util.table.model.SSTableColumn;
 import se.swedsoft.bookkeeping.gui.util.table.model.SSTableModel;
+import se.swedsoft.bookkeeping.persistence.Repositories;
 import se.swedsoft.bookkeeping.util.SSDateUtil;
 
 import java.util.Date;
@@ -24,7 +24,7 @@ public class SSOutdeliveryTableModel extends SSTableModel<SSOutdelivery> {
      * Default constructor.
      */
     public SSOutdeliveryTableModel() {
-        super(SSDB.getInstance().getOutdeliveries());
+        super(Repositories.outdeliveries().findAll());
     }
 
     /**

@@ -2,13 +2,13 @@ package se.swedsoft.bookkeeping.gui.outdelivery;
 
 
 import se.swedsoft.bookkeeping.data.SSOutdelivery;
-import se.swedsoft.bookkeeping.data.system.SSDB;
 import se.swedsoft.bookkeeping.gui.SSMainFrame;
 import se.swedsoft.bookkeeping.gui.outdelivery.panel.SSOutdeliveryPanel;
 import se.swedsoft.bookkeeping.gui.util.SSBundle;
 import se.swedsoft.bookkeeping.gui.util.dialogs.SSDialog;
 import se.swedsoft.bookkeeping.gui.util.dialogs.SSErrorDialog;
 import se.swedsoft.bookkeeping.gui.util.dialogs.SSQueryDialog;
+import se.swedsoft.bookkeeping.persistence.Repositories;
 
 import javax.swing.*;
 import javax.swing.table.AbstractTableModel;
@@ -48,7 +48,7 @@ public class SSOutdeliveryDialog {
 
                 SSOutdelivery iOutdelivery1 = iPanel.getoutdelivery();
 
-                SSDB.getInstance().addOutdelivery(iOutdelivery1);
+                Repositories.outdeliveries().add(iOutdelivery1);
 
                 if (pModel != null) {
                     pModel.fireTableDataChanged();
@@ -71,7 +71,7 @@ public class SSOutdeliveryDialog {
                 }
                 SSOutdelivery iOutdelivery1 = iPanel.getoutdelivery();
 
-                SSDB.getInstance().addOutdelivery(iOutdelivery1);
+                Repositories.outdeliveries().add(iOutdelivery1);
 
                 if (pModel != null) {
                     pModel.fireTableDataChanged();
@@ -104,7 +104,7 @@ public class SSOutdeliveryDialog {
 
                 SSOutdelivery iOutdelivery1 = iPanel.getoutdelivery();
 
-                SSDB.getInstance().updateOutdelivery(iOutdelivery1);
+                Repositories.outdeliveries().update(iOutdelivery1);
 
                 if (pModel != null) {
                     pModel.fireTableDataChanged();
@@ -130,7 +130,7 @@ public class SSOutdeliveryDialog {
                 }
                 SSOutdelivery iOutdelivery1 = iPanel.getoutdelivery();
 
-                SSDB.getInstance().updateOutdelivery(iOutdelivery1);
+                Repositories.outdeliveries().update(iOutdelivery1);
 
                 if (pModel != null) {
                     pModel.fireTableDataChanged();
@@ -166,7 +166,7 @@ public class SSOutdeliveryDialog {
 
                 SSOutdelivery iOutdelivery1 = iPanel.getoutdelivery();
 
-                SSDB.getInstance().addOutdelivery(iOutdelivery1);
+                Repositories.outdeliveries().add(iOutdelivery1);
 
                 if (pModel != null) {
                     pModel.fireTableDataChanged();
@@ -189,7 +189,7 @@ public class SSOutdeliveryDialog {
                 }
                 SSOutdelivery iOutdelivery1 = iPanel.getoutdelivery();
 
-                SSDB.getInstance().addOutdelivery(iOutdelivery1);
+                Repositories.outdeliveries().add(iOutdelivery1);
 
                 if (pModel != null) {
                     pModel.fireTableDataChanged();
