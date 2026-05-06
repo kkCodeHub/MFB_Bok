@@ -2,10 +2,10 @@ package se.swedsoft.bookkeeping.gui.inventory.util;
 
 
 import se.swedsoft.bookkeeping.data.SSInventory;
-import se.swedsoft.bookkeeping.data.system.SSDB;
 import se.swedsoft.bookkeeping.gui.util.SSBundle;
 import se.swedsoft.bookkeeping.gui.util.table.model.SSTableColumn;
 import se.swedsoft.bookkeeping.gui.util.table.model.SSTableModel;
+import se.swedsoft.bookkeeping.persistence.Repositories;
 import se.swedsoft.bookkeeping.util.SSDateUtil;
 
 import java.util.Date;
@@ -23,7 +23,7 @@ public class SSInventoryTableModel extends SSTableModel<SSInventory> {
      * Default constructor.
      */
     public SSInventoryTableModel() {
-        super(SSDB.getInstance().getInventories());
+        super(Repositories.inventories().findAll());
     }
 
     /**

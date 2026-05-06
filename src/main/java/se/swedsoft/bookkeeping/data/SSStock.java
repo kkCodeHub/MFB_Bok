@@ -57,7 +57,7 @@ public class SSStock {
         List<SSPurchaseOrder>         iPurchaseOrders = SSDB.getInstance().getPurchaseOrders();
         List<SSSupplierInvoice>       iSupplierInvoices = SSDB.getInstance().getSupplierInvoices();
         List<SSSupplierCreditInvoice> iSupplierCreditInvoices = SSDB.getInstance().getSupplierCreditInvoices();
-        List<SSInventory>             iInventories = SSDB.getInstance().getInventories();
+        List<SSInventory>             iInventories = Repositories.inventories().findAll();
         List<SSIndelivery>            iIndeliveries = Repositories.indeliveries().findAll();
         List<SSOutdelivery>           iOutdeliveries = Repositories.outdeliveries().findAll();
 
@@ -117,7 +117,7 @@ public class SSStock {
         List<SSPurchaseOrder>         iPurchaseOrders = SSDB.getInstance().getPurchaseOrders();
         List<SSSupplierInvoice>       iSupplierInvoices = SSDB.getInstance().getSupplierInvoices();
         List<SSSupplierCreditInvoice> iSupplierCreditInvoices = SSDB.getInstance().getSupplierCreditInvoices();
-        List<SSInventory>             iInventories = SSDB.getInstance().getInventories();
+        List<SSInventory>             iInventories = Repositories.inventories().findAll();
         List<SSIndelivery>            iIndeliveries = Repositories.indeliveries().findAll();
         List<SSOutdelivery>           iOutdeliveries = Repositories.outdeliveries().findAll();
 
@@ -207,7 +207,7 @@ public class SSStock {
         List<SSPurchaseOrder>         iPurchaseOrders = SSDB.getInstance().getPurchaseOrders();
         List<SSSupplierInvoice>       iSupplierInvoices = SSDB.getInstance().getSupplierInvoices();
         List<SSSupplierCreditInvoice> iSupplierCreditInvoices = SSDB.getInstance().getSupplierCreditInvoices();
-        List<SSInventory>             iInventories = SSDB.getInstance().getInventories();
+        List<SSInventory>             iInventories = Repositories.inventories().findAll();
         List<SSIndelivery>            iIndeliveries = Repositories.indeliveries().findAll();
         List<SSOutdelivery>           iOutdeliveries = Repositories.outdeliveries().findAll();
 

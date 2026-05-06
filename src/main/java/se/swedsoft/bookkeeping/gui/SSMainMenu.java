@@ -1002,9 +1002,9 @@ public class SSMainMenu {    private static final Logger LOG = LoggerFactory.get
                             }
                         }
 
-                        for(SSInventory iInventory : SSDB.getInstance().getInventories()){
+                        for(SSInventory iInventory : Repositories.inventories().findAll()){
                             if(iInventory.getLocalDate().isBefore(iCutoffDate)){
-                                SSDB.getInstance().deleteInventory(iInventory);
+                                Repositories.inventories().delete(iInventory);
                             }
                         }
 
@@ -1023,7 +1023,7 @@ public class SSMainMenu {    private static final Logger LOG = LoggerFactory.get
                             }
                         }
                         iInventoryDone.setText("Lagerjustering vid transaktionsrensning");
-                        SSDB.getInstance().addInventory(iInventoryDone);
+                        Repositories.inventories().add(iInventoryDone);
 
                         SSDB.getInstance().shutdownCompact();
                         System.exit(0);

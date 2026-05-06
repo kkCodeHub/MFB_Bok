@@ -11,6 +11,7 @@ import se.swedsoft.bookkeeping.gui.util.SSBundle;
 import se.swedsoft.bookkeeping.gui.util.dialogs.SSDialog;
 import se.swedsoft.bookkeeping.gui.util.dialogs.SSErrorDialog;
 import se.swedsoft.bookkeeping.gui.util.dialogs.SSQueryDialog;
+import se.swedsoft.bookkeeping.persistence.Repositories;
 
 import javax.swing.*;
 import javax.swing.table.AbstractTableModel;
@@ -64,7 +65,7 @@ public class SSInventoryDialog {
 
                 SSInventory iInventory1 = iPanel.getInventory();
 
-                SSDB.getInstance().addInventory(iInventory1);
+                Repositories.inventories().add(iInventory1);
                 if (pModel != null) {
                     pModel.fireTableDataChanged();
                 }
@@ -86,7 +87,7 @@ public class SSInventoryDialog {
                 }
                 SSInventory iInventory1 = iPanel.getInventory();
 
-                SSDB.getInstance().addInventory(iInventory1);
+                Repositories.inventories().add(iInventory1);
 
                 if (pModel != null) {
                     pModel.fireTableDataChanged();
@@ -119,7 +120,7 @@ public class SSInventoryDialog {
 
                 SSInventory iInventory1 = iPanel.getInventory();
 
-                SSDB.getInstance().updateInventory(iInventory1);
+                Repositories.inventories().update(iInventory1);
 
                 if (pModel != null) {
                     pModel.fireTableDataChanged();
@@ -145,7 +146,7 @@ public class SSInventoryDialog {
                 }
                 SSInventory iInventory1 = iPanel.getInventory();
 
-                SSDB.getInstance().updateInventory(iInventory1);
+                Repositories.inventories().update(iInventory1);
 
                 if (pModel != null) {
                     pModel.fireTableDataChanged();
@@ -177,7 +178,7 @@ public class SSInventoryDialog {
 
                 SSInventory iInventory1 = iPanel.getInventory();
 
-                SSDB.getInstance().addInventory(iInventory1);
+                Repositories.inventories().add(iInventory1);
 
                 if (pModel != null) {
                     pModel.fireTableDataChanged();

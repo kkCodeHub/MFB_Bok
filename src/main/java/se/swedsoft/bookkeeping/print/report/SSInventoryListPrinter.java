@@ -5,9 +5,9 @@ import se.swedsoft.bookkeeping.data.SSInventory;
 import se.swedsoft.bookkeeping.data.SSInventoryRow;
 import se.swedsoft.bookkeeping.data.SSProduct;
 import se.swedsoft.bookkeeping.data.base.SSSaleRow;
-import se.swedsoft.bookkeeping.data.system.SSDB;
 import se.swedsoft.bookkeeping.gui.util.SSBundle;
 import se.swedsoft.bookkeeping.gui.util.model.SSDefaultTableModel;
+import se.swedsoft.bookkeeping.persistence.Repositories;
 import se.swedsoft.bookkeeping.print.SSPrinter;
 import se.swedsoft.bookkeeping.print.util.SSDefaultJasperDataSource;
 
@@ -33,7 +33,7 @@ public class SSInventoryListPrinter extends SSPrinter {
      *
      */
     public SSInventoryListPrinter() {
-        this(SSDB.getInstance().getInventories());
+        this(Repositories.inventories().findAll());
     }
 
     /**

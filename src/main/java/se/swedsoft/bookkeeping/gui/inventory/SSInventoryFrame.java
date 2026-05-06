@@ -2,7 +2,6 @@ package se.swedsoft.bookkeeping.gui.inventory;
 
 
 import se.swedsoft.bookkeeping.data.SSInventory;
-import se.swedsoft.bookkeeping.data.system.SSDB;
 import se.swedsoft.bookkeeping.gui.SSMainFrame;
 import se.swedsoft.bookkeeping.gui.inventory.util.SSInventoryTableModel;
 import se.swedsoft.bookkeeping.gui.util.SSBundle;
@@ -12,6 +11,7 @@ import se.swedsoft.bookkeeping.gui.util.dialogs.SSErrorDialog;
 import se.swedsoft.bookkeeping.gui.util.dialogs.SSQueryDialog;
 import se.swedsoft.bookkeeping.gui.util.frame.SSDefaultTableFrame;
 import se.swedsoft.bookkeeping.gui.util.table.SSTable;
+import se.swedsoft.bookkeeping.persistence.Repositories;
 import se.swedsoft.bookkeeping.print.SSReportFactory;
 
 import javax.swing.*;
@@ -250,17 +250,17 @@ public class SSInventoryFrame extends SSDefaultTableFrame {
 
         if (iResponce == JOptionPane.YES_OPTION) {
             for (SSInventory iInventory : delete) {
-                SSDB.getInstance().deleteInventory(iInventory);
+                Repositories.inventories().delete(iInventory);
             }
         }
     }
 
     private SSInventory getInventory(SSInventory iInventory) {
-        return SSDB.getInstance().getInventory(iInventory).orElse(null);
+        return Repositories.inventories().findByInventory(iInventory).orElse(null);
     }
 
     public void updateFrame() {
-        iModel.setObjects(SSDB.getInstance().getInventories());
+        iModel.setObjects(Repositories.inventories().findAll());
     }
 
     public void actionPerformed(ActionEvent e) {
