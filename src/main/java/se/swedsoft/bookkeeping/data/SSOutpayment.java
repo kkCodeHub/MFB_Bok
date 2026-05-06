@@ -354,9 +354,9 @@ public class SSOutpayment implements SSTableSearchable, Serializable {
         List<SSSupplierInvoice> iSupplierInvoices = new LinkedList<>();
 
         for (SSOutpaymentRow iRow : iRows) {
-            if (iRow.getSupplierInvoice(SSDB.getInstance().getSupplierInvoices()) != null) {
+            if (iRow.getSupplierInvoice(Repositories.supplierInvoices().findAll()) != null) {
                 iSupplierInvoices.add(
-                        iRow.getSupplierInvoice(SSDB.getInstance().getSupplierInvoices()));
+                        iRow.getSupplierInvoice(Repositories.supplierInvoices().findAll()));
             }
         }
         return iSupplierInvoices;

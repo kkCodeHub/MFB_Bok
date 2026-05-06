@@ -3,6 +3,7 @@ package se.swedsoft.bookkeeping.calc.math;
 
 import se.swedsoft.bookkeeping.data.*;
 import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.persistence.Repositories;
 import se.swedsoft.bookkeeping.util.SSDateUtil;
 
 import java.math.BigDecimal;
@@ -42,7 +43,7 @@ public class SSSupplierCreditInvoiceMath {
      */
     public static BigDecimal getSumForInvoice(SSSupplierInvoice iInvoice) {
         // Get all credit invoices from the db
-        List<SSSupplierCreditInvoice> iCreditInvoices = SSDB.getInstance().getSupplierCreditInvoices();
+        List<SSSupplierCreditInvoice> iCreditInvoices = Repositories.supplierCreditInvoices().findAll();
 
         BigDecimal iSum = new BigDecimal(0);
 
@@ -65,7 +66,7 @@ public class SSSupplierCreditInvoiceMath {
      */
     public static BigDecimal getSumForInvoice(SSSupplierInvoice iInvoice, Date iDate) {
         // Get all credit invoices from the db
-        List<SSSupplierCreditInvoice> iCreditInvoices = SSDB.getInstance().getSupplierCreditInvoices();
+        List<SSSupplierCreditInvoice> iCreditInvoices = Repositories.supplierCreditInvoices().findAll();
 
         LocalDate localDate = SSDateUtil.toLocalDate(iDate);
         BigDecimal iSum = new BigDecimal(0);
@@ -86,7 +87,7 @@ public class SSSupplierCreditInvoiceMath {
     public static HashMap<Integer, BigDecimal> getSumsForSupplierInvoices() {
         HashMap<Integer, BigDecimal> iSums = new HashMap<>();
 
-        List<SSSupplierCreditInvoice> iSupplierCreditInvoices = SSDB.getInstance().getSupplierCreditInvoices();
+        List<SSSupplierCreditInvoice> iSupplierCreditInvoices = Repositories.supplierCreditInvoices().findAll();
 
         for (SSSupplierCreditInvoice iSupplierCreditInvoice : iSupplierCreditInvoices) {
             BigDecimal iRowSum = SSSupplierInvoiceMath.getTotalSum(iSupplierCreditInvoice);
@@ -107,7 +108,7 @@ public class SSSupplierCreditInvoiceMath {
         HashMap<Integer, BigDecimal> iSums = new HashMap<>();
         LocalDate localDate = SSDateUtil.toLocalDate(iDate);
 
-        List<SSSupplierCreditInvoice> iSupplierCreditInvoices = SSDB.getInstance().getSupplierCreditInvoices();
+        List<SSSupplierCreditInvoice> iSupplierCreditInvoices = Repositories.supplierCreditInvoices().findAll();
 
         for (SSSupplierCreditInvoice iSupplierCreditInvoice : iSupplierCreditInvoices) {
             if (iSupplierCreditInvoice.getLocalDate() != null && localDate != null

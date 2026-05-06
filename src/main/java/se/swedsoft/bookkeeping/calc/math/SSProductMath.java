@@ -4,6 +4,7 @@ package se.swedsoft.bookkeeping.calc.math;
 import se.swedsoft.bookkeeping.data.*;
 import se.swedsoft.bookkeeping.data.base.SSSaleRow;
 import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.persistence.Repositories;
 import se.swedsoft.bookkeeping.util.SSDateUtil;
 
 import java.math.BigDecimal;
@@ -68,7 +69,7 @@ public class SSProductMath {
 
     public static BigDecimal getLastPurchasePrice(SSProduct iProduct, LocalDate iDate) {
         List<SSSupplierInvoice> iSupplierInvoices = new LinkedList<>(
-                SSDB.getInstance().getSupplierInvoices());
+                Repositories.supplierInvoices().findAll());
 
         Collections.sort(iSupplierInvoices,
                 Comparator.comparing(SSSupplierInvoice::getLocalDate,
@@ -222,7 +223,7 @@ public class SSProductMath {
             }
             return Optional.of(iInpriceSum);
         }
-        List<SSSupplierInvoice> iSupplierInvoices = SSDB.getInstance().getSupplierInvoices();
+        List<SSSupplierInvoice> iSupplierInvoices = Repositories.supplierInvoices().findAll();
 
         List<SSSupplierInvoice> iFiltered = new LinkedList<>(
                 iSupplierInvoices);

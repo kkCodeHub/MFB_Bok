@@ -10,6 +10,7 @@ import se.swedsoft.bookkeeping.data.common.SSPaymentTerm;
 import se.swedsoft.bookkeeping.data.system.SSDB;
 import se.swedsoft.bookkeeping.gui.util.SSBundle;
 import se.swedsoft.bookkeeping.gui.util.table.SSTableSearchable;
+import se.swedsoft.bookkeeping.persistence.Repositories;
 import se.swedsoft.bookkeeping.util.SSDateUtil;
 
 import java.io.IOException;
@@ -180,7 +181,7 @@ public class SSSupplierInvoice implements SSTableSearchable, Serializable {
      *
      */
     public void doAutoIncrecement() {
-        List<SSSupplierInvoice> iInvoices = SSDB.getInstance().getSupplierInvoices();
+        List<SSSupplierInvoice> iInvoices = Repositories.supplierInvoices().findAll();
 
         int iMax = SSDB.getInstance().getAutoIncrement().orElse(new SSAutoIncrement()).getNumber("supplierinvoice");
 
@@ -207,7 +208,7 @@ public class SSSupplierInvoice implements SSTableSearchable, Serializable {
      * @return the most recent date, or {@code null} if no invoices exist
      */
     public LocalDate getLastLocalDate() {
-        List<SSSupplierInvoice> iSupplierInvoices = SSDB.getInstance().getSupplierInvoices();
+        List<SSSupplierInvoice> iSupplierInvoices = Repositories.supplierInvoices().findAll();
         LocalDate iMax = null;
 
         if (!iSupplierInvoices.isEmpty()) {

@@ -8,6 +8,7 @@ import se.swedsoft.bookkeeping.data.common.SSDeliveryWay;
 import se.swedsoft.bookkeeping.data.common.SSPaymentTerm;
 import se.swedsoft.bookkeeping.data.system.SSDB;
 import se.swedsoft.bookkeeping.gui.util.table.SSTableSearchable;
+import se.swedsoft.bookkeeping.persistence.Repositories;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -507,7 +508,7 @@ public class SSSupplier implements Serializable, SSTableSearchable {
     public BigDecimal getSupplierRevenueForMonth(SSMonth iMonth) {
         Double iSupplierInvoiceSum = 0.0;
 
-        for (SSSupplierInvoice iSupplierInvoice : SSDB.getInstance().getSupplierInvoices()) {
+        for (SSSupplierInvoice iSupplierInvoice : Repositories.supplierInvoices().findAll()) {
             if (iMonth.isDateInMonth(iSupplierInvoice.getLocalDate())) {
                 if (iSupplierInvoice.getSupplierNr() != null) {
                     if (iSupplierInvoice.getSupplierNr().equals(iNumber)) {
@@ -520,7 +521,7 @@ public class SSSupplier implements Serializable, SSTableSearchable {
 
         Double iSupplierCreditInvoiceSum = 0.0;
 
-        for (SSSupplierCreditInvoice iSupplierCreditInvoice : SSDB.getInstance().getSupplierCreditInvoices()) {
+        for (SSSupplierCreditInvoice iSupplierCreditInvoice : Repositories.supplierCreditInvoices().findAll()) {
             if (iMonth.isDateInMonth(iSupplierCreditInvoice.getLocalDate())) {
                 if (iSupplierCreditInvoice.getSupplierNr() != null) {
                     if (iSupplierCreditInvoice.getSupplierNr().equals(iNumber)) {

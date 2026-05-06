@@ -3,6 +3,7 @@ package se.swedsoft.bookkeeping.calc.math;
 
 import se.swedsoft.bookkeeping.data.*;
 import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.persistence.Repositories;
 import se.swedsoft.bookkeeping.util.SSDateUtil;
 
 import java.math.BigDecimal;
@@ -76,7 +77,7 @@ public class SSSupplierInvoiceMath {
         SSSupplierInvoice iSupplierInvoice = new SSSupplierInvoice();
 
         iSupplierInvoice.setNumber(iSupplierInvoiceNr);
-        iSupplierInvoice = SSDB.getInstance().getSupplierInvoice(iSupplierInvoice).orElse(null);
+        iSupplierInvoice = Repositories.supplierInvoices().findBySupplierInvoice(iSupplierInvoice).orElse(null);
 
         BigDecimal iCurrencyRate = iSupplierInvoice.getCurrencyRate();
 
@@ -197,7 +198,7 @@ public class SSSupplierInvoiceMath {
 
         HashMap<Integer, BigDecimal> iSupplierCreditInvoiceSum = SSSupplierCreditInvoiceMath.getSumsForSupplierInvoices();
 
-        List<SSSupplierInvoice> iSupplierInvoices = SSDB.getInstance().getSupplierInvoices();
+        List<SSSupplierInvoice> iSupplierInvoices = Repositories.supplierInvoices().findAll();
 
         for (SSSupplierInvoice iSupplierInvoice : iSupplierInvoices) {
             BigDecimal iTotalSum = getTotalSum(iSupplierInvoice);
@@ -229,7 +230,7 @@ public class SSSupplierInvoiceMath {
         HashMap<Integer, BigDecimal> iSupplierCreditInvoiceSum = SSSupplierCreditInvoiceMath.getSumsForSupplierInvoices(
                 SSDateUtil.toDate(iDate));
 
-        List<SSSupplierInvoice> iSupplierInvoices = SSDB.getInstance().getSupplierInvoices();
+        List<SSSupplierInvoice> iSupplierInvoices = Repositories.supplierInvoices().findAll();
 
         for (SSSupplierInvoice iSupplierInvoice : iSupplierInvoices) {
 
@@ -258,7 +259,7 @@ public class SSSupplierInvoiceMath {
      *
      * @return map of the invoices and their saldo
      */
-    
+
     /* public static Map<SSSupplierInvoice, BigDecimal> getSaldo(List<SSSupplierInvoice> iInvoices, Date iDate) {
      Map<SSSupplierInvoice, BigDecimal> iSaldos = new HashMap<>();
 
@@ -348,7 +349,7 @@ public class SSSupplierInvoiceMath {
      * @return the invoices for the supplier
      */
     public static List<SSSupplierInvoice> getInvoicesForSupplier(SSSupplier iSupplier) {
-        return getInvoicesForSupplier(SSDB.getInstance().getSupplierInvoices(), iSupplier);
+        return getInvoicesForSupplier(Repositories.supplierInvoices().findAll(), iSupplier);
     }
 
     /**
@@ -376,7 +377,7 @@ public class SSSupplierInvoiceMath {
     }
 
     public static List<SSSupplierInvoice> getInvoicesForSupplier(SSSupplier iSupplier, LocalDate iDate) {
-        return getInvoicesForSupplier(SSDB.getInstance().getSupplierInvoices(), iSupplier,
+        return getInvoicesForSupplier(Repositories.supplierInvoices().findAll(), iSupplier,
                 iDate);
     }
 
@@ -513,7 +514,7 @@ public class SSSupplierInvoiceMath {
      * @return list of invoices
      */
     public static List<SSSupplierInvoice> getNonPayedOrCreditedInvoices() {
-        return getNonPayedOrCreditedInvoices(SSDB.getInstance().getSupplierInvoices());
+        return getNonPayedOrCreditedInvoices(Repositories.supplierInvoices().findAll());
     }
 
     /**

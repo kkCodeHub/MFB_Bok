@@ -11,6 +11,7 @@ import se.swedsoft.bookkeeping.gui.util.table.editors.SSBigDecimalCellEditor;
 import se.swedsoft.bookkeeping.gui.util.table.editors.SSBigDecimalCellRenderer;
 import se.swedsoft.bookkeeping.gui.util.table.model.SSTableColumn;
 import se.swedsoft.bookkeeping.gui.util.table.model.SSTableModel;
+import se.swedsoft.bookkeeping.persistence.Repositories;
 
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
@@ -71,7 +72,7 @@ public class SSOutpaymentRowTableModel extends SSTableModel<SSOutpaymentRow> {
             SSBundle.getBundle().getString("outpaymentrowtable.column.1")) {
         @Override
         public Object getValue(SSOutpaymentRow iObject) {
-            return iObject.getSupplierInvoice(SSDB.getInstance().getSupplierInvoices());
+            return iObject.getSupplierInvoice(Repositories.supplierInvoices().findAll());
         }
 
         @Override

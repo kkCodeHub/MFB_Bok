@@ -7,6 +7,7 @@ import se.swedsoft.bookkeeping.calc.util.SSAutoIncrement;
 import se.swedsoft.bookkeeping.data.common.SSDefaultAccount;
 import se.swedsoft.bookkeeping.data.system.SSDB;
 import se.swedsoft.bookkeeping.gui.util.SSBundle;
+import se.swedsoft.bookkeeping.persistence.Repositories;
 
 import java.math.BigDecimal;
 import se.swedsoft.bookkeeping.util.SSDateUtil;
@@ -63,7 +64,7 @@ public class SSSupplierCreditInvoice extends SSSupplierInvoice {
      */
     @Override
     public void doAutoIncrecement() {
-        List<SSSupplierCreditInvoice> iInvoices = SSDB.getInstance().getSupplierCreditInvoices();
+        List<SSSupplierCreditInvoice> iInvoices = Repositories.supplierCreditInvoices().findAll();
 
         int iNumber = SSDB.getInstance().getAutoIncrement().orElse(new SSAutoIncrement()).getNumber(
                 "suppliercreditinvoice");
@@ -115,7 +116,7 @@ public class SSSupplierCreditInvoice extends SSSupplierInvoice {
      * @return
      */
     public SSSupplierInvoice getCrediting() {
-        return getCrediting(SSDB.getInstance().getSupplierInvoices());
+        return getCrediting(Repositories.supplierInvoices().findAll());
     }
 
     /**
