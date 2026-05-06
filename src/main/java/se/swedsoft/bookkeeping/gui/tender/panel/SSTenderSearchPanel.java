@@ -2,9 +2,9 @@ package se.swedsoft.bookkeeping.gui.tender.panel;
 
 
 import se.swedsoft.bookkeeping.data.SSTender;
-import se.swedsoft.bookkeeping.data.system.SSDB;
 import se.swedsoft.bookkeeping.gui.tender.SSTenderFrame;
 import se.swedsoft.bookkeeping.gui.tender.util.SSTenderTableModel;
+import se.swedsoft.bookkeeping.persistence.Repositories;
 
 import javax.swing.*;
 import java.awt.*;
@@ -36,7 +36,7 @@ public class SSTenderSearchPanel extends JPanel {
         iTextField.addKeyListener(new KeyAdapter() {
             @Override
             public void keyReleased(KeyEvent e) {
-                ApplyFilter(SSDB.getInstance().getTenders());
+                ApplyFilter(Repositories.tenders().findAll());
             }
         });
     }

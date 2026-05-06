@@ -5,6 +5,7 @@ import se.swedsoft.bookkeeping.calc.math.SSOrderMath;
 import se.swedsoft.bookkeeping.data.*;
 import se.swedsoft.bookkeeping.data.common.SSInvoiceType;
 import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.persistence.Repositories;
 import se.swedsoft.bookkeeping.gui.SSMainFrame;
 import se.swedsoft.bookkeeping.gui.invoice.SSInvoiceDialog;
 import se.swedsoft.bookkeeping.gui.invoice.SSInvoiceFrame;
@@ -127,7 +128,7 @@ public class SSOrderDialog {
                 SSDB.getInstance().addOrder(iOrder1);
 
                 iTender.setOrder(iOrder1);
-                SSDB.getInstance().updateTender(iTender);
+                Repositories.tenders().update(iTender);
 
                 if (iPanel.doSaveCustomerAndProducts()) {
                     SSOrderMath.addCustomerAndProducts(iOrder1);

@@ -19,6 +19,7 @@ import se.swedsoft.bookkeeping.gui.util.dialogs.SSInformationDialog;
 import se.swedsoft.bookkeeping.gui.util.dialogs.SSQueryDialog;
 import se.swedsoft.bookkeeping.gui.util.frame.SSDefaultTableFrame;
 import se.swedsoft.bookkeeping.gui.util.table.SSTable;
+import se.swedsoft.bookkeeping.persistence.Repositories;
 import se.swedsoft.bookkeeping.print.SSReportFactory;
 
 import javax.swing.*;
@@ -387,21 +388,21 @@ public class SSTenderFrame extends SSDefaultTableFrame {
 
         if (iResponce == JOptionPane.YES_OPTION) {
             for (SSTender iTender : delete) {
-                SSDB.getInstance().deleteTender(iTender);
+                Repositories.tenders().delete(iTender);
             }
         }
     }
 
     private SSTender getTender(SSTender iTender) {
-        return SSDB.getInstance().getTender(iTender).orElse(null);
+        return Repositories.tenders().findByTender(iTender).orElse(null);
     }
 
     private List<SSTender> getTenders(List<SSTender> iTenders) {
-        return SSDB.getInstance().getTenders(iTenders);
+        return Repositories.tenders().findAll(iTenders);
     }
 
     public void updateFrame() {
-        iSearchPanel.ApplyFilter(SSDB.getInstance().getTenders());
+        iSearchPanel.ApplyFilter(Repositories.tenders().findAll());
     }
 
     public void actionPerformed(ActionEvent e) {

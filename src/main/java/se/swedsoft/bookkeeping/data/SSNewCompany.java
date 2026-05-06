@@ -7,6 +7,7 @@ import se.swedsoft.bookkeeping.data.base.SSSaleRow;
 import se.swedsoft.bookkeeping.data.common.*;
 import se.swedsoft.bookkeeping.data.system.SSDB;
 import se.swedsoft.bookkeeping.data.util.SSMailServer;
+import se.swedsoft.bookkeeping.persistence.Repositories;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -901,7 +902,7 @@ public class SSNewCompany implements Serializable {    private static final Logg
     public Double getTenderValueForMonth(SSMonth iMonth) {
         Double sum = 0.0;
 
-        for (SSTender iTender: SSDB.getInstance().getTenders()) {
+        for (SSTender iTender: Repositories.tenders().findAll()) {
             if (iMonth.isDateInMonth(iTender.getLocalDate())) {
                 for (SSSaleRow iRow : iTender.getRows()) {
                     if (iRow.getSum().isPresent()) {

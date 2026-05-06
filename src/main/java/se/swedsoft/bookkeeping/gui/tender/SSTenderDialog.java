@@ -4,6 +4,7 @@ package se.swedsoft.bookkeeping.gui.tender;
 import se.swedsoft.bookkeeping.calc.math.SSTenderMath;
 import se.swedsoft.bookkeeping.data.SSTender;
 import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.persistence.Repositories;
 
 import se.swedsoft.bookkeeping.gui.SSMainFrame;
 import se.swedsoft.bookkeeping.gui.tender.panel.SSTenderPanel;
@@ -59,7 +60,7 @@ public class SSTenderDialog {
 
                 SSTender iTender1 = iPanel.getTender();
 
-                SSDB.getInstance().addTender(iTender1);
+                Repositories.tenders().add(iTender1);
 
                 if (iPanel.doSaveCustomerAndProducts()) {
                     SSTenderMath.addCustomerAndProducts(iTender1);
@@ -124,7 +125,7 @@ public class SSTenderDialog {
 
                 SSTender iTender1 = iPanel.getTender();
 
-                SSDB.getInstance().updateTender(iTender1);
+                Repositories.tenders().update(iTender1);
                 if (iPanel.doSaveCustomerAndProducts()) {
                     SSTenderMath.addCustomerAndProducts(iTender1);
                 }
@@ -185,7 +186,7 @@ public class SSTenderDialog {
 
                 SSTender iTender = iPanel.getTender();
 
-                SSDB.getInstance().addTender(iTender);
+                Repositories.tenders().add(iTender);
 
                 if (iPanel.doSaveCustomerAndProducts()) {
                     SSTenderMath.addCustomerAndProducts(iTender);

@@ -3,6 +3,7 @@ package se.swedsoft.bookkeeping.data;
 
 import se.swedsoft.bookkeeping.data.base.SSSale;
 import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.persistence.Repositories;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -81,7 +82,7 @@ public class SSTender extends SSSale {
 
         int iNumber = iCompany.getAutoIncrement().getNumber("tender");
 
-        for (SSTender iTender:  SSDB.getInstance().getTenders()) {
+        for (SSTender iTender: Repositories.tenders().findAll()) {
 
             if (iTender.getNumber() != null && iTender.getNumber() > iNumber) {
                 iNumber = iTender.getNumber();

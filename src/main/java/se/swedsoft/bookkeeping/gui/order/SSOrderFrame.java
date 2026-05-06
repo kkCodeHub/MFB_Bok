@@ -25,6 +25,7 @@ import se.swedsoft.bookkeeping.gui.util.table.SSTable;
 import se.swedsoft.bookkeeping.importexport.util.SSImportException;
 import se.swedsoft.bookkeeping.importexport.xml.SSOrderExporter;
 import se.swedsoft.bookkeeping.importexport.xml.SSOrderImporter;
+import se.swedsoft.bookkeeping.persistence.Repositories;
 import se.swedsoft.bookkeeping.print.SSReportFactory;
 
 import javax.swing.*;
@@ -605,12 +606,12 @@ public class SSOrderFrame extends SSDefaultTableFrame {    private static final 
         if (iResponce == JOptionPane.YES_OPTION) {
             for (SSOrder iOrder : delete) {
                 List<SSTender> iTenders = new LinkedList<>(
-                        SSDB.getInstance().getTenders());
+                        Repositories.tenders().findAll());
 
                 for (SSTender iTender : iTenders) {
                     if (iTender.hasOrder(iOrder)) {
                         iTender.setOrder(null);
-                        SSDB.getInstance().updateTender(iTender);
+                            Repositories.tenders().update(iTender);
                     }
                 }
                 iTenders = null;

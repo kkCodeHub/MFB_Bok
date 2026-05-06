@@ -913,8 +913,8 @@ public class SSMainMenu {    private static final Logger LOG = LoggerFactory.get
                             }
                         }
 
-                        for(SSTender iTender : SSDB.getInstance().getTenders()){
-                            if(iTender.getLocalDate().isBefore(iCutoffDate)) SSDB.getInstance().deleteTender(iTender);
+                        for(SSTender iTender : Repositories.tenders().findAll()){
+                            if(iTender.getLocalDate().isBefore(iCutoffDate)) Repositories.tenders().delete(iTender);
                         }
 
                         for(SSOrder iOrder : SSDB.getInstance().getOrders()){

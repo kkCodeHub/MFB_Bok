@@ -1676,7 +1676,7 @@ public class SSReportFactory {    private static final Logger LOG = LoggerFactor
 
         for (SSTender iTender : iTenders) {
             iTender.setPrinted();
-            SSDB.getInstance().updateTender(iTender);
+            Repositories.tenders().update(iTender);
         }
         SSProgressDialog.runProgress(iMainFrame,
                 () -> {
@@ -1712,7 +1712,7 @@ public class SSReportFactory {    private static final Logger LOG = LoggerFactor
         final Locale iLanguage = iDialog.getLanguage();
 
         iTender.setPrinted();
-        SSDB.getInstance().updateTender(iTender);
+        Repositories.tenders().update(iTender);
 
         SSProgressDialog.runProgress(iMainFrame,
                 () -> {

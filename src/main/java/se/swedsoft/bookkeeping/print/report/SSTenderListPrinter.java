@@ -5,9 +5,9 @@ import se.swedsoft.bookkeeping.calc.math.SSTenderMath;
 import se.swedsoft.bookkeeping.data.SSAccount;
 import se.swedsoft.bookkeeping.data.SSTender;
 import se.swedsoft.bookkeeping.data.base.SSSaleRow;
-import se.swedsoft.bookkeeping.data.system.SSDB;
 import se.swedsoft.bookkeeping.gui.util.SSBundle;
 import se.swedsoft.bookkeeping.gui.util.model.SSDefaultTableModel;
+import se.swedsoft.bookkeeping.persistence.Repositories;
 import se.swedsoft.bookkeeping.print.SSPrinter;
 import se.swedsoft.bookkeeping.print.util.SSDefaultJasperDataSource;
 
@@ -34,7 +34,7 @@ public class SSTenderListPrinter extends SSPrinter {
      *
      */
     public SSTenderListPrinter() {
-        this(SSDB.getInstance().getTenders());
+        this(Repositories.tenders().findAll());
     }
 
     /**

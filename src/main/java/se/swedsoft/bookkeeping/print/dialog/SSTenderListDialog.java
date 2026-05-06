@@ -14,6 +14,7 @@ import se.swedsoft.bookkeeping.gui.util.SSButtonPanel;
 import se.swedsoft.bookkeeping.gui.util.components.SSTableComboBoxOld;
 import se.swedsoft.bookkeeping.gui.util.datechooser.SSDateChooser;
 import se.swedsoft.bookkeeping.gui.util.dialogs.SSDialog;
+import se.swedsoft.bookkeeping.persistence.Repositories;
 import se.swedsoft.bookkeeping.util.SSDateUtil;
 
 import javax.swing.*;
@@ -101,7 +102,7 @@ public class SSTenderListDialog extends SSDialog {
     public List<SSTender> getTendersToPrint() {
         final List<SSCustomer> iCustomers = SSDB.getInstance().getCustomers();
 
-        List<SSTender> iTenders = SSDB.getInstance().getTenders();
+        List<SSTender> iTenders = Repositories.tenders().findAll();
 
         SSFilterFactory<SSTender> iFactory = new SSFilterFactory<>(iTenders);
 
