@@ -1,7 +1,7 @@
 package se.swedsoft.bookkeeping.data;
 
 
-import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.persistence.Repositories;
 import se.swedsoft.bookkeeping.util.SSDateUtil;
 
 import java.io.Serializable;
@@ -56,7 +56,7 @@ public class SSIndelivery implements Serializable {
     public void doAutoIncrement() {
         iNumber = 1;
 
-        List<SSIndelivery> iIndeliveries = SSDB.getInstance().getIndeliveries();
+        List<SSIndelivery> iIndeliveries = Repositories.indeliveries().findAll();
 
         for (SSIndelivery iIndelivery : iIndeliveries) {
             if (iIndelivery.iNumber >= iNumber) {

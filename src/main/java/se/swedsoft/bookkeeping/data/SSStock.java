@@ -5,6 +5,7 @@ import se.swedsoft.bookkeeping.calc.math.*;
 import se.swedsoft.bookkeeping.calc.util.SSFilter;
 import se.swedsoft.bookkeeping.calc.util.SSFilterFactory;
 import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.persistence.Repositories;
 import se.swedsoft.bookkeeping.util.SSDateUtil;
 
 import java.time.LocalDate;
@@ -57,7 +58,7 @@ public class SSStock {
         List<SSSupplierInvoice>       iSupplierInvoices = SSDB.getInstance().getSupplierInvoices();
         List<SSSupplierCreditInvoice> iSupplierCreditInvoices = SSDB.getInstance().getSupplierCreditInvoices();
         List<SSInventory>             iInventories = SSDB.getInstance().getInventories();
-        List<SSIndelivery>            iIndeliveries = SSDB.getInstance().getIndeliveries();
+        List<SSIndelivery>            iIndeliveries = Repositories.indeliveries().findAll();
         List<SSOutdelivery>           iOutdeliveries = SSDB.getInstance().getOutdeliveries();
 
         iOrders = SSOrderMath.getOrdersWithoutInvoice(iOrders);
@@ -117,7 +118,7 @@ public class SSStock {
         List<SSSupplierInvoice>       iSupplierInvoices = SSDB.getInstance().getSupplierInvoices();
         List<SSSupplierCreditInvoice> iSupplierCreditInvoices = SSDB.getInstance().getSupplierCreditInvoices();
         List<SSInventory>             iInventories = SSDB.getInstance().getInventories();
-        List<SSIndelivery>            iIndeliveries = SSDB.getInstance().getIndeliveries();
+        List<SSIndelivery>            iIndeliveries = Repositories.indeliveries().findAll();
         List<SSOutdelivery>           iOutdeliveries = SSDB.getInstance().getOutdeliveries();
 
         iOrders = SSOrderMath.getOrdersWithoutInvoice(iOrders);
@@ -207,7 +208,7 @@ public class SSStock {
         List<SSSupplierInvoice>       iSupplierInvoices = SSDB.getInstance().getSupplierInvoices();
         List<SSSupplierCreditInvoice> iSupplierCreditInvoices = SSDB.getInstance().getSupplierCreditInvoices();
         List<SSInventory>             iInventories = SSDB.getInstance().getInventories();
-        List<SSIndelivery>            iIndeliveries = SSDB.getInstance().getIndeliveries();
+        List<SSIndelivery>            iIndeliveries = Repositories.indeliveries().findAll();
         List<SSOutdelivery>           iOutdeliveries = SSDB.getInstance().getOutdeliveries();
 
         iOrders = SSOrderMath.getOrdersWithoutInvoice(iOrders);

@@ -2,12 +2,12 @@ package se.swedsoft.bookkeeping.gui.indelivery;
 
 
 import se.swedsoft.bookkeeping.data.SSIndelivery;
-import se.swedsoft.bookkeeping.data.system.SSDB;
 import se.swedsoft.bookkeeping.gui.SSMainFrame;
 import se.swedsoft.bookkeeping.gui.indelivery.panel.SSIndeliveryPanel;
 import se.swedsoft.bookkeeping.gui.util.SSBundle;
 import se.swedsoft.bookkeeping.gui.util.dialogs.SSDialog;
 import se.swedsoft.bookkeeping.gui.util.dialogs.SSQueryDialog;
+import se.swedsoft.bookkeeping.persistence.Repositories;
 
 import javax.swing.*;
 import javax.swing.table.AbstractTableModel;
@@ -47,7 +47,7 @@ public class SSIndeliveryDialog {
 
                 SSIndelivery iIndelivery1 = iPanel.getIndelivery();
 
-                SSDB.getInstance().addIndelivery(iIndelivery1);
+                Repositories.indeliveries().add(iIndelivery1);
                 if (pModel != null) {
                     pModel.fireTableDataChanged();
                 }
@@ -70,7 +70,7 @@ public class SSIndeliveryDialog {
                 }
                 SSIndelivery iIndelivery1 = iPanel.getIndelivery();
 
-                SSDB.getInstance().addIndelivery(iIndelivery1);
+                Repositories.indeliveries().add(iIndelivery1);
 
                 if (pModel != null) {
                     pModel.fireTableDataChanged();
@@ -103,7 +103,7 @@ public class SSIndeliveryDialog {
 
                 SSIndelivery iIndelivery1 = iPanel.getIndelivery();
 
-                SSDB.getInstance().updateIndelivery(iIndelivery1);
+                Repositories.indeliveries().update(iIndelivery1);
 
                 if (pModel != null) {
                     pModel.fireTableDataChanged();
@@ -130,7 +130,7 @@ public class SSIndeliveryDialog {
                 }
                 SSIndelivery iIndelivery1 = iPanel.getIndelivery();
 
-                SSDB.getInstance().updateIndelivery(iIndelivery1);
+                Repositories.indeliveries().update(iIndelivery1);
 
                 if (pModel != null) {
                     pModel.fireTableDataChanged();
@@ -166,7 +166,7 @@ public class SSIndeliveryDialog {
 
                 SSIndelivery iIndelivery1 = iPanel.getIndelivery();
 
-                SSDB.getInstance().addIndelivery(iIndelivery1);
+                Repositories.indeliveries().add(iIndelivery1);
 
                 if (pModel != null) {
                     pModel.fireTableDataChanged();
@@ -191,7 +191,7 @@ public class SSIndeliveryDialog {
 
                 SSIndelivery iIndelivery1 = iPanel.getIndelivery();
 
-                SSDB.getInstance().addIndelivery(iIndelivery1);
+                Repositories.indeliveries().add(iIndelivery1);
 
                 if (pModel != null) {
                     pModel.fireTableDataChanged();
