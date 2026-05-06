@@ -19,6 +19,7 @@ import se.swedsoft.bookkeeping.importexport.excel.SSSupplierExporter;
 import se.swedsoft.bookkeeping.importexport.excel.SSSupplierImporter;
 import se.swedsoft.bookkeeping.importexport.util.SSExportException;
 import se.swedsoft.bookkeeping.importexport.util.SSImportException;
+import se.swedsoft.bookkeeping.persistence.Repositories;
 import se.swedsoft.bookkeeping.print.dialog.SSPeriodSelectionDialog;
 import se.swedsoft.bookkeeping.print.report.SSSupplierListPrinter;
 import se.swedsoft.bookkeeping.print.report.SSSupplierRevenuePrinter;
@@ -26,7 +27,6 @@ import se.swedsoft.bookkeeping.print.report.SSSupplierRevenuePrinter;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
 import java.util.Date;
@@ -211,14 +211,14 @@ public class SSSupplierFrame extends SSDefaultTableFrame {
                                 break;
 
                             case JOptionPane.NO_OPTION:
-                                iItems = SSDB.getInstance().getSuppliers();
+                                iItems = Repositories.suppliers().findAll();
                                 break;
 
                             default:
                                 return;
                             }
                         } else {
-                            iItems = SSDB.getInstance().getSuppliers();
+                            iItems = Repositories.suppliers().findAll();
                         }
 
                         iFilechooser.setSelectedFile(new File("Leverantörslista.xls"));
@@ -351,7 +351,7 @@ public class SSSupplierFrame extends SSDefaultTableFrame {
 
         if (iResponce == JOptionPane.YES_OPTION) {
             for (SSSupplier iSupplier : delete) {
-                SSDB.getInstance().deleteSupplier(iSupplier);
+                Repositories.suppliers().delete(iSupplier);
             }
         }
     }
@@ -371,14 +371,14 @@ public class SSSupplierFrame extends SSDefaultTableFrame {
                 break;
 
             case JOptionPane.NO_OPTION:
-                iSuppliers = SSDB.getInstance().getSuppliers();
+                iSuppliers = Repositories.suppliers().findAll();
                 break;
 
             default:
                 return;
             }
         } else {
-            iSuppliers = SSDB.getInstance().getSuppliers();
+            iSuppliers = Repositories.suppliers().findAll();
         }
 
         SSPeriodSelectionDialog iDialog = new SSPeriodSelectionDialog(getMainFrame(),
@@ -447,15 +447,15 @@ public class SSSupplierFrame extends SSDefaultTableFrame {
     }
 
     private SSSupplier getSupplier(SSSupplier iSupplier) {
-        return SSDB.getInstance().getSupplier(iSupplier).orElse(null);
+        return Repositories.suppliers().findBySupplier(iSupplier).orElse(null);
     }
 
     private List<SSSupplier> getSuppliers(List<SSSupplier> iSuppliers) {
-        return SSDB.getInstance().getSuppliers(iSuppliers);
+        return Repositories.suppliers().findAll(iSuppliers);
     }
 
     public void updateFrame() {
-        iModel.setObjects(SSDB.getInstance().getSuppliers());
+        iModel.setObjects(Repositories.suppliers().findAll());
         iSearchPanel.ApplyFilter();
     }
 

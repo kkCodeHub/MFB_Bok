@@ -4,6 +4,7 @@ package se.swedsoft.bookkeeping.gui.supplier;
 import se.swedsoft.bookkeeping.calc.math.SSSupplierMath;
 import se.swedsoft.bookkeeping.data.SSSupplier;
 import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.persistence.Repositories;
 import se.swedsoft.bookkeeping.gui.SSMainFrame;
 import se.swedsoft.bookkeeping.gui.supplier.panel.SSSupplierPanel;
 import se.swedsoft.bookkeeping.gui.util.SSBundle;
@@ -58,7 +59,7 @@ public class SSSupplierDialog {
                 }
 
                 List<SSSupplier> iSuppliers = new LinkedList<>(
-                        SSDB.getInstance().getSuppliers());
+                        Repositories.suppliers().findAll());
 
                 for (SSSupplier iTSupplier : iSuppliers) {
                     if (iSupplier1.equals(iTSupplier)) {
@@ -75,7 +76,7 @@ public class SSSupplierDialog {
                     }
                 }
 
-                SSDB.getInstance().addSupplier(iSupplier1);
+                Repositories.suppliers().add(iSupplier1);
 
                 if (pModel != null) {
                     pModel.fireTableDataChanged();
@@ -139,7 +140,7 @@ public class SSSupplierDialog {
 
                 if (!iSupplier.getOutpaymentNumber().equals(iOriginalOutPaymentNumber)) {
                     List<SSSupplier> iSuppliers = new LinkedList<>(
-                            SSDB.getInstance().getSuppliers());
+                            Repositories.suppliers().findAll());
 
                     for (SSSupplier iTSupplier : iSuppliers) {
                         if (iSupplier.getOutpaymentNumber().equals(
@@ -150,7 +151,7 @@ public class SSSupplierDialog {
                         }
                     }
                 }
-                SSDB.getInstance().updateSupplier(iSupplier);
+                Repositories.suppliers().update(iSupplier);
 
                 if (pModel != null) {
                     pModel.fireTableDataChanged();
@@ -214,7 +215,7 @@ public class SSSupplierDialog {
                 }
 
                 List<SSSupplier> iSuppliers = new LinkedList<>(
-                        SSDB.getInstance().getSuppliers());
+                        Repositories.suppliers().findAll());
 
                 for (SSSupplier iTSupplier : iSuppliers) {
                     if (iSupplier1.equals(iTSupplier)) {
@@ -231,7 +232,7 @@ public class SSSupplierDialog {
                     }
                 }
 
-                SSDB.getInstance().addSupplier(iSupplier1);
+                Repositories.suppliers().add(iSupplier1);
 
                 if (pModel != null) {
                     pModel.fireTableDataChanged();

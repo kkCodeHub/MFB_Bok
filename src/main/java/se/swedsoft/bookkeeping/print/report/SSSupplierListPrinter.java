@@ -3,13 +3,12 @@ package se.swedsoft.bookkeeping.print.report;
 
 import se.swedsoft.bookkeeping.data.SSAccount;
 import se.swedsoft.bookkeeping.data.SSSupplier;
-import se.swedsoft.bookkeeping.data.system.SSDB;
 import se.swedsoft.bookkeeping.gui.util.SSBundle;
 import se.swedsoft.bookkeeping.gui.util.model.SSDefaultTableModel;
+import se.swedsoft.bookkeeping.persistence.Repositories;
 import se.swedsoft.bookkeeping.print.SSPrinter;
 
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 
 
@@ -25,7 +24,7 @@ public class SSSupplierListPrinter extends SSPrinter {
      *
      */
     public SSSupplierListPrinter() {
-        this(SSDB.getInstance().getSuppliers());
+        this(Repositories.suppliers().findAll());
     }
 
     /**

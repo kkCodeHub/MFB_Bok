@@ -2,8 +2,8 @@ package se.swedsoft.bookkeeping.gui.supplier.panel;
 
 
 import se.swedsoft.bookkeeping.data.SSSupplier;
-import se.swedsoft.bookkeeping.data.system.SSDB;
 import se.swedsoft.bookkeeping.gui.supplier.util.SSSupplierTableModel;
+import se.swedsoft.bookkeeping.persistence.Repositories;
 
 import javax.swing.*;
 import java.awt.*;
@@ -41,7 +41,7 @@ public class SSSupplierSearchPanel extends JPanel {
     }
 
     public void ApplyFilter() {
-        List<SSSupplier> iSuppliers = SSDB.getInstance().getSuppliers();
+        List<SSSupplier> iSuppliers = Repositories.suppliers().findAll();
         List<SSSupplier> iFiltered = new LinkedList<>();
 
         String iText = iTextField.getText();
