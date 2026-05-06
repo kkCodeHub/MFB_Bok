@@ -10,6 +10,7 @@ import se.swedsoft.bookkeeping.gui.util.SSBundle;
 import se.swedsoft.bookkeeping.importexport.supplierpayments.poster.*;
 import se.swedsoft.bookkeeping.importexport.supplierpayments.util.LBinLine;
 import se.swedsoft.bookkeeping.importexport.util.SSImportException;
+import se.swedsoft.bookkeeping.persistence.Repositories;
 import se.swedsoft.bookkeeping.util.SSDateUtil;
 
 import java.io.BufferedReader;
@@ -107,11 +108,11 @@ public class SSSupplierPaymentImporter {    private static final Logger LOG = Lo
                 Integer iInvoiceNr = iPostTK14.getInvoiceNr();
 
                 iSupplierInvoice = SSSupplierInvoiceMath.getSupplierInvoiceByNumber(
-                        SSDB.getInstance().getSupplierInvoices(), iInvoiceNr).orElse(null);
+                        Repositories.supplierInvoices().findAll(), iInvoiceNr).orElse(null);
 
                 if (iSupplierInvoice == null) {
                     iSupplierInvoice = SSSupplierInvoiceMath.getSupplierInvoiceByReference(
-                            SSDB.getInstance().getSupplierInvoices(), iReference).orElse(null);
+                            Repositories.supplierInvoices().findAll(), iReference).orElse(null);
                 }
 
                 if (iSupplierInvoice != null) {
@@ -137,11 +138,11 @@ public class SSSupplierPaymentImporter {    private static final Logger LOG = Lo
                 Integer iInvoiceNr = iPostTK54.getInvoiceNr();
 
                 iSupplierInvoice = SSSupplierInvoiceMath.getSupplierInvoiceByNumber(
-                        SSDB.getInstance().getSupplierInvoices(), iInvoiceNr).orElse(null);
+                        Repositories.supplierInvoices().findAll(), iInvoiceNr).orElse(null);
 
                 if (iSupplierInvoice == null) {
                     iSupplierInvoice = SSSupplierInvoiceMath.getSupplierInvoiceByReference(
-                            SSDB.getInstance().getSupplierInvoices(), iReference).orElse(null);
+                            Repositories.supplierInvoices().findAll(), iReference).orElse(null);
                 }
 
                 if (iSupplierInvoice != null) {

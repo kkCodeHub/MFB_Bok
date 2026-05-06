@@ -2,9 +2,9 @@ package se.swedsoft.bookkeeping.gui.supplierinvoice.panel;
 
 
 import se.swedsoft.bookkeeping.data.SSSupplierInvoice;
-import se.swedsoft.bookkeeping.data.system.SSDB;
 import se.swedsoft.bookkeeping.gui.supplierinvoice.SSSupplierInvoiceFrame;
 import se.swedsoft.bookkeeping.gui.supplierinvoice.util.SSSupplierInvoiceTableModel;
+import se.swedsoft.bookkeeping.persistence.Repositories;
 
 import javax.swing.*;
 import java.awt.*;
@@ -36,7 +36,7 @@ public class SSSupplierInvoiceSearchPanel extends JPanel {
         iTextField.addKeyListener(new KeyAdapter() {
             @Override
             public void keyReleased(KeyEvent e) {
-                ApplyFilter(SSDB.getInstance().getSupplierInvoices());
+                ApplyFilter(Repositories.supplierInvoices().findAll());
             }
         });
     }

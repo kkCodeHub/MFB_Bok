@@ -8,6 +8,7 @@ import se.swedsoft.bookkeeping.calc.math.SSSupplierInvoiceMath;
 import se.swedsoft.bookkeeping.data.*;
 import se.swedsoft.bookkeeping.data.base.SSSaleRow;
 import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.persistence.Repositories;
 import se.swedsoft.bookkeeping.gui.util.SSBundle;
 import se.swedsoft.bookkeeping.gui.util.model.SSDefaultTableModel;
 import se.swedsoft.bookkeeping.print.SSPrinter;
@@ -298,7 +299,7 @@ public class SSSaleReportPrinter extends SSPrinter {
         iInprices = new HashMap<>();
 
         List<SSSupplierInvoice> iSupplierInvoices = new LinkedList<>(
-                SSDB.getInstance().getSupplierInvoices());
+                Repositories.supplierInvoices().findAll());
         LocalDate toDate = SSDateUtil.toLocalDate(iTo);
 
         Collections.sort(iSupplierInvoices,

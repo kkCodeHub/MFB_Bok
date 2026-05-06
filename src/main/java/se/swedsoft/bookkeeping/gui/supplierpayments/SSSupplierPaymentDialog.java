@@ -17,6 +17,7 @@ import se.swedsoft.bookkeeping.importexport.supplierpayments.SSSupplierPaymentEx
 import se.swedsoft.bookkeeping.importexport.supplierpayments.data.SupplierPayment;
 import se.swedsoft.bookkeeping.importexport.supplierpayments.data.SupplierPaymentConfig;
 import se.swedsoft.bookkeeping.importexport.util.SSExportException;
+import se.swedsoft.bookkeeping.persistence.Repositories;
 import se.swedsoft.bookkeeping.util.SSDateUtil;
 
 import javax.swing.*;
@@ -82,7 +83,7 @@ public class SSSupplierPaymentDialog extends SSDialog {    private static final 
                         for (SupplierPayment iPayment : iSupplierPayments) {
                             SSSupplierInvoice pSupplierInvoice = iPayment.getSupplierInvoice();
 
-                            if (SSDB.getInstance().getSupplierInvoice(pSupplierInvoice) == null) {
+                            if (Repositories.supplierInvoices().findBySupplierInvoice(pSupplierInvoice).orElse(null) == null) {
                                 iSupplierPayments.remove(iPayment);
                                 new SSErrorDialog(iMainFrame,
                                         "supplierinvoiceframe.supplierinvoicegone",
@@ -109,7 +110,7 @@ public class SSSupplierPaymentDialog extends SSDialog {    private static final 
                         for (SupplierPayment iPayment : iSupplierPayments) {
                             SSSupplierInvoice pSupplierInvoice = iPayment.getSupplierInvoice();
 
-                            if (SSDB.getInstance().getSupplierInvoice(pSupplierInvoice) == null) {
+                            if (Repositories.supplierInvoices().findBySupplierInvoice(pSupplierInvoice).orElse(null) == null) {
                                 iSupplierPayments.remove(iPayment);
                                 new SSErrorDialog(iMainFrame,
                                         "supplierinvoiceframe.supplierinvoicegone",
@@ -131,7 +132,7 @@ public class SSSupplierPaymentDialog extends SSDialog {    private static final 
                                 iDate = iPaymentDate;
                             }
                             iSupplierPayment.getSupplierInvoice().setBGCEntered();
-                            SSDB.getInstance().updateSupplierInvoice(
+                            Repositories.supplierInvoices().update(
                                     iSupplierPayment.getSupplierInvoice());
                         }
                         SupplierPaymentConfig.setOurBankGiroAccount(iOurBankGiroNumber.getText());

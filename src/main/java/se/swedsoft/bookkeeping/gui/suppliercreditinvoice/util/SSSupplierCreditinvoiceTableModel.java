@@ -4,10 +4,10 @@ package se.swedsoft.bookkeeping.gui.suppliercreditinvoice.util;
 import se.swedsoft.bookkeeping.calc.math.SSSupplierInvoiceMath;
 import se.swedsoft.bookkeeping.data.SSSupplierCreditInvoice;
 import se.swedsoft.bookkeeping.data.common.SSCurrency;
-import se.swedsoft.bookkeeping.data.system.SSDB;
 import se.swedsoft.bookkeeping.gui.util.SSBundle;
 import se.swedsoft.bookkeeping.gui.util.table.model.SSTableColumn;
 import se.swedsoft.bookkeeping.gui.util.table.model.SSTableModel;
+import se.swedsoft.bookkeeping.persistence.Repositories;
 import se.swedsoft.bookkeeping.util.SSDateUtil;
 
 import java.math.BigDecimal;
@@ -25,7 +25,7 @@ public class SSSupplierCreditinvoiceTableModel extends SSTableModel<SSSupplierCr
      * Default constructor.
      */
     public SSSupplierCreditinvoiceTableModel() {
-        super(SSDB.getInstance().getSupplierCreditInvoices());
+        super(Repositories.supplierCreditInvoices().findAll());
     }
 
     /**

@@ -3,8 +3,8 @@ package se.swedsoft.bookkeeping.print.report;
 
 import se.swedsoft.bookkeeping.calc.math.SSSupplierInvoiceMath;
 import se.swedsoft.bookkeeping.data.SSSupplierInvoice;
-import se.swedsoft.bookkeeping.data.system.SSDB;
 import se.swedsoft.bookkeeping.gui.util.model.SSDefaultTableModel;
+import se.swedsoft.bookkeeping.persistence.Repositories;
 import se.swedsoft.bookkeeping.print.SSPrinter;
 import se.swedsoft.bookkeeping.util.SSDateUtil;
 
@@ -27,7 +27,7 @@ public class SSSupplierdebtPrinter extends SSPrinter {
      * @param iDate
      */
     public SSSupplierdebtPrinter(Date iDate) {
-        this(iDate, SSDB.getInstance().getSupplierInvoices());
+        this(iDate, Repositories.supplierInvoices().findAll());
     }
 
     /**

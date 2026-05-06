@@ -9,6 +9,7 @@ import se.swedsoft.bookkeeping.data.system.SSDB;
 import se.swedsoft.bookkeeping.gui.util.SSBundle;
 import se.swedsoft.bookkeeping.gui.util.table.model.SSTableColumn;
 import se.swedsoft.bookkeeping.gui.util.table.model.SSTableModel;
+import se.swedsoft.bookkeeping.persistence.Repositories;
 import se.swedsoft.bookkeeping.util.SSDateUtil;
 
 import java.math.BigDecimal;
@@ -27,7 +28,7 @@ public class SSSupplierInvoiceTableModel extends SSTableModel<SSSupplierInvoice>
      * Default constructor.
      */
     public SSSupplierInvoiceTableModel() {
-        super(SSDB.getInstance().getSupplierInvoices());
+        super(Repositories.supplierInvoices().findAll());
     }
 
     /**
@@ -54,7 +55,7 @@ public class SSSupplierInvoiceTableModel extends SSTableModel<SSSupplierInvoice>
      */
     public static SSTableModel<SSSupplierInvoice> getDropDownModel() {
 
-        return getDropDownModel(SSDB.getInstance().getSupplierInvoices());
+        return getDropDownModel(Repositories.supplierInvoices().findAll());
     }
 
     /**

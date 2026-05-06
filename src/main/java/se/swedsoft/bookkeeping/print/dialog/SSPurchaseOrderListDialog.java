@@ -15,6 +15,7 @@ import se.swedsoft.bookkeeping.gui.util.SSButtonPanel;
 import se.swedsoft.bookkeeping.gui.util.components.SSTableComboBox;
 import se.swedsoft.bookkeeping.gui.util.datechooser.SSDateChooser;
 import se.swedsoft.bookkeeping.gui.util.dialogs.SSDialog;
+import se.swedsoft.bookkeeping.persistence.Repositories;
 import se.swedsoft.bookkeeping.util.SSDateUtil;
 
 import javax.swing.*;
@@ -104,7 +105,7 @@ public class SSPurchaseOrderListDialog extends SSDialog {
         SSFilterFactory<SSPurchaseOrder> iFactory = new SSFilterFactory<>(
                 iPurchaseOrders);
 
-        final List<SSSupplierInvoice> iSupplierInvoices = SSDB.getInstance().getSupplierInvoices();
+        final List<SSSupplierInvoice> iSupplierInvoices = Repositories.supplierInvoices().findAll();
 
         // Filter by non payed orders
         if (iRadioNoInvoice.isSelected()) {

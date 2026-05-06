@@ -11,6 +11,7 @@ import se.swedsoft.bookkeeping.gui.util.dialogs.SSDialog;
 import se.swedsoft.bookkeeping.gui.util.dialogs.SSErrorDialog;
 import se.swedsoft.bookkeeping.gui.util.dialogs.SSQueryDialog;
 import se.swedsoft.bookkeeping.gui.util.table.model.SSTableModel;
+import se.swedsoft.bookkeeping.persistence.Repositories;
 
 import javax.swing.*;
 import javax.swing.table.AbstractTableModel;
@@ -55,7 +56,7 @@ public class SSSupplierInvoiceDialog {
 
                 SSSupplierInvoice iSupplierInvoice1 = iPanel.getSupplierInvoice();
 
-                SSDB.getInstance().addSupplierInvoice(iSupplierInvoice1);
+                Repositories.supplierInvoices().add(iSupplierInvoice1);
 
                 if (pModel != null) {
                     pModel.fireTableDataChanged();
@@ -115,7 +116,7 @@ public class SSSupplierInvoiceDialog {
 
                 SSSupplierInvoice iSupplierInvoice1 = iPanel.getSupplierInvoice();
 
-                SSDB.getInstance().updateSupplierInvoice(iSupplierInvoice1);
+                Repositories.supplierInvoices().update(iSupplierInvoice1);
 
                 if (pModel != null) {
                     pModel.fireTableDataChanged();
@@ -189,7 +190,7 @@ public class SSSupplierInvoiceDialog {
 
                 SSSupplierInvoice iSupplierInvoice = iPanel.getSupplierInvoice();
 
-                SSDB.getInstance().addSupplierInvoice(iSupplierInvoice);
+                Repositories.supplierInvoices().add(iSupplierInvoice);
 
                 if (pModel != null) {
                     pModel.fireTableDataChanged();
@@ -270,7 +271,7 @@ public class SSSupplierInvoiceDialog {
 
                 SSSupplierInvoice iSupplierInvoice1 = iPanel.getSupplierInvoice();
 
-                SSDB.getInstance().addSupplierInvoice(iSupplierInvoice1);
+                Repositories.supplierInvoices().add(iSupplierInvoice1);
 
                 for (SSPurchaseOrder iPurchaseOrder : iOrders) {
                     // Set the sales for the selected order to the new one

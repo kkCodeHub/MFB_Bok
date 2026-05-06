@@ -26,6 +26,7 @@ import se.swedsoft.bookkeeping.gui.util.dialogs.SSQueryDialog;
 import se.swedsoft.bookkeeping.gui.util.frame.SSDefaultTableFrame;
 import se.swedsoft.bookkeeping.gui.util.table.SSTable;
 import se.swedsoft.bookkeeping.gui.util.table.model.SSTableModel;
+import se.swedsoft.bookkeeping.persistence.Repositories;
 import se.swedsoft.bookkeeping.print.SSReportFactory;
 
 import javax.swing.*;
@@ -470,21 +471,21 @@ public class SSSupplierInvoiceFrame extends SSDefaultTableFrame {
                     SSSupplierMath.iInvoicesForSuppliers.get(iSupplierInvoice.getSupplierNr()).remove(
                             iIndex);
                 }
-                SSDB.getInstance().deleteSupplierInvoice(iSupplierInvoice);
+                Repositories.supplierInvoices().delete(iSupplierInvoice);
             }
         }
     }
 
     private SSSupplierInvoice getSupplierInvoice(SSSupplierInvoice iSupplierInvoice) {
-        return SSDB.getInstance().getSupplierInvoice(iSupplierInvoice).orElse(null);
+        return Repositories.supplierInvoices().findBySupplierInvoice(iSupplierInvoice).orElse(null);
     }
 
     private List<SSSupplierInvoice> getSupplierInvoices(List<SSSupplierInvoice> iSupplierInvoices) {
-        return SSDB.getInstance().getSupplierInvoices(iSupplierInvoices);
+        return Repositories.supplierInvoices().findAll(iSupplierInvoices);
     }
 
     public void updateFrame() {
-        iSearchPanel.ApplyFilter(SSDB.getInstance().getSupplierInvoices());
+        iSearchPanel.ApplyFilter(Repositories.supplierInvoices().findAll());
     }
 
     public void actionPerformed(ActionEvent e) {
