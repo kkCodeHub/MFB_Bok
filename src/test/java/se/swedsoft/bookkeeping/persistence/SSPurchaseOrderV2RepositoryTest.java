@@ -11,6 +11,7 @@ import se.swedsoft.bookkeeping.data.SSPurchaseOrder;
 import se.swedsoft.bookkeeping.data.SSPurchaseOrderRow;
 import se.swedsoft.bookkeeping.data.common.SSUnit;
 import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.persistence.v2.V2PurchaseOrderRepository;
 
 import java.math.BigDecimal;
 import java.sql.Connection;
@@ -78,7 +79,7 @@ class SSPurchaseOrderV2RepositoryTest {
     @Test
     void repositoriesInitUsesV2PurchaseOrderRepository() {
         assertThat(Repositories.isSchemaV2()).isTrue();
-        assertThat(Repositories.purchaseOrders()).isNotNull();
+        assertThat(Repositories.purchaseOrders()).isInstanceOf(V2PurchaseOrderRepository.class);
     }
 
     @Test

@@ -12,6 +12,24 @@ diverging from upstream version 2.2-SNAPSHOT.
 ## [Unreleased]
 
 ### Added
+- Slice P (steg 9) purchase-order cutover:
+  - `PurchaseOrder` har nu cutover-mönster i linje med tidigare domäner:
+    `Repositories.init(SSDB)` wire:ar alltid `V2PurchaseOrderRepository`,
+    aktiva V1 `OBJECT`-paths för purchase orders är avaktiverade i `SSDB`, och
+    den döda legacy-adaptern `SSDBPurchaseOrderRepository` har tagits bort.
+  - Nytt test `RepositoriesPurchaseOrderCutoverTest` verifierar att
+    purchase-order-domänen går via V2 i både V1- och V2-läge, medan
+    omigrerade domäner fortsatt kan använda legacy-wiring.
+  - `V2PurchaseOrderRepository` kan nu konstrueras oberoende av schemaflagga
+    för att stödja Slice P-cutovern.
+  - Verifierat med fokuserad testsvit:
+    `RepositoriesPurchaseOrderCutoverTest`,
+    `SSPurchaseOrderV2IntegrationTest`, `SSPurchaseOrderV2RepositoryTest`,
+    `RepositoriesHDomainCutoverTest`, `RepositoriesSupplierInvoiceCutoverTest`,
+    `RepositoriesTenderCutoverTest`, `RepositoriesPeriodicInvoiceCutoverTest`,
+    `RepositoriesCreditInvoiceCutoverTest`,
+    `RepositoriesSupplierCreditInvoiceCutoverTest`,
+    `SSDBCustomerRepositoryTest`.
 - Slice P (steg 8) supplier-credit-invoice cutover:
   - `SupplierCreditInvoice` har nu cutover-mönster i linje med tidigare
     domäner: `Repositories.init(SSDB)` wire:ar alltid

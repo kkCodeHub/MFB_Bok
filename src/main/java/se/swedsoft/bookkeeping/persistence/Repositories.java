@@ -12,7 +12,6 @@ import se.swedsoft.bookkeeping.persistence.legacy.SSDBOrderRepository;
 import se.swedsoft.bookkeeping.persistence.legacy.SSDBOutdeliveryRepository;
 import se.swedsoft.bookkeeping.persistence.legacy.SSDBOutpaymentRepository;
 import se.swedsoft.bookkeeping.persistence.legacy.SSDBProductRepository;
-import se.swedsoft.bookkeeping.persistence.legacy.SSDBPurchaseOrderRepository;
 import se.swedsoft.bookkeeping.persistence.legacy.SSDBSupplierRepository;
 import se.swedsoft.bookkeeping.persistence.legacy.SSDBVoucherRepository;
 import se.swedsoft.bookkeeping.persistence.v2.V2AccountPlanRepository;
@@ -49,8 +48,8 @@ import se.swedsoft.bookkeeping.persistence.v2.V2VoucherTemplateRepository;
  * <p>When {@code fribok.schema.version=v2} the factory wires in the V2
  * repository implementations. For cut-over domains ({@code AutoDist},
  * {@code VoucherTemplate}, {@code OwnReport}, {@code SupplierInvoice},
- * {@code Tender}, {@code PeriodicInvoice}, {@code CreditInvoice} and
- * {@code SupplierCreditInvoice})
+ * {@code Tender}, {@code PeriodicInvoice}, {@code CreditInvoice},
+ * {@code SupplierCreditInvoice} and {@code PurchaseOrder})
  * V2 repositories are always used regardless of schema flag. Other domains
  * still switch between V2 and legacy SSDB-delegating implementations.</p>
  *
@@ -111,7 +110,7 @@ public final class Repositories {
      * are used. For cut-over domains ({@code AutoDist},
      * {@code VoucherTemplate}, {@code OwnReport}, {@code SupplierInvoice},
      * {@code Tender}, {@code PeriodicInvoice}, {@code CreditInvoice},
-     * {@code SupplierCreditInvoice}) V2
+     * {@code SupplierCreditInvoice}, {@code PurchaseOrder}) V2
      * implementations are always created as part of Slice P cutover; otherwise
      * legacy SSDB-delegating ones are created. Must be called once before any
      * getter is used.
@@ -128,6 +127,7 @@ public final class Repositories {
         creditInvoiceRepository = new V2CreditInvoiceRepository(db);
         ownReportRepository = new V2OwnReportRepository(db);
         periodicInvoiceRepository = new V2PeriodicInvoiceRepository(db);
+        purchaseOrderRepository = new V2PurchaseOrderRepository(db);
         supplierCreditInvoiceRepository = new V2SupplierCreditInvoiceRepository(db);
         supplierInvoiceRepository = new V2SupplierInvoiceRepository(db);
         tenderRepository = new V2TenderRepository(db);
@@ -143,7 +143,6 @@ public final class Repositories {
             outdeliveryRepository = new V2OutdeliveryRepository(db);
             outpaymentRepository = new V2OutpaymentRepository(db);
             productRepository = new V2ProductRepository(db);
-            purchaseOrderRepository = new V2PurchaseOrderRepository(db);
             supplierRepository = new V2SupplierRepository(db);
             accountPlanRepository = new V2AccountPlanRepository(db);
             voucherRepository = new V2VoucherRepository(db);
@@ -158,7 +157,6 @@ public final class Repositories {
             outdeliveryRepository = new SSDBOutdeliveryRepository(db);
             outpaymentRepository = new SSDBOutpaymentRepository(db);
             productRepository = new SSDBProductRepository(db);
-            purchaseOrderRepository = new SSDBPurchaseOrderRepository(db);
             supplierRepository = new SSDBSupplierRepository(db);
             accountPlanRepository = new SSDBAccountPlanRepository(db);
             voucherRepository = new SSDBVoucherRepository(db);
