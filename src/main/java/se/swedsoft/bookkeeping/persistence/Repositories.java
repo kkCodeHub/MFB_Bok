@@ -6,7 +6,6 @@ import se.swedsoft.bookkeeping.persistence.legacy.SSDBAccountingYearRepository;
 import se.swedsoft.bookkeeping.persistence.legacy.SSDBCustomerRepository;
 import se.swedsoft.bookkeeping.persistence.legacy.SSDBInpaymentRepository;
 import se.swedsoft.bookkeeping.persistence.legacy.SSDBInvoiceRepository;
-import se.swedsoft.bookkeeping.persistence.legacy.SSDBOutpaymentRepository;
 import se.swedsoft.bookkeeping.persistence.legacy.SSDBProductRepository;
 import se.swedsoft.bookkeeping.persistence.legacy.SSDBSupplierRepository;
 import se.swedsoft.bookkeeping.persistence.legacy.SSDBVoucherRepository;
@@ -46,7 +45,8 @@ import se.swedsoft.bookkeeping.persistence.v2.V2VoucherTemplateRepository;
  * {@code VoucherTemplate}, {@code OwnReport}, {@code SupplierInvoice},
  * {@code Tender}, {@code PeriodicInvoice}, {@code CreditInvoice},
  * {@code SupplierCreditInvoice}, {@code PurchaseOrder}, {@code Order},
- * {@code Indelivery}, {@code Outdelivery} and {@code Inventory})
+ * {@code Indelivery}, {@code Outdelivery}, {@code Inventory} and
+ * {@code Outpayment})
  * V2 repositories are always used regardless of schema flag. Other domains
  * still switch between V2 and legacy SSDB-delegating implementations.</p>
  *
@@ -108,7 +108,8 @@ public final class Repositories {
      * {@code VoucherTemplate}, {@code OwnReport}, {@code SupplierInvoice},
      * {@code Tender}, {@code PeriodicInvoice}, {@code CreditInvoice},
      * {@code SupplierCreditInvoice}, {@code PurchaseOrder}, {@code Order},
-     * {@code Indelivery}, {@code Outdelivery}, {@code Inventory}) V2
+     * {@code Indelivery}, {@code Outdelivery}, {@code Inventory},
+     * {@code Outpayment}) V2
      * implementations are always created as part of Slice P cutover; otherwise
      * legacy SSDB-delegating ones are created. Must be called once before any
      * getter is used.
@@ -129,6 +130,7 @@ public final class Repositories {
         inventoryRepository = new V2InventoryRepository(db);
         orderRepository = new V2OrderRepository(db);
         outdeliveryRepository = new V2OutdeliveryRepository(db);
+        outpaymentRepository = new V2OutpaymentRepository(db);
         purchaseOrderRepository = new V2PurchaseOrderRepository(db);
         supplierCreditInvoiceRepository = new V2SupplierCreditInvoiceRepository(db);
         supplierInvoiceRepository = new V2SupplierInvoiceRepository(db);
@@ -139,7 +141,6 @@ public final class Repositories {
             customerRepository = new V2CustomerRepository(db);
             inpaymentRepository = new V2InpaymentRepository(db);
             invoiceRepository = new V2InvoiceRepository(db);
-            outpaymentRepository = new V2OutpaymentRepository(db);
             productRepository = new V2ProductRepository(db);
             supplierRepository = new V2SupplierRepository(db);
             accountPlanRepository = new V2AccountPlanRepository(db);
@@ -149,7 +150,6 @@ public final class Repositories {
             customerRepository = new SSDBCustomerRepository(db);
             inpaymentRepository = new SSDBInpaymentRepository(db);
             invoiceRepository = new SSDBInvoiceRepository(db);
-            outpaymentRepository = new SSDBOutpaymentRepository(db);
             productRepository = new SSDBProductRepository(db);
             supplierRepository = new SSDBSupplierRepository(db);
             accountPlanRepository = new SSDBAccountPlanRepository(db);

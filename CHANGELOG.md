@@ -12,6 +12,26 @@ diverging from upstream version 2.2-SNAPSHOT.
 ## [Unreleased]
 
 ### Added
+- Slice P (steg 14) outpayment cutover:
+  - `Outpayment` har nu cutover-monster i linje med tidigare domaner:
+    `Repositories.init(SSDB)` wire:ar alltid `V2OutpaymentRepository`, aktiva
+    V1 `OBJECT`-paths for outpayment ar avaktiverade i `SSDB`, och den doda
+    legacy-adaptern `SSDBOutpaymentRepository` har tagits bort.
+  - Nytt test `RepositoriesOutpaymentCutoverTest` verifierar att
+    outpayment-domanen gar via V2 i bade V1- och V2-lage, medan omigrerade
+    domaner fortsatt kan anvanda legacy-wiring.
+  - `V2OutpaymentRepository` kan nu konstrueras oberoende av schemaflagga
+    for att stodja Slice P-cutovern.
+  - Verifierat med fokuserad testsvit:
+    `RepositoriesOutpaymentCutoverTest`, `SSOutpaymentV2IntegrationTest`,
+    `SSOutpaymentV2RepositoryTest`, `RepositoriesInventoryCutoverTest`,
+    `RepositoriesOutdeliveryCutoverTest`, `RepositoriesIndeliveryCutoverTest`,
+    `RepositoriesOrderCutoverTest`, `RepositoriesPurchaseOrderCutoverTest`,
+    `RepositoriesHDomainCutoverTest`, `RepositoriesSupplierInvoiceCutoverTest`,
+    `RepositoriesTenderCutoverTest`, `RepositoriesPeriodicInvoiceCutoverTest`,
+    `RepositoriesCreditInvoiceCutoverTest`,
+    `RepositoriesSupplierCreditInvoiceCutoverTest`,
+    `SSDBCustomerRepositoryTest`.
 - Slice P (steg 13) inventory cutover:
   - `Inventory` har nu cutover-monster i linje med tidigare domaner:
     `Repositories.init(SSDB)` wire:ar alltid `V2InventoryRepository`, aktiva

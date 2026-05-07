@@ -11,6 +11,7 @@ import se.swedsoft.bookkeeping.data.SSOutpayment;
 import se.swedsoft.bookkeeping.data.SSOutpaymentRow;
 import se.swedsoft.bookkeeping.data.common.SSCurrency;
 import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.persistence.v2.V2OutpaymentRepository;
 
 import java.math.BigDecimal;
 import java.sql.Connection;
@@ -78,7 +79,7 @@ class SSOutpaymentV2RepositoryTest {
     @Test
     void repositoriesInitUsesV2OutpaymentRepository() {
         assertThat(Repositories.isSchemaV2()).isTrue();
-        assertThat(Repositories.outpayments()).isNotNull();
+        assertThat(Repositories.outpayments()).isInstanceOf(V2OutpaymentRepository.class);
     }
 
     @Test
