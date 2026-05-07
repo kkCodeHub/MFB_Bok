@@ -12,6 +12,25 @@ diverging from upstream version 2.2-SNAPSHOT.
 ## [Unreleased]
 
 ### Added
+- Slice P (steg 11) indelivery cutover:
+  - `Indelivery` har nu cutover-monster i linje med tidigare domaner:
+    `Repositories.init(SSDB)` wire:ar alltid `V2IndeliveryRepository`, aktiva
+    V1 `OBJECT`-paths for indelivery ar avaktiverade i `SSDB`, och den doda
+    legacy-adaptern `SSDBIndeliveryRepository` har tagits bort.
+  - Nytt test `RepositoriesIndeliveryCutoverTest` verifierar att
+    indelivery-domanen gar via V2 i bade V1- och V2-lage, medan omigrerade
+    domaner fortsatt kan anvanda legacy-wiring.
+  - `V2IndeliveryRepository` kan nu konstrueras oberoende av schemaflagga
+    for att stodja Slice P-cutovern.
+  - Verifierat med fokuserad testsvit:
+    `RepositoriesIndeliveryCutoverTest`, `SSIndeliveryV2IntegrationTest`,
+    `SSIndeliveryV2RepositoryTest`, `RepositoriesOrderCutoverTest`,
+    `RepositoriesPurchaseOrderCutoverTest`, `RepositoriesHDomainCutoverTest`,
+    `RepositoriesSupplierInvoiceCutoverTest`, `RepositoriesTenderCutoverTest`,
+    `RepositoriesPeriodicInvoiceCutoverTest`,
+    `RepositoriesCreditInvoiceCutoverTest`,
+    `RepositoriesSupplierCreditInvoiceCutoverTest`,
+    `SSDBCustomerRepositoryTest`.
 - Slice P (steg 10) order cutover:
   - `Order` har nu cutover-monster i linje med tidigare domaner:
     `Repositories.init(SSDB)` wire:ar alltid `V2OrderRepository`, aktiva V1

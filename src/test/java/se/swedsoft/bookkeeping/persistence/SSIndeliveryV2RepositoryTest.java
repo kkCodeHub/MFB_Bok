@@ -10,6 +10,7 @@ import se.swedsoft.bookkeeping.data.SSIndeliveryRow;
 import se.swedsoft.bookkeeping.data.SSNewAccountingYear;
 import se.swedsoft.bookkeeping.data.SSNewCompany;
 import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.persistence.v2.V2IndeliveryRepository;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -76,7 +77,7 @@ class SSIndeliveryV2RepositoryTest {
     @Test
     void repositoriesInitUsesV2IndeliveryRepository() {
         assertThat(Repositories.isSchemaV2()).isTrue();
-        assertThat(Repositories.indeliveries()).isNotNull();
+        assertThat(Repositories.indeliveries()).isInstanceOf(V2IndeliveryRepository.class);
     }
 
     @Test
