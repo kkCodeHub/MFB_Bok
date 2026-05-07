@@ -55,6 +55,11 @@ Foljande cutover ar klara och verifierade:
   - Aktiv V1 `OBJECT`-persistens ar avaktiverad i `SSDB`.
   - `Repositories.init(SSDB)` wire:ar alltid `V2OutdeliveryRepository`.
   - Legacy-adapter `SSDBOutdeliveryRepository` ar borttagen.
+- `Inventory`
+  - Samma cutover-monster som ovan ar genomfort.
+  - Aktiv V1 `OBJECT`-persistens ar avaktiverad i `SSDB`.
+  - `Repositories.init(SSDB)` wire:ar alltid `V2InventoryRepository`.
+  - Legacy-adapter `SSDBInventoryRepository` ar borttagen.
 
 ## 2) Verifierad teststatus
 
@@ -97,6 +102,10 @@ mvn test "-Dtest=RepositoriesOutdeliveryCutoverTest,SSOutdeliveryV2IntegrationTe
 ```
 
 ```powershell
+mvn test "-Dtest=RepositoriesInventoryCutoverTest,SSInventoryV2IntegrationTest,SSInventoryV2RepositoryTest,RepositoriesOutdeliveryCutoverTest,RepositoriesIndeliveryCutoverTest,RepositoriesOrderCutoverTest,RepositoriesPurchaseOrderCutoverTest,RepositoriesHDomainCutoverTest,RepositoriesSupplierInvoiceCutoverTest,RepositoriesTenderCutoverTest,RepositoriesPeriodicInvoiceCutoverTest,RepositoriesCreditInvoiceCutoverTest,RepositoriesSupplierCreditInvoiceCutoverTest,SSDBCustomerRepositoryTest"
+```
+
+```powershell
 mvn test "-Dtest=SSMasterdataV2RepositoryTest,SSAccountingCoreV2RepositoryTest,SSInvoiceV2RepositoryTest,SSOrderV2RepositoryTest,SSTenderV2RepositoryTest,SSCreditInvoiceV2RepositoryTest,SSPeriodicInvoiceV2RepositoryTest,SSSupplierInvoiceV2RepositoryTest,SSAutoDistV2RepositoryTest,SSVoucherTemplateV2IntegrationTest,SSVoucherTemplateV2RepositoryTest,SSOwnReportV2IntegrationTest,SSOwnReportV2RepositoryTest,RepositoriesHDomainCutoverTest,RepositoriesSupplierInvoiceCutoverTest,SSDBCustomerRepositoryTest"
 ```
 
@@ -112,7 +121,7 @@ Resultat vid senaste korning: `BUILD SUCCESS` (40 tester, 0 failures, 0 errors).
 ## 4) Nasta steg (rekommenderad ordning)
 
 1. Inventera kvarvarande migrerade domainer med aktiv V1-vag.
-2. Valj en pilotdoman med lagst risk (kandidater: `Invoice`, `Inpayment`).
+2. Valj en pilotdoman med lagst risk (kandidater: `Invoice`, `Inpayment`, `Outpayment`).
 3. Genomfor samma monster:
    - avaktivera aktiv V1-vag i `SSDB`,
    - lasa V2-wiring i `Repositories`,
@@ -139,10 +148,11 @@ Las i denna ordning:
 12. `src/test/java/se/swedsoft/bookkeeping/persistence/RepositoriesOrderCutoverTest.java`
 13. `src/test/java/se/swedsoft/bookkeeping/persistence/RepositoriesIndeliveryCutoverTest.java`
 14. `src/test/java/se/swedsoft/bookkeeping/persistence/RepositoriesOutdeliveryCutoverTest.java`
+15. `src/test/java/se/swedsoft/bookkeeping/persistence/RepositoriesInventoryCutoverTest.java`
 
 Fore forsta kodandring, kor:
 
 ```powershell
-mvn test "-Dtest=RepositoriesHDomainCutoverTest,RepositoriesSupplierInvoiceCutoverTest,RepositoriesTenderCutoverTest,RepositoriesPeriodicInvoiceCutoverTest,RepositoriesCreditInvoiceCutoverTest,RepositoriesSupplierCreditInvoiceCutoverTest,RepositoriesPurchaseOrderCutoverTest,RepositoriesOrderCutoverTest,RepositoriesIndeliveryCutoverTest,RepositoriesOutdeliveryCutoverTest,SSDBCustomerRepositoryTest"
+mvn test "-Dtest=RepositoriesHDomainCutoverTest,RepositoriesSupplierInvoiceCutoverTest,RepositoriesTenderCutoverTest,RepositoriesPeriodicInvoiceCutoverTest,RepositoriesCreditInvoiceCutoverTest,RepositoriesSupplierCreditInvoiceCutoverTest,RepositoriesPurchaseOrderCutoverTest,RepositoriesOrderCutoverTest,RepositoriesIndeliveryCutoverTest,RepositoriesOutdeliveryCutoverTest,RepositoriesInventoryCutoverTest,SSDBCustomerRepositoryTest"
 ```
 

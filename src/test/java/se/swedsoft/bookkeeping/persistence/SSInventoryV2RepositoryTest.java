@@ -10,6 +10,7 @@ import se.swedsoft.bookkeeping.data.SSInventoryRow;
 import se.swedsoft.bookkeeping.data.SSNewAccountingYear;
 import se.swedsoft.bookkeeping.data.SSNewCompany;
 import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.persistence.v2.V2InventoryRepository;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -76,7 +77,7 @@ class SSInventoryV2RepositoryTest {
     @Test
     void repositoriesInitUsesV2InventoryRepository() {
         assertThat(Repositories.isSchemaV2()).isTrue();
-        assertThat(Repositories.inventories()).isNotNull();
+        assertThat(Repositories.inventories()).isInstanceOf(V2InventoryRepository.class);
     }
 
     @Test
