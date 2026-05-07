@@ -12,6 +12,22 @@ diverging from upstream version 2.2-SNAPSHOT.
 ## [Unreleased]
 
 ### Added
+- Slice P (steg 7) credit-invoice cutover:
+  - `CreditInvoice` har nu cutover-mönster i linje med tidigare domäner:
+    `Repositories.init(SSDB)` wire:ar alltid `V2CreditInvoiceRepository`,
+    aktiva V1 `OBJECT`-paths för credit invoices är avaktiverade i `SSDB`, och
+    den döda legacy-adaptern `SSDBCreditInvoiceRepository` har tagits bort.
+  - Nytt test `RepositoriesCreditInvoiceCutoverTest` verifierar att
+    credit-invoice-domänen går via V2 i både V1- och V2-läge, medan omigrerade
+    domäner fortsatt kan använda legacy-wiring.
+  - `V2CreditInvoiceRepository` kan nu konstrueras oberoende av schemaflagga
+    för att stödja Slice P-cutovern.
+  - Verifierat med fokuserad testsvit:
+    `RepositoriesCreditInvoiceCutoverTest`,
+    `SSCreditInvoiceV2IntegrationTest`, `SSCreditInvoiceV2RepositoryTest`,
+    `RepositoriesHDomainCutoverTest`, `RepositoriesSupplierInvoiceCutoverTest`,
+    `RepositoriesTenderCutoverTest`, `RepositoriesPeriodicInvoiceCutoverTest`,
+    `SSDBCustomerRepositoryTest`.
 - Slice P (steg 6) periodic-invoice cutover:
   - `PeriodicInvoice` har nu cutover-mönster i linje med tidigare domäner:
     `Repositories.init(SSDB)` wire:ar alltid `V2PeriodicInvoiceRepository`,

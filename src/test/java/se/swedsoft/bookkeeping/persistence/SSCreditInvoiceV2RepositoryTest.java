@@ -13,6 +13,7 @@ import se.swedsoft.bookkeeping.data.common.SSInvoiceType;
 import se.swedsoft.bookkeeping.data.common.SSTaxCode;
 import se.swedsoft.bookkeeping.data.common.SSUnit;
 import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.persistence.v2.V2CreditInvoiceRepository;
 
 import java.math.BigDecimal;
 import java.sql.Connection;
@@ -80,7 +81,7 @@ class SSCreditInvoiceV2RepositoryTest {
     @Test
     void repositoriesInitUsesV2CreditInvoiceRepository() {
         assertThat(Repositories.isSchemaV2()).isTrue();
-        assertThat(Repositories.creditInvoices()).isNotNull();
+        assertThat(Repositories.creditInvoices()).isInstanceOf(V2CreditInvoiceRepository.class);
     }
 
     @Test
