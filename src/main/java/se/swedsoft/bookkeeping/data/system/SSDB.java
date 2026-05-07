@@ -11391,6 +11391,9 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
         if (iCurrentCompany == null) {
             return iOutdeliveries;
         }
+        if (!ensureSchemaV2ForDomain("Outdelivery")) {
+            return iOutdeliveries;
+        }
         try {
             Integer iMax = -1;
             ResultSet iResultSet;
@@ -11408,11 +11411,7 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
 
                 while (iResultSet.next()) {
                     iMax = iResultSet.getInt(1);
-                    if (useSchemaV2()) {
-                        iOutdeliveries.add(mapOutdeliveryV2(iResultSet));
-                    } else {
-                        iOutdeliveries.add((SSOutdelivery) iResultSet.getObject(3));
-                    }
+                    iOutdeliveries.add(mapOutdeliveryV2(iResultSet));
                     i++;
                 }
                 if (i != 1024) {
@@ -11436,6 +11435,9 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
         if (pOutdelivery == null || iCurrentCompany == null) {
             return Optional.empty();
         }
+        if (!ensureSchemaV2ForDomain("Outdelivery")) {
+            return Optional.empty();
+        }
         try {
             PreparedStatement iStatement = iConnection.prepareStatement(
                     "SELECT * FROM tbl_outdelivery WHERE number=? AND companyid=?");
@@ -11445,9 +11447,7 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
             ResultSet iResultSet = iStatement.executeQuery();
 
             if (iResultSet.next()) {
-                SSOutdelivery iOutdelivery = useSchemaV2()
-                        ? mapOutdeliveryV2(iResultSet)
-                        : (SSOutdelivery) iResultSet.getObject(3);
+                SSOutdelivery iOutdelivery = mapOutdeliveryV2(iResultSet);
 
                 iStatement.close();
                 return Optional.of(iOutdelivery);
@@ -11467,6 +11467,9 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
 
     public void addOutdelivery(SSOutdelivery iOutdelivery) {
         if (iOutdelivery == null || iCurrentCompany == null) {
+            return;
+        }
+        if (!ensureSchemaV2ForDomain("Outdelivery")) {
             return;
         }
         try {
@@ -11495,35 +11498,25 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
             iStatement.close();
 
             Integer iOutdeliveryId = null;
-            if (useSchemaV2()) {
-                iStatement = iConnection.prepareStatement(
-                        "INSERT INTO tbl_outdelivery(number,companyid,vdate,itext) VALUES(?,?,?,?)",
-                        Statement.RETURN_GENERATED_KEYS);
-                iStatement.setObject(1, iOutdelivery.getNumber());
-                iStatement.setObject(2, iCurrentCompany.getId());
-                bindLocalDateV2(iStatement, 3, iOutdelivery.getLocalDate());
-                iStatement.setObject(4, iOutdelivery.getText());
-            } else {
-                iStatement = iConnection.prepareStatement(
-                        "INSERT INTO tbl_outdelivery VALUES(NULL,?,?,?)");
-                iStatement.setObject(1, iOutdelivery.getNumber());
-                iStatement.setObject(2, iOutdelivery);
-                iStatement.setObject(3, iCurrentCompany.getId());
-            }
+            iStatement = iConnection.prepareStatement(
+                    "INSERT INTO tbl_outdelivery(number,companyid,vdate,itext) VALUES(?,?,?,?)",
+                    Statement.RETURN_GENERATED_KEYS);
+            iStatement.setObject(1, iOutdelivery.getNumber());
+            iStatement.setObject(2, iCurrentCompany.getId());
+            bindLocalDateV2(iStatement, 3, iOutdelivery.getLocalDate());
+            iStatement.setObject(4, iOutdelivery.getText());
             iStatement.executeUpdate();
 
-            if (useSchemaV2()) {
-                try (ResultSet iKeys = iStatement.getGeneratedKeys()) {
-                    if (iKeys.next()) {
-                        iOutdeliveryId = iKeys.getInt(1);
-                    }
+            try (ResultSet iKeys = iStatement.getGeneratedKeys()) {
+                if (iKeys.next()) {
+                    iOutdeliveryId = iKeys.getInt(1);
                 }
-                if (iOutdeliveryId == null) {
-                    iOutdeliveryId = getOutdeliveryIdV2(iOutdelivery.getNumber(), iCurrentCompany.getId());
-                }
-                if (iOutdeliveryId != null) {
-                    replaceOutdeliveryRowsV2(iOutdeliveryId, iOutdelivery);
-                }
+            }
+            if (iOutdeliveryId == null) {
+                iOutdeliveryId = getOutdeliveryIdV2(iOutdelivery.getNumber(), iCurrentCompany.getId());
+            }
+            if (iOutdeliveryId != null) {
+                replaceOutdeliveryRowsV2(iOutdeliveryId, iOutdelivery);
             }
 
             iConnection.commit();
@@ -11544,30 +11537,23 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
         if (iOutdelivery == null || iCurrentCompany == null) {
             return;
         }
+        if (!ensureSchemaV2ForDomain("Outdelivery")) {
+            return;
+        }
         try {
             PreparedStatement iStatement;
             Integer iOutdeliveryId = null;
-            if (useSchemaV2()) {
-                iStatement = iConnection.prepareStatement(
-                        "UPDATE tbl_outdelivery SET vdate=?,itext=? WHERE number=? AND companyid=?");
-                bindLocalDateV2(iStatement, 1, iOutdelivery.getLocalDate());
-                iStatement.setObject(2, iOutdelivery.getText());
-                iStatement.setObject(3, iOutdelivery.getNumber());
-                iStatement.setObject(4, iCurrentCompany.getId());
-            } else {
-                iStatement = iConnection.prepareStatement(
-                        "UPDATE tbl_outdelivery SET outdelivery=? WHERE number=? AND companyid=?");
-                iStatement.setObject(1, iOutdelivery);
-                iStatement.setObject(2, iOutdelivery.getNumber());
-                iStatement.setObject(3, iCurrentCompany.getId());
-            }
+            iStatement = iConnection.prepareStatement(
+                    "UPDATE tbl_outdelivery SET vdate=?,itext=? WHERE number=? AND companyid=?");
+            bindLocalDateV2(iStatement, 1, iOutdelivery.getLocalDate());
+            iStatement.setObject(2, iOutdelivery.getText());
+            iStatement.setObject(3, iOutdelivery.getNumber());
+            iStatement.setObject(4, iCurrentCompany.getId());
             iStatement.executeUpdate();
 
-            if (useSchemaV2()) {
-                iOutdeliveryId = getOutdeliveryIdV2(iOutdelivery.getNumber(), iCurrentCompany.getId());
-                if (iOutdeliveryId != null) {
-                    replaceOutdeliveryRowsV2(iOutdeliveryId, iOutdelivery);
-                }
+            iOutdeliveryId = getOutdeliveryIdV2(iOutdelivery.getNumber(), iCurrentCompany.getId());
+            if (iOutdeliveryId != null) {
+                replaceOutdeliveryRowsV2(iOutdeliveryId, iOutdelivery);
             }
 
             iConnection.commit();
@@ -11587,16 +11573,17 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
         if (iOutdelivery == null || iCurrentCompany == null) {
             return;
         }
+        if (!ensureSchemaV2ForDomain("Outdelivery")) {
+            return;
+        }
         try {
-            if (useSchemaV2()) {
-                Integer iOutdeliveryId = getOutdeliveryIdV2(iOutdelivery.getNumber(), iCurrentCompany.getId());
-                if (iOutdeliveryId != null) {
-                    PreparedStatement iDeleteRows = iConnection.prepareStatement(
-                            "DELETE FROM tbl_outdelivery_row WHERE outdelivery_id=?");
-                    iDeleteRows.setObject(1, iOutdeliveryId);
-                    iDeleteRows.executeUpdate();
-                    iDeleteRows.close();
-                }
+            Integer iOutdeliveryId = getOutdeliveryIdV2(iOutdelivery.getNumber(), iCurrentCompany.getId());
+            if (iOutdeliveryId != null) {
+                PreparedStatement iDeleteRows = iConnection.prepareStatement(
+                        "DELETE FROM tbl_outdelivery_row WHERE outdelivery_id=?");
+                iDeleteRows.setObject(1, iOutdeliveryId);
+                iDeleteRows.executeUpdate();
+                iDeleteRows.close();
             }
 
             PreparedStatement iStatement = iConnection.prepareStatement(

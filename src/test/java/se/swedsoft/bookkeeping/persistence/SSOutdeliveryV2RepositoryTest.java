@@ -10,6 +10,7 @@ import se.swedsoft.bookkeeping.data.SSNewCompany;
 import se.swedsoft.bookkeeping.data.SSOutdelivery;
 import se.swedsoft.bookkeeping.data.SSOutdeliveryRow;
 import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.persistence.v2.V2OutdeliveryRepository;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -76,7 +77,7 @@ class SSOutdeliveryV2RepositoryTest {
     @Test
     void repositoriesInitUsesV2OutdeliveryRepository() {
         assertThat(Repositories.isSchemaV2()).isTrue();
-        assertThat(Repositories.outdeliveries()).isNotNull();
+        assertThat(Repositories.outdeliveries()).isInstanceOf(V2OutdeliveryRepository.class);
     }
 
     @Test

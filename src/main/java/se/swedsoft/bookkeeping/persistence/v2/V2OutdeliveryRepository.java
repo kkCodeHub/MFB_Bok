@@ -8,11 +8,10 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * V2 {@link OutdeliveryRepository} implementation backed by the V2 schema.
+ * V2 {@link OutdeliveryRepository} implementation for the post-cutover
+ * outdelivery domain.
  */
 public class V2OutdeliveryRepository implements OutdeliveryRepository {
-
-    private static final String SCHEMA_PROPERTY = "fribok.schema.version";
 
     private final SSDB db;
 
@@ -20,15 +19,11 @@ public class V2OutdeliveryRepository implements OutdeliveryRepository {
      * Creates a V2 outdelivery repository backed by the given {@link SSDB} instance.
      *
      * @param db the SSDB instance; must not be {@code null}
-     * @throws NullPointerException  if {@code db} is {@code null}
-     * @throws IllegalStateException if {@code fribok.schema.version} is not {@code v2}
+     * @throws NullPointerException if {@code db} is {@code null}
      */
     public V2OutdeliveryRepository(SSDB db) {
         if (db == null) {
             throw new NullPointerException("db must not be null");
-        }
-        if (!"v2".equalsIgnoreCase(System.getProperty(SCHEMA_PROPERTY, "v1"))) {
-            throw new IllegalStateException("V2OutdeliveryRepository requires fribok.schema.version=v2");
         }
         this.db = db;
     }
