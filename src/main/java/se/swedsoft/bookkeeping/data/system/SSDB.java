@@ -7977,6 +7977,9 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
         if (iCurrentCompany == null) {
             return iInvoices;
         }
+        if (!ensureSchemaV2ForDomain("Invoice")) {
+            return iInvoices;
+        }
         try {
             Integer iMax = -1;
             ResultSet iResultSet;
@@ -7994,11 +7997,7 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
 
                 while (iResultSet.next()) {
                     iMax = iResultSet.getInt(1);
-                    if (useSchemaV2()) {
-                        iInvoices.add(mapInvoiceV2(iResultSet));
-                    } else {
-                        iInvoices.add((SSInvoice) iResultSet.getObject(3));
-                    }
+                    iInvoices.add(mapInvoiceV2(iResultSet));
                     i++;
                 }
                 if (i != 1024) {
@@ -8022,6 +8021,9 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
         if (pInvoice == null || iCurrentCompany == null) {
             return Optional.empty();
         }
+        if (!ensureSchemaV2ForDomain("Invoice")) {
+            return Optional.empty();
+        }
         try {
             PreparedStatement iStatement = iConnection.prepareStatement(
                     "SELECT * FROM tbl_invoice WHERE number=? AND companyid=?");
@@ -8031,9 +8033,7 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
             ResultSet iResultSet = iStatement.executeQuery();
 
             if (iResultSet.next()) {
-                SSInvoice iInvoice = useSchemaV2()
-                        ? mapInvoiceV2(iResultSet)
-                        : (SSInvoice) iResultSet.getObject(3);
+                SSInvoice iInvoice = mapInvoiceV2(iResultSet);
 
                 iStatement.close();
                 return Optional.of(iInvoice);
@@ -8068,6 +8068,9 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
         if (iCurrentCompany == null) {
             return iInvoices;
         }
+        if (!ensureSchemaV2ForDomain("Invoice")) {
+            return iInvoices;
+        }
         try {
             for (SSInvoice iInvoice : pInvoices) {
                 PreparedStatement iStatement = iConnection.prepareStatement(
@@ -8078,11 +8081,7 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
                 ResultSet iResultSet = iStatement.executeQuery();
 
                 if (iResultSet.next()) {
-                    if (useSchemaV2()) {
-                        iInvoices.add(mapInvoiceV2(iResultSet));
-                    } else {
-                        iInvoices.add((SSInvoice) iResultSet.getObject(3));
-                    }
+                    iInvoices.add(mapInvoiceV2(iResultSet));
                 }
                 iStatement.close();
             }
@@ -8101,6 +8100,9 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
 
     public void addInvoice(SSInvoice iInvoice) {
         if (iInvoice == null || iCurrentCompany == null) {
+            return;
+        }
+        if (!ensureSchemaV2ForDomain("Invoice")) {
             return;
         }
         try {
@@ -8129,43 +8131,33 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
             iStatement.close();
 
             Integer iInvoiceId = null;
-            if (useSchemaV2()) {
-                iStatement = iConnection.prepareStatement(
-                        "INSERT INTO tbl_invoice(" +
-                                "number,companyid,vdate,customer_nr,customer_name,our_contact,your_contact," +
-                                "delay_interest,currency_code,payment_term,delivery_term,delivery_way,tax_free," +
-                                "sale_text,eu_sale_commodity,eu_sale_third_part,printed,invoice_type,currency_rate," +
-                                "payment_day,your_order_number,ocr_number,entered,num_reminders,interest_invoiced," +
-                                "stock_influencing,order_numbers,voucher_id,inv_addr_name,inv_addr_address," +
-                                "inv_addr_street,inv_addr_zipcode,inv_addr_city,inv_addr_country,del_addr_name," +
-                                "del_addr_address,del_addr_street,del_addr_zipcode,del_addr_city,del_addr_country) " +
-                                "VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
-                        Statement.RETURN_GENERATED_KEYS);
-                int i = 1;
-                iStatement.setObject(i++, iInvoice.getNumber());
-                iStatement.setObject(i++, iCurrentCompany.getId());
-                bindInvoiceColumnsV2(iStatement, i, iInvoice);
-            } else {
-                iStatement = iConnection.prepareStatement(
-                        "INSERT INTO tbl_invoice VALUES(NULL,?,?,?)");
-                iStatement.setObject(1, iInvoice.getNumber());
-                iStatement.setObject(2, iInvoice);
-                iStatement.setObject(3, iCurrentCompany.getId());
-            }
+            iStatement = iConnection.prepareStatement(
+                    "INSERT INTO tbl_invoice(" +
+                            "number,companyid,vdate,customer_nr,customer_name,our_contact,your_contact," +
+                            "delay_interest,currency_code,payment_term,delivery_term,delivery_way,tax_free," +
+                            "sale_text,eu_sale_commodity,eu_sale_third_part,printed,invoice_type,currency_rate," +
+                            "payment_day,your_order_number,ocr_number,entered,num_reminders,interest_invoiced," +
+                            "stock_influencing,order_numbers,voucher_id,inv_addr_name,inv_addr_address," +
+                            "inv_addr_street,inv_addr_zipcode,inv_addr_city,inv_addr_country,del_addr_name," +
+                            "del_addr_address,del_addr_street,del_addr_zipcode,del_addr_city,del_addr_country) " +
+                            "VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                    Statement.RETURN_GENERATED_KEYS);
+            int i = 1;
+            iStatement.setObject(i++, iInvoice.getNumber());
+            iStatement.setObject(i++, iCurrentCompany.getId());
+            bindInvoiceColumnsV2(iStatement, i, iInvoice);
             iStatement.executeUpdate();
 
-            if (useSchemaV2()) {
-                try (ResultSet iKeys = iStatement.getGeneratedKeys()) {
-                    if (iKeys.next()) {
-                        iInvoiceId = iKeys.getInt(1);
-                    }
+            try (ResultSet iKeys = iStatement.getGeneratedKeys()) {
+                if (iKeys.next()) {
+                    iInvoiceId = iKeys.getInt(1);
                 }
-                if (iInvoiceId == null) {
-                    iInvoiceId = getInvoiceIdV2(iInvoice.getNumber(), iCurrentCompany.getId());
-                }
-                if (iInvoiceId != null) {
-                    replaceInvoiceRowsV2(iInvoiceId, iInvoice);
-                }
+            }
+            if (iInvoiceId == null) {
+                iInvoiceId = getInvoiceIdV2(iInvoice.getNumber(), iCurrentCompany.getId());
+            }
+            if (iInvoiceId != null) {
+                replaceInvoiceRowsV2(iInvoiceId, iInvoice);
             }
 
             iConnection.commit();
@@ -8186,39 +8178,31 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
         if (iInvoice == null || iCurrentCompany == null) {
             return;
         }
+        if (!ensureSchemaV2ForDomain("Invoice")) {
+            return;
+        }
         try {
             PreparedStatement iStatement;
             Integer iInvoiceId = null;
 
-            if (useSchemaV2()) {
-                iStatement = iConnection.prepareStatement(
-                        "UPDATE tbl_invoice SET " +
-                                "vdate=?,customer_nr=?,customer_name=?,our_contact=?,your_contact=?," +
-                                "delay_interest=?,currency_code=?,payment_term=?,delivery_term=?,delivery_way=?," +
-                                "tax_free=?,sale_text=?,eu_sale_commodity=?,eu_sale_third_part=?,printed=?," +
-                                "invoice_type=?,currency_rate=?,payment_day=?,your_order_number=?,ocr_number=?," +
-                                "entered=?,num_reminders=?,interest_invoiced=?,stock_influencing=?,order_numbers=?," +
-                                "voucher_id=?,inv_addr_name=?,inv_addr_address=?,inv_addr_street=?,inv_addr_zipcode=?," +
-                                "inv_addr_city=?,inv_addr_country=?,del_addr_name=?,del_addr_address=?,del_addr_street=?," +
-                                "del_addr_zipcode=?,del_addr_city=?,del_addr_country=? WHERE number=? AND companyid=?");
-                int i = bindInvoiceColumnsV2(iStatement, 1, iInvoice);
-                iStatement.setObject(i++, iInvoice.getNumber());
-                iStatement.setObject(i, iCurrentCompany.getId());
-            } else {
-                iStatement = iConnection.prepareStatement(
-                        "UPDATE tbl_invoice SET invoice=? WHERE number=? AND companyid=?");
-
-                iStatement.setObject(1, iInvoice);
-                iStatement.setObject(2, iInvoice.getNumber());
-                iStatement.setObject(3, iCurrentCompany.getId());
-            }
+            iStatement = iConnection.prepareStatement(
+                    "UPDATE tbl_invoice SET " +
+                            "vdate=?,customer_nr=?,customer_name=?,our_contact=?,your_contact=?," +
+                            "delay_interest=?,currency_code=?,payment_term=?,delivery_term=?,delivery_way=?," +
+                            "tax_free=?,sale_text=?,eu_sale_commodity=?,eu_sale_third_part=?,printed=?," +
+                            "invoice_type=?,currency_rate=?,payment_day=?,your_order_number=?,ocr_number=?," +
+                            "entered=?,num_reminders=?,interest_invoiced=?,stock_influencing=?,order_numbers=?," +
+                            "voucher_id=?,inv_addr_name=?,inv_addr_address=?,inv_addr_street=?,inv_addr_zipcode=?," +
+                            "inv_addr_city=?,inv_addr_country=?,del_addr_name=?,del_addr_address=?,del_addr_street=?," +
+                            "del_addr_zipcode=?,del_addr_city=?,del_addr_country=? WHERE number=? AND companyid=?");
+            int i = bindInvoiceColumnsV2(iStatement, 1, iInvoice);
+            iStatement.setObject(i++, iInvoice.getNumber());
+            iStatement.setObject(i, iCurrentCompany.getId());
             iStatement.executeUpdate();
 
-            if (useSchemaV2()) {
-                iInvoiceId = getInvoiceIdV2(iInvoice.getNumber(), iCurrentCompany.getId());
-                if (iInvoiceId != null) {
-                    replaceInvoiceRowsV2(iInvoiceId, iInvoice);
-                }
+            iInvoiceId = getInvoiceIdV2(iInvoice.getNumber(), iCurrentCompany.getId());
+            if (iInvoiceId != null) {
+                replaceInvoiceRowsV2(iInvoiceId, iInvoice);
             }
 
             iConnection.commit();
@@ -8238,16 +8222,17 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
         if (iInvoice == null || iCurrentCompany == null) {
             return;
         }
+        if (!ensureSchemaV2ForDomain("Invoice")) {
+            return;
+        }
         try {
-            if (useSchemaV2()) {
-                Integer iInvoiceId = getInvoiceIdV2(iInvoice.getNumber(), iCurrentCompany.getId());
-                if (iInvoiceId != null) {
-                    PreparedStatement iDeleteRows = iConnection.prepareStatement(
-                            "DELETE FROM tbl_invoice_row WHERE invoice_id=?");
-                    iDeleteRows.setObject(1, iInvoiceId);
-                    iDeleteRows.executeUpdate();
-                    iDeleteRows.close();
-                }
+            Integer iInvoiceId = getInvoiceIdV2(iInvoice.getNumber(), iCurrentCompany.getId());
+            if (iInvoiceId != null) {
+                PreparedStatement iDeleteRows = iConnection.prepareStatement(
+                        "DELETE FROM tbl_invoice_row WHERE invoice_id=?");
+                iDeleteRows.setObject(1, iInvoiceId);
+                iDeleteRows.executeUpdate();
+                iDeleteRows.close();
             }
 
             PreparedStatement iStatement = iConnection.prepareStatement(
