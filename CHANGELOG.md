@@ -12,6 +12,107 @@ diverging from upstream version 2.2-SNAPSHOT.
 ## [Unreleased]
 
 ### Added
+- Slice P (steg 5) tender cutover:
+  - `Tender` har nu cutover-mönster i linje med tidigare domäner:
+    `Repositories.init(SSDB)` wire:ar alltid `V2TenderRepository`, aktiva V1
+    `OBJECT`-paths för tender är avaktiverade i `SSDB`, och den döda
+    legacy-adaptern `SSDBTenderRepository` har tagits bort.
+  - Nytt test `RepositoriesTenderCutoverTest` verifierar att tender-domänen
+    går via V2 i både V1- och V2-läge, medan omigrerade domäner fortsatt kan
+    använda legacy-wiring.
+  - `V2TenderRepository` kan nu konstrueras oberoende av schemaflagga för att
+    stödja Slice P-cutovern.
+  - Verifierat med fokuserad testsvit:
+    `RepositoriesTenderCutoverTest`, `SSTenderV2IntegrationTest`,
+    `SSTenderV2RepositoryTest`, `RepositoriesHDomainCutoverTest`,
+    `RepositoriesSupplierInvoiceCutoverTest`, `SSDBCustomerRepositoryTest`.
+- Slice P (steg 4) supplier-invoice cutover:
+  - `SupplierInvoice` har nu samma cutover-mönster som H-domänerna:
+    `Repositories.init(SSDB)` wire:ar alltid `V2SupplierInvoiceRepository`,
+    `SSDB` blockerar aktiva V1 `OBJECT`-paths för supplier invoices, och den
+    döda legacy-adaptern `SSDBSupplierInvoiceRepository` har tagits bort.
+  - Nytt test `RepositoriesSupplierInvoiceCutoverTest` verifierar att
+    supplier-invoice-domänen går via V2 även i V1-läge, medan omigrerade
+    domäner fortsatt kan använda legacy-wiring.
+  - `V2SupplierInvoiceRepository` kan nu konstrueras oberoende av schemaflagga
+    för att stödja Slice P-cutovern.
+  - Bred regression verifierad för migrerade V2-slicar och cutover-smokes
+    (`SSMasterdataV2RepositoryTest`, `SSAccountingCoreV2RepositoryTest`,
+    `SSInvoiceV2RepositoryTest`, `SSOrderV2RepositoryTest`,
+    `SSTenderV2RepositoryTest`, `SSCreditInvoiceV2RepositoryTest`,
+    `SSPeriodicInvoiceV2RepositoryTest`, `SSSupplierInvoiceV2RepositoryTest`,
+    `SSAutoDistV2RepositoryTest`, `SSVoucherTemplateV2IntegrationTest`,
+    `SSVoucherTemplateV2RepositoryTest`, `SSOwnReportV2IntegrationTest`,
+    `SSOwnReportV2RepositoryTest`, `RepositoriesHDomainCutoverTest`,
+    `RepositoriesSupplierInvoiceCutoverTest`, `SSDBCustomerRepositoryTest`).
+- Slice P (steg 3) finaliserad H-domain cutover:
+  - Oanvanda legacy-adapters for `AutoDist`, `VoucherTemplate` och
+    `OwnReport` har tagits bort
+    (`SSDBAutoDistRepository`, `SSDBVoucherTemplateRepository`,
+    `SSDBOwnReportRepository`).
+  - Nytt test `RepositoriesHDomainCutoverTest` verifierar att
+    `Repositories.init(SSDB)` fortsatt wire:ar H-domainerna till V2 medan en
+    omigrerad doman (`Customer`) fortfarande far legacy-repository i V1-lage.
+  - H-domainernas V2-repositories kan nu konstrueras oberoende av schemaflagga,
+    sa att Slice P-cutovern fungerar utan latent init-fel i V1-lage.
+- Slice P (steg 2) repository wiring cleanup for migrerade H-domainer:
+  - `Repositories.init(SSDB)` wire:ar nu alltid V2-adapters for `AutoDist`,
+    `VoucherTemplate` och `OwnReport` (ingen aktiv legacy-adapter-wire for
+    dessa domainer).
+  - V2-repositorytester hardenades med konkreta type-checks for
+    `V2AutoDistRepository` och `V2VoucherTemplateRepository`.
+  - Verifierat med fokuserad V2-regression samt V1-smoke
+    (`SSDBCustomerRepositoryTest`).
+- Slice P (steg 1) cutover/stadning for migrerade H-domainer:
+  - `SSDB` har nu schema-V2-guard for `AutoDist`, `VoucherTemplate` och
+    `OwnReport` i read/write-metoder sa att inga aktiva V1 `OBJECT`-paths
+    anvands for dessa domainer.
+  - V1-forsok for dessa domainer avbryts tidigt med varningslogg i stallet
+    for att ga via serialiserade `OBJECT`-kolumner.
+  - Fokusregressioner i V2-lage verifierade: `SSAutoDistV2RepositoryTest`,
+    `SSVoucherTemplateV2IntegrationTest`, `SSVoucherTemplateV2RepositoryTest`,
+    `SSOwnReportV2IntegrationTest`, `SSOwnReportV2RepositoryTest`.
+- Slice O (H5) own-report repository slice:
+  - New repository interface `OwnReportRepository` with legacy and V2
+    adapters (`SSDBOwnReportRepository`, `V2OwnReportRepository`).
+  - `Repositories.init(SSDB)` now wires own-report repositories and exposes
+    `Repositories.ownReports()`.
+  - New integration test `SSOwnReportV2RepositoryTest` validating
+    repository-level V2 add/find/subset/update/delete flow.
+- Slice O (H4) own-report V2 migration:
+  - `SSDB` now supports V2 loading and persistence for own reports
+    (`getOwnReports`, `getOwnReport`, `getOwnReports(List)`, `addOwnReport`,
+    `updateOwnReport`, `deleteOwnReport`) against `tbl_ownreport`,
+    `tbl_ownreport_row`, and `tbl_ownreport_account_row` behind
+    `fribok.schema.version=v2`.
+  - New integration test `SSOwnReportV2IntegrationTest` validating own-report
+    V2 add/fetch/update/delete flow including heading and account-row
+    round-trip mapping.
+- Slice O (H3) voucher-template repository slice:
+  - New repository interface `VoucherTemplateRepository` with legacy and V2
+    adapters (`SSDBVoucherTemplateRepository`, `V2VoucherTemplateRepository`).
+  - `Repositories.init(SSDB)` now wires voucher-template repositories and
+    exposes `Repositories.voucherTemplates()`.
+  - New integration test `SSVoucherTemplateV2RepositoryTest` validating
+    repository-level V2 add/find/find-subset/delete flow.
+- Slice O (H2) voucher-template V2 migration:
+  - `SSDB` now supports V2 loading and persistence for voucher templates
+    (`getVoucherTemplates`, `getVoucherTemplates(List)`, `addVoucherTemplate`,
+    `deleteVoucherTemplate`) against `tbl_vouchertemplate` and
+    `tbl_vouchertemplate_row` behind `fribok.schema.version=v2`.
+  - New integration test `SSVoucherTemplateV2IntegrationTest` validating
+    voucher-template V2 add/fetch/subset/delete flow including row
+    round-trip mapping.
+- Slice O (H) AutoDist repository slice:
+  - `SSDB` V2 support for `SSAutoDist` now includes row mapping (`mapAutoDistV2`) and
+    V2 CRUD persistence for `tbl_autodist` + `tbl_autodist_row` behind
+    `fribok.schema.version=v2`.
+  - New repository interface `AutoDistRepository` with legacy and V2 adapters
+    (`SSDBAutoDistRepository`, `V2AutoDistRepository`).
+  - `Repositories.init(SSDB)` now wires autodist repositories and exposes
+    `Repositories.autoDists()`.
+  - Integration test: `SSAutoDistV2RepositoryTest` validating repository-level
+    V2 CRUD flow including row round-trip mapping.
 - Slice N (D/E) supplier invoice V2 migration:
   - `SSDB` now supports V2 CRUD for supplier invoices (`getSupplierInvoices`,
     `getSupplierInvoice`, `addSupplierInvoice`, `updateSupplierInvoice`,

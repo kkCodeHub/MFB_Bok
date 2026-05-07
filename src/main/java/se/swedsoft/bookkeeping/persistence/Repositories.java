@@ -17,17 +17,17 @@ import se.swedsoft.bookkeeping.persistence.legacy.SSDBProductRepository;
 import se.swedsoft.bookkeeping.persistence.legacy.SSDBPurchaseOrderRepository;
 import se.swedsoft.bookkeeping.persistence.legacy.SSDBSupplierRepository;
 import se.swedsoft.bookkeeping.persistence.legacy.SSDBSupplierCreditInvoiceRepository;
-import se.swedsoft.bookkeeping.persistence.legacy.SSDBSupplierInvoiceRepository;
-import se.swedsoft.bookkeeping.persistence.legacy.SSDBTenderRepository;
 import se.swedsoft.bookkeeping.persistence.legacy.SSDBVoucherRepository;
 import se.swedsoft.bookkeeping.persistence.v2.V2AccountPlanRepository;
 import se.swedsoft.bookkeeping.persistence.v2.V2AccountingYearRepository;
+import se.swedsoft.bookkeeping.persistence.v2.V2AutoDistRepository;
 import se.swedsoft.bookkeeping.persistence.v2.V2CreditInvoiceRepository;
 import se.swedsoft.bookkeeping.persistence.v2.V2CustomerRepository;
 import se.swedsoft.bookkeeping.persistence.v2.V2IndeliveryRepository;
 import se.swedsoft.bookkeeping.persistence.v2.V2InpaymentRepository;
 import se.swedsoft.bookkeeping.persistence.v2.V2InventoryRepository;
 import se.swedsoft.bookkeeping.persistence.v2.V2InvoiceRepository;
+import se.swedsoft.bookkeeping.persistence.v2.V2OwnReportRepository;
 import se.swedsoft.bookkeeping.persistence.v2.V2OrderRepository;
 import se.swedsoft.bookkeeping.persistence.v2.V2OutdeliveryRepository;
 import se.swedsoft.bookkeeping.persistence.v2.V2OutpaymentRepository;
@@ -39,6 +39,7 @@ import se.swedsoft.bookkeeping.persistence.v2.V2SupplierCreditInvoiceRepository;
 import se.swedsoft.bookkeeping.persistence.v2.V2SupplierInvoiceRepository;
 import se.swedsoft.bookkeeping.persistence.v2.V2TenderRepository;
 import se.swedsoft.bookkeeping.persistence.v2.V2VoucherRepository;
+import se.swedsoft.bookkeeping.persistence.v2.V2VoucherTemplateRepository;
 
 /**
  * Central access point for repository instances.
@@ -48,10 +49,12 @@ import se.swedsoft.bookkeeping.persistence.v2.V2VoucherRepository;
  * repositories through this class rather than instantiating implementations
  * directly.</p>
  *
- * <p>When {@code fribok.schema.version=v2} the factory wires in the
- * {@link V2CustomerRepository}, {@link V2ProductRepository} and
- * {@link V2SupplierRepository} implementations.  Otherwise the legacy
- * SSDB-delegating implementations are used.</p>
+ * <p>When {@code fribok.schema.version=v2} the factory wires in the V2
+ * repository implementations. For cut-over domains ({@code AutoDist},
+ * {@code VoucherTemplate}, {@code OwnReport}, {@code SupplierInvoice} and
+ * {@code Tender})
+ * V2 repositories are always used regardless of schema flag. Other domains
+ * still switch between V2 and legacy SSDB-delegating implementations.</p>
  *
  * <p>Usage during application startup:</p>
  * <pre>{@code
@@ -68,11 +71,13 @@ public final class Repositories {
     private static final String SCHEMA_PROPERTY = "fribok.schema.version";
 
     private static CustomerRepository customerRepository;
+    private static AutoDistRepository autoDistRepository;
     private static CreditInvoiceRepository creditInvoiceRepository;
     private static IndeliveryRepository indeliveryRepository;
     private static InpaymentRepository inpaymentRepository;
     private static InventoryRepository inventoryRepository;
     private static InvoiceRepository invoiceRepository;
+    private static OwnReportRepository ownReportRepository;
     private static OrderRepository orderRepository;
     private static OutdeliveryRepository outdeliveryRepository;
     private static OutpaymentRepository outpaymentRepository;
@@ -85,6 +90,7 @@ public final class Repositories {
     private static TenderRepository tenderRepository;
     private static AccountPlanRepository accountPlanRepository;
     private static VoucherRepository voucherRepository;
+    private static VoucherTemplateRepository voucherTemplateRepository;
     private static AccountingYearRepository accountingYearRepository;
 
     private Repositories() {
@@ -104,8 +110,12 @@ public final class Repositories {
      * Initialises all repository instances backed by the given {@link SSDB}.
      *
      * <p>When {@code fribok.schema.version=v2} the V2 repository implementations
-     * are used; otherwise the legacy SSDB-delegating ones are created.
-     * Must be called once before any getter is used.
+     * are used. For cut-over domains ({@code AutoDist},
+     * {@code VoucherTemplate}, {@code OwnReport}, {@code SupplierInvoice},
+     * {@code Tender}) V2
+     * implementations are always created as part of Slice P cutover; otherwise
+     * legacy SSDB-delegating ones are created. Must be called once before any
+     * getter is used.
      * Calling again replaces the existing instances.</p>
      *
      * @param db the SSDB instance; must not be {@code null}
@@ -114,6 +124,13 @@ public final class Repositories {
         if (db == null) {
             throw new NullPointerException("db must not be null");
         }
+        // Migrated H domains are V2-only in Slice P.
+        autoDistRepository = new V2AutoDistRepository(db);
+        ownReportRepository = new V2OwnReportRepository(db);
+        supplierInvoiceRepository = new V2SupplierInvoiceRepository(db);
+        tenderRepository = new V2TenderRepository(db);
+        voucherTemplateRepository = new V2VoucherTemplateRepository(db);
+
         if (isSchemaV2()) {
             customerRepository = new V2CustomerRepository(db);
             creditInvoiceRepository = new V2CreditInvoiceRepository(db);
@@ -128,9 +145,7 @@ public final class Repositories {
             productRepository = new V2ProductRepository(db);
             purchaseOrderRepository = new V2PurchaseOrderRepository(db);
             supplierRepository = new V2SupplierRepository(db);
-            supplierInvoiceRepository = new V2SupplierInvoiceRepository(db);
             supplierCreditInvoiceRepository = new V2SupplierCreditInvoiceRepository(db);
-            tenderRepository = new V2TenderRepository(db);
             accountPlanRepository = new V2AccountPlanRepository(db);
             voucherRepository = new V2VoucherRepository(db);
             accountingYearRepository = new V2AccountingYearRepository(db);
@@ -148,9 +163,7 @@ public final class Repositories {
             productRepository = new SSDBProductRepository(db);
             purchaseOrderRepository = new SSDBPurchaseOrderRepository(db);
             supplierRepository = new SSDBSupplierRepository(db);
-            supplierInvoiceRepository = new SSDBSupplierInvoiceRepository(db);
             supplierCreditInvoiceRepository = new SSDBSupplierCreditInvoiceRepository(db);
-            tenderRepository = new SSDBTenderRepository(db);
             accountPlanRepository = new SSDBAccountPlanRepository(db);
             voucherRepository = new SSDBVoucherRepository(db);
             accountingYearRepository = new SSDBAccountingYearRepository(db);
@@ -168,6 +181,19 @@ public final class Repositories {
             throw new IllegalStateException("Repositories.init() has not been called");
         }
         return customerRepository;
+    }
+
+    /**
+     * Returns the {@link AutoDistRepository}.
+     *
+     * @return the auto-dist repository; never {@code null} after {@link #init}
+     * @throws IllegalStateException if {@link #init} has not been called
+     */
+    public static AutoDistRepository autoDists() {
+        if (autoDistRepository == null) {
+            throw new IllegalStateException("Repositories.init() has not been called");
+        }
+        return autoDistRepository;
     }
 
     /**
@@ -233,6 +259,19 @@ public final class Repositories {
             throw new IllegalStateException("Repositories.init() has not been called");
         }
         return invoiceRepository;
+    }
+
+    /**
+     * Returns the {@link OwnReportRepository}.
+     *
+     * @return the own-report repository; never {@code null} after {@link #init}
+     * @throws IllegalStateException if {@link #init} has not been called
+     */
+    public static OwnReportRepository ownReports() {
+        if (ownReportRepository == null) {
+            throw new IllegalStateException("Repositories.init() has not been called");
+        }
+        return ownReportRepository;
     }
 
     /**
@@ -389,6 +428,19 @@ public final class Repositories {
             throw new IllegalStateException("Repositories.init() has not been called");
         }
         return voucherRepository;
+    }
+
+    /**
+     * Returns the {@link VoucherTemplateRepository}.
+     *
+     * @return the voucher-template repository; never {@code null} after {@link #init}
+     * @throws IllegalStateException if {@link #init} has not been called
+     */
+    public static VoucherTemplateRepository voucherTemplates() {
+        if (voucherTemplateRepository == null) {
+            throw new IllegalStateException("Repositories.init() has not been called");
+        }
+        return voucherTemplateRepository;
     }
 
     /**

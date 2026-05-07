@@ -20,6 +20,7 @@ import se.swedsoft.bookkeeping.gui.order.SSOrderFrame;
 import se.swedsoft.bookkeeping.gui.outdelivery.SSOutdeliveryFrame;
 import se.swedsoft.bookkeeping.gui.outpayment.SSOutpaymentFrame;
 import se.swedsoft.bookkeeping.gui.ownreport.SSOwnReportFrame;
+import se.swedsoft.bookkeeping.gui.ownreport.util.SSOwnReportAccountRow;
 import se.swedsoft.bookkeeping.gui.periodicinvoice.SSPeriodicInvoiceFrame;
 import se.swedsoft.bookkeeping.gui.product.SSProductFrame;
 import se.swedsoft.bookkeeping.gui.project.SSProjectFrame;
@@ -1970,10 +1971,91 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
         return iVoucher;
     }
 
+    private List<SSVoucherTemplate.SSVoucherTemplateRow> getVoucherTemplateRowsV2(Integer iTemplateId)
+            throws SQLException {
+        List<SSVoucherTemplate.SSVoucherTemplateRow> iRows = new LinkedList<>();
+        PreparedStatement iStatement = iConnection.prepareStatement(
+                "SELECT * FROM tbl_vouchertemplate_row WHERE vouchertemplate_id=? ORDER BY id");
+        iStatement.setObject(1, iTemplateId);
+        ResultSet iResultSet = iStatement.executeQuery();
+        while (iResultSet.next()) {
+            SSVoucherTemplate.SSVoucherTemplateRow iRow = new SSVoucherTemplate.SSVoucherTemplateRow();
+            iRow.setAccountNr((Integer) iResultSet.getObject("account_nr"));
+            Boolean iDebet = (Boolean) iResultSet.getObject("is_debet");
+            if (Boolean.TRUE.equals(iDebet)) {
+                iRow.setDebet(BigDecimal.ZERO);
+            } else {
+                iRow.setCredit(BigDecimal.ZERO);
+            }
+            iRows.add(iRow);
+        }
+        iResultSet.close();
+        iStatement.close();
+        return iRows;
+    }
+
+    private void replaceVoucherTemplateRowsV2(Integer iTemplateId, SSVoucherTemplate iTemplate)
+            throws SQLException {
+        PreparedStatement iDelete = iConnection.prepareStatement(
+                "DELETE FROM tbl_vouchertemplate_row WHERE vouchertemplate_id=?");
+        iDelete.setObject(1, iTemplateId);
+        iDelete.executeUpdate();
+        iDelete.close();
+
+        for (SSVoucherTemplate.SSVoucherTemplateRow iRow : iTemplate.getRows()) {
+            PreparedStatement iInsert = iConnection.prepareStatement(
+                    "INSERT INTO tbl_vouchertemplate_row(vouchertemplate_id,account_nr,is_debet) VALUES(?,?,?)");
+            iInsert.setObject(1, iTemplateId);
+            iInsert.setObject(2, iRow.getAccountNr());
+            iInsert.setObject(3, iRow.getDebet() != null);
+            iInsert.executeUpdate();
+            iInsert.close();
+        }
+    }
+
+    private Integer getVoucherTemplateIdV2(String iName, Integer iCompanyId) throws SQLException {
+        if (iName == null || iCompanyId == null) {
+            return null;
+        }
+        PreparedStatement iStatement = iConnection.prepareStatement(
+                "SELECT id FROM tbl_vouchertemplate WHERE name=? AND companyid=?");
+        iStatement.setObject(1, iName);
+        iStatement.setObject(2, iCompanyId);
+        ResultSet iResultSet = iStatement.executeQuery();
+        try {
+            if (iResultSet.next()) {
+                return iResultSet.getInt(1);
+            }
+            return null;
+        } finally {
+            iResultSet.close();
+            iStatement.close();
+        }
+    }
+
+    private SSVoucherTemplate mapVoucherTemplateV2(ResultSet iResultSet) throws SQLException {
+        SSVoucherTemplate iTemplate = new SSVoucherTemplate();
+        String iName = iResultSet.getString("name");
+        String iDescription = iResultSet.getString("description");
+        iTemplate.setDescription(iName == null ? iDescription : iName);
+
+        Timestamp iTemplateDate = iResultSet.getTimestamp("template_date");
+        if (iTemplateDate != null) {
+            iTemplate.setLocalDateTime(iTemplateDate.toLocalDateTime());
+        }
+
+        iTemplate.getRows().clear();
+        iTemplate.getRows().addAll(getVoucherTemplateRowsV2(iResultSet.getInt("id")));
+        return iTemplate;
+    }
+
     public List<SSVoucherTemplate> getVoucherTemplates() {
         List<SSVoucherTemplate> iVoucherTemplates = new LinkedList<>();
 
         if (iCurrentCompany == null) {
+            return iVoucherTemplates;
+        }
+        if (!ensureSchemaV2ForDomain("VoucherTemplate")) {
             return iVoucherTemplates;
         }
         try {
@@ -1982,11 +2064,9 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
 
             iStatement.setObject(1, iCurrentCompany.getId());
             ResultSet iResultSet = iStatement.executeQuery();
-            int i = 0;
 
             while (iResultSet.next()) {
-                iVoucherTemplates.add((SSVoucherTemplate) iResultSet.getObject(2));
-                i++;
+                iVoucherTemplates.add(mapVoucherTemplateV2(iResultSet));
             }
             iResultSet.close();
             iStatement.close();
@@ -2010,6 +2090,9 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
         if (iCurrentCompany == null) {
             return iVoucherTemplates;
         }
+        if (!ensureSchemaV2ForDomain("VoucherTemplate")) {
+            return iVoucherTemplates;
+        }
         try {
             for (SSVoucherTemplate iVoucherTemplate : pVoucherTemplates) {
                 PreparedStatement iStatement = iConnection.prepareStatement(
@@ -2020,8 +2103,9 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
                 ResultSet iResultSet = iStatement.executeQuery();
 
                 if (iResultSet.next()) {
-                    iVoucherTemplates.add((SSVoucherTemplate) iResultSet.getObject(2));
+                    iVoucherTemplates.add(mapVoucherTemplateV2(iResultSet));
                 }
+                iResultSet.close();
                 iStatement.close();
             }
 
@@ -2044,16 +2128,38 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
         if (iCurrentCompany == null) {
             return;
         }
+        if (!ensureSchemaV2ForDomain("VoucherTemplate")) {
+            return;
+        }
         try {
+            Integer iTemplateId = null;
             PreparedStatement iStatement = iConnection.prepareStatement(
-                    "INSERT INTO tbl_vouchertemplate VALUES(?,?,?)");
-
+                    "INSERT INTO tbl_vouchertemplate(name,companyid,description,template_date) VALUES(?,?,?,?)",
+                    Statement.RETURN_GENERATED_KEYS);
             iStatement.setObject(1, iVoucherTemplate.getDescription());
-            iStatement.setObject(2, iVoucherTemplate);
-            iStatement.setObject(3, iCurrentCompany.getId());
+            iStatement.setObject(2, iCurrentCompany.getId());
+            iStatement.setObject(3, iVoucherTemplate.getDescription());
+            if (iVoucherTemplate.getLocalDateTime() == null) {
+                iStatement.setNull(4, Types.TIMESTAMP);
+            } else {
+                iStatement.setTimestamp(4, Timestamp.valueOf(iVoucherTemplate.getLocalDateTime()));
+            }
             iStatement.executeUpdate();
-            iConnection.commit();
+
+            try (ResultSet iKeys = iStatement.getGeneratedKeys()) {
+                if (iKeys.next()) {
+                    iTemplateId = iKeys.getInt(1);
+                }
+            }
             iStatement.close();
+
+            if (iTemplateId == null) {
+                iTemplateId = getVoucherTemplateIdV2(iVoucherTemplate.getDescription(), iCurrentCompany.getId());
+            }
+            if (iTemplateId != null) {
+                replaceVoucherTemplateRowsV2(iTemplateId, iVoucherTemplate);
+            }
+            iConnection.commit();
         } catch (SQLException e) {
             LOG.error("Unexpected error", e);
             try {
@@ -2069,6 +2175,16 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
             return;
         }
         try {
+            if (useSchemaV2()) {
+                Integer iTemplateId = getVoucherTemplateIdV2(iVoucherTemplate.getDescription(), iCurrentCompany.getId());
+                if (iTemplateId != null) {
+                    PreparedStatement iDeleteRows = iConnection.prepareStatement(
+                            "DELETE FROM tbl_vouchertemplate_row WHERE vouchertemplate_id=?");
+                    iDeleteRows.setObject(1, iTemplateId);
+                    iDeleteRows.executeUpdate();
+                    iDeleteRows.close();
+                }
+            }
             PreparedStatement iStatement = iConnection.prepareStatement(
                     "DELETE FROM tbl_vouchertemplate WHERE name=? AND companyid=?");
 
@@ -6371,6 +6487,86 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
     // //////////////////////////////////////////////////////////////////////////////////////
 
     // //////////////////////////////////////////////////////////////////////////////////////
+    // AutoDist V2 helpers
+
+    private List<SSAutoDistRow> getAutoDistRowsV2(Integer iAutoDistId) throws SQLException {
+        List<SSAutoDistRow> iRows = new LinkedList<>();
+        PreparedStatement iStatement = iConnection.prepareStatement(
+                "SELECT * FROM tbl_autodist_row WHERE autodist_id=? ORDER BY id");
+        iStatement.setObject(1, iAutoDistId);
+        ResultSet iResultSet = iStatement.executeQuery();
+        while (iResultSet.next()) {
+            SSAutoDistRow iRow = new SSAutoDistRow();
+            iRow.setAccountNr((Integer) iResultSet.getObject("account_nr"));
+            iRow.setDescription(iResultSet.getString("description"));
+            iRow.setPercentage(iResultSet.getBigDecimal("percentage"));
+            iRow.setDebet(iResultSet.getBigDecimal("debet"));
+            iRow.setCredit(iResultSet.getBigDecimal("credit"));
+            iRow.setProjectNr(iResultSet.getString("project_nr"));
+            iRow.setResultUnitNr(iResultSet.getString("result_unit_nr"));
+            iRows.add(iRow);
+        }
+        iResultSet.close();
+        iStatement.close();
+        return iRows;
+    }
+
+    private void replaceAutoDistRowsV2(Integer iAutoDistId, SSAutoDist iAutoDist) throws SQLException {
+        PreparedStatement iDelete = iConnection.prepareStatement(
+                "DELETE FROM tbl_autodist_row WHERE autodist_id=?");
+        iDelete.setObject(1, iAutoDistId);
+        iDelete.executeUpdate();
+        iDelete.close();
+
+        for (SSAutoDistRow iRow : iAutoDist.getRows()) {
+            PreparedStatement iInsert = iConnection.prepareStatement(
+                    "INSERT INTO tbl_autodist_row" +
+                    "(autodist_id,account_nr,description,percentage,debet,credit,project_nr,result_unit_nr)" +
+                    " VALUES(?,?,?,?,?,?,?,?)");
+            iInsert.setObject(1, iAutoDistId);
+            iInsert.setObject(2, iRow.getAccountNr());
+            iInsert.setObject(3, iRow.getDescription());
+            iInsert.setObject(4, iRow.getPercentage());
+            iInsert.setObject(5, iRow.getDebet());
+            iInsert.setObject(6, iRow.getCredit());
+            iInsert.setObject(7, iRow.getProjectNr());
+            iInsert.setObject(8, iRow.getResultUnitNr());
+            iInsert.executeUpdate();
+            iInsert.close();
+        }
+    }
+
+    private Integer getAutoDistIdV2(Integer iAccountNumber, Integer iCompanyId) throws SQLException {
+        if (iAccountNumber == null || iCompanyId == null) {
+            return null;
+        }
+        PreparedStatement iStatement = iConnection.prepareStatement(
+                "SELECT id FROM tbl_autodist WHERE number=? AND companyid=?");
+        iStatement.setObject(1, iAccountNumber);
+        iStatement.setObject(2, iCompanyId);
+        ResultSet iResultSet = iStatement.executeQuery();
+        try {
+            if (iResultSet.next()) {
+                return iResultSet.getInt(1);
+            }
+            return null;
+        } finally {
+            iResultSet.close();
+            iStatement.close();
+        }
+    }
+
+    private SSAutoDist mapAutoDistV2(ResultSet iResultSet) throws SQLException {
+        SSAutoDist iAutoDist = new SSAutoDist();
+        iAutoDist.setAccountNumber((Integer) iResultSet.getObject("account_nr"));
+        iAutoDist.setDescrition(iResultSet.getString("description"));
+        iAutoDist.setAmount(iResultSet.getBigDecimal("amount"));
+        iAutoDist.getRows().clear();
+        iAutoDist.getRows().addAll(getAutoDistRowsV2(iResultSet.getInt("id")));
+        return iAutoDist;
+    }
+
+    // //////////////////////////////////////////////////////////////////////////////////////
 
     /**
      * Returns the autodistributions for the current company.
@@ -6383,6 +6579,9 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
         }
         iAutoDists = new LinkedList<>();
         if (iCurrentCompany == null) {
+            return iAutoDists;
+        }
+        if (!ensureSchemaV2ForDomain("AutoDist")) {
             return iAutoDists;
         }
         try {
@@ -6401,7 +6600,7 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
 
                 while (iResultSet.next()) {
                     iMax = iResultSet.getInt(1);
-                    iAutoDists.add((SSAutoDist) iResultSet.getObject(3));
+                    iAutoDists.add(mapAutoDistV2(iResultSet));
                     i++;
                 }
                 if (i != 1024) {
@@ -6425,6 +6624,9 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
         if (pAutoDist == null || iCurrentCompany == null) {
             return Optional.empty();
         }
+        if (!ensureSchemaV2ForDomain("AutoDist")) {
+            return Optional.empty();
+        }
         try {
             PreparedStatement iStatement = iConnection.prepareStatement(
                     "SELECT * FROM tbl_autodist WHERE number=? AND companyid=?");
@@ -6434,7 +6636,7 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
             ResultSet iResultSet = iStatement.executeQuery();
 
             if (iResultSet.next()) {
-                SSAutoDist iAutoDist = (SSAutoDist) iResultSet.getObject(3);
+                SSAutoDist iAutoDist = mapAutoDistV2(iResultSet);
 
                 iStatement.close();
                 return Optional.of(iAutoDist);
@@ -6469,6 +6671,9 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
         if (iCurrentCompany == null) {
             return iAutoDists;
         }
+        if (!ensureSchemaV2ForDomain("AutoDist")) {
+            return iAutoDists;
+        }
         try {
             for (SSAutoDist iAutoDist : pAutoDists) {
                 PreparedStatement iStatement = iConnection.prepareStatement(
@@ -6479,7 +6684,7 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
                 ResultSet iResultSet = iStatement.executeQuery();
 
                 if (iResultSet.next()) {
-                    iAutoDists.add((SSAutoDist) iResultSet.getObject(3));
+                    iAutoDists.add(mapAutoDistV2(iResultSet));
                 }
                 iStatement.close();
             }
@@ -6500,16 +6705,33 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
         if (iAutoDist == null || iCurrentCompany == null) {
             return;
         }
+        if (!ensureSchemaV2ForDomain("AutoDist")) {
+            return;
+        }
         try {
+            Integer iAutoDistId = null;
             PreparedStatement iStatement = iConnection.prepareStatement(
-                    "INSERT INTO tbl_autodist VALUES(NULL,?,?,?)");
-
+                    "INSERT INTO tbl_autodist(number,companyid,account_nr,description,amount) VALUES(?,?,?,?,?)",
+                    Statement.RETURN_GENERATED_KEYS);
             iStatement.setObject(1, iAutoDist.getNumber());
-            iStatement.setObject(2, iAutoDist);
-            iStatement.setObject(3, iCurrentCompany.getId());
+            iStatement.setObject(2, iCurrentCompany.getId());
+            iStatement.setObject(3, iAutoDist.getNumber());
+            iStatement.setObject(4, iAutoDist.getDescription());
+            iStatement.setObject(5, iAutoDist.getAmount());
             iStatement.executeUpdate();
-            iConnection.commit();
+            try (ResultSet iKeys = iStatement.getGeneratedKeys()) {
+                if (iKeys.next()) {
+                    iAutoDistId = iKeys.getInt(1);
+                }
+            }
             iStatement.close();
+            if (iAutoDistId == null) {
+                iAutoDistId = getAutoDistIdV2(iAutoDist.getNumber(), iCurrentCompany.getId());
+            }
+            if (iAutoDistId != null) {
+                replaceAutoDistRowsV2(iAutoDistId, iAutoDist);
+            }
+            iConnection.commit();
         } catch (SQLException e) {
             LOG.error("Unexpected error", e);
             try {
@@ -6524,17 +6746,26 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
         if (iAutoDist == null || iCurrentCompany == null) {
             return;
         }
+        if (!ensureSchemaV2ForDomain("AutoDist")) {
+            return;
+        }
         try {
             PreparedStatement iStatement = iConnection.prepareStatement(
-                    "UPDATE tbl_autodist SET autodist=?, number=? WHERE number=? AND companyid=?");
-
-            iStatement.setObject(1, iAutoDist);
+                    "UPDATE tbl_autodist SET number=?,account_nr=?,description=?,amount=?" +
+                    " WHERE number=? AND companyid=?");
+            iStatement.setObject(1, iAutoDist.getNumber());
             iStatement.setObject(2, iAutoDist.getNumber());
-            iStatement.setObject(3, iOriginal.getNumber());
-            iStatement.setObject(4, iCurrentCompany.getId());
+            iStatement.setObject(3, iAutoDist.getDescription());
+            iStatement.setObject(4, iAutoDist.getAmount());
+            iStatement.setObject(5, iOriginal.getNumber());
+            iStatement.setObject(6, iCurrentCompany.getId());
             iStatement.executeUpdate();
-            iConnection.commit();
             iStatement.close();
+            Integer iAutoDistId = getAutoDistIdV2(iAutoDist.getNumber(), iCurrentCompany.getId());
+            if (iAutoDistId != null) {
+                replaceAutoDistRowsV2(iAutoDistId, iAutoDist);
+            }
+            iConnection.commit();
 
         } catch (SQLException e) {
             LOG.error("Unexpected error", e);
@@ -6554,6 +6785,16 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
             return;
         }
         try {
+            if (useSchemaV2()) {
+                Integer iAutoDistId = getAutoDistIdV2(iAutoDist.getNumber(), iCurrentCompany.getId());
+                if (iAutoDistId != null) {
+                    PreparedStatement iDeleteRows = iConnection.prepareStatement(
+                            "DELETE FROM tbl_autodist_row WHERE autodist_id=?");
+                    iDeleteRows.setObject(1, iAutoDistId);
+                    iDeleteRows.executeUpdate();
+                    iDeleteRows.close();
+                }
+            }
             PreparedStatement iStatement = iConnection.prepareStatement(
                     "DELETE FROM tbl_autodist WHERE number=? AND companyid=?");
 
@@ -6766,6 +7007,9 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
         if (iCurrentCompany == null) {
             return iTenders;
         }
+        if (!ensureSchemaV2ForDomain("Tender")) {
+            return iTenders;
+        }
         try {
             Integer iMax = -1;
             ResultSet iResultSet;
@@ -6783,11 +7027,7 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
 
                 while (iResultSet.next()) {
                     iMax = iResultSet.getInt(1);
-                    if (useSchemaV2()) {
-                        iTenders.add(mapTenderV2(iResultSet));
-                    } else {
-                        iTenders.add((SSTender) iResultSet.getObject(3));
-                    }
+                    iTenders.add(mapTenderV2(iResultSet));
                     i++;
                 }
                 if (i != 1024) {
@@ -6811,6 +7051,9 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
         if (pTender == null || iCurrentCompany == null) {
             return Optional.empty();
         }
+        if (!ensureSchemaV2ForDomain("Tender")) {
+            return Optional.empty();
+        }
         try {
             PreparedStatement iStatement = iConnection.prepareStatement(
                     "SELECT * FROM tbl_tender WHERE number=? AND companyid=?");
@@ -6820,9 +7063,7 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
             ResultSet iResultSet = iStatement.executeQuery();
 
             if (iResultSet.next()) {
-                SSTender iTender = useSchemaV2()
-                        ? mapTenderV2(iResultSet)
-                        : (SSTender) iResultSet.getObject(3);
+                SSTender iTender = mapTenderV2(iResultSet);
 
                 iStatement.close();
                 return Optional.of(iTender);
@@ -6857,6 +7098,9 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
         if (iCurrentCompany == null) {
             return iTenders;
         }
+        if (!ensureSchemaV2ForDomain("Tender")) {
+            return iTenders;
+        }
 
         try {
             for (SSTender iTender : pTenders) {
@@ -6868,11 +7112,7 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
                 ResultSet iResultSet = iStatement.executeQuery();
 
                 if (iResultSet.next()) {
-                    if (useSchemaV2()) {
-                        iTenders.add(mapTenderV2(iResultSet));
-                    } else {
-                        iTenders.add((SSTender) iResultSet.getObject(3));
-                    }
+                    iTenders.add(mapTenderV2(iResultSet));
                 }
                 iStatement.close();
             }
@@ -6891,6 +7131,9 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
 
     public void addTender(SSTender iTender) {
         if (iTender == null || iCurrentCompany == null) {
+            return;
+        }
+        if (!ensureSchemaV2ForDomain("Tender")) {
             return;
         }
         try {
@@ -6919,42 +7162,32 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
             iStatement.close();
 
             Integer iTenderId = null;
-            if (useSchemaV2()) {
-                iStatement = iConnection.prepareStatement(
-                        "INSERT INTO tbl_tender(" +
-                                "number,companyid,vdate,customer_nr,customer_name,our_contact,your_contact," +
-                                "delay_interest,currency_code,payment_term,delivery_term,delivery_way,tax_free," +
-                                "sale_text,eu_sale_commodity,eu_sale_third_part,printed,expires,order_nr," +
-                                "currency_rate,inv_addr_name,inv_addr_address,inv_addr_street,inv_addr_zipcode," +
-                                "inv_addr_city,inv_addr_country,del_addr_name,del_addr_address,del_addr_street," +
-                                "del_addr_zipcode,del_addr_city,del_addr_country) " +
-                                "VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
-                        Statement.RETURN_GENERATED_KEYS);
-                int i = 1;
-                iStatement.setObject(i++, iTender.getNumber());
-                iStatement.setObject(i++, iCurrentCompany.getId());
-                bindTenderColumnsV2(iStatement, i, iTender);
-            } else {
-                iStatement = iConnection.prepareStatement(
-                        "INSERT INTO tbl_tender VALUES(NULL,?,?,?)");
-                iStatement.setObject(1, iTender.getNumber());
-                iStatement.setObject(2, iTender);
-                iStatement.setObject(3, iCurrentCompany.getId());
-            }
+            iStatement = iConnection.prepareStatement(
+                    "INSERT INTO tbl_tender(" +
+                            "number,companyid,vdate,customer_nr,customer_name,our_contact,your_contact," +
+                            "delay_interest,currency_code,payment_term,delivery_term,delivery_way,tax_free," +
+                            "sale_text,eu_sale_commodity,eu_sale_third_part,printed,expires,order_nr," +
+                            "currency_rate,inv_addr_name,inv_addr_address,inv_addr_street,inv_addr_zipcode," +
+                            "inv_addr_city,inv_addr_country,del_addr_name,del_addr_address,del_addr_street," +
+                            "del_addr_zipcode,del_addr_city,del_addr_country) " +
+                            "VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                    Statement.RETURN_GENERATED_KEYS);
+            int i = 1;
+            iStatement.setObject(i++, iTender.getNumber());
+            iStatement.setObject(i++, iCurrentCompany.getId());
+            bindTenderColumnsV2(iStatement, i, iTender);
             iStatement.executeUpdate();
 
-            if (useSchemaV2()) {
-                try (ResultSet iKeys = iStatement.getGeneratedKeys()) {
-                    if (iKeys.next()) {
-                        iTenderId = iKeys.getInt(1);
-                    }
+            try (ResultSet iKeys = iStatement.getGeneratedKeys()) {
+                if (iKeys.next()) {
+                    iTenderId = iKeys.getInt(1);
                 }
-                if (iTenderId == null) {
-                    iTenderId = getTenderIdV2(iTender.getNumber(), iCurrentCompany.getId());
-                }
-                if (iTenderId != null) {
-                    replaceTenderRowsV2(iTenderId, iTender);
-                }
+            }
+            if (iTenderId == null) {
+                iTenderId = getTenderIdV2(iTender.getNumber(), iCurrentCompany.getId());
+            }
+            if (iTenderId != null) {
+                replaceTenderRowsV2(iTenderId, iTender);
             }
 
             iConnection.commit();
@@ -6975,38 +7208,30 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
         if (iTender == null || iCurrentCompany == null) {
             return;
         }
+        if (!ensureSchemaV2ForDomain("Tender")) {
+            return;
+        }
         try {
             PreparedStatement iStatement;
-            Integer iTenderId = null;
+            Integer iTenderId;
 
-            if (useSchemaV2()) {
-                iStatement = iConnection.prepareStatement(
-                        "UPDATE tbl_tender SET " +
-                                "vdate=?,customer_nr=?,customer_name=?,our_contact=?,your_contact=?," +
-                                "delay_interest=?,currency_code=?,payment_term=?,delivery_term=?,delivery_way=?," +
-                                "tax_free=?,sale_text=?,eu_sale_commodity=?,eu_sale_third_part=?,printed=?," +
-                                "expires=?,order_nr=?,currency_rate=?,inv_addr_name=?,inv_addr_address=?," +
-                                "inv_addr_street=?,inv_addr_zipcode=?,inv_addr_city=?,inv_addr_country=?," +
-                                "del_addr_name=?,del_addr_address=?,del_addr_street=?,del_addr_zipcode=?," +
-                                "del_addr_city=?,del_addr_country=? WHERE number=? AND companyid=?");
-                int i = bindTenderColumnsV2(iStatement, 1, iTender);
-                iStatement.setObject(i++, iTender.getNumber());
-                iStatement.setObject(i, iCurrentCompany.getId());
-            } else {
-                iStatement = iConnection.prepareStatement(
-                        "UPDATE tbl_tender SET tender=? WHERE number=? AND companyid=?");
-
-                iStatement.setObject(1, iTender);
-                iStatement.setObject(2, iTender.getNumber());
-                iStatement.setObject(3, iCurrentCompany.getId());
-            }
+            iStatement = iConnection.prepareStatement(
+                    "UPDATE tbl_tender SET " +
+                            "vdate=?,customer_nr=?,customer_name=?,our_contact=?,your_contact=?," +
+                            "delay_interest=?,currency_code=?,payment_term=?,delivery_term=?,delivery_way=?," +
+                            "tax_free=?,sale_text=?,eu_sale_commodity=?,eu_sale_third_part=?,printed=?," +
+                            "expires=?,order_nr=?,currency_rate=?,inv_addr_name=?,inv_addr_address=?," +
+                            "inv_addr_street=?,inv_addr_zipcode=?,inv_addr_city=?,inv_addr_country=?," +
+                            "del_addr_name=?,del_addr_address=?,del_addr_street=?,del_addr_zipcode=?," +
+                            "del_addr_city=?,del_addr_country=? WHERE number=? AND companyid=?");
+            int i = bindTenderColumnsV2(iStatement, 1, iTender);
+            iStatement.setObject(i++, iTender.getNumber());
+            iStatement.setObject(i, iCurrentCompany.getId());
             iStatement.executeUpdate();
 
-            if (useSchemaV2()) {
-                iTenderId = getTenderIdV2(iTender.getNumber(), iCurrentCompany.getId());
-                if (iTenderId != null) {
-                    replaceTenderRowsV2(iTenderId, iTender);
-                }
+            iTenderId = getTenderIdV2(iTender.getNumber(), iCurrentCompany.getId());
+            if (iTenderId != null) {
+                replaceTenderRowsV2(iTenderId, iTender);
             }
 
             iConnection.commit();
@@ -7026,16 +7251,17 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
         if (iTender == null || iCurrentCompany == null) {
             return;
         }
+        if (!ensureSchemaV2ForDomain("Tender")) {
+            return;
+        }
         try {
-            if (useSchemaV2()) {
-                Integer iTenderId = getTenderIdV2(iTender.getNumber(), iCurrentCompany.getId());
-                if (iTenderId != null) {
-                    PreparedStatement iDeleteRows = iConnection.prepareStatement(
-                            "DELETE FROM tbl_tender_row WHERE tender_id=?");
-                    iDeleteRows.setObject(1, iTenderId);
-                    iDeleteRows.executeUpdate();
-                    iDeleteRows.close();
-                }
+            Integer iTenderId = getTenderIdV2(iTender.getNumber(), iCurrentCompany.getId());
+            if (iTenderId != null) {
+                PreparedStatement iDeleteRows = iConnection.prepareStatement(
+                        "DELETE FROM tbl_tender_row WHERE tender_id=?");
+                iDeleteRows.setObject(1, iTenderId);
+                iDeleteRows.executeUpdate();
+                iDeleteRows.close();
             }
 
             PreparedStatement iStatement = iConnection.prepareStatement(
@@ -10013,6 +10239,9 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
         if (iCurrentCompany == null) {
             return iSupplierInvoices;
         }
+        if (!ensureSchemaV2ForDomain("SupplierInvoice")) {
+            return iSupplierInvoices;
+        }
         try {
             Integer iMax = -1;
             ResultSet iResultSet;
@@ -10030,11 +10259,7 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
 
                 while (iResultSet.next()) {
                     iMax = iResultSet.getInt(1);
-                    if (useSchemaV2()) {
-                        iSupplierInvoices.add(mapSupplierInvoiceV2(iResultSet));
-                    } else {
-                        iSupplierInvoices.add((SSSupplierInvoice) iResultSet.getObject(3));
-                    }
+                    iSupplierInvoices.add(mapSupplierInvoiceV2(iResultSet));
                     i++;
                 }
                 if (i != 1024) {
@@ -10058,6 +10283,9 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
         if (pSupplierInvoice == null || iCurrentCompany == null) {
             return Optional.empty();
         }
+        if (!ensureSchemaV2ForDomain("SupplierInvoice")) {
+            return Optional.empty();
+        }
         try {
             PreparedStatement iStatement = iConnection.prepareStatement(
                     "SELECT * FROM tbl_supplierinvoice WHERE number=? AND companyid=?");
@@ -10067,9 +10295,7 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
             ResultSet iResultSet = iStatement.executeQuery();
 
             if (iResultSet.next()) {
-                SSSupplierInvoice iSupplierInvoice = useSchemaV2()
-                        ? mapSupplierInvoiceV2(iResultSet)
-                        : (SSSupplierInvoice) iResultSet.getObject(3);
+                SSSupplierInvoice iSupplierInvoice = mapSupplierInvoiceV2(iResultSet);
 
                 iStatement.close();
                 return Optional.of(iSupplierInvoice);
@@ -10104,6 +10330,9 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
         if (iCurrentCompany == null) {
             return iSupplierInvoices;
         }
+        if (!ensureSchemaV2ForDomain("SupplierInvoice")) {
+            return iSupplierInvoices;
+        }
         try {
             for (SSSupplierInvoice iSupplierInvoice : pSupplierInvoices) {
                 PreparedStatement iStatement = iConnection.prepareStatement(
@@ -10114,11 +10343,7 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
                 ResultSet iResultSet = iStatement.executeQuery();
 
                 if (iResultSet.next()) {
-                    if (useSchemaV2()) {
-                        iSupplierInvoices.add(mapSupplierInvoiceV2(iResultSet));
-                    } else {
-                        iSupplierInvoices.add((SSSupplierInvoice) iResultSet.getObject(3));
-                    }
+                    iSupplierInvoices.add(mapSupplierInvoiceV2(iResultSet));
                 }
                 iStatement.close();
             }
@@ -10137,6 +10362,9 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
 
     public void addSupplierInvoice(SSSupplierInvoice iSupplierInvoice) {
         if (iSupplierInvoice == null || iCurrentCompany == null) {
+            return;
+        }
+        if (!ensureSchemaV2ForDomain("SupplierInvoice")) {
             return;
         }
         try {
@@ -10165,41 +10393,31 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
             iStatement.close();
 
             Integer iSupplierInvoiceId = null;
-            if (useSchemaV2()) {
-                iStatement = iConnection.prepareStatement(
-                        "INSERT INTO tbl_supplierinvoice(" +
-                                "number,companyid,vdate,due_date,supplier_nr,supplier_name,reference_number," +
-                                "currency_code,currency_rate,payment_term,tax_sum,rounding_sum,entered," +
-                                "stock_influencing,bgc_entered,voucher_id,correction_voucher_id) " +
-                                "VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
-                        Statement.RETURN_GENERATED_KEYS);
-                int i = 1;
-                iStatement.setObject(i++, iSupplierInvoice.getNumber());
-                iStatement.setObject(i++, iCurrentCompany.getId());
-                bindSupplierInvoiceColumnsV2(iStatement, i, iSupplierInvoice);
-            } else {
-                iStatement = iConnection.prepareStatement(
-                        "INSERT INTO tbl_supplierinvoice VALUES(NULL,?,?,?)");
-                iStatement.setObject(1, iSupplierInvoice.getNumber());
-                iStatement.setObject(2, iSupplierInvoice);
-                iStatement.setObject(3, iCurrentCompany.getId());
-            }
+            iStatement = iConnection.prepareStatement(
+                    "INSERT INTO tbl_supplierinvoice(" +
+                            "number,companyid,vdate,due_date,supplier_nr,supplier_name,reference_number," +
+                            "currency_code,currency_rate,payment_term,tax_sum,rounding_sum,entered," +
+                            "stock_influencing,bgc_entered,voucher_id,correction_voucher_id) " +
+                            "VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                    Statement.RETURN_GENERATED_KEYS);
+            int i = 1;
+            iStatement.setObject(i++, iSupplierInvoice.getNumber());
+            iStatement.setObject(i++, iCurrentCompany.getId());
+            bindSupplierInvoiceColumnsV2(iStatement, i, iSupplierInvoice);
             iStatement.executeUpdate();
 
-            if (useSchemaV2()) {
-                try (ResultSet iKeys = iStatement.getGeneratedKeys()) {
-                    if (iKeys.next()) {
-                        iSupplierInvoiceId = iKeys.getInt(1);
-                    }
+            try (ResultSet iKeys = iStatement.getGeneratedKeys()) {
+                if (iKeys.next()) {
+                    iSupplierInvoiceId = iKeys.getInt(1);
                 }
-                if (iSupplierInvoiceId == null) {
-                    iSupplierInvoiceId = getSupplierInvoiceIdV2(
-                            iSupplierInvoice.getNumber(),
-                            iCurrentCompany.getId());
-                }
-                if (iSupplierInvoiceId != null) {
-                    replaceSupplierInvoiceRowsV2(iSupplierInvoiceId, iSupplierInvoice);
-                }
+            }
+            if (iSupplierInvoiceId == null) {
+                iSupplierInvoiceId = getSupplierInvoiceIdV2(
+                        iSupplierInvoice.getNumber(),
+                        iCurrentCompany.getId());
+            }
+            if (iSupplierInvoiceId != null) {
+                replaceSupplierInvoiceRowsV2(iSupplierInvoiceId, iSupplierInvoice);
             }
 
             iConnection.commit();
@@ -10220,36 +10438,28 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
         if (iSupplierInvoice == null || iCurrentCompany == null) {
             return;
         }
+        if (!ensureSchemaV2ForDomain("SupplierInvoice")) {
+            return;
+        }
         try {
             PreparedStatement iStatement;
             Integer iSupplierInvoiceId = null;
-            if (useSchemaV2()) {
-                iStatement = iConnection.prepareStatement(
-                        "UPDATE tbl_supplierinvoice SET " +
-                                "vdate=?,due_date=?,supplier_nr=?,supplier_name=?,reference_number=?," +
-                                "currency_code=?,currency_rate=?,payment_term=?,tax_sum=?,rounding_sum=?," +
-                                "entered=?,stock_influencing=?,bgc_entered=?,voucher_id=?,correction_voucher_id=? " +
-                                "WHERE number=? AND companyid=?");
-                int i = bindSupplierInvoiceColumnsV2(iStatement, 1, iSupplierInvoice);
-                iStatement.setObject(i++, iSupplierInvoice.getNumber());
-                iStatement.setObject(i, iCurrentCompany.getId());
-            } else {
-                iStatement = iConnection.prepareStatement(
-                        "UPDATE tbl_supplierinvoice SET supplierinvoice=? WHERE number=? AND companyid=?");
-
-                iStatement.setObject(1, iSupplierInvoice);
-                iStatement.setObject(2, iSupplierInvoice.getNumber());
-                iStatement.setObject(3, iCurrentCompany.getId());
-            }
+            iStatement = iConnection.prepareStatement(
+                    "UPDATE tbl_supplierinvoice SET " +
+                            "vdate=?,due_date=?,supplier_nr=?,supplier_name=?,reference_number=?," +
+                            "currency_code=?,currency_rate=?,payment_term=?,tax_sum=?,rounding_sum=?," +
+                            "entered=?,stock_influencing=?,bgc_entered=?,voucher_id=?,correction_voucher_id=? " +
+                            "WHERE number=? AND companyid=?");
+            int i = bindSupplierInvoiceColumnsV2(iStatement, 1, iSupplierInvoice);
+            iStatement.setObject(i++, iSupplierInvoice.getNumber());
+            iStatement.setObject(i, iCurrentCompany.getId());
             iStatement.executeUpdate();
 
-            if (useSchemaV2()) {
-                iSupplierInvoiceId = getSupplierInvoiceIdV2(
-                        iSupplierInvoice.getNumber(),
-                        iCurrentCompany.getId());
-                if (iSupplierInvoiceId != null) {
-                    replaceSupplierInvoiceRowsV2(iSupplierInvoiceId, iSupplierInvoice);
-                }
+            iSupplierInvoiceId = getSupplierInvoiceIdV2(
+                    iSupplierInvoice.getNumber(),
+                    iCurrentCompany.getId());
+            if (iSupplierInvoiceId != null) {
+                replaceSupplierInvoiceRowsV2(iSupplierInvoiceId, iSupplierInvoice);
             }
 
             iConnection.commit();
@@ -10269,18 +10479,19 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
         if (iSupplierInvoice == null || iCurrentCompany == null) {
             return;
         }
+        if (!ensureSchemaV2ForDomain("SupplierInvoice")) {
+            return;
+        }
         try {
-            if (useSchemaV2()) {
-                Integer iSupplierInvoiceId = getSupplierInvoiceIdV2(
-                        iSupplierInvoice.getNumber(),
-                        iCurrentCompany.getId());
-                if (iSupplierInvoiceId != null) {
-                    PreparedStatement iDeleteRows = iConnection.prepareStatement(
-                            "DELETE FROM tbl_supplierinvoice_row WHERE supplierinvoice_id=?");
-                    iDeleteRows.setObject(1, iSupplierInvoiceId);
-                    iDeleteRows.executeUpdate();
-                    iDeleteRows.close();
-                }
+            Integer iSupplierInvoiceId = getSupplierInvoiceIdV2(
+                    iSupplierInvoice.getNumber(),
+                    iCurrentCompany.getId());
+            if (iSupplierInvoiceId != null) {
+                PreparedStatement iDeleteRows = iConnection.prepareStatement(
+                        "DELETE FROM tbl_supplierinvoice_row WHERE supplierinvoice_id=?");
+                iDeleteRows.setObject(1, iSupplierInvoiceId);
+                iDeleteRows.executeUpdate();
+                iDeleteRows.close();
             }
 
             PreparedStatement iStatement = iConnection.prepareStatement(
@@ -11495,6 +11706,130 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
     }
 
     // /////////////////////////////////////////////////////////////////////////////
+
+    private List<SSOwnReportAccountRow> getOwnReportAccountRowsV2(Integer iOwnReportRowId)
+            throws SQLException {
+        List<SSOwnReportAccountRow> iRows = new LinkedList<>();
+        if (iCurrentYear == null) {
+            return iRows;
+        }
+        PreparedStatement iStatement = iConnection.prepareStatement(
+                "SELECT * FROM tbl_ownreport_account_row WHERE ownreport_row_id=? ORDER BY id");
+        iStatement.setObject(1, iOwnReportRowId);
+        ResultSet iResultSet = iStatement.executeQuery();
+        while (iResultSet.next()) {
+            Integer iAccountFrom = (Integer) iResultSet.getObject("account_from");
+            Integer iAccountTo = (Integer) iResultSet.getObject("account_to");
+            Integer iAccountNr = iAccountFrom == null ? iAccountTo : iAccountFrom;
+            if (iAccountNr == null) {
+                continue;
+            }
+            SSOwnReportAccountRow iRow = new SSOwnReportAccountRow();
+            iRow.setAccount(new SSAccount(iAccountNr));
+            iRows.add(iRow);
+        }
+        iResultSet.close();
+        iStatement.close();
+        return iRows;
+    }
+
+    private List<SSOwnReportRow> getOwnReportRowsV2(Integer iOwnReportId) throws SQLException {
+        List<SSOwnReportRow> iRows = new LinkedList<>();
+        PreparedStatement iStatement = iConnection.prepareStatement(
+                "SELECT * FROM tbl_ownreport_row WHERE ownreport_id=? ORDER BY row_order,id");
+        iStatement.setObject(1, iOwnReportId);
+        ResultSet iResultSet = iStatement.executeQuery();
+        while (iResultSet.next()) {
+            SSOwnReportRow iRow = new SSOwnReportRow();
+            String iHeadingType = iResultSet.getString("heading_type");
+            if (iHeadingType != null) {
+                try {
+                    iRow.setType(SSHeadingType.valueOf(iHeadingType));
+                } catch (IllegalArgumentException ignored) {
+                    // Ignore unknown enum values from partial migrations.
+                }
+            }
+            iRow.setHeading(iResultSet.getString("heading"));
+            iRow.getAccountRows().addAll(getOwnReportAccountRowsV2(iResultSet.getInt("id")));
+            iRows.add(iRow);
+        }
+        iResultSet.close();
+        iStatement.close();
+        return iRows;
+    }
+
+    private SSOwnReport mapOwnReportV2(ResultSet iResultSet) throws SQLException {
+        SSOwnReport iOwnReport = new SSOwnReport();
+        iOwnReport.setId(iResultSet.getInt("id"));
+        iOwnReport.setName(iResultSet.getString("name"));
+        iOwnReport.setProjectNr(iResultSet.getString("project_nr"));
+        iOwnReport.setResultUnitNr(iResultSet.getString("result_unit_nr"));
+        iOwnReport.getHeadings().clear();
+        iOwnReport.getHeadings().addAll(getOwnReportRowsV2(iOwnReport.getId()));
+        return iOwnReport;
+    }
+
+    private void replaceOwnReportAccountRowsV2(Integer iOwnReportRowId, SSOwnReportRow iRow) throws SQLException {
+        PreparedStatement iDelete = iConnection.prepareStatement(
+                "DELETE FROM tbl_ownreport_account_row WHERE ownreport_row_id=?");
+        iDelete.setObject(1, iOwnReportRowId);
+        iDelete.executeUpdate();
+        iDelete.close();
+
+        for (SSOwnReportAccountRow iAccountRow : iRow.getAccountRows()) {
+            SSAccount iAccount = iAccountRow.getAccount();
+            Integer iAccountNr = iAccount == null ? null : iAccount.getNumber();
+            if (iAccountNr == null) {
+                continue;
+            }
+            PreparedStatement iInsert = iConnection.prepareStatement(
+                    "INSERT INTO tbl_ownreport_account_row(ownreport_row_id,account_from,account_to,negate) VALUES(?,?,?,?)");
+            iInsert.setObject(1, iOwnReportRowId);
+            iInsert.setObject(2, iAccountNr);
+            iInsert.setObject(3, iAccountNr);
+            iInsert.setObject(4, false);
+            iInsert.executeUpdate();
+            iInsert.close();
+        }
+    }
+
+    private void replaceOwnReportRowsV2(Integer iOwnReportId, SSOwnReport iOwnReport) throws SQLException {
+        PreparedStatement iDeleteAccountRows = iConnection.prepareStatement(
+                "DELETE FROM tbl_ownreport_account_row WHERE ownreport_row_id IN "
+                        + "(SELECT id FROM tbl_ownreport_row WHERE ownreport_id=?)");
+        iDeleteAccountRows.setObject(1, iOwnReportId);
+        iDeleteAccountRows.executeUpdate();
+        iDeleteAccountRows.close();
+
+        PreparedStatement iDeleteRows = iConnection.prepareStatement(
+                "DELETE FROM tbl_ownreport_row WHERE ownreport_id=?");
+        iDeleteRows.setObject(1, iOwnReportId);
+        iDeleteRows.executeUpdate();
+        iDeleteRows.close();
+
+        int iOrder = 0;
+        for (SSOwnReportRow iRow : iOwnReport.getHeadings()) {
+            Integer iOwnReportRowId = null;
+            PreparedStatement iInsert = iConnection.prepareStatement(
+                    "INSERT INTO tbl_ownreport_row(ownreport_id,row_order,heading_type,heading) VALUES(?,?,?,?)",
+                    Statement.RETURN_GENERATED_KEYS);
+            iInsert.setObject(1, iOwnReportId);
+            iInsert.setObject(2, iOrder++);
+            iInsert.setObject(3, iRow.getType() == null ? null : iRow.getType().name());
+            iInsert.setObject(4, iRow.getHeading());
+            iInsert.executeUpdate();
+            try (ResultSet iKeys = iInsert.getGeneratedKeys()) {
+                if (iKeys.next()) {
+                    iOwnReportRowId = iKeys.getInt(1);
+                }
+            }
+            iInsert.close();
+            if (iOwnReportRowId != null) {
+                replaceOwnReportAccountRowsV2(iOwnReportRowId, iRow);
+            }
+        }
+    }
+
     public List<SSOwnReport> getOwnReports() {
         if (iOwnReports != null) {
             return iOwnReports;
@@ -11502,6 +11837,9 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
         iOwnReports = new LinkedList<>();
 
         if (iCurrentCompany == null) {
+            return iOwnReports;
+        }
+        if (!ensureSchemaV2ForDomain("OwnReport")) {
             return iOwnReports;
         }
         try {
@@ -11520,7 +11858,7 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
 
                 while (iResultSet.next()) {
                     iMax = iResultSet.getInt(1);
-                    iOwnReports.add((SSOwnReport) iResultSet.getObject(2));
+                    iOwnReports.add(mapOwnReportV2(iResultSet));
                     i++;
                 }
                 if (i != 1024) {
@@ -11547,6 +11885,9 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
         if (iCurrentCompany == null) {
             return Optional.empty();
         }
+        if (!ensureSchemaV2ForDomain("OwnReport")) {
+            return Optional.empty();
+        }
         try {
             PreparedStatement iStatement = iConnection.prepareStatement(
                     "SELECT * FROM tbl_ownreport WHERE id=? AND companyid=?");
@@ -11556,7 +11897,7 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
             ResultSet iResultSet = iStatement.executeQuery();
 
             if (iResultSet.next()) {
-                SSOwnReport iOwnReport = (SSOwnReport) iResultSet.getObject(2);
+                SSOwnReport iOwnReport = mapOwnReportV2(iResultSet);
 
                 iStatement.close();
                 return Optional.of(iOwnReport);
@@ -11581,6 +11922,9 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
         if (iCurrentCompany == null) {
             return Optional.empty();
         }
+        if (!ensureSchemaV2ForDomain("OwnReport")) {
+            return Optional.empty();
+        }
         try {
             PreparedStatement iStatement = iConnection.prepareStatement(
                     "SELECT * FROM tbl_ownreport WHERE id=" + iOwnReportNumber
@@ -11590,7 +11934,7 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
             ResultSet iResultSet = iStatement.executeQuery();
 
             if (iResultSet.next()) {
-                SSOwnReport iOwnReport = (SSOwnReport) iResultSet.getObject(2);
+                SSOwnReport iOwnReport = mapOwnReportV2(iResultSet);
 
                 iStatement.close();
                 return Optional.of(iOwnReport);
@@ -11625,6 +11969,9 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
         if (iCurrentCompany == null) {
             return iOwnReports;
         }
+        if (!ensureSchemaV2ForDomain("OwnReport")) {
+            return iOwnReports;
+        }
         try {
             for (SSOwnReport iOwnReport : pOwnReports) {
                 PreparedStatement iStatement = iConnection.prepareStatement(
@@ -11635,8 +11982,9 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
                 ResultSet iResultSet = iStatement.executeQuery();
 
                 if (iResultSet.next()) {
-                    iOwnReports.add((SSOwnReport) iResultSet.getObject(2));
+                    iOwnReports.add(mapOwnReportV2(iResultSet));
                 }
+                iResultSet.close();
                 iStatement.close();
             }
 
@@ -11656,41 +12004,34 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
         if (iOwnReport == null) {
             return;
         }
+        if (iCurrentCompany == null) {
+            return;
+        }
+        if (!ensureSchemaV2ForDomain("OwnReport")) {
+            return;
+        }
         try {
+            Integer iOwnReportId = null;
             PreparedStatement iStatement = iConnection.prepareStatement(
-                    "INSERT INTO tbl_ownreport VALUES(NULL,?,?)");
-
-            iStatement.setObject(1, iOwnReport);
-            iStatement.setObject(2, iCurrentCompany.getId());
+                    "INSERT INTO tbl_ownreport(companyid,name,project_nr,result_unit_nr) VALUES(?,?,?,?)",
+                    Statement.RETURN_GENERATED_KEYS);
+            iStatement.setObject(1, iCurrentCompany.getId());
+            iStatement.setObject(2, iOwnReport.getName());
+            iStatement.setObject(3, iOwnReport.getProjectNr());
+            iStatement.setObject(4, iOwnReport.getResultUnitNr());
             iStatement.executeUpdate();
-            iConnection.commit();
-            iStatement.close();
-
-            iStatement = iConnection.prepareStatement("SELECT * FROM tbl_ownreport");
-            ResultSet iResultSet = iStatement.executeQuery();
-            Integer iId = -1;
-
-            while (iResultSet.next()) {
-                if (iResultSet.isLast()) {
-                    iId = iResultSet.getInt("id");
+            try (ResultSet iKeys = iStatement.getGeneratedKeys()) {
+                if (iKeys.next()) {
+                    iOwnReportId = iKeys.getInt(1);
                 }
             }
-            iResultSet.close();
             iStatement.close();
-            iOwnReport.setId(iId);
-
-            try {
-                Thread.sleep(100);
-            } catch (InterruptedException e) {
-                LOG.error("Unexpected error", e);
+            if (iOwnReportId != null) {
+                iOwnReport.setId(iOwnReportId);
+                replaceOwnReportRowsV2(iOwnReportId, iOwnReport);
             }
-            iStatement = iConnection.prepareStatement(
-                    "UPDATE tbl_ownreport SET ownreport=? WHERE id=?");
-            iStatement.setObject(1, iOwnReport);
-            iStatement.setObject(2, iOwnReport.getId());
-            iStatement.executeUpdate();
+
             iConnection.commit();
-            iStatement.close();
         } catch (SQLException e) {
             LOG.error("Unexpected error", e);
             try {
@@ -11705,16 +12046,24 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
         if (iOwnReport == null || iCurrentCompany == null) {
             return;
         }
+        if (!ensureSchemaV2ForDomain("OwnReport")) {
+            return;
+        }
         try {
             PreparedStatement iStatement = iConnection.prepareStatement(
-                    "UPDATE tbl_ownreport SET ownreport=? WHERE id=? AND companyid=?");
+                    "UPDATE tbl_ownreport SET name=?,project_nr=?,result_unit_nr=? WHERE id=? AND companyid=?");
 
-            iStatement.setObject(1, iOwnReport);
-            iStatement.setObject(2, iOwnReport.getId());
-            iStatement.setObject(3, iCurrentCompany.getId());
+            iStatement.setObject(1, iOwnReport.getName());
+            iStatement.setObject(2, iOwnReport.getProjectNr());
+            iStatement.setObject(3, iOwnReport.getResultUnitNr());
+            iStatement.setObject(4, iOwnReport.getId());
+            iStatement.setObject(5, iCurrentCompany.getId());
             iStatement.executeUpdate();
-            iConnection.commit();
             iStatement.close();
+            if (iOwnReport.getId() != null) {
+                replaceOwnReportRowsV2(iOwnReport.getId(), iOwnReport);
+            }
+            iConnection.commit();
 
         } catch (SQLException e) {
             LOG.error("Unexpected error", e);
@@ -11731,6 +12080,20 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
             return;
         }
         try {
+            if (useSchemaV2() && iOwnReport.getId() != null) {
+                PreparedStatement iDeleteAccountRows = iConnection.prepareStatement(
+                        "DELETE FROM tbl_ownreport_account_row WHERE ownreport_row_id IN "
+                                + "(SELECT id FROM tbl_ownreport_row WHERE ownreport_id=?)");
+                iDeleteAccountRows.setObject(1, iOwnReport.getId());
+                iDeleteAccountRows.executeUpdate();
+                iDeleteAccountRows.close();
+
+                PreparedStatement iDeleteRows = iConnection.prepareStatement(
+                        "DELETE FROM tbl_ownreport_row WHERE ownreport_id=?");
+                iDeleteRows.setObject(1, iOwnReport.getId());
+                iDeleteRows.executeUpdate();
+                iDeleteRows.close();
+            }
             PreparedStatement iStatement = iConnection.prepareStatement(
                     "DELETE FROM tbl_ownreport WHERE id=? AND companyid=?");
 
@@ -11906,6 +12269,14 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
 
     private boolean useSchemaV2() {
         return "sql/create_tables_v2.sql".equals(getSchemaResource());
+    }
+
+    private boolean ensureSchemaV2ForDomain(String iDomainName) {
+        if (useSchemaV2()) {
+            return true;
+        }
+        LOG.warn("Schema V1 OBJECT persistence is disabled for {}. Use schema V2 for this domain.", iDomainName);
+        return false;
     }
 
     public void createNewTables() {

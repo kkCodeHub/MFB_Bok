@@ -14,6 +14,7 @@ import se.swedsoft.bookkeeping.data.common.SSCurrency;
 import se.swedsoft.bookkeeping.data.common.SSTaxCode;
 import se.swedsoft.bookkeeping.data.common.SSUnit;
 import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.persistence.v2.V2TenderRepository;
 
 import java.math.BigDecimal;
 import java.sql.Connection;
@@ -82,7 +83,7 @@ class SSTenderV2RepositoryTest {
     @Test
     void repositoriesInitUsesV2TenderRepository() {
         assertThat(Repositories.isSchemaV2()).isTrue();
-        assertThat(Repositories.tenders()).isNotNull();
+        assertThat(Repositories.tenders()).isInstanceOf(V2TenderRepository.class);
     }
 
     @Test
