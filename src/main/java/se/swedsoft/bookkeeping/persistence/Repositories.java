@@ -4,7 +4,6 @@ import se.swedsoft.bookkeeping.data.system.SSDB;
 import se.swedsoft.bookkeeping.persistence.legacy.SSDBAccountPlanRepository;
 import se.swedsoft.bookkeeping.persistence.legacy.SSDBAccountingYearRepository;
 import se.swedsoft.bookkeeping.persistence.legacy.SSDBCustomerRepository;
-import se.swedsoft.bookkeeping.persistence.legacy.SSDBInpaymentRepository;
 import se.swedsoft.bookkeeping.persistence.legacy.SSDBInvoiceRepository;
 import se.swedsoft.bookkeeping.persistence.legacy.SSDBProductRepository;
 import se.swedsoft.bookkeeping.persistence.legacy.SSDBSupplierRepository;
@@ -45,8 +44,8 @@ import se.swedsoft.bookkeeping.persistence.v2.V2VoucherTemplateRepository;
  * {@code VoucherTemplate}, {@code OwnReport}, {@code SupplierInvoice},
  * {@code Tender}, {@code PeriodicInvoice}, {@code CreditInvoice},
  * {@code SupplierCreditInvoice}, {@code PurchaseOrder}, {@code Order},
- * {@code Indelivery}, {@code Outdelivery}, {@code Inventory} and
- * {@code Outpayment})
+ * {@code Indelivery}, {@code Outdelivery}, {@code Inventory},
+ * {@code Outpayment} and {@code Inpayment})
  * V2 repositories are always used regardless of schema flag. Other domains
  * still switch between V2 and legacy SSDB-delegating implementations.</p>
  *
@@ -109,7 +108,7 @@ public final class Repositories {
      * {@code Tender}, {@code PeriodicInvoice}, {@code CreditInvoice},
      * {@code SupplierCreditInvoice}, {@code PurchaseOrder}, {@code Order},
      * {@code Indelivery}, {@code Outdelivery}, {@code Inventory},
-     * {@code Outpayment}) V2
+     * {@code Outpayment}, {@code Inpayment}) V2
      * implementations are always created as part of Slice P cutover; otherwise
      * legacy SSDB-delegating ones are created. Must be called once before any
      * getter is used.
@@ -124,6 +123,7 @@ public final class Repositories {
         // Migrated H domains are V2-only in Slice P.
         autoDistRepository = new V2AutoDistRepository(db);
         creditInvoiceRepository = new V2CreditInvoiceRepository(db);
+        inpaymentRepository = new V2InpaymentRepository(db);
         ownReportRepository = new V2OwnReportRepository(db);
         periodicInvoiceRepository = new V2PeriodicInvoiceRepository(db);
         indeliveryRepository = new V2IndeliveryRepository(db);
@@ -139,7 +139,6 @@ public final class Repositories {
 
         if (isSchemaV2()) {
             customerRepository = new V2CustomerRepository(db);
-            inpaymentRepository = new V2InpaymentRepository(db);
             invoiceRepository = new V2InvoiceRepository(db);
             productRepository = new V2ProductRepository(db);
             supplierRepository = new V2SupplierRepository(db);
@@ -148,7 +147,6 @@ public final class Repositories {
             accountingYearRepository = new V2AccountingYearRepository(db);
         } else {
             customerRepository = new SSDBCustomerRepository(db);
-            inpaymentRepository = new SSDBInpaymentRepository(db);
             invoiceRepository = new SSDBInvoiceRepository(db);
             productRepository = new SSDBProductRepository(db);
             supplierRepository = new SSDBSupplierRepository(db);

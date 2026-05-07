@@ -8379,6 +8379,9 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
         if (iCurrentCompany == null) {
             return iInpayments;
         }
+        if (!ensureSchemaV2ForDomain("Inpayment")) {
+            return iInpayments;
+        }
         try {
             Integer iMax = -1;
             ResultSet iResultSet;
@@ -8396,11 +8399,7 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
 
                 while (iResultSet.next()) {
                     iMax = iResultSet.getInt(1);
-                    if (useSchemaV2()) {
-                        iInpayments.add(mapInpaymentV2(iResultSet));
-                    } else {
-                        iInpayments.add((SSInpayment) iResultSet.getObject(3));
-                    }
+                    iInpayments.add(mapInpaymentV2(iResultSet));
                     i++;
                 }
                 if (i != 1024) {
@@ -8424,6 +8423,9 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
         if (pInpayment == null || iCurrentCompany == null) {
             return Optional.empty();
         }
+        if (!ensureSchemaV2ForDomain("Inpayment")) {
+            return Optional.empty();
+        }
         try {
             PreparedStatement iStatement = iConnection.prepareStatement(
                     "SELECT * FROM tbl_inpayment WHERE number=? AND companyid=?");
@@ -8433,9 +8435,7 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
             ResultSet iResultSet = iStatement.executeQuery();
 
             if (iResultSet.next()) {
-                SSInpayment iInpayment = useSchemaV2()
-                        ? mapInpaymentV2(iResultSet)
-                        : (SSInpayment) iResultSet.getObject(3);
+                SSInpayment iInpayment = mapInpaymentV2(iResultSet);
 
                 iStatement.close();
                 return Optional.of(iInpayment);
@@ -8455,6 +8455,9 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
 
     public void addInpayment(SSInpayment iInpayment) {
         if (iInpayment == null || iCurrentCompany == null) {
+            return;
+        }
+        if (!ensureSchemaV2ForDomain("Inpayment")) {
             return;
         }
         try {
@@ -8483,40 +8486,30 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
             iStatement.close();
 
             Integer iInpaymentId = null;
-            if (useSchemaV2()) {
-                Integer iVoucherId = getVoucherIdByNumberV2(iInpayment.getVoucher());
-                Integer iDifferenceVoucherId = getVoucherIdByNumberV2(iInpayment.getDifference());
-                iStatement = iConnection.prepareStatement(
-                        "INSERT INTO tbl_inpayment(number,companyid,vdate,itext,entered,voucher_id,difference_voucher_id) VALUES(?,?,?,?,?,?,?)",
-                        Statement.RETURN_GENERATED_KEYS);
-                iStatement.setObject(1, iInpayment.getNumber());
-                iStatement.setObject(2, iCurrentCompany.getId());
-                bindLocalDateV2(iStatement, 3, iInpayment.getLocalDate());
-                iStatement.setObject(4, iInpayment.getText());
-                iStatement.setObject(5, iInpayment.isEntered());
-                iStatement.setObject(6, iVoucherId);
-                iStatement.setObject(7, iDifferenceVoucherId);
-            } else {
-                iStatement = iConnection.prepareStatement(
-                        "INSERT INTO tbl_inpayment VALUES(NULL,?,?,?)");
-                iStatement.setObject(1, iInpayment.getNumber());
-                iStatement.setObject(2, iInpayment);
-                iStatement.setObject(3, iCurrentCompany.getId());
-            }
+            Integer iVoucherId = getVoucherIdByNumberV2(iInpayment.getVoucher());
+            Integer iDifferenceVoucherId = getVoucherIdByNumberV2(iInpayment.getDifference());
+            iStatement = iConnection.prepareStatement(
+                    "INSERT INTO tbl_inpayment(number,companyid,vdate,itext,entered,voucher_id,difference_voucher_id) VALUES(?,?,?,?,?,?,?)",
+                    Statement.RETURN_GENERATED_KEYS);
+            iStatement.setObject(1, iInpayment.getNumber());
+            iStatement.setObject(2, iCurrentCompany.getId());
+            bindLocalDateV2(iStatement, 3, iInpayment.getLocalDate());
+            iStatement.setObject(4, iInpayment.getText());
+            iStatement.setObject(5, iInpayment.isEntered());
+            iStatement.setObject(6, iVoucherId);
+            iStatement.setObject(7, iDifferenceVoucherId);
             iStatement.executeUpdate();
 
-            if (useSchemaV2()) {
-                try (ResultSet iKeys = iStatement.getGeneratedKeys()) {
-                    if (iKeys.next()) {
-                        iInpaymentId = iKeys.getInt(1);
-                    }
+            try (ResultSet iKeys = iStatement.getGeneratedKeys()) {
+                if (iKeys.next()) {
+                    iInpaymentId = iKeys.getInt(1);
                 }
-                if (iInpaymentId == null) {
-                    iInpaymentId = getInpaymentIdV2(iInpayment.getNumber(), iCurrentCompany.getId());
-                }
-                if (iInpaymentId != null) {
-                    replaceInpaymentRowsV2(iInpaymentId, iInpayment);
-                }
+            }
+            if (iInpaymentId == null) {
+                iInpaymentId = getInpaymentIdV2(iInpayment.getNumber(), iCurrentCompany.getId());
+            }
+            if (iInpaymentId != null) {
+                replaceInpaymentRowsV2(iInpaymentId, iInpayment);
             }
 
             iConnection.commit();
@@ -8537,35 +8530,28 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
         if (iInpayment == null || iCurrentCompany == null) {
             return;
         }
+        if (!ensureSchemaV2ForDomain("Inpayment")) {
+            return;
+        }
         try {
             PreparedStatement iStatement;
             Integer iInpaymentId = null;
-            if (useSchemaV2()) {
-                Integer iVoucherId = getVoucherIdByNumberV2(iInpayment.getVoucher());
-                Integer iDifferenceVoucherId = getVoucherIdByNumberV2(iInpayment.getDifference());
-                iStatement = iConnection.prepareStatement(
-                        "UPDATE tbl_inpayment SET vdate=?,itext=?,entered=?,voucher_id=?,difference_voucher_id=? WHERE number=? AND companyid=?");
-                bindLocalDateV2(iStatement, 1, iInpayment.getLocalDate());
-                iStatement.setObject(2, iInpayment.getText());
-                iStatement.setObject(3, iInpayment.isEntered());
-                iStatement.setObject(4, iVoucherId);
-                iStatement.setObject(5, iDifferenceVoucherId);
-                iStatement.setObject(6, iInpayment.getNumber());
-                iStatement.setObject(7, iCurrentCompany.getId());
-            } else {
-                iStatement = iConnection.prepareStatement(
-                        "UPDATE tbl_inpayment SET inpayment=? WHERE number=? AND companyid=?");
-                iStatement.setObject(1, iInpayment);
-                iStatement.setObject(2, iInpayment.getNumber());
-                iStatement.setObject(3, iCurrentCompany.getId());
-            }
+            Integer iVoucherId = getVoucherIdByNumberV2(iInpayment.getVoucher());
+            Integer iDifferenceVoucherId = getVoucherIdByNumberV2(iInpayment.getDifference());
+            iStatement = iConnection.prepareStatement(
+                    "UPDATE tbl_inpayment SET vdate=?,itext=?,entered=?,voucher_id=?,difference_voucher_id=? WHERE number=? AND companyid=?");
+            bindLocalDateV2(iStatement, 1, iInpayment.getLocalDate());
+            iStatement.setObject(2, iInpayment.getText());
+            iStatement.setObject(3, iInpayment.isEntered());
+            iStatement.setObject(4, iVoucherId);
+            iStatement.setObject(5, iDifferenceVoucherId);
+            iStatement.setObject(6, iInpayment.getNumber());
+            iStatement.setObject(7, iCurrentCompany.getId());
             iStatement.executeUpdate();
 
-            if (useSchemaV2()) {
-                iInpaymentId = getInpaymentIdV2(iInpayment.getNumber(), iCurrentCompany.getId());
-                if (iInpaymentId != null) {
-                    replaceInpaymentRowsV2(iInpaymentId, iInpayment);
-                }
+            iInpaymentId = getInpaymentIdV2(iInpayment.getNumber(), iCurrentCompany.getId());
+            if (iInpaymentId != null) {
+                replaceInpaymentRowsV2(iInpaymentId, iInpayment);
             }
 
             iConnection.commit();
@@ -8585,16 +8571,17 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
         if (iInpayment == null || iCurrentCompany == null) {
             return;
         }
+        if (!ensureSchemaV2ForDomain("Inpayment")) {
+            return;
+        }
         try {
-            if (useSchemaV2()) {
-                Integer iInpaymentId = getInpaymentIdV2(iInpayment.getNumber(), iCurrentCompany.getId());
-                if (iInpaymentId != null) {
-                    PreparedStatement iDeleteRows = iConnection.prepareStatement(
-                            "DELETE FROM tbl_inpayment_row WHERE inpayment_id=?");
-                    iDeleteRows.setObject(1, iInpaymentId);
-                    iDeleteRows.executeUpdate();
-                    iDeleteRows.close();
-                }
+            Integer iInpaymentId = getInpaymentIdV2(iInpayment.getNumber(), iCurrentCompany.getId());
+            if (iInpaymentId != null) {
+                PreparedStatement iDeleteRows = iConnection.prepareStatement(
+                        "DELETE FROM tbl_inpayment_row WHERE inpayment_id=?");
+                iDeleteRows.setObject(1, iInpaymentId);
+                iDeleteRows.executeUpdate();
+                iDeleteRows.close();
             }
 
             PreparedStatement iStatement = iConnection.prepareStatement(

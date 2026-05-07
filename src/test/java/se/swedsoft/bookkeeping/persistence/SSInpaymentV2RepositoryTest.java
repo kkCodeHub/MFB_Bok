@@ -11,6 +11,7 @@ import se.swedsoft.bookkeeping.data.SSNewAccountingYear;
 import se.swedsoft.bookkeeping.data.SSNewCompany;
 import se.swedsoft.bookkeeping.data.common.SSCurrency;
 import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.persistence.v2.V2InpaymentRepository;
 
 import java.math.BigDecimal;
 import java.sql.Connection;
@@ -78,7 +79,7 @@ class SSInpaymentV2RepositoryTest {
     @Test
     void repositoriesInitUsesV2InpaymentRepository() {
         assertThat(Repositories.isSchemaV2()).isTrue();
-        assertThat(Repositories.inpayments()).isNotNull();
+        assertThat(Repositories.inpayments()).isInstanceOf(V2InpaymentRepository.class);
     }
 
     @Test
