@@ -20,6 +20,11 @@ Foljande cutover ar klara och verifierade:
   - Aktiv V1 `OBJECT`-persistens ar avaktiverad i `SSDB`.
   - `Repositories.init(SSDB)` wire:ar alltid `V2TenderRepository`.
   - Legacy-adapter `SSDBTenderRepository` ar borttagen.
+- `PeriodicInvoice`
+  - Samma cutover-monster som ovan ar genomfort.
+  - Aktiv V1 `OBJECT`-persistens ar avaktiverad i `SSDB`.
+  - `Repositories.init(SSDB)` wire:ar alltid `V2PeriodicInvoiceRepository`.
+  - Legacy-adapter `SSDBPeriodicInvoiceRepository` ar borttagen.
 
 ## 2) Verifierad teststatus
 
@@ -31,6 +36,10 @@ mvn test "-Dtest=RepositoriesSupplierInvoiceCutoverTest,SSSupplierInvoiceV2Integ
 
 ```powershell
 mvn test "-Dtest=RepositoriesTenderCutoverTest,SSTenderV2IntegrationTest,SSTenderV2RepositoryTest,RepositoriesHDomainCutoverTest,RepositoriesSupplierInvoiceCutoverTest,SSDBCustomerRepositoryTest"
+```
+
+```powershell
+mvn test "-Dtest=RepositoriesPeriodicInvoiceCutoverTest,SSPeriodicInvoiceV2IntegrationTest,SSPeriodicInvoiceV2RepositoryTest,RepositoriesHDomainCutoverTest,RepositoriesSupplierInvoiceCutoverTest,RepositoriesTenderCutoverTest,SSDBCustomerRepositoryTest"
 ```
 
 ```powershell
@@ -49,7 +58,7 @@ Resultat vid senaste korning: `BUILD SUCCESS` (40 tester, 0 failures, 0 errors).
 ## 4) Nasta steg (rekommenderad ordning)
 
 1. Inventera kvarvarande migrerade domainer med aktiv V1-vag.
-2. Valj en pilotdoman med lagst risk (kandidater: `CreditInvoice`, `PeriodicInvoice`, `Order`).
+2. Valj en pilotdoman med lagst risk (kandidater: `CreditInvoice`, `Order`, `Invoice`).
 3. Genomfor samma monster:
    - avaktivera aktiv V1-vag i `SSDB`,
    - lasa V2-wiring i `Repositories`,
@@ -69,10 +78,11 @@ Las i denna ordning:
 5. `src/test/java/se/swedsoft/bookkeeping/persistence/RepositoriesHDomainCutoverTest.java`
 6. `src/test/java/se/swedsoft/bookkeeping/persistence/RepositoriesSupplierInvoiceCutoverTest.java`
 7. `src/test/java/se/swedsoft/bookkeeping/persistence/RepositoriesTenderCutoverTest.java`
+8. `src/test/java/se/swedsoft/bookkeeping/persistence/RepositoriesPeriodicInvoiceCutoverTest.java`
 
 Fore forsta kodandring, kor:
 
 ```powershell
-mvn test "-Dtest=RepositoriesHDomainCutoverTest,RepositoriesSupplierInvoiceCutoverTest,RepositoriesTenderCutoverTest,SSDBCustomerRepositoryTest"
+mvn test "-Dtest=RepositoriesHDomainCutoverTest,RepositoriesSupplierInvoiceCutoverTest,RepositoriesTenderCutoverTest,RepositoriesPeriodicInvoiceCutoverTest,SSDBCustomerRepositoryTest"
 ```
 

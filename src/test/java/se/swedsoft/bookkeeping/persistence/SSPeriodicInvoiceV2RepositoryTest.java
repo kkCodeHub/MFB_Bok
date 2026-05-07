@@ -13,6 +13,7 @@ import se.swedsoft.bookkeeping.data.base.SSSaleRow;
 import se.swedsoft.bookkeeping.data.common.SSTaxCode;
 import se.swedsoft.bookkeeping.data.common.SSUnit;
 import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.persistence.v2.V2PeriodicInvoiceRepository;
 
 import java.math.BigDecimal;
 import java.sql.Connection;
@@ -80,7 +81,7 @@ class SSPeriodicInvoiceV2RepositoryTest {
     @Test
     void repositoriesInitUsesV2PeriodicInvoiceRepository() {
         assertThat(Repositories.isSchemaV2()).isTrue();
-        assertThat(Repositories.periodicInvoices()).isNotNull();
+        assertThat(Repositories.periodicInvoices()).isInstanceOf(V2PeriodicInvoiceRepository.class);
     }
 
     @Test

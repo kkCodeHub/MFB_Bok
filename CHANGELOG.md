@@ -12,6 +12,22 @@ diverging from upstream version 2.2-SNAPSHOT.
 ## [Unreleased]
 
 ### Added
+- Slice P (steg 6) periodic-invoice cutover:
+  - `PeriodicInvoice` har nu cutover-mönster i linje med tidigare domäner:
+    `Repositories.init(SSDB)` wire:ar alltid `V2PeriodicInvoiceRepository`,
+    aktiva V1 `OBJECT`-paths för periodic invoices är avaktiverade i `SSDB`,
+    och den döda legacy-adaptern `SSDBPeriodicInvoiceRepository` har tagits
+    bort.
+  - Nytt test `RepositoriesPeriodicInvoiceCutoverTest` verifierar att
+    periodic-invoice-domänen går via V2 i både V1- och V2-läge, medan
+    omigrerade domäner fortsatt kan använda legacy-wiring.
+  - `V2PeriodicInvoiceRepository` kan nu konstrueras oberoende av
+    schemaflagga för att stödja Slice P-cutovern.
+  - Verifierat med fokuserad testsvit:
+    `RepositoriesPeriodicInvoiceCutoverTest`,
+    `SSPeriodicInvoiceV2IntegrationTest`, `SSPeriodicInvoiceV2RepositoryTest`,
+    `RepositoriesHDomainCutoverTest`, `RepositoriesSupplierInvoiceCutoverTest`,
+    `RepositoriesTenderCutoverTest`, `SSDBCustomerRepositoryTest`.
 - Slice P (steg 5) tender cutover:
   - `Tender` har nu cutover-mönster i linje med tidigare domäner:
     `Repositories.init(SSDB)` wire:ar alltid `V2TenderRepository`, aktiva V1

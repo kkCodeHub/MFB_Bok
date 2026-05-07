@@ -9502,6 +9502,9 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
         if (iCurrentCompany == null) {
             return iPeriodicInvoices;
         }
+        if (!ensureSchemaV2ForDomain("PeriodicInvoice")) {
+            return iPeriodicInvoices;
+        }
         try {
             Integer iMax = -1;
             ResultSet iResultSet;
@@ -9519,11 +9522,7 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
 
                 while (iResultSet.next()) {
                     iMax = iResultSet.getInt(1);
-                    if (useSchemaV2()) {
-                        iPeriodicInvoices.add(mapPeriodicInvoiceV2(iResultSet));
-                    } else {
-                        iPeriodicInvoices.add((SSPeriodicInvoice) iResultSet.getObject(3));
-                    }
+                    iPeriodicInvoices.add(mapPeriodicInvoiceV2(iResultSet));
                     i++;
                 }
                 if (i != 1024) {
@@ -9547,6 +9546,9 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
         if (pPeriodicInvoice == null || iCurrentCompany == null) {
             return Optional.empty();
         }
+        if (!ensureSchemaV2ForDomain("PeriodicInvoice")) {
+            return Optional.empty();
+        }
         try {
             PreparedStatement iStatement = iConnection.prepareStatement(
                     "SELECT * FROM tbl_periodicinvoice WHERE number=? AND companyid=?");
@@ -9556,9 +9558,7 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
             ResultSet iResultSet = iStatement.executeQuery();
 
             if (iResultSet.next()) {
-                SSPeriodicInvoice iPeriodicInvoice = useSchemaV2()
-                        ? mapPeriodicInvoiceV2(iResultSet)
-                        : (SSPeriodicInvoice) iResultSet.getObject(3);
+                SSPeriodicInvoice iPeriodicInvoice = mapPeriodicInvoiceV2(iResultSet);
 
                 iStatement.close();
                 return Optional.of(iPeriodicInvoice);
@@ -9578,6 +9578,9 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
 
     public void addPeriodicInvoice(SSPeriodicInvoice iPeriodicInvoice) {
         if (iPeriodicInvoice == null || iCurrentCompany == null) {
+            return;
+        }
+        if (!ensureSchemaV2ForDomain("PeriodicInvoice")) {
             return;
         }
         try {
@@ -9606,45 +9609,35 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
             iStatement.close();
 
             Integer iPeriodicInvoiceId = null;
-            if (useSchemaV2()) {
-                String iPlaceholders = String.join(",", Collections.nCopies(39, "?"));
-                iStatement = iConnection.prepareStatement(
-                        "INSERT INTO tbl_periodicinvoice(" +
-                                "number,companyid,vdate,count,period,description,period_start,period_end," +
-                                "append_period,append_information,information,customer_nr,customer_name," +
-                                "our_contact,your_contact,delay_interest,currency_code,payment_term," +
-                                "delivery_term,delivery_way,tax_free,sale_text,printed,currency_rate," +
-                                "payment_day,your_order_number,stock_influencing,inv_addr_name,inv_addr_address," +
-                                "inv_addr_street,inv_addr_zipcode,inv_addr_city,inv_addr_country,del_addr_name," +
-                                "del_addr_address,del_addr_street,del_addr_zipcode,del_addr_city,del_addr_country) " +
-                                "VALUES(" + iPlaceholders + ")",
-                        Statement.RETURN_GENERATED_KEYS);
-                int i = 1;
-                iStatement.setObject(i++, iPeriodicInvoice.getNumber());
-                iStatement.setObject(i++, iCurrentCompany.getId());
-                bindPeriodicInvoiceColumnsV2(iStatement, i, iPeriodicInvoice);
-            } else {
-                iStatement = iConnection.prepareStatement(
-                        "INSERT INTO tbl_periodicinvoice VALUES(NULL,?,?,?)");
-                iStatement.setObject(1, iPeriodicInvoice.getNumber());
-                iStatement.setObject(2, iPeriodicInvoice);
-                iStatement.setObject(3, iCurrentCompany.getId());
-            }
+            String iPlaceholders = String.join(",", Collections.nCopies(39, "?"));
+            iStatement = iConnection.prepareStatement(
+                    "INSERT INTO tbl_periodicinvoice(" +
+                            "number,companyid,vdate,count,period,description,period_start,period_end," +
+                            "append_period,append_information,information,customer_nr,customer_name," +
+                            "our_contact,your_contact,delay_interest,currency_code,payment_term," +
+                            "delivery_term,delivery_way,tax_free,sale_text,printed,currency_rate," +
+                            "payment_day,your_order_number,stock_influencing,inv_addr_name,inv_addr_address," +
+                            "inv_addr_street,inv_addr_zipcode,inv_addr_city,inv_addr_country,del_addr_name," +
+                            "del_addr_address,del_addr_street,del_addr_zipcode,del_addr_city,del_addr_country) " +
+                            "VALUES(" + iPlaceholders + ")",
+                    Statement.RETURN_GENERATED_KEYS);
+            int i = 1;
+            iStatement.setObject(i++, iPeriodicInvoice.getNumber());
+            iStatement.setObject(i++, iCurrentCompany.getId());
+            bindPeriodicInvoiceColumnsV2(iStatement, i, iPeriodicInvoice);
             iStatement.executeUpdate();
 
-            if (useSchemaV2()) {
-                try (ResultSet iKeys = iStatement.getGeneratedKeys()) {
-                    if (iKeys.next()) {
-                        iPeriodicInvoiceId = iKeys.getInt(1);
-                    }
+            try (ResultSet iKeys = iStatement.getGeneratedKeys()) {
+                if (iKeys.next()) {
+                    iPeriodicInvoiceId = iKeys.getInt(1);
                 }
-                if (iPeriodicInvoiceId == null) {
-                    iPeriodicInvoiceId = getPeriodicInvoiceIdV2(iPeriodicInvoice.getNumber(),
-                            iCurrentCompany.getId());
-                }
-                if (iPeriodicInvoiceId != null) {
-                    replacePeriodicInvoiceRowsV2(iPeriodicInvoiceId, iPeriodicInvoice);
-                }
+            }
+            if (iPeriodicInvoiceId == null) {
+                iPeriodicInvoiceId = getPeriodicInvoiceIdV2(iPeriodicInvoice.getNumber(),
+                        iCurrentCompany.getId());
+            }
+            if (iPeriodicInvoiceId != null) {
+                replacePeriodicInvoiceRowsV2(iPeriodicInvoiceId, iPeriodicInvoice);
             }
 
             iConnection.commit();
@@ -9665,40 +9658,32 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
         if (iPeriodicInvoice == null || iCurrentCompany == null) {
             return;
         }
+        if (!ensureSchemaV2ForDomain("PeriodicInvoice")) {
+            return;
+        }
         try {
             PreparedStatement iStatement;
-            Integer iPeriodicInvoiceId = null;
+            Integer iPeriodicInvoiceId;
 
-            if (useSchemaV2()) {
-                iStatement = iConnection.prepareStatement(
-                        "UPDATE tbl_periodicinvoice SET " +
-                                "vdate=?,count=?,period=?,description=?,period_start=?,period_end=?," +
-                                "append_period=?,append_information=?,information=?,customer_nr=?,customer_name=?," +
-                                "our_contact=?,your_contact=?,delay_interest=?,currency_code=?,payment_term=?," +
-                                "delivery_term=?,delivery_way=?,tax_free=?,sale_text=?,printed=?,currency_rate=?," +
-                                "payment_day=?,your_order_number=?,stock_influencing=?,inv_addr_name=?," +
-                                "inv_addr_address=?,inv_addr_street=?,inv_addr_zipcode=?,inv_addr_city=?," +
-                                "inv_addr_country=?,del_addr_name=?,del_addr_address=?,del_addr_street=?," +
-                                "del_addr_zipcode=?,del_addr_city=?,del_addr_country=? WHERE number=? AND companyid=?");
-                int i = bindPeriodicInvoiceColumnsV2(iStatement, 1, iPeriodicInvoice);
-                iStatement.setObject(i++, iPeriodicInvoice.getNumber());
-                iStatement.setObject(i, iCurrentCompany.getId());
-            } else {
-                iStatement = iConnection.prepareStatement(
-                        "UPDATE tbl_periodicinvoice SET periodicinvoice=? WHERE number=? AND companyid=?");
-
-                iStatement.setObject(1, iPeriodicInvoice);
-                iStatement.setObject(2, iPeriodicInvoice.getNumber());
-                iStatement.setObject(3, iCurrentCompany.getId());
-            }
+            iStatement = iConnection.prepareStatement(
+                    "UPDATE tbl_periodicinvoice SET " +
+                            "vdate=?,count=?,period=?,description=?,period_start=?,period_end=?," +
+                            "append_period=?,append_information=?,information=?,customer_nr=?,customer_name=?," +
+                            "our_contact=?,your_contact=?,delay_interest=?,currency_code=?,payment_term=?," +
+                            "delivery_term=?,delivery_way=?,tax_free=?,sale_text=?,printed=?,currency_rate=?," +
+                            "payment_day=?,your_order_number=?,stock_influencing=?,inv_addr_name=?," +
+                            "inv_addr_address=?,inv_addr_street=?,inv_addr_zipcode=?,inv_addr_city=?," +
+                            "inv_addr_country=?,del_addr_name=?,del_addr_address=?,del_addr_street=?," +
+                            "del_addr_zipcode=?,del_addr_city=?,del_addr_country=? WHERE number=? AND companyid=?");
+            int i = bindPeriodicInvoiceColumnsV2(iStatement, 1, iPeriodicInvoice);
+            iStatement.setObject(i++, iPeriodicInvoice.getNumber());
+            iStatement.setObject(i, iCurrentCompany.getId());
             iStatement.executeUpdate();
 
-            if (useSchemaV2()) {
-                iPeriodicInvoiceId = getPeriodicInvoiceIdV2(iPeriodicInvoice.getNumber(),
-                        iCurrentCompany.getId());
-                if (iPeriodicInvoiceId != null) {
-                    replacePeriodicInvoiceRowsV2(iPeriodicInvoiceId, iPeriodicInvoice);
-                }
+            iPeriodicInvoiceId = getPeriodicInvoiceIdV2(iPeriodicInvoice.getNumber(),
+                    iCurrentCompany.getId());
+            if (iPeriodicInvoiceId != null) {
+                replacePeriodicInvoiceRowsV2(iPeriodicInvoiceId, iPeriodicInvoice);
             }
 
             iConnection.commit();
@@ -9718,29 +9703,30 @@ public class SSDB {    private static final Logger LOG = LoggerFactory.getLogger
         if (iPeriodicInvoice == null || iCurrentCompany == null) {
             return;
         }
+        if (!ensureSchemaV2ForDomain("PeriodicInvoice")) {
+            return;
+        }
         try {
-            if (useSchemaV2()) {
-                Integer iPeriodicInvoiceId = getPeriodicInvoiceIdV2(iPeriodicInvoice.getNumber(),
-                        iCurrentCompany.getId());
-                if (iPeriodicInvoiceId != null) {
-                    PreparedStatement iDeleteAdded = iConnection.prepareStatement(
-                            "DELETE FROM tbl_periodicinvoice_added WHERE periodicinvoice_id=?");
-                    iDeleteAdded.setObject(1, iPeriodicInvoiceId);
-                    iDeleteAdded.executeUpdate();
-                    iDeleteAdded.close();
+            Integer iPeriodicInvoiceId = getPeriodicInvoiceIdV2(iPeriodicInvoice.getNumber(),
+                    iCurrentCompany.getId());
+            if (iPeriodicInvoiceId != null) {
+                PreparedStatement iDeleteAdded = iConnection.prepareStatement(
+                        "DELETE FROM tbl_periodicinvoice_added WHERE periodicinvoice_id=?");
+                iDeleteAdded.setObject(1, iPeriodicInvoiceId);
+                iDeleteAdded.executeUpdate();
+                iDeleteAdded.close();
 
-                    PreparedStatement iClearInvoices = iConnection.prepareStatement(
-                            "UPDATE tbl_invoice SET periodicinvoice_id=NULL WHERE periodicinvoice_id=?");
-                    iClearInvoices.setObject(1, iPeriodicInvoiceId);
-                    iClearInvoices.executeUpdate();
-                    iClearInvoices.close();
+                PreparedStatement iClearInvoices = iConnection.prepareStatement(
+                        "UPDATE tbl_invoice SET periodicinvoice_id=NULL WHERE periodicinvoice_id=?");
+                iClearInvoices.setObject(1, iPeriodicInvoiceId);
+                iClearInvoices.executeUpdate();
+                iClearInvoices.close();
 
-                    PreparedStatement iDeleteRows = iConnection.prepareStatement(
-                            "DELETE FROM tbl_periodicinvoice_row WHERE periodicinvoice_id=?");
-                    iDeleteRows.setObject(1, iPeriodicInvoiceId);
-                    iDeleteRows.executeUpdate();
-                    iDeleteRows.close();
-                }
+                PreparedStatement iDeleteRows = iConnection.prepareStatement(
+                        "DELETE FROM tbl_periodicinvoice_row WHERE periodicinvoice_id=?");
+                iDeleteRows.setObject(1, iPeriodicInvoiceId);
+                iDeleteRows.executeUpdate();
+                iDeleteRows.close();
             }
 
             PreparedStatement iStatement = iConnection.prepareStatement(
