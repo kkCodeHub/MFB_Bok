@@ -30,6 +30,11 @@ Foljande cutover ar klara och verifierade:
   - Aktiv V1 `OBJECT`-persistens ar avaktiverad i `SSDB`.
   - `Repositories.init(SSDB)` wire:ar alltid `V2CreditInvoiceRepository`.
   - Legacy-adapter `SSDBCreditInvoiceRepository` ar borttagen.
+- `SupplierCreditInvoice`
+  - Samma cutover-monster som ovan ar genomfort.
+  - Aktiv V1 `OBJECT`-persistens ar avaktiverad i `SSDB`.
+  - `Repositories.init(SSDB)` wire:ar alltid `V2SupplierCreditInvoiceRepository`.
+  - Legacy-adapter `SSDBSupplierCreditInvoiceRepository` ar borttagen.
 
 ## 2) Verifierad teststatus
 
@@ -49,6 +54,10 @@ mvn test "-Dtest=RepositoriesPeriodicInvoiceCutoverTest,SSPeriodicInvoiceV2Integ
 
 ```powershell
 mvn test "-Dtest=RepositoriesCreditInvoiceCutoverTest,SSCreditInvoiceV2IntegrationTest,SSCreditInvoiceV2RepositoryTest,RepositoriesHDomainCutoverTest,RepositoriesSupplierInvoiceCutoverTest,RepositoriesTenderCutoverTest,RepositoriesPeriodicInvoiceCutoverTest,SSDBCustomerRepositoryTest"
+```
+
+```powershell
+mvn test "-Dtest=RepositoriesSupplierCreditInvoiceCutoverTest,SSSupplierCreditInvoiceV2IntegrationTest,SSSupplierCreditInvoiceV2RepositoryTest,RepositoriesHDomainCutoverTest,RepositoriesSupplierInvoiceCutoverTest,RepositoriesTenderCutoverTest,RepositoriesPeriodicInvoiceCutoverTest,RepositoriesCreditInvoiceCutoverTest,SSDBCustomerRepositoryTest"
 ```
 
 ```powershell
@@ -89,10 +98,11 @@ Las i denna ordning:
 7. `src/test/java/se/swedsoft/bookkeeping/persistence/RepositoriesTenderCutoverTest.java`
 8. `src/test/java/se/swedsoft/bookkeeping/persistence/RepositoriesPeriodicInvoiceCutoverTest.java`
 9. `src/test/java/se/swedsoft/bookkeeping/persistence/RepositoriesCreditInvoiceCutoverTest.java`
+10. `src/test/java/se/swedsoft/bookkeeping/persistence/RepositoriesSupplierCreditInvoiceCutoverTest.java`
 
 Fore forsta kodandring, kor:
 
 ```powershell
-mvn test "-Dtest=RepositoriesHDomainCutoverTest,RepositoriesSupplierInvoiceCutoverTest,RepositoriesTenderCutoverTest,RepositoriesPeriodicInvoiceCutoverTest,RepositoriesCreditInvoiceCutoverTest,SSDBCustomerRepositoryTest"
+mvn test "-Dtest=RepositoriesHDomainCutoverTest,RepositoriesSupplierInvoiceCutoverTest,RepositoriesTenderCutoverTest,RepositoriesPeriodicInvoiceCutoverTest,RepositoriesCreditInvoiceCutoverTest,RepositoriesSupplierCreditInvoiceCutoverTest,SSDBCustomerRepositoryTest"
 ```
 

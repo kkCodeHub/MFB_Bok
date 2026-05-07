@@ -11,6 +11,7 @@ import se.swedsoft.bookkeeping.data.SSSupplierCreditInvoice;
 import se.swedsoft.bookkeeping.data.SSSupplierInvoiceRow;
 import se.swedsoft.bookkeeping.data.common.SSUnit;
 import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.persistence.v2.V2SupplierCreditInvoiceRepository;
 
 import java.math.BigDecimal;
 import java.sql.Connection;
@@ -78,7 +79,7 @@ class SSSupplierCreditInvoiceV2RepositoryTest {
     @Test
     void repositoriesInitUsesV2SupplierCreditInvoiceRepository() {
         assertThat(Repositories.isSchemaV2()).isTrue();
-        assertThat(Repositories.supplierCreditInvoices()).isNotNull();
+        assertThat(Repositories.supplierCreditInvoices()).isInstanceOf(V2SupplierCreditInvoiceRepository.class);
     }
 
     @Test
