@@ -12,6 +12,24 @@ diverging from upstream version 2.2-SNAPSHOT.
 ## [Unreleased]
 
 ### Added
+- Slice P (steg 10) order cutover:
+  - `Order` har nu cutover-monster i linje med tidigare domaner:
+    `Repositories.init(SSDB)` wire:ar alltid `V2OrderRepository`, aktiva V1
+    `OBJECT`-paths for order ar avaktiverade i `SSDB`, och den doda
+    legacy-adaptern `SSDBOrderRepository` har tagits bort.
+  - Nytt test `RepositoriesOrderCutoverTest` verifierar att
+    order-domanen gar via V2 i bade V1- och V2-lage, medan omigrerade
+    domaner fortsatt kan anvanda legacy-wiring.
+  - `V2OrderRepository` kan nu konstrueras oberoende av schemaflagga
+    for att stodja Slice P-cutovern.
+  - Verifierat med fokuserad testsvit:
+    `RepositoriesOrderCutoverTest`, `SSOrderV2IntegrationTest`,
+    `SSOrderV2RepositoryTest`, `RepositoriesPurchaseOrderCutoverTest`,
+    `RepositoriesHDomainCutoverTest`, `RepositoriesSupplierInvoiceCutoverTest`,
+    `RepositoriesTenderCutoverTest`, `RepositoriesPeriodicInvoiceCutoverTest`,
+    `RepositoriesCreditInvoiceCutoverTest`,
+    `RepositoriesSupplierCreditInvoiceCutoverTest`,
+    `SSDBCustomerRepositoryTest`.
 - Slice P (steg 9) purchase-order cutover:
   - `PurchaseOrder` har nu cutover-mönster i linje med tidigare domäner:
     `Repositories.init(SSDB)` wire:ar alltid `V2PurchaseOrderRepository`,

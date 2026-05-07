@@ -13,6 +13,7 @@ import se.swedsoft.bookkeeping.data.common.SSCurrency;
 import se.swedsoft.bookkeeping.data.common.SSTaxCode;
 import se.swedsoft.bookkeeping.data.common.SSUnit;
 import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.persistence.v2.V2OrderRepository;
 
 import java.math.BigDecimal;
 import java.sql.Connection;
@@ -81,7 +82,7 @@ class SSOrderV2RepositoryTest {
     @Test
     void repositoriesInitUsesV2OrderRepository() {
         assertThat(Repositories.isSchemaV2()).isTrue();
-        assertThat(Repositories.orders()).isNotNull();
+        assertThat(Repositories.orders()).isInstanceOf(V2OrderRepository.class);
     }
 
     @Test

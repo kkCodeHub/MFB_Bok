@@ -12,23 +12,17 @@ import java.util.Optional;
  */
 public class V2OrderRepository implements OrderRepository {
 
-    private static final String SCHEMA_PROPERTY = "fribok.schema.version";
-
     private final SSDB db;
 
     /**
      * Creates a V2 order repository backed by the given {@link SSDB} instance.
      *
      * @param db the SSDB instance; must not be {@code null}
-     * @throws NullPointerException  if {@code db} is {@code null}
-     * @throws IllegalStateException if {@code fribok.schema.version} is not {@code v2}
+     * @throws NullPointerException if {@code db} is {@code null}
      */
     public V2OrderRepository(SSDB db) {
         if (db == null) {
             throw new NullPointerException("db must not be null");
-        }
-        if (!"v2".equalsIgnoreCase(System.getProperty(SCHEMA_PROPERTY, "v1"))) {
-            throw new IllegalStateException("V2OrderRepository requires fribok.schema.version=v2");
         }
         this.db = db;
     }

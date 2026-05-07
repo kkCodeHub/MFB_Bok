@@ -40,6 +40,11 @@ Foljande cutover ar klara och verifierade:
   - Aktiv V1 `OBJECT`-persistens ar avaktiverad i `SSDB`.
   - `Repositories.init(SSDB)` wire:ar alltid `V2PurchaseOrderRepository`.
   - Legacy-adapter `SSDBPurchaseOrderRepository` ar borttagen.
+- `Order`
+  - Samma cutover-monster som ovan ar genomfort.
+  - Aktiv V1 `OBJECT`-persistens ar avaktiverad i `SSDB`.
+  - `Repositories.init(SSDB)` wire:ar alltid `V2OrderRepository`.
+  - Legacy-adapter `SSDBOrderRepository` ar borttagen.
 
 ## 2) Verifierad teststatus
 
@@ -70,6 +75,10 @@ mvn test "-Dtest=RepositoriesPurchaseOrderCutoverTest,SSPurchaseOrderV2Integrati
 ```
 
 ```powershell
+mvn test "-Dtest=RepositoriesOrderCutoverTest,SSOrderV2IntegrationTest,SSOrderV2RepositoryTest,RepositoriesPurchaseOrderCutoverTest,RepositoriesHDomainCutoverTest,RepositoriesSupplierInvoiceCutoverTest,RepositoriesTenderCutoverTest,RepositoriesPeriodicInvoiceCutoverTest,RepositoriesCreditInvoiceCutoverTest,RepositoriesSupplierCreditInvoiceCutoverTest,SSDBCustomerRepositoryTest"
+```
+
+```powershell
 mvn test "-Dtest=SSMasterdataV2RepositoryTest,SSAccountingCoreV2RepositoryTest,SSInvoiceV2RepositoryTest,SSOrderV2RepositoryTest,SSTenderV2RepositoryTest,SSCreditInvoiceV2RepositoryTest,SSPeriodicInvoiceV2RepositoryTest,SSSupplierInvoiceV2RepositoryTest,SSAutoDistV2RepositoryTest,SSVoucherTemplateV2IntegrationTest,SSVoucherTemplateV2RepositoryTest,SSOwnReportV2IntegrationTest,SSOwnReportV2RepositoryTest,RepositoriesHDomainCutoverTest,RepositoriesSupplierInvoiceCutoverTest,SSDBCustomerRepositoryTest"
 ```
 
@@ -85,7 +94,7 @@ Resultat vid senaste korning: `BUILD SUCCESS` (40 tester, 0 failures, 0 errors).
 ## 4) Nasta steg (rekommenderad ordning)
 
 1. Inventera kvarvarande migrerade domainer med aktiv V1-vag.
-2. Valj en pilotdoman med lagst risk (kandidater: `Order`, `Invoice`, `Indelivery`).
+2. Valj en pilotdoman med lagst risk (kandidater: `Invoice`, `Indelivery`).
 3. Genomfor samma monster:
    - avaktivera aktiv V1-vag i `SSDB`,
    - lasa V2-wiring i `Repositories`,
@@ -109,10 +118,11 @@ Las i denna ordning:
 9. `src/test/java/se/swedsoft/bookkeeping/persistence/RepositoriesCreditInvoiceCutoverTest.java`
 10. `src/test/java/se/swedsoft/bookkeeping/persistence/RepositoriesSupplierCreditInvoiceCutoverTest.java`
 11. `src/test/java/se/swedsoft/bookkeeping/persistence/RepositoriesPurchaseOrderCutoverTest.java`
+12. `src/test/java/se/swedsoft/bookkeeping/persistence/RepositoriesOrderCutoverTest.java`
 
 Fore forsta kodandring, kor:
 
 ```powershell
-mvn test "-Dtest=RepositoriesHDomainCutoverTest,RepositoriesSupplierInvoiceCutoverTest,RepositoriesTenderCutoverTest,RepositoriesPeriodicInvoiceCutoverTest,RepositoriesCreditInvoiceCutoverTest,RepositoriesSupplierCreditInvoiceCutoverTest,RepositoriesPurchaseOrderCutoverTest,SSDBCustomerRepositoryTest"
+mvn test "-Dtest=RepositoriesHDomainCutoverTest,RepositoriesSupplierInvoiceCutoverTest,RepositoriesTenderCutoverTest,RepositoriesPeriodicInvoiceCutoverTest,RepositoriesCreditInvoiceCutoverTest,RepositoriesSupplierCreditInvoiceCutoverTest,RepositoriesPurchaseOrderCutoverTest,RepositoriesOrderCutoverTest,SSDBCustomerRepositoryTest"
 ```
 
