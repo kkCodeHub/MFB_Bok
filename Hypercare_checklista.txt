@@ -1,0 +1,127 @@
+Hypercare-checklista för Fribok
+
+Syfte:
+Övervaka applikationen i skarp drift efter release, hitta buggar snabbt och verifiera att kärnflöden fungerar stabilt.
+
+Dag 0 — Releasekväll / första driftstart
+- Bekräfta att releasen är deployad och att applikationen startar normalt.
+- Kontrollera att inloggning, startsida och bolagsbyte fungerar.
+- Verifiera att de viktigaste listfönstren öppnas:
+  - kund
+  - leverantör
+  - produkt
+  - verifikat
+  - in-/utbetalning
+  - faktura
+  - kontoplan
+- Kontrollera att loggarna är rena från nya exceptions.
+- Kontrollera att databasanrop inte ger schema- eller cachefel.
+- Dokumentera baslinjen: vad som ser normalt ut direkt efter release.
+
+Dag 1 — Första skarpa kontrollen
+- Testa create/update/delete i de mest kritiska flödena:
+  - kund
+  - produkt
+  - leverantör
+  - verifikat
+  - in-/utbetalning
+- Verifiera att listorna uppdateras direkt utan omstart.
+- Kontrollera att saldon och totalsummor stämmer efter ändringar.
+- Kontrollera att refresh-flöden inte lämnar kvar stale data.
+- Gå igenom inkomna felrapporter och användarfrågor.
+- Prioritera allt som påverkar bokföring eller dataintegritet som högst.
+
+Dag 2 — Kontroll av affärskritiska flöden
+- Testa fakturaflöden:
+  - skapa
+  - spara
+  - uppdatera
+  - radera
+- Kontrollera att kund- och leverantörsfakturor uppdateras korrekt i listor.
+- Verifiera att verifikat och betalningar inte dubblerar saldopåverkan.
+- Kontrollera att konto- och årsrelaterade vyer öppnas korrekt.
+- Bekräfta att inga återkommande fel uppstår i samma flöde.
+- Logga eventuella mönster, inte bara enskilda incidenter.
+
+Dag 3 — Dataintegritet och rollback-kontroll
+- Kontrollera att ny data faktiskt sparas i databasen som förväntat.
+- Jämför UI-värden mot databasinnehåll för ett urval poster.
+- Testa att radera och återskapa några objekt i testscenario.
+- Kontrollera att äldre eller borttagna poster inte kommer tillbaka.
+- Verifiera att kontoplan- och årshantering beter sig stabilt.
+- Bedöm om något kräver hotfix eller om det kan vänta.
+
+Dag 4 — Rapportering och stödflöden
+- Testa centrala rapporter eller vyer som använder ny data.
+- Kontrollera att rapporter inte visar gammal cache.
+- Verifiera att export eller utskrift fungerar om det ingår i releaseomfånget.
+- Kontrollera att backup/restore-flöden inte påverkas negativt.
+- Sammanställ öppna frågor från användarna.
+- Stäm av om några problem är användarutbildning snarare än buggar.
+
+Dag 5 — Stabilitetsdag
+- Titta på loggar för återkommande varningar eller tysta fel.
+- Kontrollera prestanda i de vanligaste vyerna.
+- Verifiera att inga långsamma refresh-cykler har uppstått.
+- Testa edge cases:
+  - tomma listor
+  - redan raderade poster
+  - upprepade delete-försök
+- Samla in status från användare eller driftansvariga.
+- Bedöm om release känns stabil nog för att minska bevakning.
+
+Dag 6 — Selektiv omtest av tidigare problemområden
+- Återtesta de flöden där buggar redan hittats.
+- Kontrollera att eventuella fixar verkligen håller.
+- Verifiera att ingen ny regression dök upp som följd av fixarna.
+- Kontrollera att listfönster uppdateras korrekt efter alla CRUD-operationer.
+- Bekräfta att data inte tappar synk mellan UI och databas.
+
+Dag 7 — Halvtidsbedömning
+- Gör en sammanställning av:
+  - öppna fel
+  - stängda fel
+  - kvarvarande risker
+- Avgör om hypercare kan fortsätta som planerat eller om extra fokus behövs.
+- Kontrollera om några delar av V1/V2-migreringen behöver pausas eller backas.
+- Bekräfta att inga blockerande problem finns i kärnflödena.
+- Dokumentera beslutspunkter tydligt.
+
+Dag 8 — Minskad övervakning, men fortsatt kontroll
+- Fortsätt övervaka loggar och användarfeedback.
+- Kontrollera att inga nya mönster av fel uppstår.
+- Testa någon ytterligare affärskritisk transaktion i skarp eller nära-produktionsmiljö.
+- Bekräfta att stabiliteten håller över flera dagar, inte bara direkt efter release.
+
+Dag 9 — Slutlig verifiering
+- Gör en sista kontroll av de viktigaste CRUD-flödena.
+- Verifiera att inga öppna blockerare finns.
+- Kontrollera att dokumenterade buggar antingen är lösta eller accepterade.
+- Bedöm om release ska övergå till normal drift.
+- Förbered slutrapport för hypercare.
+
+Dag 10–14 — Avslutande hypercare-fas
+- Håll endast normal incidentövervakning.
+- Följ upp om några sena fel rapporteras.
+- Bekräfta att inga nya regressionsmönster syns.
+- Stäng hypercare när:
+  - inga blockerande fel återstår
+  - kärnflöden är stabila
+  - användare inte rapporterar nya allvarliga problem
+
+Exit-kriterier
+- Inga blockerande fel återstår.
+- CRUD-flöden fungerar stabilt i drift.
+- Listor uppdateras direkt och korrekt.
+- Saldon och totalsummor stämmer.
+- V1->V2-relaterade flöden beter sig som planerat.
+- Driftteamet har godkänt stabiliteten.
+
+Praktisk regel under hypercare
+Om något går fel:
+1. Klassificera felet direkt.
+2. Avgör om det är blockerande.
+3. Fixa högprioriterade fel snabbt.
+4. Återtesta samma flöde direkt.
+5. Dokumentera vad som ändrades.
+
