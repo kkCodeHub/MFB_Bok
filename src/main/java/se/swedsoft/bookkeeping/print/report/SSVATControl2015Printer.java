@@ -16,6 +16,7 @@ import se.swedsoft.bookkeeping.util.SSDateUtil;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.DateFormat;
+import java.time.LocalDate;
 import java.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,9 +32,9 @@ public class SSVATControl2015Printer extends SSPrinter {    private static final
 
     private SSNewAccountingYear iAccountingYear;
 
-    private Date iDateFrom;
+    private LocalDate iDateFrom;
 
-    private Date iDateTo;
+    private LocalDate iDateTo;
 
     private int iStartVoucher;
 
@@ -51,7 +52,8 @@ public class SSVATControl2015Printer extends SSPrinter {    private static final
      * @param iDateFrom
      * @param iDateTo
      */
-    public SSVATControl2015Printer(SSNewAccountingYear iAccountingYear, Date iDateFrom, Date iDateTo, int iStartVoucher) {
+    public SSVATControl2015Printer(SSNewAccountingYear iAccountingYear, LocalDate iDateFrom,
+            LocalDate iDateTo, int iStartVoucher) {
         this.iAccountingYear = iAccountingYear;
         this.iDateFrom = iDateFrom;
         this.iDateTo = iDateTo;
@@ -84,7 +86,7 @@ public class SSVATControl2015Printer extends SSPrinter {    private static final
         List<SSVoucher> iVouchers = SSVoucherMath.getVouchers(
                 iAccountingYear.getVouchers(), iDateFrom, iDateTo);
 	final int iStartVoucherIndex = iStartVoucher - 1;
-	List<SSVoucher> iVouchers2 = iVouchers; 
+	List<SSVoucher> iVouchers2 = iVouchers;
 	if (iStartVoucherIndex >= 0 && iStartVoucherIndex < iVouchers.size()) {
 	    iVouchers2 = iVouchers.subList(iStartVoucherIndex, iVouchers.size());
 	} else {
@@ -122,17 +124,17 @@ public class SSVATControl2015Printer extends SSPrinter {    private static final
 
         String iDescription = String.format(
                 SSBundle.getBundle().getString("vatreport2015.voucherdescription"),
-                iFormat.format(iDateFrom), iFormat.format(iDateTo));
+                iFormat.format(SSDateUtil.toDate(iDateFrom)), iFormat.format(SSDateUtil.toDate(iDateTo)));
 
         List<SSAccount> iAccounts = SSAccountMath.getAccountsByVATCode(
-                SSDB.getInstance().getAccounts(), "U1", "U2", "U3", "UVL", "UEU", "UTFU",
-                "U1MI", "U2MI", "U3MI", "I", "IVL", "UI1", "UI2", "UI3");
+                se.swedsoft.bookkeeping.data.system.SSAccountingContext.getAccounts(), "10U1", "11U2", "12U3", "10UVL", "30UEU", "30UTFU",
+                "30U1MI", "31U2MI", "32U3MI", "48I", "48IVL", "60UI1", "61UI2", "62UI3");
 
         SSVoucher    iVoucher = new SSVoucher();
 
         iVoucher.doAutoIncrecement();
         iVoucher.setDescription(iDescription);
-        iVoucher.setLocalDate(SSDateUtil.toLocalDate(iDateTo));
+        iVoucher.setLocalDate(iDateTo);
 
         BigDecimal iSum = new BigDecimal(0);
         BigDecimal iRoundedSum = new BigDecimal(0);
@@ -156,28 +158,24 @@ public class SSVATControl2015Printer extends SSPrinter {    private static final
             iRoundedSum = iRoundedSum.add(iValue.setScale(0, RoundingMode.DOWN));
         }
 
-        if (iSum.signum() != 0) {
+        iRow = new SSVoucherRow();
+
+        if (iRoundedSum.signum() > 0) {
+            iRow.setAccount(iAccountR2);
+            iRow.setCredit(iRoundedSum);
+        } else {
+            iRow.setAccount(iAccountR1);
+            iRow.setDebet(iRoundedSum.abs());
+        }
+
+        iVoucher.addVoucherRow(iRow);
+
+        if (iRoundedSum.subtract(iSum).signum() != 0) {
             iRow = new SSVoucherRow();
-
-            // BigDecimal iRounded = iSum.setScale(0, RoundingMode.DOWN);
-
-            if (iRoundedSum.signum() > 0) {
-                iRow.setAccount(iAccountR2);
-                iRow.setCredit(iRoundedSum);
-            } else {
-                iRow.setAccount(iAccountR1);
-                iRow.setDebet(iRoundedSum.abs());
-            }
+            iRow.setAccount(iAccountA);
+            iRow.setValue(iRoundedSum.subtract(iSum));
 
             iVoucher.addVoucherRow(iRow);
-
-            if (iRoundedSum.subtract(iSum).signum() != 0) {
-                iRow = new SSVoucherRow();
-                iRow.setAccount(iAccountA);
-                iRow.setValue(iRoundedSum.subtract(iSum));
-
-                iVoucher.addVoucherRow(iRow);
-            }
         }
 
         return iVoucher;
@@ -192,22 +190,22 @@ public class SSVATControl2015Printer extends SSPrinter {    private static final
 
         switch (group) {
         case 1:
-            return getSumForAccounts(iCreditMinusDebetSum, "MP1", "MPFF", "MBBU", "MU1");
+            return getSumForAccounts(iCreditMinusDebetSum, "5MP1", "8MPFF", "7MBBU", "6MU1");
 
         case 2:
-            return getSumForAccounts(iCreditMinusDebetSum, "MP2", "MU2");
+            return getSumForAccounts(iCreditMinusDebetSum, "5MP2", "6MU2");
 
         case 3:
-            return getSumForAccounts(iCreditMinusDebetSum, "MP3", "MU3");
+            return getSumForAccounts(iCreditMinusDebetSum, "5MP3", "6MU3");
 
         case 4:
-            return getSumForAccounts(iCreditMinusDebetSum, "IBU", "IBU1");
+            return getSumForAccounts(iCreditMinusDebetSum, "50IBU", "50IBU1");
 
         case 5:
-            return getSumForAccounts(iCreditMinusDebetSum, "IBU2");
+            return getSumForAccounts(iCreditMinusDebetSum, "50IBU2");
 
         case 6:
-            return getSumForAccounts(iCreditMinusDebetSum, "IBU3");
+            return getSumForAccounts(iCreditMinusDebetSum, "50IBU3");
         }
 
         return new BigDecimal(0);
@@ -253,22 +251,22 @@ public class SSVATControl2015Printer extends SSPrinter {    private static final
 
         switch (group) {
         case 1:
-            return getSumForAccounts(iCreditMinusDebetSum, "U1", "UVL");
+            return getSumForAccounts(iCreditMinusDebetSum, "10U1", "10UVL");
 
         case 2:
-            return getSumForAccounts(iCreditMinusDebetSum, "U2");
+            return getSumForAccounts(iCreditMinusDebetSum, "11U2");
 
         case 3:
-            return getSumForAccounts(iCreditMinusDebetSum, "U3");
+            return getSumForAccounts(iCreditMinusDebetSum, "12U3");
 
         case 4:
-            return getSumForAccounts(iCreditMinusDebetSum, "UI1");
+            return getSumForAccounts(iCreditMinusDebetSum, "60UI1");
 
         case 5:
-            return getSumForAccounts(iCreditMinusDebetSum, "UI2");
+            return getSumForAccounts(iCreditMinusDebetSum, "61UI2");
 
         case 6:
-            return getSumForAccounts(iCreditMinusDebetSum, "UI3");
+            return getSumForAccounts(iCreditMinusDebetSum, "62UI3");
         }
 
         return new BigDecimal(0);
@@ -279,8 +277,8 @@ public class SSVATControl2015Printer extends SSPrinter {    private static final
      */
     @Override
     protected SSDefaultTableModel getModel() {
-        addParameter("dateFrom", iDateFrom);
-        addParameter("dateTo", iDateTo);
+        addParameter("dateFrom", SSDateUtil.toDate(iDateFrom));
+        addParameter("dateTo", SSDateUtil.toDate(iDateTo));
 
         SSDefaultTableModel<Integer> iModel = new SSDefaultTableModel<>() {
 

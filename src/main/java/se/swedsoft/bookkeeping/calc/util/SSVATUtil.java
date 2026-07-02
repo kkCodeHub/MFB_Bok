@@ -32,8 +32,8 @@ public class SSVATUtil {
      */
     public static BigDecimal getVatToPayOrRetrieve(Map<SSAccount, BigDecimal> creditMinusDebetSum) {
 	// Lagt till momskoder för importmoms: UI1 UI2 UI3
-        return SSAccountMath.getSumByVATCodeForAccounts(creditMinusDebetSum, "U1", "UVL",
-                "U2", "U3", "UEU", "UTFU", "I", "IVL", "UI1", "UI2", "UI3");
+        return SSAccountMath.getSumByVATCodeForAccounts(creditMinusDebetSum, "10U1", "10UVL",
+                "11U2", "12U3", "30UEU", "30UTFU", "48I", "48IVL", "60UI1", "61UI2", "62UI3");
     }
 
     /**
@@ -82,10 +82,10 @@ public class SSVATUtil {
                 iFormat.format(SSDateUtil.toDate(iDateFrom)), iFormat.format(SSDateUtil.toDate(iDateTo)));
 	// Lagt till momskoder för importmoms: UI1 UI2 UI3
         List<SSAccount> iAccounts = SSAccountMath.getAccountsByVATCode(
-                SSDB.getInstance().getAccounts(), "U1", "U2", "U3", "UVL", "UEU", "UTFU",
-                "I", "IVL", "UI1", "UI2", "UI3");
+                se.swedsoft.bookkeeping.data.system.SSAccountingContext.getAccounts(), "10U1", "11U2", "12U3", "10UVL", "30UEU", "30UTFU",
+                "48I", "48IVL", "60UI1", "61UI2", "62UI3");
         List<SSVoucher> iVouchers = SSVoucherMath.getVouchers(
-                SSDB.getInstance().getVouchers(), SSDateUtil.toDate(iDateFrom), SSDateUtil.toDate(iDateTo));
+                se.swedsoft.bookkeeping.data.system.SSAccountingContext.getVouchers(), iDateFrom, iDateTo);
 
         Map<SSAccount, BigDecimal> iCreditMinusDebetSum = SSVoucherMath.getCreditMinusDebetSum(
                 iVouchers);
@@ -106,6 +106,7 @@ public class SSVATUtil {
             BigDecimal iValue = iCreditMinusDebetSum.get(iAccount);
 
             if (iValue == null || iValue.signum() == 0) {
+ //             if (iValue == null) {
                 continue;
             }
 
@@ -118,36 +119,34 @@ public class SSVATUtil {
             iSum = iSum.add(iValue);
         }
 
-        if (iSum.signum() != 0) {
+        iRow = new SSVoucherRow();
+
+        BigDecimal iRounded = iSum.setScale(0, RoundingMode.DOWN);
+
+        if (iRounded.signum() > 0) {
+            iRow.setAccount(iAccountR2);
+            iRow.setCredit(iRounded);
+        } else {
+            iRow.setAccount(iAccountR1);
+            iRow.setDebet(iRounded.abs());
+        }
+
+        iVoucher.addVoucherRow(iRow);
+
+        if (iRounded.subtract(iSum).signum() != 0) {
             iRow = new SSVoucherRow();
-
-            BigDecimal iRounded = iSum.setScale(0, RoundingMode.DOWN);
-
-            if (iRounded.signum() > 0) {
-                iRow.setAccount(iAccountR2);
-                iRow.setCredit(iRounded);
-            } else {
-                iRow.setAccount(iAccountR1);
-                iRow.setDebet(iRounded.abs());
-            }
+            iRow.setAccount(iAccountA);
+            iRow.setValue(iRounded.subtract(iSum));
 
             iVoucher.addVoucherRow(iRow);
-
-            if (iRounded.subtract(iSum).signum() != 0) {
-                iRow = new SSVoucherRow();
-                iRow.setAccount(iAccountA);
-                iRow.setValue(iRounded.subtract(iSum));
-
-                iVoucher.addVoucherRow(iRow);
-            }
         }
 
         return iVoucher;
 
         /*
-         SSNewAccountingYear iAccountingYear = SSDB.getInstance().getCurrentYear();
+         SSNewAccountingYear iAccountingYear = se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.getCurrentYear();
 
-         List<SSAccount> accounts = SSAccountMath.getAccountsByVATCode( SSDB.getInstance().getAccounts(), "U1", "U2", "U3", "UVL", "UEU", "UTFU", "I", "IVL");
+         List<SSAccount> accounts = SSAccountMath.getAccountsByVATCode( se.swedsoft.bookkeeping.data.system.SSAccountingContext.getAccounts(), "U1", "U2", "U3", "UVL", "UEU", "UTFU", "I", "IVL");
 
          BigDecimal vatToPayOrRetrieve        = SSVATUtil.getVatToPayOrRetrieve       (debetMinusCreditSum);
          BigDecimal vatToPayOrRetrieveRounded = SSVATUtil.getVatToPayOrRetrieveRounded(debetMinusCreditSum);
