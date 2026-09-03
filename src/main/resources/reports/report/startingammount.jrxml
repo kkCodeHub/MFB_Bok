@@ -1,117 +1,78 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
-<!DOCTYPE jasperReport PUBLIC "-//JasperReports//DTD Report Design//EN"
-        "http://jasperreports.sourceforge.net/dtds/jasperreport.dtd">
-
-<jasperReport name="StartingAmmount" resourceBundle="book">
-
-    <!-- Declared fields in the report. -->
-    <field name="account"     class="java.lang.Integer"/>
-    <field name="description" class="java.lang.String"/>
-    <field name="inbalance"   class="java.math.BigDecimal"/>
-
-
-    <!-- The sum so far in the report. -->
-    <variable name="sum" class="java.math.BigDecimal" resetType="Report" calculation="Sum">
-        <variableExpression>$F{inbalance}</variableExpression>
-        <initialValueExpression>new BigDecimal(0.0)</initialValueExpression>
-    </variable>
-
-
-
-    <columnHeader>
-        <band height="15">
-            <line>
-                <reportElement x="20" y="12" width="510" height="1"/>
-            </line>
-
-            <!-- Column 1 -->
-            <textField>
-                <reportElement x="20" y="0" width="80" height="12" />
-                <textElement textAlignment="Left">
-                    <font size="8"/>
-                </textElement>
-                <textFieldExpression class="java.lang.String">
-                    <![CDATA[$R{inbalancereport.column.1}]]>
-                </textFieldExpression>
-            </textField>
-
-            <textField>
-                <reportElement x="120" y="0" width="220" height="12" />
-                <textElement textAlignment="Left">
-                    <font size="8"/>
-                </textElement>
-                <textFieldExpression class="java.lang.String">
-                    <![CDATA[$R{inbalancereport.column.2}]]>
-                </textFieldExpression>
-            </textField>
-
-            <textField>
-                <reportElement x="450" y="0" width="80" height="12" />
-                <textElement textAlignment="Right">
-                    <font size="8"/>
-                </textElement>
-                <textFieldExpression class="java.lang.String">
-                    <![CDATA[$R{inbalancereport.column.3}]]>
-                </textFieldExpression>
-            </textField>
-
-        </band>
-    </columnHeader>
-
-
-    <detail>
-        <band height="14">
-            <textField>
-                <reportElement x="20" y="0" width="70" height="14" />
-                <textElement>
-                    <font size="8"/>
-                </textElement>
-                <textFieldExpression class="java.lang.Integer">
-                    <![CDATA[$F{account}]]>
-                </textFieldExpression>
-            </textField>
-            <textField>
-                <reportElement x="120" y="0" width="220" height="14" />
-                <textElement>
-                    <font size="8"/>
-                </textElement>
-                <textFieldExpression class="java.lang.String">
-                    <![CDATA[$F{description}]]>
-                </textFieldExpression>
-            </textField>
-            <textField pattern="#,##0.00">
-                <reportElement x="450" y="0" width="80" height="14" />
-                <textElement textAlignment="Right">
-                    <font size="8"/>
-                </textElement>
-                <textFieldExpression class="java.math.BigDecimal">
-                    <![CDATA[$F{inbalance}]]>
-                </textFieldExpression>
-            </textField>
-        </band>
-    </detail>
-
-
-    <summary>
-        <band height="15">
-            <line>
-                <reportElement x="20" y="0" width="510" height="1"/>
-            </line>
-
-
-            <textField  pattern="#,##0.00">
-                <reportElement x="450" y="1" width="80" height="14" />
-                <textElement textAlignment="Right">
-                    <font size="8"/>
-                </textElement>
-                <textFieldExpression class="java.math.BigDecimal">
-                    <![CDATA[$V{sum}]]>
-                </textFieldExpression>
-            </textField>
-
-        </band>
-    </summary>
-
-
+<!-- Created with Jaspersoft Studio version 6.21.1.final using JasperReports Library version 6.21.0-4f56c4f36cd19e17675219a9ac4692d5f0f13b06  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="StartingAmmount" pageWidth="595" pageHeight="842" whenNoDataType="NoPages" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="30" bottomMargin="30" resourceBundle="book" uuid="ddb65de6-9d58-4d3e-8679-5e0707992f5a">
+	<field name="account" class="java.lang.Integer"/>
+	<field name="description" class="java.lang.String"/>
+	<field name="inbalance" class="java.math.BigDecimal"/>
+	<variable name="sum" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{inbalance}]]></variableExpression>
+		<initialValueExpression><![CDATA[new BigDecimal(0.0)]]></initialValueExpression>
+	</variable>
+	<columnHeader>
+		<band height="15" splitType="Stretch">
+			<line>
+				<reportElement x="20" y="12" width="510" height="1" uuid="537b25a3-88a3-4cbe-9a0a-9b51e825d4a8"/>
+			</line>
+			<textField>
+				<reportElement x="20" y="0" width="80" height="12" uuid="2ec6d9ab-69f8-45e0-b7f2-3020dee8c6b3"/>
+				<textElement textAlignment="Left">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$R{inbalancereport.column.1}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="120" y="0" width="220" height="12" uuid="c31b9605-c473-4ccb-bc48-36b3765c973b"/>
+				<textElement textAlignment="Left">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$R{inbalancereport.column.2}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="450" y="0" width="80" height="12" uuid="fa2d7a80-c9eb-4fae-b1eb-63e697548bb4"/>
+				<textElement textAlignment="Right">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$R{inbalancereport.column.3}]]></textFieldExpression>
+			</textField>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="14" splitType="Stretch">
+			<textField>
+				<reportElement x="20" y="0" width="70" height="14" uuid="5d760b76-3efc-4fec-8a7a-d28ff4fb7894"/>
+				<textElement>
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{account}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="120" y="0" width="220" height="14" uuid="eb5c0f0e-89d1-4e37-8d2c-8e71c332f385"/>
+				<textElement>
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{description}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00">
+				<reportElement x="450" y="0" width="80" height="14" uuid="aa4f61f6-e186-4aaa-8320-085d5de6770c"/>
+				<textElement textAlignment="Right">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{inbalance}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<summary>
+		<band height="15" splitType="Stretch">
+			<line>
+				<reportElement x="20" y="0" width="510" height="1" uuid="5f9058da-05c5-40b5-8265-7756efd66858"/>
+			</line>
+			<textField pattern="#,##0.00">
+				<reportElement x="450" y="1" width="80" height="14" uuid="e15b8737-e6f5-4df6-bf12-ab28042143ff"/>
+				<textElement textAlignment="Right">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{sum}]]></textFieldExpression>
+			</textField>
+		</band>
+	</summary>
 </jasperReport>

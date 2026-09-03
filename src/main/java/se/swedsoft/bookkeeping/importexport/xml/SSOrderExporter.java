@@ -1,9 +1,13 @@
 package se.swedsoft.bookkeeping.importexport.xml;
 
 
-import org.apache.xerces.dom.DocumentImpl;
-import org.apache.xml.serialize.OutputFormat;
-import org.apache.xml.serialize.XMLSerializer;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -13,12 +17,11 @@ import se.swedsoft.bookkeeping.data.base.SSSaleRow;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStreamWriter;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
-import se.swedsoft.bookkeeping.util.SSDateUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,9 +35,9 @@ import org.slf4j.LoggerFactory;
 public class SSOrderExporter {    private static final Logger LOG = LoggerFactory.getLogger(SSOrderExporter.class);
 
 
-    private List<SSOrder> iItems;
+    private final List<SSOrder> iItems;
 
-    private File iFile;
+    private final File iFile;
 
     public SSOrderExporter(File pFile, List<SSOrder> pOrders) {
 
@@ -44,7 +47,7 @@ public class SSOrderExporter {    private static final Logger LOG = LoggerFactor
 
     public void doExport() {
 
-        Document iXmlDoc = new DocumentImpl();
+        Document iXmlDoc = createDocument();
         Element iRoot = iXmlDoc.createElement("Orders");
 
         for (SSOrder iOrder : iItems) {
@@ -53,7 +56,7 @@ public class SSOrderExporter {    private static final Logger LOG = LoggerFactor
             Element iSubElement = iXmlDoc.createElementNS(null, "SellerOrderNo");
 
             iElement.appendChild(iSubElement);
-            Node iNode = iXmlDoc.createTextNode(
+            Node iNode = createTextNode(iXmlDoc,
                     iOrder.getNumber() == null ? "" : iOrder.getNumber().toString());
 
             iSubElement.appendChild(iNode);
@@ -62,111 +65,103 @@ public class SSOrderExporter {    private static final Logger LOG = LoggerFactor
             iElement.appendChild(iSubElement);
             DateTimeFormatter iFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
-            iNode = iXmlDoc.createTextNode(
-                    iOrder.getDate() == null ? "" : SSDateUtil.toLocalDate(iOrder.getDate()).format(iFormat));
+            LocalDate iOrderDate = iOrder.getLocalDate();
+            iNode = createTextNode(iXmlDoc, iOrderDate == null ? "" : iOrderDate.format(iFormat));
             iSubElement.appendChild(iNode);
 
             iSubElement = iXmlDoc.createElementNS(null, "CustomerNumber");
             iElement.appendChild(iSubElement);
-            iNode = iXmlDoc.createTextNode(iOrder.getCustomerNr());
+            iNode = createTextNode(iXmlDoc, iOrder.getCustomerNr());
             iSubElement.appendChild(iNode);
 
             iSubElement = iXmlDoc.createElementNS(null, "CustomerName");
             iElement.appendChild(iSubElement);
-            iNode = iXmlDoc.createTextNode(iOrder.getCustomerName());
+            iNode = createTextNode(iXmlDoc, iOrder.getCustomerName());
             iSubElement.appendChild(iNode);
 
             iSubElement = iXmlDoc.createElementNS(null, "OurContactPerson");
             iElement.appendChild(iSubElement);
-            iNode = iXmlDoc.createTextNode(iOrder.getOurContactPerson());
+            iNode = createTextNode(iXmlDoc, iOrder.getOurContactPerson());
             iSubElement.appendChild(iNode);
 
             iSubElement = iXmlDoc.createElementNS(null, "YourContactPerson");
             iElement.appendChild(iSubElement);
-            iNode = iXmlDoc.createTextNode(iOrder.getYourContactPerson());
+            iNode = createTextNode(iXmlDoc, iOrder.getYourContactPerson());
             iSubElement.appendChild(iNode);
 
             iSubElement = iXmlDoc.createElementNS(null, "DelayInterest");
             iElement.appendChild(iSubElement);
-            iNode = iXmlDoc.createTextNode(
-                    iOrder.getDelayInterest() == null
-                            ? ""
-                            : iOrder.getDelayInterest().toString());
+            iNode = createTextNode(iXmlDoc,
+                    iOrder.getDelayInterest() == null ? "" : iOrder.getDelayInterest().toString());
             iSubElement.appendChild(iNode);
 
             iSubElement = iXmlDoc.createElementNS(null, "CurrencyCode");
             iElement.appendChild(iSubElement);
-            iNode = iXmlDoc.createTextNode(
+            iNode = createTextNode(iXmlDoc,
                     iOrder.getCurrency() == null ? "" : iOrder.getCurrency().getName());
             iSubElement.appendChild(iNode);
 
             iSubElement = iXmlDoc.createElementNS(null, "PaymentTerms");
             iElement.appendChild(iSubElement);
-            iNode = iXmlDoc.createTextNode(
-                    iOrder.getPaymentTerm() == null
-                            ? ""
-                            : iOrder.getPaymentTerm().getName());
+            iNode = createTextNode(iXmlDoc,
+                    iOrder.getPaymentTerm() == null ? "" : iOrder.getPaymentTerm().getName());
             iSubElement.appendChild(iNode);
 
             iSubElement = iXmlDoc.createElementNS(null, "DeliveryTerms");
             iElement.appendChild(iSubElement);
-            iNode = iXmlDoc.createTextNode(
-                    iOrder.getDeliveryTerm() == null
-                            ? ""
-                            : iOrder.getDeliveryTerm().getName());
+            iNode = createTextNode(iXmlDoc,
+                    iOrder.getDeliveryTerm() == null ? "" : iOrder.getDeliveryTerm().getName());
             iSubElement.appendChild(iNode);
 
             iSubElement = iXmlDoc.createElementNS(null, "DeliveryMethod");
             iElement.appendChild(iSubElement);
-            iNode = iXmlDoc.createTextNode(
-                    iOrder.getDeliveryWay() == null
-                            ? ""
-                            : iOrder.getDeliveryWay().getName());
+            iNode = createTextNode(iXmlDoc,
+                    iOrder.getDeliveryWay() == null ? "" : iOrder.getDeliveryWay().getName());
             iSubElement.appendChild(iNode);
 
             iSubElement = iXmlDoc.createElementNS(null, "TaxFree");
             iElement.appendChild(iSubElement);
-            iNode = iXmlDoc.createTextNode(Boolean.toString(iOrder.getTaxFree()));
+            iNode = createTextNode(iXmlDoc, Boolean.toString(iOrder.getTaxFree()));
             iSubElement.appendChild(iNode);
 
             iSubElement = iXmlDoc.createElementNS(null, "Text");
             iElement.appendChild(iSubElement);
-            iNode = iXmlDoc.createTextNode(
+            iNode = createTextNode(iXmlDoc,
                     iOrder.getText() == null ? "" : iOrder.getText());
             iSubElement.appendChild(iNode);
 
             iSubElement = iXmlDoc.createElementNS(null, "TaxRate1");
             iElement.appendChild(iSubElement);
-            iNode = iXmlDoc.createTextNode(
+            iNode = createTextNode(iXmlDoc,
                     iOrder.getTaxRate1() == null ? "" : iOrder.getTaxRate1().toString());
             iSubElement.appendChild(iNode);
 
             iSubElement = iXmlDoc.createElementNS(null, "TaxRate2");
             iElement.appendChild(iSubElement);
-            iNode = iXmlDoc.createTextNode(
+            iNode = createTextNode(iXmlDoc,
                     iOrder.getTaxRate2() == null ? "" : iOrder.getTaxRate2().toString());
             iSubElement.appendChild(iNode);
 
             iSubElement = iXmlDoc.createElementNS(null, "TaxRate3");
             iElement.appendChild(iSubElement);
-            iNode = iXmlDoc.createTextNode(
+            iNode = createTextNode(iXmlDoc,
                     iOrder.getTaxRate3() == null ? "" : iOrder.getTaxRate3().toString());
             iSubElement.appendChild(iNode);
 
             iSubElement = iXmlDoc.createElementNS(null, "EuSaleCommodity");
             iElement.appendChild(iSubElement);
-            iNode = iXmlDoc.createTextNode(Boolean.toString(iOrder.getEuSaleCommodity()));
+            iNode = createTextNode(iXmlDoc, Boolean.toString(iOrder.getEuSaleCommodity()));
             iSubElement.appendChild(iNode);
 
             iSubElement = iXmlDoc.createElementNS(null, "EuSaleThirdPartCommodity");
             iElement.appendChild(iSubElement);
-            iNode = iXmlDoc.createTextNode(
+            iNode = createTextNode(iXmlDoc,
                     Boolean.toString(iOrder.getEuSaleThirdPartCommodity()));
             iSubElement.appendChild(iNode);
 
             iSubElement = iXmlDoc.createElementNS(null, "VATRegNo");
             iElement.appendChild(iSubElement);
-            iNode = iXmlDoc.createTextNode(
+            iNode = createTextNode(iXmlDoc,
                     iOrder.getCustomer() == null
                             ? ""
                             : iOrder.getCustomer().getVATNumber());
@@ -174,13 +169,13 @@ public class SSOrderExporter {    private static final Logger LOG = LoggerFactor
 
             iSubElement = iXmlDoc.createElementNS(null, "Email");
             iElement.appendChild(iSubElement);
-            iNode = iXmlDoc.createTextNode(
+            iNode = createTextNode(iXmlDoc,
                     iOrder.getCustomer() == null ? "" : iOrder.getCustomer().getEMail());
             iSubElement.appendChild(iNode);
 
             iSubElement = iXmlDoc.createElementNS(null, "CompanyNo");
             iElement.appendChild(iSubElement);
-            iNode = iXmlDoc.createTextNode(
+            iNode = createTextNode(iXmlDoc,
                     iOrder.getCustomer() == null
                             ? ""
                             : iOrder.getCustomer().getRegistrationNumber());
@@ -188,25 +183,25 @@ public class SSOrderExporter {    private static final Logger LOG = LoggerFactor
 
             iSubElement = iXmlDoc.createElementNS(null, "Telefax");
             iElement.appendChild(iSubElement);
-            iNode = iXmlDoc.createTextNode(
+            iNode = createTextNode(iXmlDoc,
                     iOrder.getCustomer() == null ? "" : iOrder.getCustomer().getTelefax());
             iSubElement.appendChild(iNode);
 
             iSubElement = iXmlDoc.createElementNS(null, "Telephone");
             iElement.appendChild(iSubElement);
-            iNode = iXmlDoc.createTextNode(
+            iNode = createTextNode(iXmlDoc,
                     iOrder.getCustomer() == null ? "" : iOrder.getCustomer().getPhone1());
             iSubElement.appendChild(iNode);
 
             iSubElement = iXmlDoc.createElementNS(null, "Telephone2");
             iElement.appendChild(iSubElement);
-            iNode = iXmlDoc.createTextNode(
+            iNode = createTextNode(iXmlDoc,
                     iOrder.getCustomer() == null ? "" : iOrder.getCustomer().getPhone2());
             iSubElement.appendChild(iNode);
 
             iSubElement = iXmlDoc.createElementNS(null, "InvoiceName");
             iElement.appendChild(iSubElement);
-            iNode = iXmlDoc.createTextNode(
+            iNode = createTextNode(iXmlDoc,
                     iOrder.getInvoiceAddress() == null
                             ? ""
                             : iOrder.getInvoiceAddress().getName());
@@ -214,7 +209,7 @@ public class SSOrderExporter {    private static final Logger LOG = LoggerFactor
 
             iSubElement = iXmlDoc.createElementNS(null, "InvoiceAddress1");
             iElement.appendChild(iSubElement);
-            iNode = iXmlDoc.createTextNode(
+            iNode = createTextNode(iXmlDoc,
                     iOrder.getInvoiceAddress() == null
                             ? ""
                             : iOrder.getInvoiceAddress().getAddress1());
@@ -222,7 +217,7 @@ public class SSOrderExporter {    private static final Logger LOG = LoggerFactor
 
             iSubElement = iXmlDoc.createElementNS(null, "InvoiceAddress2");
             iElement.appendChild(iSubElement);
-            iNode = iXmlDoc.createTextNode(
+            iNode = createTextNode(iXmlDoc,
                     iOrder.getInvoiceAddress() == null
                             ? ""
                             : iOrder.getInvoiceAddress().getAddress2());
@@ -230,7 +225,7 @@ public class SSOrderExporter {    private static final Logger LOG = LoggerFactor
 
             iSubElement = iXmlDoc.createElementNS(null, "InvoicePostCode");
             iElement.appendChild(iSubElement);
-            iNode = iXmlDoc.createTextNode(
+            iNode = createTextNode(iXmlDoc,
                     iOrder.getInvoiceAddress() == null
                             ? ""
                             : iOrder.getInvoiceAddress().getZipCode());
@@ -238,7 +233,7 @@ public class SSOrderExporter {    private static final Logger LOG = LoggerFactor
 
             iSubElement = iXmlDoc.createElementNS(null, "InvoicePostOffice");
             iElement.appendChild(iSubElement);
-            iNode = iXmlDoc.createTextNode(
+            iNode = createTextNode(iXmlDoc,
                     iOrder.getInvoiceAddress() == null
                             ? ""
                             : iOrder.getInvoiceAddress().getCity());
@@ -246,7 +241,7 @@ public class SSOrderExporter {    private static final Logger LOG = LoggerFactor
 
             iSubElement = iXmlDoc.createElementNS(null, "InvoiceCountry");
             iElement.appendChild(iSubElement);
-            iNode = iXmlDoc.createTextNode(
+            iNode = createTextNode(iXmlDoc,
                     iOrder.getInvoiceAddress() == null
                             ? ""
                             : iOrder.getInvoiceAddress().getCountry());
@@ -254,7 +249,7 @@ public class SSOrderExporter {    private static final Logger LOG = LoggerFactor
 
             iSubElement = iXmlDoc.createElementNS(null, "DeliveryName");
             iElement.appendChild(iSubElement);
-            iNode = iXmlDoc.createTextNode(
+            iNode = createTextNode(iXmlDoc,
                     iOrder.getDeliveryAddress() == null
                             ? ""
                             : iOrder.getDeliveryAddress().getName());
@@ -262,7 +257,7 @@ public class SSOrderExporter {    private static final Logger LOG = LoggerFactor
 
             iSubElement = iXmlDoc.createElementNS(null, "DeliveryAddress1");
             iElement.appendChild(iSubElement);
-            iNode = iXmlDoc.createTextNode(
+            iNode = createTextNode(iXmlDoc,
                     iOrder.getDeliveryAddress() == null
                             ? ""
                             : iOrder.getDeliveryAddress().getAddress1());
@@ -270,7 +265,7 @@ public class SSOrderExporter {    private static final Logger LOG = LoggerFactor
 
             iSubElement = iXmlDoc.createElementNS(null, "DeliveryAddress2");
             iElement.appendChild(iSubElement);
-            iNode = iXmlDoc.createTextNode(
+            iNode = createTextNode(iXmlDoc,
                     iOrder.getDeliveryAddress() == null
                             ? ""
                             : iOrder.getDeliveryAddress().getAddress2());
@@ -278,7 +273,7 @@ public class SSOrderExporter {    private static final Logger LOG = LoggerFactor
 
             iSubElement = iXmlDoc.createElementNS(null, "DeliveryPostCode");
             iElement.appendChild(iSubElement);
-            iNode = iXmlDoc.createTextNode(
+            iNode = createTextNode(iXmlDoc,
                     iOrder.getDeliveryAddress() == null
                             ? ""
                             : iOrder.getDeliveryAddress().getZipCode());
@@ -286,7 +281,7 @@ public class SSOrderExporter {    private static final Logger LOG = LoggerFactor
 
             iSubElement = iXmlDoc.createElementNS(null, "DeliveryPostOffice");
             iElement.appendChild(iSubElement);
-            iNode = iXmlDoc.createTextNode(
+            iNode = createTextNode(iXmlDoc,
                     iOrder.getDeliveryAddress() == null
                             ? ""
                             : iOrder.getDeliveryAddress().getCity());
@@ -294,7 +289,7 @@ public class SSOrderExporter {    private static final Logger LOG = LoggerFactor
 
             iSubElement = iXmlDoc.createElementNS(null, "DeliveryCountry");
             iElement.appendChild(iSubElement);
-            iNode = iXmlDoc.createTextNode(
+            iNode = createTextNode(iXmlDoc,
                     iOrder.getDeliveryAddress() == null
                             ? ""
                             : iOrder.getDeliveryAddress().getCountry());
@@ -307,48 +302,49 @@ public class SSOrderExporter {    private static final Logger LOG = LoggerFactor
 
                 Element iSubElement2 = iXmlDoc.createElementNS(null, "SellerArticleNo");
 
-                iNode = iXmlDoc.createTextNode(iRow.getProductNr());
+                iNode = createTextNode(iXmlDoc,
+                        iRow.getProductNr() == null ? "" : iRow.getProductNr());
                 iSubElement2.appendChild(iNode);
                 iSubElement.appendChild(iSubElement2);
 
                 iSubElement2 = iXmlDoc.createElementNS(null, "ArticleDescription");
-                iNode = iXmlDoc.createTextNode(iRow.getDescription());
+                iNode = createTextNode(iXmlDoc,
+                        iRow.getDescription() == null ? "" : iRow.getDescription());
                 iSubElement2.appendChild(iNode);
                 iSubElement.appendChild(iSubElement2);
 
                 iSubElement2 = iXmlDoc.createElementNS(null, "UnitPrice");
-                iNode = iXmlDoc.createTextNode(
+                iNode = createTextNode(iXmlDoc,
                         iRow.getUnitprice() == null ? "" : iRow.getUnitprice().toString());
                 iSubElement2.appendChild(iNode);
                 iSubElement.appendChild(iSubElement2);
 
                 iSubElement2 = iXmlDoc.createElementNS(null, "QuantityOrdered");
-                iNode = iXmlDoc.createTextNode(
-                        iRow.getQuantity() == null ? "" : iRow.getQuantity().toString());
+                iNode = createTextNode(iXmlDoc, tenthsToDecimalString(iRow.getQuantity()));
                 iSubElement2.appendChild(iNode);
                 iSubElement.appendChild(iSubElement2);
 
                 iSubElement2 = iXmlDoc.createElementNS(null, "Unit");
-                iNode = iXmlDoc.createTextNode(
-                        iRow.getUnit() == null ? "" : iRow.getUnit().toString());
+                iNode = createTextNode(iXmlDoc,
+                        iRow.getUnit() == null ? "" : iRow.getUnit().getName());
                 iSubElement2.appendChild(iNode);
                 iSubElement.appendChild(iSubElement2);
 
                 iSubElement2 = iXmlDoc.createElementNS(null, "TotalLineDiscountPercent");
-                iNode = iXmlDoc.createTextNode(
+                iNode = createTextNode(iXmlDoc,
                         iRow.getDiscount() == null ? "" : iRow.getDiscount().toString());
                 iRow.getNormalizedDiscount();
                 iSubElement2.appendChild(iNode);
                 iSubElement.appendChild(iSubElement2);
 
                 iSubElement2 = iXmlDoc.createElementNS(null, "SumOfLine");
-                iNode = iXmlDoc.createTextNode(
+                iNode = createTextNode(iXmlDoc,
                         iRow.getSum().map(BigDecimal::toString).orElse(""));
                 iSubElement2.appendChild(iNode);
                 iSubElement.appendChild(iSubElement2);
 
                 iSubElement2 = iXmlDoc.createElementNS(null, "VATPercentage");
-                iNode = iXmlDoc.createTextNode(
+                iNode = createTextNode(iXmlDoc,
                         iRow.getTaxCode() == null ? "" : iRow.getTaxCode().toString());
                 iSubElement2.appendChild(iNode);
                 iSubElement.appendChild(iSubElement2);
@@ -360,33 +356,52 @@ public class SSOrderExporter {    private static final Logger LOG = LoggerFactor
             iRoot.appendChild(iElement);
         }
         iXmlDoc.appendChild(iRoot);
-        try {
-            FileOutputStream fos = new FileOutputStream(iFile.getAbsolutePath());
-            OutputStreamWriter osw = new OutputStreamWriter(fos, "UTF-8");
-            OutputFormat of = new OutputFormat("XML", "UTF-8", true);
+        try (FileOutputStream fos = new FileOutputStream(iFile.getAbsolutePath())) {
+            Transformer transformer = TransformerFactory.newInstance().newTransformer();
 
-            of.setIndent(1);
-            of.setIndenting(true);
-            XMLSerializer serializer = new XMLSerializer(osw, of);
-
-            serializer.asDOMSerializer();
-            serializer.serialize(iXmlDoc.getDocumentElement());
-
-            fos.close();
-            osw.close();
+            transformer.setOutputProperty(OutputKeys.METHOD, "xml");
+            transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
+            transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+            transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "1");
+            transformer.transform(new DOMSource(iXmlDoc), new StreamResult(fos));
         } catch (IOException e) {
+            LOG.error("Unexpected error", e);
+        } catch (javax.xml.transform.TransformerException e) {
             LOG.error("Unexpected error", e);
         }
     }
 
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder();
+        return "se.swedsoft.bookkeeping.importexport.xml.SSOrderExporter"
+                + "{iFile=" + iFile
+                + ", iItems=" + iItems
+                + '}';
+    }
 
-        sb.append("se.swedsoft.bookkeeping.importexport.xml.SSOrderExporter");
-        sb.append("{iFile=").append(iFile);
-        sb.append(", iItems=").append(iItems);
-        sb.append('}');
-        return sb.toString();
+    private Node createTextNode(Document pDocument, String pValue) {
+        return pDocument.createTextNode(pValue == null ? "" : pValue);
+    }
+
+    /**
+     * Converts a stored tenths quantity to a plain decimal string suitable for export.
+     * E.g. {@code 25} (internal tenths) → {@code "2.5"} (UI decimal).
+     *
+     * @param tenths quantity stored as tenths, or {@code null}
+     * @return plain decimal string, or empty string if input is null
+     */
+    static String tenthsToDecimalString(Integer tenths) {
+        if (tenths == null) {
+            return "";
+        }
+        return BigDecimal.valueOf(tenths, 1).toPlainString();
+    }
+
+    private Document createDocument() {
+        try {
+            return DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
+        } catch (ParserConfigurationException e) {
+            throw new IllegalStateException("Could not create XML document", e);
+        }
     }
 }

@@ -4,6 +4,8 @@ package se.swedsoft.bookkeeping.gui.company.pages;
 import se.swedsoft.bookkeeping.data.SSNewCompany;
 
 import javax.swing.*;
+import java.util.Collections;
+import java.util.List;
 
 
 /**
@@ -48,6 +50,24 @@ public abstract class SSCompanyPage {
      * @return the company
      */
     public abstract SSNewCompany getCompany();
+
+    /**
+     * Page-level validation executed before OK closes the dialog.
+     *
+     * @return user-facing validation messages, empty when valid.
+     */
+    public List<String> validatePage() {
+        return Collections.emptyList();
+    }
+
+    /**
+     * Optional first component to focus when this page fails validation.
+     *
+     * @return component to focus, or null when not applicable.
+     */
+    public JComponent getFirstInvalidComponent() {
+        return null;
+    }
 
     /**
      *

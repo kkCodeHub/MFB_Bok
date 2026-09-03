@@ -1,17 +1,16 @@
 package se.swedsoft.bookkeeping.persistence;
 
 import se.swedsoft.bookkeeping.data.system.SSDB;
-import se.swedsoft.bookkeeping.persistence.legacy.SSDBAccountPlanRepository;
-import se.swedsoft.bookkeeping.persistence.legacy.SSDBAccountingYearRepository;
-import se.swedsoft.bookkeeping.persistence.legacy.SSDBCustomerRepository;
-import se.swedsoft.bookkeeping.persistence.legacy.SSDBProductRepository;
-import se.swedsoft.bookkeeping.persistence.legacy.SSDBSupplierRepository;
-import se.swedsoft.bookkeeping.persistence.legacy.SSDBVoucherRepository;
+import se.swedsoft.bookkeeping.data.system.SSCompanyYearContext;
+import se.swedsoft.bookkeeping.data.system.SSSystemConfigContext;
 import se.swedsoft.bookkeeping.persistence.v2.V2AccountPlanRepository;
 import se.swedsoft.bookkeeping.persistence.v2.V2AccountingYearRepository;
 import se.swedsoft.bookkeeping.persistence.v2.V2AutoDistRepository;
 import se.swedsoft.bookkeeping.persistence.v2.V2CreditInvoiceRepository;
+import se.swedsoft.bookkeeping.persistence.v2.V2CurrencyRepository;
 import se.swedsoft.bookkeeping.persistence.v2.V2CustomerRepository;
+import se.swedsoft.bookkeeping.persistence.v2.V2DeliveryTermRepository;
+import se.swedsoft.bookkeeping.persistence.v2.V2DeliveryWayRepository;
 import se.swedsoft.bookkeeping.persistence.v2.V2IndeliveryRepository;
 import se.swedsoft.bookkeeping.persistence.v2.V2InpaymentRepository;
 import se.swedsoft.bookkeeping.persistence.v2.V2InventoryRepository;
@@ -20,6 +19,7 @@ import se.swedsoft.bookkeeping.persistence.v2.V2OwnReportRepository;
 import se.swedsoft.bookkeeping.persistence.v2.V2OrderRepository;
 import se.swedsoft.bookkeeping.persistence.v2.V2OutdeliveryRepository;
 import se.swedsoft.bookkeeping.persistence.v2.V2OutpaymentRepository;
+import se.swedsoft.bookkeeping.persistence.v2.V2PaymentTermRepository;
 import se.swedsoft.bookkeeping.persistence.v2.V2PeriodicInvoiceRepository;
 import se.swedsoft.bookkeeping.persistence.v2.V2ProductRepository;
 import se.swedsoft.bookkeeping.persistence.v2.V2PurchaseOrderRepository;
@@ -27,8 +27,15 @@ import se.swedsoft.bookkeeping.persistence.v2.V2SupplierRepository;
 import se.swedsoft.bookkeeping.persistence.v2.V2SupplierCreditInvoiceRepository;
 import se.swedsoft.bookkeeping.persistence.v2.V2SupplierInvoiceRepository;
 import se.swedsoft.bookkeeping.persistence.v2.V2TenderRepository;
+import se.swedsoft.bookkeeping.persistence.v2.V2UnitRepository;
+import se.swedsoft.bookkeeping.persistence.v2.V2CompanyRepository;
+import se.swedsoft.bookkeeping.persistence.v2.V2ProjectRepository;
+import se.swedsoft.bookkeeping.persistence.v2.V2ResultUnitRepository;
 import se.swedsoft.bookkeeping.persistence.v2.V2VoucherRepository;
 import se.swedsoft.bookkeeping.persistence.v2.V2VoucherTemplateRepository;
+
+import java.lang.reflect.Proxy;
+import java.sql.Connection;
 
 /**
  * Central access point for repository instances.
@@ -38,19 +45,12 @@ import se.swedsoft.bookkeeping.persistence.v2.V2VoucherTemplateRepository;
  * repositories through this class rather than instantiating implementations
  * directly.</p>
  *
- * <p>When {@code fribok.schema.version=v2} the factory wires in the V2
- * repository implementations. For cut-over domains ({@code AutoDist},
- * {@code VoucherTemplate}, {@code OwnReport}, {@code SupplierInvoice},
- * {@code Tender}, {@code PeriodicInvoice}, {@code CreditInvoice},
- * {@code SupplierCreditInvoice}, {@code PurchaseOrder}, {@code Order},
- * {@code Indelivery}, {@code Outdelivery}, {@code Inventory},
- * {@code Outpayment}, {@code Inpayment} and {@code Invoice})
- * V2 repositories are always used regardless of schema flag. Other domains
- * still switch between V2 and legacy SSDB-delegating implementations.</p>
+ * <p>In V2-only mode the factory always wires V2 repository implementations
+ * for all domains.</p>
  *
  * <p>Usage during application startup:</p>
  * <pre>{@code
- *   Repositories.init(SSDB.getInstance());
+ *   Repositories.init(SSSystemConfigContext.getDatabase());
  * }</pre>
  *
  * <p>Usage in application code:</p>
@@ -60,30 +60,39 @@ import se.swedsoft.bookkeeping.persistence.v2.V2VoucherTemplateRepository;
  */
 public final class Repositories {
 
-    private static final String SCHEMA_PROPERTY = "fribok.schema.version";
+    private static final Connection NO_CONNECTION = createNoConnection();
 
-    private static CustomerRepository customerRepository;
-    private static AutoDistRepository autoDistRepository;
-    private static CreditInvoiceRepository creditInvoiceRepository;
-    private static IndeliveryRepository indeliveryRepository;
-    private static InpaymentRepository inpaymentRepository;
-    private static InventoryRepository inventoryRepository;
-    private static InvoiceRepository invoiceRepository;
-    private static OwnReportRepository ownReportRepository;
-    private static OrderRepository orderRepository;
-    private static OutdeliveryRepository outdeliveryRepository;
-    private static OutpaymentRepository outpaymentRepository;
-    private static PeriodicInvoiceRepository periodicInvoiceRepository;
-    private static ProductRepository productRepository;
-    private static PurchaseOrderRepository purchaseOrderRepository;
-    private static SupplierRepository supplierRepository;
-    private static SupplierInvoiceRepository supplierInvoiceRepository;
-    private static SupplierCreditInvoiceRepository supplierCreditInvoiceRepository;
-    private static TenderRepository tenderRepository;
-    private static AccountPlanRepository accountPlanRepository;
-    private static VoucherRepository voucherRepository;
-    private static VoucherTemplateRepository voucherTemplateRepository;
-    private static AccountingYearRepository accountingYearRepository;
+    private static V2CustomerRepository customerRepository;
+    private static V2AutoDistRepository autoDistRepository;
+    private static V2CreditInvoiceRepository creditInvoiceRepository;
+    private static V2CurrencyRepository currencyRepository;
+    private static V2DeliveryTermRepository deliveryTermRepository;
+    private static V2DeliveryWayRepository deliveryWayRepository;
+    private static V2IndeliveryRepository indeliveryRepository;
+    private static V2InpaymentRepository inpaymentRepository;
+    private static V2InventoryRepository inventoryRepository;
+    private static V2InvoiceRepository invoiceRepository;
+    private static V2OwnReportRepository ownReportRepository;
+    private static V2OrderRepository orderRepository;
+    private static V2OutdeliveryRepository outdeliveryRepository;
+    private static V2OutpaymentRepository outpaymentRepository;
+    private static V2PaymentTermRepository paymentTermRepository;
+    private static V2PeriodicInvoiceRepository periodicInvoiceRepository;
+    private static V2ProductRepository productRepository;
+    private static V2PurchaseOrderRepository purchaseOrderRepository;
+    private static V2SupplierRepository supplierRepository;
+    private static V2SupplierInvoiceRepository supplierInvoiceRepository;
+    private static V2SupplierCreditInvoiceRepository supplierCreditInvoiceRepository;
+    private static V2TenderRepository tenderRepository;
+    private static V2UnitRepository unitRepository;
+    private static V2AccountPlanRepository accountPlanRepository;
+    private static V2VoucherRepository voucherRepository;
+    private static V2VoucherTemplateRepository voucherTemplateRepository;
+    private static V2AccountingYearRepository accountingYearRepository;
+    private static V2CompanyRepository companyRepository;
+    private static V2ProjectRepository projectRepository;
+    private static V2ResultUnitRepository resultUnitRepository;
+    private static SSDB initializedDb;
 
     private Repositories() {
         // utility class
@@ -92,24 +101,16 @@ public final class Repositories {
     /**
      * Returns {@code true} when the V2 schema is active.
      *
-     * @return {@code true} if {@code fribok.schema.version=v2}
+     * @return always {@code true} in V2-only mode
      */
     public static boolean isSchemaV2() {
-        return "v2".equalsIgnoreCase(System.getProperty(SCHEMA_PROPERTY, "v1"));
+        return true;
     }
 
     /**
      * Initialises all repository instances backed by the given {@link SSDB}.
      *
-     * <p>When {@code fribok.schema.version=v2} the V2 repository implementations
-     * are used. For cut-over domains ({@code AutoDist},
-     * {@code VoucherTemplate}, {@code OwnReport}, {@code SupplierInvoice},
-     * {@code Tender}, {@code PeriodicInvoice}, {@code CreditInvoice},
-     * {@code SupplierCreditInvoice}, {@code PurchaseOrder}, {@code Order},
-     * {@code Indelivery}, {@code Outdelivery}, {@code Inventory},
-     * {@code Outpayment}, {@code Inpayment}, {@code Invoice}) V2
-     * implementations are always created as part of Slice P cutover; otherwise
-     * legacy SSDB-delegating ones are created. Must be called once before any
+     * <p>V2 implementations are always created. Must be called once before any
      * getter is used.
      * Calling again replaces the existing instances.</p>
      *
@@ -119,87 +120,296 @@ public final class Repositories {
         if (db == null) {
             throw new NullPointerException("db must not be null");
         }
-        // Migrated H domains are V2-only in Slice P.
-        autoDistRepository = new V2AutoDistRepository(db);
-        creditInvoiceRepository = new V2CreditInvoiceRepository(db);
-        inpaymentRepository = new V2InpaymentRepository(db);
-        invoiceRepository = new V2InvoiceRepository(db);
-        ownReportRepository = new V2OwnReportRepository(db);
-        periodicInvoiceRepository = new V2PeriodicInvoiceRepository(db);
-        indeliveryRepository = new V2IndeliveryRepository(db);
-        inventoryRepository = new V2InventoryRepository(db);
-        orderRepository = new V2OrderRepository(db);
-        outdeliveryRepository = new V2OutdeliveryRepository(db);
-        outpaymentRepository = new V2OutpaymentRepository(db);
-        purchaseOrderRepository = new V2PurchaseOrderRepository(db);
-        supplierCreditInvoiceRepository = new V2SupplierCreditInvoiceRepository(db);
-        supplierInvoiceRepository = new V2SupplierInvoiceRepository(db);
-        tenderRepository = new V2TenderRepository(db);
-        voucherTemplateRepository = new V2VoucherTemplateRepository(db);
-
-        if (isSchemaV2()) {
-            customerRepository = new V2CustomerRepository(db);
-            productRepository = new V2ProductRepository(db);
-            supplierRepository = new V2SupplierRepository(db);
-            accountPlanRepository = new V2AccountPlanRepository(db);
-            voucherRepository = new V2VoucherRepository(db);
-            accountingYearRepository = new V2AccountingYearRepository(db);
-        } else {
-            customerRepository = new SSDBCustomerRepository(db);
-            productRepository = new SSDBProductRepository(db);
-            supplierRepository = new SSDBSupplierRepository(db);
-            accountPlanRepository = new SSDBAccountPlanRepository(db);
-            voucherRepository = new SSDBVoucherRepository(db);
-            accountingYearRepository = new SSDBAccountingYearRepository(db);
+        initializedDb = db;
+        if (db.getConnection() == null) {
+            initWithoutConnection(db);
+            return;
         }
+        // Migrated H domains are V2-only in Slice P.
+        autoDistRepository = new V2AutoDistRepository(db.getConnection(),
+                () -> {
+                    se.swedsoft.bookkeeping.data.SSNewCompany iCompany = SSCompanyYearContext.getCurrentCompany();
+                    return iCompany != null ? iCompany : db.getCurrentCompany();
+                },
+                db::rollbackCurrentTransaction);
+        creditInvoiceRepository = new V2CreditInvoiceRepository(db.getConnection(),
+                () -> {
+                    se.swedsoft.bookkeeping.data.SSNewCompany iCompany = SSCompanyYearContext.getCurrentCompany();
+                    return iCompany != null ? iCompany : db.getCurrentCompany();
+                },
+                db::rollbackCurrentTransaction);
+        // Reference data (Kategori A) â€” always V2 after cutover.
+        currencyRepository = new V2CurrencyRepository(db.getConnection(), db::rollbackCurrentTransaction);
+        deliveryTermRepository = new V2DeliveryTermRepository(db.getConnection(), db::rollbackCurrentTransaction);
+        deliveryWayRepository = new V2DeliveryWayRepository(db.getConnection(), db::rollbackCurrentTransaction);
+        paymentTermRepository = new V2PaymentTermRepository(db.getConnection(), db::rollbackCurrentTransaction);
+        unitRepository = new V2UnitRepository(db.getConnection(), db::rollbackCurrentTransaction);
+        inpaymentRepository = new V2InpaymentRepository(db.getConnection(),
+                () -> {
+                    se.swedsoft.bookkeeping.data.SSNewCompany iCompany = SSCompanyYearContext.getCurrentCompany();
+                    return iCompany != null ? iCompany : db.getCurrentCompany();
+                },
+                db::rollbackCurrentTransaction);
+        invoiceRepository = new V2InvoiceRepository(db.getConnection(),
+                () -> {
+                    se.swedsoft.bookkeeping.data.SSNewCompany iCompany = SSCompanyYearContext.getCurrentCompany();
+                    return iCompany != null ? iCompany : db.getCurrentCompany();
+                },
+                db::rollbackCurrentTransaction);
+        ownReportRepository = new V2OwnReportRepository(db.getConnection(),
+                () -> {
+                    se.swedsoft.bookkeeping.data.SSNewCompany iCompany = SSCompanyYearContext.getCurrentCompany();
+                    return iCompany != null ? iCompany : db.getCurrentCompany();
+                },
+                db::rollbackCurrentTransaction);
+        periodicInvoiceRepository = new V2PeriodicInvoiceRepository(db.getConnection(),
+                () -> {
+                    se.swedsoft.bookkeeping.data.SSNewCompany iCompany = SSCompanyYearContext.getCurrentCompany();
+                    return iCompany != null ? iCompany : db.getCurrentCompany();
+                },
+                db::rollbackCurrentTransaction);
+        indeliveryRepository = new V2IndeliveryRepository(db.getConnection(),
+                () -> {
+                    se.swedsoft.bookkeeping.data.SSNewCompany iCompany = SSCompanyYearContext.getCurrentCompany();
+                    return iCompany != null ? iCompany : db.getCurrentCompany();
+                },
+                db::rollbackCurrentTransaction);
+        inventoryRepository = new V2InventoryRepository(db.getConnection(),
+                () -> {
+                    se.swedsoft.bookkeeping.data.SSNewCompany iCompany = SSCompanyYearContext.getCurrentCompany();
+                    return iCompany != null ? iCompany : db.getCurrentCompany();
+                },
+                db::rollbackCurrentTransaction);
+        orderRepository = new V2OrderRepository(db.getConnection(),
+                () -> {
+                    se.swedsoft.bookkeeping.data.SSNewCompany iCompany = SSCompanyYearContext.getCurrentCompany();
+                    return iCompany != null ? iCompany : db.getCurrentCompany();
+                },
+                db::rollbackCurrentTransaction);
+        outdeliveryRepository = new V2OutdeliveryRepository(db.getConnection(),
+                () -> {
+                    se.swedsoft.bookkeeping.data.SSNewCompany iCompany = SSCompanyYearContext.getCurrentCompany();
+                    return iCompany != null ? iCompany : db.getCurrentCompany();
+                },
+                db::rollbackCurrentTransaction);
+        outpaymentRepository = new V2OutpaymentRepository(db.getConnection(),
+                () -> {
+                    se.swedsoft.bookkeeping.data.SSNewCompany iCompany = SSCompanyYearContext.getCurrentCompany();
+                    return iCompany != null ? iCompany : db.getCurrentCompany();
+                },
+                db::rollbackCurrentTransaction);
+        purchaseOrderRepository = new V2PurchaseOrderRepository(db.getConnection(),
+                () -> {
+                    se.swedsoft.bookkeeping.data.SSNewCompany iCompany = SSCompanyYearContext.getCurrentCompany();
+                    return iCompany != null ? iCompany : db.getCurrentCompany();
+                },
+                db::rollbackCurrentTransaction);
+        supplierCreditInvoiceRepository = new V2SupplierCreditInvoiceRepository(db.getConnection(),
+                () -> {
+                    se.swedsoft.bookkeeping.data.SSNewCompany iCompany = SSCompanyYearContext.getCurrentCompany();
+                    return iCompany != null ? iCompany : db.getCurrentCompany();
+                },
+                db::rollbackCurrentTransaction);
+        supplierInvoiceRepository = new V2SupplierInvoiceRepository(db.getConnection(),
+                () -> {
+                    se.swedsoft.bookkeeping.data.SSNewCompany iCompany = SSCompanyYearContext.getCurrentCompany();
+                    return iCompany != null ? iCompany : db.getCurrentCompany();
+                },
+                db::rollbackCurrentTransaction);
+        tenderRepository = new V2TenderRepository(db.getConnection(),
+                () -> {
+                    se.swedsoft.bookkeeping.data.SSNewCompany iCompany = SSCompanyYearContext.getCurrentCompany();
+                    return iCompany != null ? iCompany : db.getCurrentCompany();
+                },
+                db::rollbackCurrentTransaction);
+        voucherTemplateRepository = new V2VoucherTemplateRepository(db.getConnection(),
+                () -> {
+                    se.swedsoft.bookkeeping.data.SSNewCompany iCompany = SSCompanyYearContext.getCurrentCompany();
+                    return iCompany != null ? iCompany : db.getCurrentCompany();
+                },
+                db::rollbackCurrentTransaction);
+
+        customerRepository = new V2CustomerRepository(db.getConnection(),
+                () -> {
+                    se.swedsoft.bookkeeping.data.SSNewCompany iCompany = SSCompanyYearContext.getCurrentCompany();
+                    return iCompany != null ? iCompany : db.getCurrentCompany();
+                }, db::rollbackCurrentTransaction);
+        productRepository = new V2ProductRepository(db.getConnection(),
+                () -> {
+                    se.swedsoft.bookkeeping.data.SSNewCompany iCompany = SSCompanyYearContext.getCurrentCompany();
+                    return iCompany != null ? iCompany : db.getCurrentCompany();
+                }, db::rollbackCurrentTransaction);
+        supplierRepository = new V2SupplierRepository(db.getConnection(),
+                () -> {
+                    se.swedsoft.bookkeeping.data.SSNewCompany iCompany = SSCompanyYearContext.getCurrentCompany();
+                    return iCompany != null ? iCompany : db.getCurrentCompany();
+                }, db::rollbackCurrentTransaction);
+        accountPlanRepository = new V2AccountPlanRepository(db.getConnection(), db::rollbackCurrentTransaction);
+        voucherRepository = new V2VoucherRepository(db.getConnection(),
+                () -> {
+                    se.swedsoft.bookkeeping.data.SSNewCompany iCompany = SSCompanyYearContext.getCurrentCompany();
+                    return iCompany != null ? iCompany : db.getCurrentCompany();
+                },
+                () -> {
+                    se.swedsoft.bookkeeping.data.SSNewAccountingYear iYear = SSCompanyYearContext.getCurrentYear();
+                    return iYear != null ? iYear : db.getCurrentYear();
+                }, db::rollbackCurrentTransaction);
+        accountingYearRepository = new V2AccountingYearRepository(
+                db.getConnection(),
+                () -> {
+                    se.swedsoft.bookkeeping.data.SSNewCompany iCompany = SSCompanyYearContext.getCurrentCompany();
+                    return iCompany != null ? iCompany : db.getCurrentCompany();
+                },
+                () -> {
+                    se.swedsoft.bookkeeping.data.SSNewAccountingYear iYear = SSCompanyYearContext.getCurrentYear();
+                    return iYear != null ? iYear : db.getCurrentYear();
+                },
+                iYear -> {
+                    SSCompanyYearContext.applyOpenedYearFromRepository(iYear);
+                    db.applyOpenedYearFromRepository(iYear);
+                },
+                db::rollbackCurrentTransaction);
+        companyRepository = new V2CompanyRepository(db.getConnection(), db::rollbackCurrentTransaction,
+                SSCompanyYearContext::getYearsForCompany, year -> Repositories.accountingYears().delete(year));
+
+        projectRepository = new V2ProjectRepository(db.getConnection(),
+                () -> {
+                    se.swedsoft.bookkeeping.data.SSNewCompany iCompany = SSCompanyYearContext.getCurrentCompany();
+                    return iCompany != null ? iCompany : db.getCurrentCompany();
+                },
+                db::rollbackCurrentTransaction);
+        resultUnitRepository = new V2ResultUnitRepository(db.getConnection(),
+                () -> {
+                    se.swedsoft.bookkeeping.data.SSNewCompany iCompany = SSCompanyYearContext.getCurrentCompany();
+                    return iCompany != null ? iCompany : db.getCurrentCompany();
+                },
+                db::rollbackCurrentTransaction);
+    }
+
+    private static void initWithoutConnection(SSDB db) {
+        // DB exists but JDBC connection is not initialized yet (common in pure unit tests).
+        customerRepository = new V2CustomerRepository(NO_CONNECTION, () -> null, () -> { });
+        ownReportRepository = new V2OwnReportRepository(NO_CONNECTION, () -> null, () -> { });
+        periodicInvoiceRepository = new V2PeriodicInvoiceRepository(NO_CONNECTION, () -> null, () -> { });
+        indeliveryRepository = new V2IndeliveryRepository(NO_CONNECTION, () -> null, () -> { });
+        inventoryRepository = new V2InventoryRepository(NO_CONNECTION, () -> null, () -> { });
+        orderRepository = new V2OrderRepository(NO_CONNECTION, () -> null, () -> { });
+        outdeliveryRepository = new V2OutdeliveryRepository(NO_CONNECTION, () -> null, () -> { });
+        productRepository = new V2ProductRepository(NO_CONNECTION, () -> null, () -> { });
+        purchaseOrderRepository = new V2PurchaseOrderRepository(NO_CONNECTION, () -> null, () -> { });
+        supplierCreditInvoiceRepository = new V2SupplierCreditInvoiceRepository(NO_CONNECTION, () -> null, () -> { });
+        supplierInvoiceRepository = new V2SupplierInvoiceRepository(NO_CONNECTION, () -> null, () -> { });
+        voucherTemplateRepository = new V2VoucherTemplateRepository(NO_CONNECTION, () -> null, () -> { });
+        accountPlanRepository = new V2AccountPlanRepository(NO_CONNECTION, () -> { });
+        voucherRepository = new V2VoucherRepository(NO_CONNECTION, () -> null, () -> null, () -> { });
+        accountingYearRepository = new V2AccountingYearRepository(
+                NO_CONNECTION,
+                () -> null,
+                () -> null,
+                year -> { },
+                () -> { });
+       companyRepository = new V2CompanyRepository(NO_CONNECTION, () -> { }, company -> java.util.Collections.emptyList(),
+                year -> { });
+
+        projectRepository = new V2ProjectRepository(NO_CONNECTION, () -> null, () -> { });
+        resultUnitRepository = new V2ResultUnitRepository(NO_CONNECTION, () -> null, () -> { });
     }
 
     /**
-     * Returns the {@link CustomerRepository}.
+     * Returns the {@link V2CustomerRepository}.
      *
      * @return the customer repository; never {@code null} after {@link #init}
      * @throws IllegalStateException if {@link #init} has not been called
      */
-    public static CustomerRepository customers() {
-        if (customerRepository == null) {
-            throw new IllegalStateException("Repositories.init() has not been called");
-        }
+    public static V2CustomerRepository customers() {
+        ensureInitialized();
         return customerRepository;
     }
 
     /**
-     * Returns the {@link AutoDistRepository}.
+     * Returns the {@link V2AutoDistRepository}.
      *
      * @return the auto-dist repository; never {@code null} after {@link #init}
      * @throws IllegalStateException if {@link #init} has not been called
      */
-    public static AutoDistRepository autoDists() {
-        if (autoDistRepository == null) {
-            throw new IllegalStateException("Repositories.init() has not been called");
-        }
+    public static V2AutoDistRepository autoDists() {
+        ensureInitialized();
         return autoDistRepository;
     }
 
     /**
-     * Returns the {@link CreditInvoiceRepository}.
+     * Returns the {@link V2CurrencyRepository}.
+     *
+     * @return the currency repository; never {@code null} after {@link #init}
+     * @throws IllegalStateException if {@link #init} has not been called
+     */
+    public static V2CurrencyRepository currencies() {
+        ensureInitialized();
+        return currencyRepository;
+    }
+
+    /**
+     * Returns the {@link V2DeliveryTermRepository}.
+     *
+     * @return the delivery-term repository; never {@code null} after {@link #init}
+     * @throws IllegalStateException if {@link #init} has not been called
+     */
+    public static V2DeliveryTermRepository deliveryTerms() {
+        ensureInitialized();
+        return deliveryTermRepository;
+    }
+
+    /**
+     * Returns the {@link V2DeliveryWayRepository}.
+     *
+     * @return the delivery-way repository; never {@code null} after {@link #init}
+     * @throws IllegalStateException if {@link #init} has not been called
+     */
+    public static V2DeliveryWayRepository deliveryWays() {
+        ensureInitialized();
+        return deliveryWayRepository;
+    }
+
+    /**
+     * Returns the {@link V2PaymentTermRepository}.
+     *
+     * @return the payment-term repository; never {@code null} after {@link #init}
+     * @throws IllegalStateException if {@link #init} has not been called
+     */
+    public static V2PaymentTermRepository paymentTerms() {
+        ensureInitialized();
+        return paymentTermRepository;
+    }
+
+    /**
+     * Returns the {@link V2UnitRepository}.
+     *
+     * @return the unit repository; never {@code null} after {@link #init}
+     * @throws IllegalStateException if {@link #init} has not been called
+     */
+    public static V2UnitRepository units() {
+        ensureInitialized();
+        return unitRepository;
+    }
+
+    /**
+     * Returns the {@link V2CreditInvoiceRepository}.
      *
      * @return the credit-invoice repository; never {@code null} after {@link #init}
      * @throws IllegalStateException if {@link #init} has not been called
      */
-    public static CreditInvoiceRepository creditInvoices() {
-        if (creditInvoiceRepository == null) {
-            throw new IllegalStateException("Repositories.init() has not been called");
-        }
+    public static V2CreditInvoiceRepository creditInvoices() {
+        ensureInitialized();
         return creditInvoiceRepository;
     }
 
     /**
-     * Returns the {@link IndeliveryRepository}.
+     * Returns the {@link V2IndeliveryRepository}.
      *
      * @return the indelivery repository; never {@code null} after {@link #init}
      * @throws IllegalStateException if {@link #init} has not been called
      */
-    public static IndeliveryRepository indeliveries() {
+    public static V2IndeliveryRepository indeliveries() {
         if (indeliveryRepository == null) {
             throw new IllegalStateException("Repositories.init() has not been called");
         }
@@ -207,12 +417,12 @@ public final class Repositories {
     }
 
     /**
-     * Returns the {@link InpaymentRepository}.
+     * Returns the {@link V2InpaymentRepository}.
      *
      * @return the inpayment repository; never {@code null} after {@link #init}
      * @throws IllegalStateException if {@link #init} has not been called
      */
-    public static InpaymentRepository inpayments() {
+    public static V2InpaymentRepository inpayments() {
         if (inpaymentRepository == null) {
             throw new IllegalStateException("Repositories.init() has not been called");
         }
@@ -220,12 +430,12 @@ public final class Repositories {
     }
 
     /**
-     * Returns the {@link InventoryRepository}.
+     * Returns the {@link V2InventoryRepository}.
      *
      * @return the inventory repository; never {@code null} after {@link #init}
      * @throws IllegalStateException if {@link #init} has not been called
      */
-    public static InventoryRepository inventories() {
+    public static V2InventoryRepository inventories() {
         if (inventoryRepository == null) {
             throw new IllegalStateException("Repositories.init() has not been called");
         }
@@ -233,51 +443,45 @@ public final class Repositories {
     }
 
     /**
-     * Returns the {@link InvoiceRepository}.
+     * Returns the {@link V2InvoiceRepository}.
      *
      * @return the invoice repository; never {@code null} after {@link #init}
      * @throws IllegalStateException if {@link #init} has not been called
      */
-    public static InvoiceRepository invoices() {
-        if (invoiceRepository == null) {
-            throw new IllegalStateException("Repositories.init() has not been called");
-        }
+    public static V2InvoiceRepository invoices() {
+        ensureInitialized();
         return invoiceRepository;
     }
 
     /**
-     * Returns the {@link OwnReportRepository}.
+     * Returns the {@link V2OwnReportRepository}.
      *
      * @return the own-report repository; never {@code null} after {@link #init}
      * @throws IllegalStateException if {@link #init} has not been called
      */
-    public static OwnReportRepository ownReports() {
-        if (ownReportRepository == null) {
-            throw new IllegalStateException("Repositories.init() has not been called");
-        }
+    public static V2OwnReportRepository ownReports() {
+        ensureInitialized();
         return ownReportRepository;
     }
 
     /**
-     * Returns the {@link OrderRepository}.
+     * Returns the {@link V2OrderRepository}.
      *
      * @return the order repository; never {@code null} after {@link #init}
      * @throws IllegalStateException if {@link #init} has not been called
      */
-    public static OrderRepository orders() {
-        if (orderRepository == null) {
-            throw new IllegalStateException("Repositories.init() has not been called");
-        }
+    public static V2OrderRepository orders() {
+        ensureInitialized();
         return orderRepository;
     }
 
     /**
-     * Returns the {@link OutdeliveryRepository}.
+     * Returns the {@link V2OutdeliveryRepository}.
      *
      * @return the outdelivery repository; never {@code null} after {@link #init}
      * @throws IllegalStateException if {@link #init} has not been called
      */
-    public static OutdeliveryRepository outdeliveries() {
+    public static V2OutdeliveryRepository outdeliveries() {
         if (outdeliveryRepository == null) {
             throw new IllegalStateException("Repositories.init() has not been called");
         }
@@ -285,12 +489,12 @@ public final class Repositories {
     }
 
     /**
-     * Returns the {@link OutpaymentRepository}.
+     * Returns the {@link V2OutpaymentRepository}.
      *
      * @return the outpayment repository; never {@code null} after {@link #init}
      * @throws IllegalStateException if {@link #init} has not been called
      */
-    public static OutpaymentRepository outpayments() {
+    public static V2OutpaymentRepository outpayments() {
         if (outpaymentRepository == null) {
             throw new IllegalStateException("Repositories.init() has not been called");
         }
@@ -298,90 +502,78 @@ public final class Repositories {
     }
 
     /**
-     * Returns the {@link PeriodicInvoiceRepository}.
+     * Returns the {@link V2PeriodicInvoiceRepository}.
      *
      * @return the periodic-invoice repository; never {@code null} after {@link #init}
      * @throws IllegalStateException if {@link #init} has not been called
      */
-    public static PeriodicInvoiceRepository periodicInvoices() {
-        if (periodicInvoiceRepository == null) {
-            throw new IllegalStateException("Repositories.init() has not been called");
-        }
+    public static V2PeriodicInvoiceRepository periodicInvoices() {
+        ensureInitialized();
         return periodicInvoiceRepository;
     }
 
     /**
-     * Returns the {@link ProductRepository}.
+     * Returns the {@link V2ProductRepository}.
      *
      * @return the product repository; never {@code null} after {@link #init}
      * @throws IllegalStateException if {@link #init} has not been called
      */
-    public static ProductRepository products() {
-        if (productRepository == null) {
-            throw new IllegalStateException("Repositories.init() has not been called");
-        }
+    public static V2ProductRepository products() {
+        ensureInitialized();
         return productRepository;
     }
 
     /**
-     * Returns the {@link PurchaseOrderRepository}.
+     * Returns the {@link V2PurchaseOrderRepository}.
      *
      * @return the purchase-order repository; never {@code null} after {@link #init}
      * @throws IllegalStateException if {@link #init} has not been called
      */
-    public static PurchaseOrderRepository purchaseOrders() {
-        if (purchaseOrderRepository == null) {
-            throw new IllegalStateException("Repositories.init() has not been called");
-        }
+    public static V2PurchaseOrderRepository purchaseOrders() {
+        ensureInitialized();
         return purchaseOrderRepository;
     }
 
     /**
-     * Returns the {@link SupplierRepository}.
+     * Returns the {@link V2SupplierRepository}.
      *
      * @return the supplier repository; never {@code null} after {@link #init}
      * @throws IllegalStateException if {@link #init} has not been called
      */
-    public static SupplierRepository suppliers() {
-        if (supplierRepository == null) {
-            throw new IllegalStateException("Repositories.init() has not been called");
-        }
+    public static V2SupplierRepository suppliers() {
+        ensureInitialized();
         return supplierRepository;
     }
 
     /**
-     * Returns the {@link SupplierInvoiceRepository}.
+     * Returns the {@link V2SupplierInvoiceRepository}.
      *
      * @return the supplier-invoice repository; never {@code null} after {@link #init}
      * @throws IllegalStateException if {@link #init} has not been called
      */
-    public static SupplierInvoiceRepository supplierInvoices() {
-        if (supplierInvoiceRepository == null) {
-            throw new IllegalStateException("Repositories.init() has not been called");
-        }
+    public static V2SupplierInvoiceRepository supplierInvoices() {
+        ensureInitialized();
         return supplierInvoiceRepository;
     }
 
     /**
-     * Returns the {@link SupplierCreditInvoiceRepository}.
+     * Returns the {@link V2SupplierCreditInvoiceRepository}.
      *
      * @return the supplier-credit-invoice repository; never {@code null} after {@link #init}
      * @throws IllegalStateException if {@link #init} has not been called
      */
-    public static SupplierCreditInvoiceRepository supplierCreditInvoices() {
-        if (supplierCreditInvoiceRepository == null) {
-            throw new IllegalStateException("Repositories.init() has not been called");
-        }
+    public static V2SupplierCreditInvoiceRepository supplierCreditInvoices() {
+        ensureInitialized();
         return supplierCreditInvoiceRepository;
     }
 
     /**
-     * Returns the {@link TenderRepository}.
+     * Returns the {@link V2TenderRepository}.
      *
      * @return the tender repository; never {@code null} after {@link #init}
      * @throws IllegalStateException if {@link #init} has not been called
      */
-    public static TenderRepository tenders() {
+    public static V2TenderRepository tenders() {
         if (tenderRepository == null) {
             throw new IllegalStateException("Repositories.init() has not been called");
         }
@@ -389,55 +581,109 @@ public final class Repositories {
     }
 
     /**
-     * Returns the {@link AccountPlanRepository}.
+     * Returns the {@link V2AccountPlanRepository}.
      *
      * @return the account-plan repository; never {@code null} after {@link #init}
      * @throws IllegalStateException if {@link #init} has not been called
      */
-    public static AccountPlanRepository accountPlans() {
-        if (accountPlanRepository == null) {
-            throw new IllegalStateException("Repositories.init() has not been called");
-        }
+    public static V2AccountPlanRepository accountPlans() {
+        ensureInitialized();
         return accountPlanRepository;
     }
 
     /**
-     * Returns the {@link VoucherRepository}.
+     * Returns the {@link V2VoucherRepository}.
      *
      * @return the voucher repository; never {@code null} after {@link #init}
      * @throws IllegalStateException if {@link #init} has not been called
      */
-    public static VoucherRepository vouchers() {
-        if (voucherRepository == null) {
-            throw new IllegalStateException("Repositories.init() has not been called");
-        }
+    public static V2VoucherRepository vouchers() {
+        ensureInitialized();
         return voucherRepository;
     }
 
     /**
-     * Returns the {@link VoucherTemplateRepository}.
+     * Returns the {@link V2VoucherTemplateRepository}.
      *
      * @return the voucher-template repository; never {@code null} after {@link #init}
      * @throws IllegalStateException if {@link #init} has not been called
      */
-    public static VoucherTemplateRepository voucherTemplates() {
-        if (voucherTemplateRepository == null) {
-            throw new IllegalStateException("Repositories.init() has not been called");
-        }
+    public static V2VoucherTemplateRepository voucherTemplates() {
+        ensureInitialized();
         return voucherTemplateRepository;
     }
 
     /**
-     * Returns the {@link AccountingYearRepository}.
+     * Returns the {@link V2AccountingYearRepository}.
      *
      * @return the accounting-year repository; never {@code null} after {@link #init}
      * @throws IllegalStateException if {@link #init} has not been called
      */
-    public static AccountingYearRepository accountingYears() {
-        if (accountingYearRepository == null) {
-            throw new IllegalStateException("Repositories.init() has not been called");
-        }
+    public static V2AccountingYearRepository accountingYears() {
+        ensureInitialized();
         return accountingYearRepository;
     }
-}
 
+    /**
+     * Returns the {@link V2CompanyRepository}.
+     *
+     * @return the company repository; never {@code null} after {@link #init}
+     * @throws IllegalStateException if {@link #init} has not been called
+     */
+    public static V2CompanyRepository companies() {
+        ensureInitialized();
+        return companyRepository;
+    }
+
+    /**
+     * Returns the {@link V2ProjectRepository}.
+     *
+     * @return the project repository; never {@code null} after {@link #init}
+     * @throws IllegalStateException if {@link #init} has not been called
+     */
+    public static V2ProjectRepository projects() {
+        ensureInitialized();
+        return projectRepository;
+    }
+
+    /**
+     * Returns the {@link V2ResultUnitRepository}.
+     *
+     * @return the result-unit repository; never {@code null} after {@link #init}
+     * @throws IllegalStateException if {@link #init} has not been called
+     */
+    public static V2ResultUnitRepository resultUnits() {
+        ensureInitialized();
+        return resultUnitRepository;
+    }
+
+    private static void ensureInitialized() {
+        SSDB db = initializedDb;
+        if (db == null) {
+            db = SSSystemConfigContext.getDatabase();
+            initializedDb = db;
+        }
+        if (db == null) {
+            return;
+        }
+        boolean shouldInit = customerRepository == null;
+        if (!shouldInit && db.getConnection() != null && autoDistRepository == null) {
+            shouldInit = true;
+        }
+        if (shouldInit) {
+            init(db);
+        }
+    }
+
+    private static Connection createNoConnection() {
+        return (Connection) Proxy.newProxyInstance(
+                Repositories.class.getClassLoader(),
+                new Class[]{Connection.class},
+                (proxy, method, args) -> switch (method.getName()) {
+                    case "isClosed" -> true;
+                    case "close" -> null;
+                    case "toString" -> "NoConnection";
+                    default -> throw new UnsupportedOperationException("No JDBC connection available");
+                });
+    }
+}

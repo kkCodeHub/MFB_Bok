@@ -3,6 +3,7 @@ package se.swedsoft.bookkeeping.gui.invoice.panel;
 
 import se.swedsoft.bookkeeping.data.SSInvoice;
 import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.data.system.SSSalesContext;
 import se.swedsoft.bookkeeping.gui.invoice.SSInvoiceFrame;
 import se.swedsoft.bookkeeping.gui.invoice.util.SSInvoiceTableModel;
 
@@ -36,7 +37,7 @@ public class SSInvoiceSearchPanel extends JPanel {
         iTextField.addKeyListener(new KeyAdapter() {
             @Override
             public void keyReleased(KeyEvent e) {
-                ApplyFilter(SSDB.getInstance().getInvoices());
+                ApplyFilter(SSSalesContext.getInvoices());
             }
         });
     }

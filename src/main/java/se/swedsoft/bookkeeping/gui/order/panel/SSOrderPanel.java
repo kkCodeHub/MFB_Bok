@@ -9,6 +9,7 @@ import se.swedsoft.bookkeeping.data.SSProduct;
 import se.swedsoft.bookkeeping.data.base.SSSaleRow;
 import se.swedsoft.bookkeeping.data.common.*;
 import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.data.system.SSSalesContext;
 import se.swedsoft.bookkeeping.gui.SSMainFrame;
 import se.swedsoft.bookkeeping.gui.company.panel.SSAdressPanel;
 import se.swedsoft.bookkeeping.gui.company.panel.SSDefaultAccountPanel;
@@ -147,6 +148,7 @@ public class SSOrderPanel {
         iTable.setColorReadOnly(true);
         iTable.setColumnSortingEnabled(false);
         iTable.setSingleSelect();
+        iTable.setSelectionForeground(Color.BLACK);
 
         iModel = new SSInvoiceRowTableModel();
         iModel.addColumn(SSInvoiceRowTableModel.COLUMN_PRODUCT, true);
@@ -306,7 +308,7 @@ public class SSOrderPanel {
         iCurrencyCalculatorButton.addActionListener(
                 e -> {
 
-                        SSCurrency iCompanyCurrency = SSDB.getInstance().getCurrentCompany().getCurrency();
+                        SSCurrency iCompanyCurrency = se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.getCurrentCompany().getCurrency();
                         SSCurrency iCurrentCurrency = iCurrency.getSelected();
 
                         if (iCompanyCurrency == null || iCurrentCurrency == null) {
@@ -397,7 +399,7 @@ public class SSOrderPanel {
         // Kund nummer
         iCustomer.setText(iOrder.getCustomerNr());
 
-        for (SSCustomer pCustomer : SSDB.getInstance().getCustomers()) {
+        for (SSCustomer pCustomer : SSSalesContext.getCustomers()) {
             if (pCustomer.getNumber().equals(iCustomer.getText())) {
                 iModel.setCustomer(pCustomer);
             }
@@ -546,7 +548,7 @@ public class SSOrderPanel {
         iTaxSum1.setValue(iTaxSum.get(SSTaxCode.TAXRATE_1));
         iTaxSum2.setValue(iTaxSum.get(SSTaxCode.TAXRATE_2));
         iTaxSum3.setValue(iTaxSum.get(SSTaxCode.TAXRATE_3));
-        if (!SSDB.getInstance().getCurrentCompany().isRoundingOff()) {
+        if (!se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.getCurrentCompany().isRoundingOff()) {
             iRoundingSum.setValue(iRounding);
         }
         this.iTotalSum.setValue(iTotalSum);

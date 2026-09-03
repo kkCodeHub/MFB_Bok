@@ -54,7 +54,7 @@ public class SSOrderMath extends SSTenderMath {
      * @param iInvoice
      */
     public static void removeReference(SSInvoice iInvoice) {
-        removeInvoice(SSDB.getInstance().getOrders(), iInvoice);
+        removeInvoice(se.swedsoft.bookkeeping.data.system.SSSalesContext.getOrders(), iInvoice);
     }
 
     /**
@@ -68,7 +68,7 @@ public class SSOrderMath extends SSTenderMath {
         for (SSOrder iOrder : iOrders) {
             if (iOrder.hasInvoice(iInvoice)) {
                 iOrder.setInvoice(null);
-                SSDB.getInstance().updateOrder(iOrder);
+                se.swedsoft.bookkeeping.data.system.SSSalesContext.updateOrder(iOrder);
             }
         }
     }
@@ -79,7 +79,7 @@ public class SSOrderMath extends SSTenderMath {
      * @return
      */
     public static Map<SSProduct, Integer> getProductCount(SSOrder iOrder) {
-        List<SSProduct> iProducts = SSDB.getInstance().getProducts();
+        List<SSProduct> iProducts = se.swedsoft.bookkeeping.data.system.SSProductContext.getProducts();
 
         Map<SSProduct, Integer> iProductCount = new HashMap<>();
 
@@ -135,7 +135,7 @@ public class SSOrderMath extends SSTenderMath {
         Map<String, Integer> iOrderCount = new HashMap<>();
         List<String> iParcelProducts = new LinkedList<>();
         List<SSProduct> iProducts = new LinkedList<>(
-                SSDB.getInstance().getProducts());
+                se.swedsoft.bookkeeping.data.system.SSProductContext.getProducts());
 
         for (SSProduct iProduct : iProducts) {
             if (iProduct.isParcel() && iProduct.getNumber() != null) {
@@ -180,7 +180,7 @@ public class SSOrderMath extends SSTenderMath {
 
     public static void setInvoiceForOrders() {/* if(iInvoiceForOrders == null) iInvoiceForOrders = new HashMap<>();
 
-         List<SSOrder> iOrders = SSDB.getInstance().getOrders();
+         List<SSOrder> iOrders = se.swedsoft.bookkeeping.data.system.SSSalesContext.getOrders();
 
          for(SSOrder iOrder : iOrders){
          SSInvoice iInvoice = iOrder.getInvoice();

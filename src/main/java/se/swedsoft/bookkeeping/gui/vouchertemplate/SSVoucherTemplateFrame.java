@@ -2,7 +2,7 @@ package se.swedsoft.bookkeeping.gui.vouchertemplate;
 
 
 import se.swedsoft.bookkeeping.data.SSVoucherTemplate;
-import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.data.system.SSAccountingContext;
 import se.swedsoft.bookkeeping.gui.SSMainFrame;
 import se.swedsoft.bookkeeping.gui.util.SSBundle;
 import se.swedsoft.bookkeeping.gui.util.components.SSButton;
@@ -52,6 +52,15 @@ public class SSVoucherTemplateFrame extends SSDefaultTableFrame {
     }
 
     /**
+     * Refreshes the voucher template frame if it is open.
+     */
+    public static void fireTableDataChanged() {
+        if (cInstance != null) {
+            cInstance.updateFrame();
+        }
+    }
+
+    /**
      * Default constructor.
      * @param frame
      * @param width
@@ -94,7 +103,7 @@ public class SSVoucherTemplateFrame extends SSDefaultTableFrame {
                                 SSErrorDialog.showDialog(getMainFrame(), "",
                                         ex.getLocalizedMessage());
                             }
-                            iModel.fireTableDataChanged();
+                            SSVoucherTemplateFrame.fireTableDataChanged();
                         }
 
 
@@ -124,17 +133,17 @@ public class SSVoucherTemplateFrame extends SSDefaultTableFrame {
                                 break;
 
                             case JOptionPane.NO_OPTION:
-                                iItems = SSDB.getInstance().getVoucherTemplates();
+                                iItems = SSAccountingContext.getVoucherTemplates();
                                 break;
 
                             default:
                                 return;
                             }
                         } else {
-                            iItems = SSDB.getInstance().getVoucherTemplates();
+                            iItems = SSAccountingContext.getVoucherTemplates();
                         }
 
-                        iFilechooser.setSelectedFile(new File("Konteringsmallar.xls"));
+                        iFilechooser.setSelectedFile(new File("Konteringsmallar.xlsx"));
 
                         if (iFilechooser.showSaveDialog(getMainFrame())
                                 == JFileChooser.APPROVE_OPTION) {
@@ -258,17 +267,18 @@ public class SSVoucherTemplateFrame extends SSDefaultTableFrame {
 
         if (iResponce == JOptionPane.YES_OPTION) {
             for (SSVoucherTemplate iVoucherTemplate : delete) {
-                SSDB.getInstance().deleteVoucherTemplate(iVoucherTemplate);
+                SSAccountingContext.deleteVoucherTemplate(iVoucherTemplate);
             }
+            SSVoucherTemplateFrame.fireTableDataChanged();
         }
     }
 
     private List<SSVoucherTemplate> getVoucherTemplates(List<SSVoucherTemplate> iVoucherTemplates) {
-        return SSDB.getInstance().getVoucherTemplates(iVoucherTemplates);
+        return SSAccountingContext.getVoucherTemplates(iVoucherTemplates);
     }
 
     public void updateFrame() {
-        iModel.setObjects(SSDB.getInstance().getVoucherTemplates());
+        iModel.setObjects(SSAccountingContext.getVoucherTemplates());
     }
 
     public void actionPerformed(ActionEvent e) {
@@ -289,4 +299,5 @@ public class SSVoucherTemplateFrame extends SSDefaultTableFrame {
         return sb.toString();
     }
 }
+
 

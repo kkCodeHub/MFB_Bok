@@ -3,6 +3,7 @@ package se.swedsoft.bookkeeping.gui.outdelivery;
 
 import se.swedsoft.bookkeeping.data.SSOutdelivery;
 import se.swedsoft.bookkeeping.gui.SSMainFrame;
+import se.swedsoft.bookkeeping.gui.product.SSProductFrame;
 import se.swedsoft.bookkeeping.gui.outdelivery.util.SSOutdeliveryTableModel;
 import se.swedsoft.bookkeeping.gui.util.SSBundle;
 import se.swedsoft.bookkeeping.gui.util.components.SSButton;
@@ -17,7 +18,6 @@ import se.swedsoft.bookkeeping.print.SSReportFactory;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.util.List;
 
 
@@ -271,8 +271,18 @@ public class SSOutdeliveryFrame extends SSDefaultTableFrame {
         return Repositories.outdeliveries().findByOutdelivery(iOutdelivery).orElse(null);
     }
 
+    /**
+     * Convenience method that updates the outdelivery frame if it is currently open.
+     */
+    public static void fireTableDataChanged() {
+        if (cInstance != null) {
+            cInstance.updateFrame();
+        }
+    }
+
     public void updateFrame() {
         iModel.setObjects(Repositories.outdeliveries().findAll());
+        SSProductFrame.fireTableDataChanged();
     }
 
     public void actionPerformed(ActionEvent e) {

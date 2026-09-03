@@ -9,6 +9,7 @@ import se.swedsoft.bookkeeping.data.system.SSDB;
 import se.swedsoft.bookkeeping.gui.util.SSBundle;
 import se.swedsoft.bookkeeping.gui.util.model.SSDefaultTableModel;
 import se.swedsoft.bookkeeping.print.SSPrinter;
+import se.swedsoft.bookkeeping.print.util.SSQuantityPrintUtil;
 import se.swedsoft.bookkeeping.print.util.SSDefaultJasperDataSource;
 
 import java.math.BigDecimal;
@@ -34,7 +35,7 @@ public class SSOrderListPrinter extends SSPrinter {
      *
      */
     public SSOrderListPrinter() {
-        this(SSDB.getInstance().getOrders());
+        this(se.swedsoft.bookkeeping.data.system.SSSalesContext.getOrders());
     }
 
     /**
@@ -186,7 +187,7 @@ public class SSOrderListPrinter extends SSPrinter {
                         break;
 
                     case 2:
-                        value = iRow.getQuantity();
+                        value = SSQuantityPrintUtil.toDisplay(iRow.getQuantity());
                         break;
 
                     case 3:

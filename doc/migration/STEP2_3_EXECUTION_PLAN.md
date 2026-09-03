@@ -12,6 +12,27 @@ Detta är arbetsplanen för att koppla applikationskoden till schema V2.
   - verifikation (`tbl_voucher` + `tbl_voucher_row`)
 - Integrationstester för ovan passerar utan `OBJECT`-kolumner.
 
+## Planlåsning (godkänd 2026-05-05)
+
+Denna ordning är bindande tills nytt explicit godkännande ges.
+
+- Scope: N, O, O.5, P.
+- Ordning: N -> O -> O.5 -> P.
+
+Slice-definitioner:
+
+- N (D/E): Försäljning/Inköp-repositories i V2 med relevanta tester gröna.
+- O (F/G/H): Betalning/Lager/Misc i V2 med relevanta tester gröna.
+- O.5 (C): Bokföring (`accountplan`, `accountingyear`, `voucher`) i V2 med relevanta tester gröna.
+- P: V1-cutover/städning - inga aktiva `OBJECT`-paths i persistenslagret (V2-only).
+
+Bindande guardrails:
+
+- Ingen scope-utökning i pågående slice.
+- Ingen API-signaturändring utan nytt explicit godkännande.
+- Nästa slice startar först när föregående DoD är uppfylld.
+- Avvikelser dokumenteras i `doc/migration/SESSION_RESUME_CHECKLIST.md` och kräver nytt godkännande.
+
 ## Prioriterad ordning
 
 ## 1) Aktivera V2-schema i startup

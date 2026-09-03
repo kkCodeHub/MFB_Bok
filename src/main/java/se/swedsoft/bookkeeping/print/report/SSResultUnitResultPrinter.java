@@ -5,8 +5,9 @@ import se.swedsoft.bookkeeping.calc.SSResultCalculator;
 import se.swedsoft.bookkeeping.data.SSNewAccountingYear;
 import se.swedsoft.bookkeeping.data.SSNewResultUnit;
 import se.swedsoft.bookkeeping.gui.util.SSBundle;
+import se.swedsoft.bookkeeping.util.SSDateUtil;
 
-import java.util.Date;
+import java.time.LocalDate;
 import java.util.ResourceBundle;
 
 
@@ -26,7 +27,7 @@ public class SSResultUnitResultPrinter extends SSResultPrinter {
      * @param pTo
      * @param pResultUnit
      */
-    public SSResultUnitResultPrinter(Date pFrom, Date pTo, SSNewResultUnit pResultUnit) {
+    public SSResultUnitResultPrinter(LocalDate pFrom, LocalDate pTo, SSNewResultUnit pResultUnit) {
         super(pFrom, pTo, false, false);
         iResultUnit = pResultUnit;
 
@@ -44,7 +45,8 @@ public class SSResultUnitResultPrinter extends SSResultPrinter {
      * @param pTo
      * @param pResultUnit
      */
-    public SSResultUnitResultPrinter(SSNewAccountingYear pYearData, Date pFrom, Date pTo, SSNewResultUnit pResultUnit) {
+    public SSResultUnitResultPrinter(SSNewAccountingYear pYearData, LocalDate pFrom, LocalDate pTo,
+                                     SSNewResultUnit pResultUnit) {
         super(pYearData, pFrom, pTo, false, false);
         iResultUnit = pResultUnit;
 

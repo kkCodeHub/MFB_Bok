@@ -2,6 +2,7 @@ package se.swedsoft.bookkeeping.integration.system;
 
 import se.swedsoft.bookkeeping.data.system.SSDB;
 import se.swedsoft.bookkeeping.data.system.SSSalesContext;
+import se.swedsoft.bookkeeping.persistence.v2.schema.SSSchemaMigrationManager;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -81,10 +82,34 @@ class SSQuantityLegacyMigrationV2IntegrationTest {
 
         // Clear migration tracking to allow re-migration in tests
         try {
+            // Use JDBC metadata to check for table existence first to avoid SQL errors
+            boolean tableExists = false;
+            try (ResultSet tables = connection.getMetaData().getTables(null, null, null, new String[]{"TABLE"})) {
+                while (tables.next()) {
+                    String tableName = tables.getString("TABLE_NAME");
+                    if (tableName != null && tableName.equalsIgnoreCase("tbl_schema_migration")) {
+                        tableExists = true;
+                        break;
+                    }
+                }
+            }
+
+            // Ensure the migration tracking table exists (create if missing) so subsequent DELETEs in tests won't fail.
+            if (!tableExists) {
+                String ddl = "CREATE TABLE IF NOT EXISTS tbl_schema_migration ("
+                        + "migration_key VARCHAR(128) PRIMARY KEY,"
+                        + "applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP"
+                        + ")";
+                connection.createStatement().execute(ddl);
+                connection.commit();
+            }
+
+            // Now clear the specific migration key so tests can re-run migration deterministically
             connection.createStatement().execute("DELETE FROM tbl_schema_migration WHERE migration_key = 'quantity_scale_x10_v2'");
             connection.commit();
-        } catch (Exception e) {
-            // Table may not exist yet, ignore
+        } catch (java.sql.SQLException e) {
+            // If we get an SQL exception here, rethrow — tests should fail for unexpected DB errors.
+            throw new RuntimeException(e);
         }
     }
 
@@ -117,7 +142,7 @@ class SSQuantityLegacyMigrationV2IntegrationTest {
         assertThat(beforeMigration).containsExactly(2, 1);  // Old non-scaled values
 
         // 4. Run migration (idempotency ensures it won't double-apply)
-        SSDB.getInstance().ensureQuantityScaleMigrationV2();
+        new SSSchemaMigrationManager(connection).ensureQuantityScaleMigration();
 
         // 5. Verify raw DB now contains scaled (*10) values
         List<Integer> afterMigration = readRawInvoiceRowCounts(invoiceId);
@@ -161,7 +186,7 @@ class SSQuantityLegacyMigrationV2IntegrationTest {
         assertThat(beforeMigration).containsExactly(3);
 
         // 4. Run migration
-        SSDB.getInstance().ensureQuantityScaleMigrationV2();
+        new SSSchemaMigrationManager(connection).ensureQuantityScaleMigration();
 
         // 5. Verify raw DB contains scaled values
         List<Integer> afterMigration = readRawCreditInvoiceRowCounts(creditInvoiceId);
@@ -205,14 +230,14 @@ class SSQuantityLegacyMigrationV2IntegrationTest {
         insertLegacyInvoiceRow(invoiceId, "P-IDEMPOTENT-001", "Test Row",
                 new java.math.BigDecimal("100.00"), 5, 3010);
 
-        // 3. First migration run
-        SSDB.getInstance().ensureQuantityScaleMigrationV2();
-        List<Integer> afterFirstRun = readRawInvoiceRowCounts(invoiceId);
+         // 3. First migration run
+         new SSSchemaMigrationManager(connection).ensureQuantityScaleMigration();
+         List<Integer> afterFirstRun = readRawInvoiceRowCounts(invoiceId);
         assertThat(afterFirstRun).containsExactly(50);  // 5*10
 
-        // 4. Second migration run (should not double-scale)
-        SSDB.getInstance().ensureQuantityScaleMigrationV2();
-        List<Integer> afterSecondRun = readRawInvoiceRowCounts(invoiceId);
+         // 4. Second migration run (should not double-scale)
+         new SSSchemaMigrationManager(connection).ensureQuantityScaleMigration();
+         List<Integer> afterSecondRun = readRawInvoiceRowCounts(invoiceId);
         assertThat(afterSecondRun).containsExactly(50);  // Still 50, not 500
 
         // 5. API reads consistent value
@@ -232,19 +257,10 @@ class SSQuantityLegacyMigrationV2IntegrationTest {
     // ==================== Helper Methods ====================
 
     private static Integer createCompany(String name) throws Exception {
-        try (PreparedStatement statement = connection.prepareStatement(
-                "INSERT INTO tbl_company(name) VALUES (?)", Statement.RETURN_GENERATED_KEYS)) {
-            statement.setString(1, name);
-            statement.executeUpdate();
-            connection.commit();
-
-            try (ResultSet keys = statement.getGeneratedKeys()) {
-                if (keys.next()) {
-                    return keys.getInt(1);
-                }
-            }
-        }
-        throw new IllegalStateException("Could not create test company for legacy qty test");
+        se.swedsoft.bookkeeping.data.SSNewCompany company = new se.swedsoft.bookkeeping.data.SSNewCompany();
+        company.setName(name);
+        se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.addCompany(company);
+        return company.getId();
     }
 
     private static Integer createLegacyInvoice(String customerNr, String customerName) throws Exception {

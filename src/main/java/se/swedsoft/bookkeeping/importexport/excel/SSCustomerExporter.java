@@ -1,32 +1,33 @@
 package se.swedsoft.bookkeeping.importexport.excel;
 
 
-import jxl.Workbook;
-import jxl.WorkbookSettings;
-import jxl.format.Colour;
-import jxl.write.WritableCellFormat;
-import jxl.write.WritableSheet;
-import jxl.write.WritableWorkbook;
-import jxl.write.WriteException;
-import org.apache.xerces.dom.DocumentImpl;
-import org.apache.xml.serialize.OutputFormat;
-import org.apache.xml.serialize.XMLSerializer;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.FillPatternType;
+import org.apache.poi.ss.usermodel.IndexedColors;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import se.swedsoft.bookkeeping.data.SSCustomer;
 import se.swedsoft.bookkeeping.data.system.SSDB;
-import se.swedsoft.bookkeeping.importexport.excel.util.SSWritableExcelRow;
-import se.swedsoft.bookkeeping.importexport.excel.util.SSWritableExcelSheet;
 import se.swedsoft.bookkeeping.importexport.util.SSExportException;
-import se.swedsoft.bookkeeping.importexport.util.SSImportException;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStreamWriter;
 import java.util.List;
-import java.util.Locale;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,7 +38,9 @@ import org.slf4j.LoggerFactory;
  * Time: 11:32:25
  * $Id$
  */
-public class SSCustomerExporter {    private static final Logger LOG = LoggerFactory.getLogger(SSCustomerExporter.class);
+public class SSCustomerExporter {
+
+    private static final Logger LOG = LoggerFactory.getLogger(SSCustomerExporter.class);
 
     // Column names
     public static final String KUNDNUMMER = "Kund-id";
@@ -63,22 +66,24 @@ public class SSCustomerExporter {    private static final Logger LOG = LoggerFac
     public static final String LEVERANSADRESS_POSTORT = "Leveransadress.Postort";
     public static final String LEVERANSADRESS_LAND = "Leveransadress.Land";
 
-    private File iFile;
-    private List<SSCustomer> iCustomers;
+    private final File iFile;
+    private final List<SSCustomer> iCustomers;
 
     /**
+     * Creates an exporter that uses all customers from the database.
      *
-     * @param iFile
+     * @param iFile destination Excel/XML file
      */
     public SSCustomerExporter(File iFile) {
         this.iFile = iFile;
-        iCustomers = SSDB.getInstance().getCustomers();
+        iCustomers = se.swedsoft.bookkeeping.data.system.SSSalesContext.getCustomers();
     }
 
     /**
+     * Creates an exporter with an explicit customer list.
      *
-     * @param iFile
-     * @param iCustomers
+     * @param iFile destination Excel/XML file
+     * @param iCustomers customers to export
      */
     public SSCustomerExporter(File iFile, List<SSCustomer> iCustomers) {
         this.iFile = iFile;
@@ -86,113 +91,110 @@ public class SSCustomerExporter {    private static final Logger LOG = LoggerFac
     }
 
     /**
+     * Exports customers to Excel format.
      *
-     * @throws IOException
-     * @throws SSImportException
-     * @throws SSExportException
+     * @throws IOException if writing to disk fails
+     * @throws SSExportException if workbook export fails
      */
     public void export()  throws IOException, SSExportException {
-        WorkbookSettings iSettings = new WorkbookSettings();
+        try (Workbook iWorkbook = new XSSFWorkbook();
+             FileOutputStream iOut = new FileOutputStream(iFile)) {
+            Sheet iSheet = iWorkbook.createSheet("Kunder");
 
-        iSettings.setLocale(new Locale("sv", "SE"));
-        iSettings.setEncoding("windows-1252");
-        iSettings.setExcelDisplayLanguage("SE");
-        iSettings.setExcelRegionalSettings("SE");
+            writeCustomers(iSheet, iWorkbook);
 
-        try {
-            WritableWorkbook iWorkbook = Workbook.createWorkbook(iFile, iSettings);
-
-            WritableSheet iSheet = iWorkbook.createSheet("Kunder", 0);
-
-            writeCustomers(new SSWritableExcelSheet(iSheet));
-
-            iWorkbook.write();
-            iWorkbook.close();
-
-        } catch (WriteException e) {
+            iWorkbook.write(iOut);
+        } catch (RuntimeException e) {
             throw new SSExportException(e.getLocalizedMessage());
         }
 
     }
 
     /**
+     * Writes all customers to the provided worksheet.
      *
-     * @param pSheet
-     * @throws WriteException
+     * @param pSheet writable destination sheet
+     * @throws WriteException if sheet writing fails
      */
-    private void writeCustomers(SSWritableExcelSheet pSheet) throws WriteException {
+    private void writeCustomers(Sheet pSheet, Workbook pWorkbook) {
+        Row iColumns = pSheet.createRow(0);
+        CellStyle iHeaderStyle = pWorkbook.createCellStyle();
 
-        List<SSWritableExcelRow> iRows = pSheet.getRows(iCustomers.size() + 1);
+        iHeaderStyle.setFillForegroundColor(IndexedColors.GREY_25_PERCENT.getIndex());
+        iHeaderStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
 
-        // Write the column names
-        SSWritableExcelRow iColumns = iRows.get(0);
-
-        WritableCellFormat iCellFormat = new WritableCellFormat();
-
-        iCellFormat.setBackground(Colour.GRAY_25);
-
-        iColumns.setString(0, KUNDNUMMER, iCellFormat);
-        iColumns.setString(1, NAMN, iCellFormat);
-        iColumns.setString(2, TELEFON1, iCellFormat);
-        iColumns.setString(3, TELEFON2, iCellFormat);
-        iColumns.setString(4, FAX, iCellFormat);
-        iColumns.setString(5, EPOST, iCellFormat);
-        iColumns.setString(6, KONTAKTPERSON, iCellFormat);
-        iColumns.setString(7, ORGANISATIONSNUMMER, iCellFormat);
-        iColumns.setString(8, BANKGIRO, iCellFormat);
-        iColumns.setString(9, PLUSGIRO, iCellFormat);
-
-        iColumns.setString(10, FAKTURAADRESS_NAMN, iCellFormat);
-        iColumns.setString(11, FAKTURAADRESS_ADRESS1, iCellFormat);
-        iColumns.setString(12, FAKTURAADRESS_ADRESS2, iCellFormat);
-        iColumns.setString(13, FAKTURAADRESS_POSTNUMMER, iCellFormat);
-        iColumns.setString(14, FAKTURAADRESS_POSTORT, iCellFormat);
-        iColumns.setString(15, FAKTURAADRESS_LAND, iCellFormat);
-
-        iColumns.setString(16, LEVERANSADRESS_NAMN, iCellFormat);
-        iColumns.setString(17, LEVERANSADRESS_ADRESS1, iCellFormat);
-        iColumns.setString(18, LEVERANSADRESS_ADRESS2, iCellFormat);
-        iColumns.setString(19, LEVERANSADRESS_POSTNUMMER, iCellFormat);
-        iColumns.setString(20, LEVERANSADRESS_POSTORT, iCellFormat);
-        iColumns.setString(21, LEVERANSADRESS_LAND, iCellFormat);
+        setHeaderCell(iColumns, 0, KUNDNUMMER, iHeaderStyle);
+        setHeaderCell(iColumns, 1, NAMN, iHeaderStyle);
+        setHeaderCell(iColumns, 2, TELEFON1, iHeaderStyle);
+        setHeaderCell(iColumns, 3, TELEFON2, iHeaderStyle);
+        setHeaderCell(iColumns, 4, FAX, iHeaderStyle);
+        setHeaderCell(iColumns, 5, EPOST, iHeaderStyle);
+        setHeaderCell(iColumns, 6, KONTAKTPERSON, iHeaderStyle);
+        setHeaderCell(iColumns, 7, ORGANISATIONSNUMMER, iHeaderStyle);
+        setHeaderCell(iColumns, 8, BANKGIRO, iHeaderStyle);
+        setHeaderCell(iColumns, 9, PLUSGIRO, iHeaderStyle);
+        setHeaderCell(iColumns, 10, FAKTURAADRESS_NAMN, iHeaderStyle);
+        setHeaderCell(iColumns, 11, FAKTURAADRESS_ADRESS1, iHeaderStyle);
+        setHeaderCell(iColumns, 12, FAKTURAADRESS_ADRESS2, iHeaderStyle);
+        setHeaderCell(iColumns, 13, FAKTURAADRESS_POSTNUMMER, iHeaderStyle);
+        setHeaderCell(iColumns, 14, FAKTURAADRESS_POSTORT, iHeaderStyle);
+        setHeaderCell(iColumns, 15, FAKTURAADRESS_LAND, iHeaderStyle);
+        setHeaderCell(iColumns, 16, LEVERANSADRESS_NAMN, iHeaderStyle);
+        setHeaderCell(iColumns, 17, LEVERANSADRESS_ADRESS1, iHeaderStyle);
+        setHeaderCell(iColumns, 18, LEVERANSADRESS_ADRESS2, iHeaderStyle);
+        setHeaderCell(iColumns, 19, LEVERANSADRESS_POSTNUMMER, iHeaderStyle);
+        setHeaderCell(iColumns, 20, LEVERANSADRESS_POSTORT, iHeaderStyle);
+        setHeaderCell(iColumns, 21, LEVERANSADRESS_LAND, iHeaderStyle);
 
         int iRowIndex = 1;
-
         for (SSCustomer iCustomer : iCustomers) {
-            SSWritableExcelRow iRow = iRows.get(iRowIndex);
+            Row iRow = pSheet.createRow(iRowIndex++);
 
-            iRow.setString(0, iCustomer.getNumber());
-            iRow.setString(1, iCustomer.getName());
-            iRow.setString(2, iCustomer.getPhone1());
-            iRow.setString(3, iCustomer.getPhone2());
-            iRow.setString(4, iCustomer.getTelefax());
-            iRow.setString(5, iCustomer.getEMail());
-            iRow.setString(6, iCustomer.getYourContactPerson());
-            iRow.setString(7, iCustomer.getRegistrationNumber());
-            iRow.setString(8, iCustomer.getBankgiro());
-            iRow.setString(9, iCustomer.getPlusgiro());
+            setStringCell(iRow, 0, iCustomer.getNumber());
+            setStringCell(iRow, 1, iCustomer.getName());
+            setStringCell(iRow, 2, iCustomer.getPhone1());
+            setStringCell(iRow, 3, iCustomer.getPhone2());
+            setStringCell(iRow, 4, iCustomer.getTelefax());
+            setStringCell(iRow, 5, iCustomer.getEMail());
+            setStringCell(iRow, 6, iCustomer.getYourContactPerson());
+            setStringCell(iRow, 7, iCustomer.getRegistrationNumber());
+            setStringCell(iRow, 8, iCustomer.getBankgiro());
+            setStringCell(iRow, 9, iCustomer.getPlusgiro());
 
-            iRow.setString(1, iCustomer.getInvoiceAddress().getName());
-            iRow.setString(11, iCustomer.getInvoiceAddress().getAddress1());
-            iRow.setString(12, iCustomer.getInvoiceAddress().getAddress2());
-            iRow.setString(13, iCustomer.getInvoiceAddress().getZipCode());
-            iRow.setString(14, iCustomer.getInvoiceAddress().getCity());
-            iRow.setString(15, iCustomer.getInvoiceAddress().getCountry());
+            setStringCell(iRow, 10, iCustomer.getInvoiceAddress().getName());
+            setStringCell(iRow, 11, iCustomer.getInvoiceAddress().getAddress1());
+            setStringCell(iRow, 12, iCustomer.getInvoiceAddress().getAddress2());
+            setStringCell(iRow, 13, iCustomer.getInvoiceAddress().getZipCode());
+            setStringCell(iRow, 14, iCustomer.getInvoiceAddress().getCity());
+            setStringCell(iRow, 15, iCustomer.getInvoiceAddress().getCountry());
 
-            iRow.setString(16, iCustomer.getDeliveryAddress().getName());
-            iRow.setString(17, iCustomer.getDeliveryAddress().getAddress1());
-            iRow.setString(18, iCustomer.getDeliveryAddress().getAddress2());
-            iRow.setString(19, iCustomer.getDeliveryAddress().getZipCode());
-            iRow.setString(20, iCustomer.getDeliveryAddress().getCity());
-            iRow.setString(21, iCustomer.getDeliveryAddress().getCountry());
-            iRowIndex++;
+            setStringCell(iRow, 16, iCustomer.getDeliveryAddress().getName());
+            setStringCell(iRow, 17, iCustomer.getDeliveryAddress().getAddress1());
+            setStringCell(iRow, 18, iCustomer.getDeliveryAddress().getAddress2());
+            setStringCell(iRow, 19, iCustomer.getDeliveryAddress().getZipCode());
+            setStringCell(iRow, 20, iCustomer.getDeliveryAddress().getCity());
+            setStringCell(iRow, 21, iCustomer.getDeliveryAddress().getCountry());
         }
 
+        for (int i = 0; i <= 21; i++) {
+            pSheet.autoSizeColumn(i);
+        }
+    }
+
+    private void setHeaderCell(Row pRow, int pColumn, String pValue, CellStyle pStyle) {
+        Cell iCell = pRow.createCell(pColumn);
+
+        iCell.setCellValue(pValue == null ? "" : pValue);
+        iCell.setCellStyle(pStyle);
+    }
+
+    private void setStringCell(Row pRow, int pColumn, String pValue) {
+        pRow.createCell(pColumn).setCellValue(pValue == null ? "" : pValue);
     }
 
     public void doXMLExport() {
 
-        Document iXmlDoc = new DocumentImpl();
+        Document iXmlDoc = createDocument();
         Element iRoot = iXmlDoc.createElement("Customers");
 
         for (SSCustomer iCustomer : iCustomers) {
@@ -201,29 +203,29 @@ public class SSCustomerExporter {    private static final Logger LOG = LoggerFac
             Element iSubElement = iXmlDoc.createElementNS(null, "CustomerNo");
 
             iElement.appendChild(iSubElement);
-            Node iNode = iXmlDoc.createTextNode(
+            Node iNode = createTextNode(iXmlDoc,
                     iCustomer.getNumber() == null ? "" : iCustomer.getNumber());
 
             iSubElement.appendChild(iNode);
 
             iSubElement = iXmlDoc.createElementNS(null, "CustomerName");
             iElement.appendChild(iSubElement);
-            iNode = iXmlDoc.createTextNode(iCustomer.getName());
+            iNode = createTextNode(iXmlDoc, iCustomer.getName());
             iSubElement.appendChild(iNode);
 
             iSubElement = iXmlDoc.createElementNS(null, "OurContactPerson");
             iElement.appendChild(iSubElement);
-            iNode = iXmlDoc.createTextNode(iCustomer.getOurContactPerson());
+            iNode = createTextNode(iXmlDoc, iCustomer.getOurContactPerson());
             iSubElement.appendChild(iNode);
 
             iSubElement = iXmlDoc.createElementNS(null, "YourContactPerson");
             iElement.appendChild(iSubElement);
-            iNode = iXmlDoc.createTextNode(iCustomer.getYourContactPerson());
+            iNode = createTextNode(iXmlDoc, iCustomer.getYourContactPerson());
             iSubElement.appendChild(iNode);
 
             iSubElement = iXmlDoc.createElementNS(null, "CurrencyCode");
             iElement.appendChild(iSubElement);
-            iNode = iXmlDoc.createTextNode(
+            iNode = createTextNode(iXmlDoc,
                     iCustomer.getInvoiceCurrency() == null
                             ? ""
                             : iCustomer.getInvoiceCurrency().getName());
@@ -231,7 +233,7 @@ public class SSCustomerExporter {    private static final Logger LOG = LoggerFac
 
             iSubElement = iXmlDoc.createElementNS(null, "PaymentTerms");
             iElement.appendChild(iSubElement);
-            iNode = iXmlDoc.createTextNode(
+            iNode = createTextNode(iXmlDoc,
                     iCustomer.getPaymentTerm() == null
                             ? ""
                             : iCustomer.getPaymentTerm().getName());
@@ -239,7 +241,7 @@ public class SSCustomerExporter {    private static final Logger LOG = LoggerFac
 
             iSubElement = iXmlDoc.createElementNS(null, "DeliveryTerms");
             iElement.appendChild(iSubElement);
-            iNode = iXmlDoc.createTextNode(
+            iNode = createTextNode(iXmlDoc,
                     iCustomer.getDeliveryTerm() == null
                             ? ""
                             : iCustomer.getDeliveryTerm().getName());
@@ -247,7 +249,7 @@ public class SSCustomerExporter {    private static final Logger LOG = LoggerFac
 
             iSubElement = iXmlDoc.createElementNS(null, "DeliveryMethod");
             iElement.appendChild(iSubElement);
-            iNode = iXmlDoc.createTextNode(
+            iNode = createTextNode(iXmlDoc,
                     iCustomer.getDeliveryWay() == null
                             ? ""
                             : iCustomer.getDeliveryWay().getName());
@@ -255,41 +257,41 @@ public class SSCustomerExporter {    private static final Logger LOG = LoggerFac
 
             iSubElement = iXmlDoc.createElementNS(null, "TaxFree");
             iElement.appendChild(iSubElement);
-            iNode = iXmlDoc.createTextNode(Boolean.toString(iCustomer.getTaxFree()));
+            iNode = createTextNode(iXmlDoc, Boolean.toString(iCustomer.getTaxFree()));
             iSubElement.appendChild(iNode);
 
             iSubElement = iXmlDoc.createElementNS(null, "EuSaleCommodity");
             iElement.appendChild(iSubElement);
-            iNode = iXmlDoc.createTextNode(
+            iNode = createTextNode(iXmlDoc,
                     Boolean.toString(iCustomer.getEuSaleCommodity()));
             iSubElement.appendChild(iNode);
 
             iSubElement = iXmlDoc.createElementNS(null, "EuSaleThirdPartCommodity");
             iElement.appendChild(iSubElement);
-            iNode = iXmlDoc.createTextNode(
+            iNode = createTextNode(iXmlDoc,
                     Boolean.toString(iCustomer.getEuSaleYhirdPartCommodity()));
             iSubElement.appendChild(iNode);
 
             iSubElement = iXmlDoc.createElementNS(null, "HideUnitPrice");
             iElement.appendChild(iSubElement);
-            iNode = iXmlDoc.createTextNode(Boolean.toString(iCustomer.getHideUnitprice()));
+            iNode = createTextNode(iXmlDoc, Boolean.toString(iCustomer.getHideUnitprice()));
             iSubElement.appendChild(iNode);
 
             iSubElement = iXmlDoc.createElementNS(null, "VATRegNo");
             iElement.appendChild(iSubElement);
-            iNode = iXmlDoc.createTextNode(
+            iNode = createTextNode(iXmlDoc,
                     iCustomer.getVATNumber() == null ? "" : iCustomer.getVATNumber());
             iSubElement.appendChild(iNode);
 
             iSubElement = iXmlDoc.createElementNS(null, "Email");
             iElement.appendChild(iSubElement);
-            iNode = iXmlDoc.createTextNode(
+            iNode = createTextNode(iXmlDoc,
                     iCustomer.getEMail() == null ? "" : iCustomer.getEMail());
             iSubElement.appendChild(iNode);
 
             iSubElement = iXmlDoc.createElementNS(null, "CompanyNo");
             iElement.appendChild(iSubElement);
-            iNode = iXmlDoc.createTextNode(
+            iNode = createTextNode(iXmlDoc,
                     iCustomer.getRegistrationNumber() == null
                             ? ""
                             : iCustomer.getRegistrationNumber());
@@ -297,25 +299,25 @@ public class SSCustomerExporter {    private static final Logger LOG = LoggerFac
 
             iSubElement = iXmlDoc.createElementNS(null, "Telefax");
             iElement.appendChild(iSubElement);
-            iNode = iXmlDoc.createTextNode(
+            iNode = createTextNode(iXmlDoc,
                     iCustomer.getTelefax() == null ? "" : iCustomer.getTelefax());
             iSubElement.appendChild(iNode);
 
             iSubElement = iXmlDoc.createElementNS(null, "Telephone");
             iElement.appendChild(iSubElement);
-            iNode = iXmlDoc.createTextNode(
+            iNode = createTextNode(iXmlDoc,
                     iCustomer.getPhone1() == null ? "" : iCustomer.getPhone1());
             iSubElement.appendChild(iNode);
 
             iSubElement = iXmlDoc.createElementNS(null, "Telephone2");
             iElement.appendChild(iSubElement);
-            iNode = iXmlDoc.createTextNode(
+            iNode = createTextNode(iXmlDoc,
                     iCustomer.getPhone2() == null ? "" : iCustomer.getPhone2());
             iSubElement.appendChild(iNode);
 
             iSubElement = iXmlDoc.createElementNS(null, "CreditLimit");
             iElement.appendChild(iSubElement);
-            iNode = iXmlDoc.createTextNode(
+            iNode = createTextNode(iXmlDoc,
                     iCustomer.getCreditLimit() == null
                             ? ""
                             : iCustomer.getCreditLimit().toString());
@@ -323,7 +325,7 @@ public class SSCustomerExporter {    private static final Logger LOG = LoggerFac
 
             iSubElement = iXmlDoc.createElementNS(null, "Discount");
             iElement.appendChild(iSubElement);
-            iNode = iXmlDoc.createTextNode(
+            iNode = createTextNode(iXmlDoc,
                     iCustomer.getDiscount() == null
                             ? ""
                             : iCustomer.getDiscount().toString());
@@ -331,19 +333,19 @@ public class SSCustomerExporter {    private static final Logger LOG = LoggerFac
 
             iSubElement = iXmlDoc.createElementNS(null, "BgNo");
             iElement.appendChild(iSubElement);
-            iNode = iXmlDoc.createTextNode(
+            iNode = createTextNode(iXmlDoc,
                     iCustomer.getBankgiro() == null ? "" : iCustomer.getBankgiro());
             iSubElement.appendChild(iNode);
 
             iSubElement = iXmlDoc.createElementNS(null, "PgNo");
             iElement.appendChild(iSubElement);
-            iNode = iXmlDoc.createTextNode(
+            iNode = createTextNode(iXmlDoc,
                     iCustomer.getPlusgiro() == null ? "" : iCustomer.getPlusgiro());
             iSubElement.appendChild(iNode);
 
             iSubElement = iXmlDoc.createElementNS(null, "CreditLimit");
             iElement.appendChild(iSubElement);
-            iNode = iXmlDoc.createTextNode(
+            iNode = createTextNode(iXmlDoc,
                     iCustomer.getCreditLimit() == null
                             ? ""
                             : iCustomer.getCreditLimit().toString());
@@ -351,7 +353,7 @@ public class SSCustomerExporter {    private static final Logger LOG = LoggerFac
 
             iSubElement = iXmlDoc.createElementNS(null, "InvoiceName");
             iElement.appendChild(iSubElement);
-            iNode = iXmlDoc.createTextNode(
+            iNode = createTextNode(iXmlDoc,
                     iCustomer.getInvoiceAddress() == null
                             ? ""
                             : iCustomer.getInvoiceAddress().getName());
@@ -359,7 +361,7 @@ public class SSCustomerExporter {    private static final Logger LOG = LoggerFac
 
             iSubElement = iXmlDoc.createElementNS(null, "InvoiceAddress1");
             iElement.appendChild(iSubElement);
-            iNode = iXmlDoc.createTextNode(
+            iNode = createTextNode(iXmlDoc,
                     iCustomer.getInvoiceAddress() == null
                             ? ""
                             : iCustomer.getInvoiceAddress().getAddress1());
@@ -367,7 +369,7 @@ public class SSCustomerExporter {    private static final Logger LOG = LoggerFac
 
             iSubElement = iXmlDoc.createElementNS(null, "InvoiceAddress2");
             iElement.appendChild(iSubElement);
-            iNode = iXmlDoc.createTextNode(
+            iNode = createTextNode(iXmlDoc,
                     iCustomer.getInvoiceAddress() == null
                             ? ""
                             : iCustomer.getInvoiceAddress().getAddress2());
@@ -375,7 +377,7 @@ public class SSCustomerExporter {    private static final Logger LOG = LoggerFac
 
             iSubElement = iXmlDoc.createElementNS(null, "InvoicePostCode");
             iElement.appendChild(iSubElement);
-            iNode = iXmlDoc.createTextNode(
+            iNode = createTextNode(iXmlDoc,
                     iCustomer.getInvoiceAddress() == null
                             ? ""
                             : iCustomer.getInvoiceAddress().getZipCode());
@@ -383,7 +385,7 @@ public class SSCustomerExporter {    private static final Logger LOG = LoggerFac
 
             iSubElement = iXmlDoc.createElementNS(null, "InvoicePostOffice");
             iElement.appendChild(iSubElement);
-            iNode = iXmlDoc.createTextNode(
+            iNode = createTextNode(iXmlDoc,
                     iCustomer.getInvoiceAddress() == null
                             ? ""
                             : iCustomer.getInvoiceAddress().getCity());
@@ -391,7 +393,7 @@ public class SSCustomerExporter {    private static final Logger LOG = LoggerFac
 
             iSubElement = iXmlDoc.createElementNS(null, "InvoiceCountry");
             iElement.appendChild(iSubElement);
-            iNode = iXmlDoc.createTextNode(
+            iNode = createTextNode(iXmlDoc,
                     iCustomer.getInvoiceAddress() == null
                             ? ""
                             : iCustomer.getInvoiceAddress().getCountry());
@@ -399,7 +401,7 @@ public class SSCustomerExporter {    private static final Logger LOG = LoggerFac
 
             iSubElement = iXmlDoc.createElementNS(null, "DeliveryName");
             iElement.appendChild(iSubElement);
-            iNode = iXmlDoc.createTextNode(
+            iNode = createTextNode(iXmlDoc,
                     iCustomer.getDeliveryAddress() == null
                             ? ""
                             : iCustomer.getDeliveryAddress().getName());
@@ -407,7 +409,7 @@ public class SSCustomerExporter {    private static final Logger LOG = LoggerFac
 
             iSubElement = iXmlDoc.createElementNS(null, "DeliveryAddress1");
             iElement.appendChild(iSubElement);
-            iNode = iXmlDoc.createTextNode(
+            iNode = createTextNode(iXmlDoc,
                     iCustomer.getDeliveryAddress() == null
                             ? ""
                             : iCustomer.getDeliveryAddress().getAddress1());
@@ -415,7 +417,7 @@ public class SSCustomerExporter {    private static final Logger LOG = LoggerFac
 
             iSubElement = iXmlDoc.createElementNS(null, "DeliveryAddress2");
             iElement.appendChild(iSubElement);
-            iNode = iXmlDoc.createTextNode(
+            iNode = createTextNode(iXmlDoc,
                     iCustomer.getDeliveryAddress() == null
                             ? ""
                             : iCustomer.getDeliveryAddress().getAddress2());
@@ -423,7 +425,7 @@ public class SSCustomerExporter {    private static final Logger LOG = LoggerFac
 
             iSubElement = iXmlDoc.createElementNS(null, "DeliveryPostCode");
             iElement.appendChild(iSubElement);
-            iNode = iXmlDoc.createTextNode(
+            iNode = createTextNode(iXmlDoc,
                     iCustomer.getDeliveryAddress() == null
                             ? ""
                             : iCustomer.getDeliveryAddress().getZipCode());
@@ -431,7 +433,7 @@ public class SSCustomerExporter {    private static final Logger LOG = LoggerFac
 
             iSubElement = iXmlDoc.createElementNS(null, "DeliveryPostOffice");
             iElement.appendChild(iSubElement);
-            iNode = iXmlDoc.createTextNode(
+            iNode = createTextNode(iXmlDoc,
                     iCustomer.getDeliveryAddress() == null
                             ? ""
                             : iCustomer.getDeliveryAddress().getCity());
@@ -439,7 +441,7 @@ public class SSCustomerExporter {    private static final Logger LOG = LoggerFac
 
             iSubElement = iXmlDoc.createElementNS(null, "DeliveryCountry");
             iElement.appendChild(iSubElement);
-            iNode = iXmlDoc.createTextNode(
+            iNode = createTextNode(iXmlDoc,
                     iCustomer.getDeliveryAddress() == null
                             ? ""
                             : iCustomer.getDeliveryAddress().getCountry());
@@ -448,33 +450,36 @@ public class SSCustomerExporter {    private static final Logger LOG = LoggerFac
             iRoot.appendChild(iElement);
         }
         iXmlDoc.appendChild(iRoot);
-        try {
-            FileOutputStream fos = new FileOutputStream(iFile.getAbsolutePath());
-            OutputStreamWriter osw = new OutputStreamWriter(fos, "UTF-8");
-            OutputFormat of = new OutputFormat("XML", "UTF-8", true);
+        try (FileOutputStream fos = new FileOutputStream(iFile.getAbsolutePath())) {
+            Transformer transformer = TransformerFactory.newInstance().newTransformer();
 
-            of.setIndent(1);
-            of.setIndenting(true);
-            XMLSerializer serializer = new XMLSerializer(osw, of);
-
-            serializer.asDOMSerializer();
-            serializer.serialize(iXmlDoc.getDocumentElement());
-
-            fos.close();
-            osw.close();
-        } catch (IOException e) {
+            transformer.setOutputProperty(OutputKeys.METHOD, "xml");
+            transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
+            transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+            transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "1");
+            transformer.transform(new DOMSource(iXmlDoc), new StreamResult(fos));
+        } catch (IOException | TransformerException e) {
             LOG.error("Unexpected error", e);
+        }
+    }
+
+    private Node createTextNode(Document pDocument, String pValue) {
+        return pDocument.createTextNode(pValue == null ? "" : pValue);
+    }
+
+    private Document createDocument() {
+        try {
+            return DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
+        } catch (ParserConfigurationException e) {
+            throw new IllegalStateException("Could not create XML document", e);
         }
     }
 
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder();
-
-        sb.append("se.swedsoft.bookkeeping.importexport.excel.SSCustomerExporter");
-        sb.append("{iCustomers=").append(iCustomers);
-        sb.append(", iFile=").append(iFile);
-        sb.append('}');
-        return sb.toString();
+        return "se.swedsoft.bookkeeping.importexport.excel.SSCustomerExporter"
+                + "{iCustomers=" + iCustomers
+                + ", iFile=" + iFile
+                + '}';
     }
 }

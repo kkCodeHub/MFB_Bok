@@ -42,7 +42,7 @@ class SSOutpaymentV2RepositoryTest {
         Class.forName("org.hsqldb.jdbcDriver");
         connection = DriverManager.getConnection(JDBC_URL, "sa", "");
 
-        SSDB.getInstance().startupLocal(connection);
+        se.swedsoft.bookkeeping.data.system.SSSystemConfigContext.startupLocal(connection);
 
         Integer companyId = createCompany("V2 Outpayment Repo Test AB");
         SSNewCompany company = new SSNewCompany();
@@ -50,10 +50,10 @@ class SSOutpaymentV2RepositoryTest {
         company.setName("V2 Outpayment Repo Test AB");
         SSDB.getInstance().setCurrentCompany(company);
 
-        SSNewAccountingYear year = new SSNewAccountingYear(
-                se.swedsoft.bookkeeping.util.SSDateUtil.toDate(LocalDate.of(2025, 1, 1)),
-                se.swedsoft.bookkeeping.util.SSDateUtil.toDate(LocalDate.of(2025, 12, 31)));
-        SSDB.getInstance().addAccountingYear(year);
+        SSNewAccountingYear year = new SSNewAccountingYear();
+        year.setLocalFrom(LocalDate.of(2025, 1, 1));
+        year.setLocalTo(LocalDate.of(2025, 12, 31));
+        se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.addAccountingYear(year);
         SSDB.getInstance().setCurrentYear(year);
 
         Repositories.init(SSDB.getInstance());
@@ -72,7 +72,7 @@ class SSOutpaymentV2RepositoryTest {
 
     @BeforeEach
     void clearCaches() {
-        SSDB.getInstance().clearLists();
+        se.swedsoft.bookkeeping.data.system.SSEventTriggerSyncContext.clearCachedLists();
         SSDB.getInstance().getCurrentYear();
     }
 
@@ -91,7 +91,7 @@ class SSOutpaymentV2RepositoryTest {
         Repositories.outpayments().add(outpayment);
         assertThat(outpayment.getNumber()).isGreaterThan(0);
 
-        SSDB.getInstance().clearLists();
+        se.swedsoft.bookkeeping.data.system.SSEventTriggerSyncContext.clearCachedLists();
         Optional<SSOutpayment> fetched = Repositories.outpayments().findByOutpayment(outpayment);
         assertThat(fetched).isPresent();
         assertThat(fetched.get().getText()).isEqualTo("Outpayment repo text");
@@ -107,7 +107,7 @@ class SSOutpaymentV2RepositoryTest {
         outpayment.getRows().add(row(21003, "SEK", "1.000000", "300.00", "1.000000"));
         Repositories.outpayments().add(outpayment);
 
-        SSDB.getInstance().clearLists();
+        se.swedsoft.bookkeeping.data.system.SSEventTriggerSyncContext.clearCachedLists();
         Optional<SSOutpayment> fetched = Repositories.outpayments().findByOutpayment(outpayment);
         assertThat(fetched).isPresent();
 
@@ -119,7 +119,7 @@ class SSOutpaymentV2RepositoryTest {
         updatedOutpayment.getRows().add(row(21004, "USD", "10.200000", "95.00", "10.450000"));
         Repositories.outpayments().update(updatedOutpayment);
 
-        SSDB.getInstance().clearLists();
+        se.swedsoft.bookkeeping.data.system.SSEventTriggerSyncContext.clearCachedLists();
         Optional<SSOutpayment> updated = Repositories.outpayments().findByOutpayment(outpayment);
         assertThat(updated).isPresent();
         assertThat(updated.get().getText()).isEqualTo("After outpayment repo update");
@@ -130,7 +130,7 @@ class SSOutpaymentV2RepositoryTest {
 
         Integer number = updated.get().getNumber();
         Repositories.outpayments().delete(updated.get());
-        SSDB.getInstance().clearLists();
+        se.swedsoft.bookkeeping.data.system.SSEventTriggerSyncContext.clearCachedLists();
         List<SSOutpayment> all = Repositories.outpayments().findAll();
         assertThat(all).extracting(SSOutpayment::getNumber).doesNotContain(number);
     }
@@ -162,19 +162,10 @@ class SSOutpaymentV2RepositoryTest {
     }
 
     private static Integer createCompany(String name) throws Exception {
-        try (PreparedStatement statement = connection.prepareStatement(
-                "INSERT INTO tbl_company(name) VALUES (?)", Statement.RETURN_GENERATED_KEYS)) {
-            statement.setString(1, name);
-            statement.executeUpdate();
-            connection.commit();
-
-            try (ResultSet keys = statement.getGeneratedKeys()) {
-                if (keys.next()) {
-                    return keys.getInt(1);
-                }
-            }
-        }
-        throw new IllegalStateException("Could not create test company for outpayment repository V2 integration test");
+        se.swedsoft.bookkeeping.data.SSNewCompany company = new se.swedsoft.bookkeeping.data.SSNewCompany();
+        company.setName(name);
+        se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.addCompany(company);
+        return company.getId();
     }
 }
 

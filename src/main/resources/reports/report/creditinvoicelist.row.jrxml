@@ -1,185 +1,115 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE jasperReport PUBLIC "-//JasperReports//DTD Report Design//EN"
-        "http://jasperreports.sourceforge.net/dtds/jasperreport.dtd">
-
-<jasperReport name="InvoiceListRow" resourceBundle="book">
-
-    <parameter name="invoice.number" class="java.lang.Integer"/>
-
-    <parameter name="invoice.sum"          class="java.math.BigDecimal"/>
-    <parameter name="invoice.tax"          class="java.math.BigDecimal"/>
-
-    <field name="row.number"          class="java.lang.String"/>
-    <field name="row.description"     class="java.lang.String"/>
-    <field name="row.count"           class="java.lang.Integer"/>
-    <field name="row.unit"            class="java.lang.String"/>
-    <field name="row.unitprice"       class="java.math.BigDecimal"/>
-    <field name="row.discount"        class="java.math.BigDecimal"/>
-    <field name="row.sum"             class="java.math.BigDecimal"/>
-
-    <!-- The sum. -->
-    <variable name="sum" class="java.math.BigDecimal"  resetType="Report" calculation="Sum">
-        <variableExpression>$F{row.sum}</variableExpression>
-        <initialValueExpression>new BigDecimal(0.0) </initialValueExpression>
-    </variable>
-
-
-    <detail>
-        <band height="12" isSplitAllowed="true">
-
-            <!-- Number -->
-            <textField  isBlankWhenNull="true">
-                <reportElement x="60" y="0" width="80" height="12"/>
-                <textElement>
-                    <font size="8" isBold="false"/>
-                </textElement>
-                <textFieldExpression>
-                    <![CDATA[$F{row.number}]]>
-                </textFieldExpression>
-            </textField>
-
-            <!-- Description -->
-            <textField  isBlankWhenNull="true">
-                <reportElement x="120" y="0" width="250" height="12"/>
-                <textElement>
-                    <font size="8" isBold="false"/>
-                </textElement>
-                <textFieldExpression>
-                    <![CDATA[$F{row.description}]]>
-                </textFieldExpression>
-            </textField>
-
-
-            <!-- Unitprice -->
-            <textField  isBlankWhenNull="true" pattern="#,##0.00">
-                <reportElement x="250" y="0" width="70" height="12"/>
-                <textElement textAlignment="Right">
-                    <font size="8" isBold="false"/>
-                </textElement>
-                <textFieldExpression class="java.math.BigDecimal">
-                    <![CDATA[$F{row.unitprice}]]>
-                </textFieldExpression>
-            </textField>
-
-
-            <!-- Count -->
-            <textField  isBlankWhenNull="true">
-                <reportElement x="290" y="0" width="70" height="12"/>
-                <textElement textAlignment="Right">
-                    <font size="8" isBold="false"/>
-                </textElement>
-                <textFieldExpression class="java.lang.Integer">
-                    <![CDATA[$F{row.count}]]>
-                </textFieldExpression>
-            </textField>
-
-            <!-- Unit -->
-            <textField isBlankWhenNull="true">
-                <reportElement x="362" y="0" width="10" height="12"/>
-                <textElement textAlignment="Left">
-                    <font size="8" isBold="false"/>
-                </textElement>
-                <textFieldExpression>
-                    <![CDATA[$F{row.unit}]]>
-                </textFieldExpression>
-            </textField>
-
-
-            <!-- Discount -->
-            <textField  isBlankWhenNull="true" pattern="#,##0.00" >
-                <reportElement x="360" y="0" width="70" height="12"/>
-                <textElement textAlignment="Right">
-                    <font size="8" isBold="false"/>
-                </textElement>
-                <textFieldExpression class="java.math.BigDecimal">
-                    <![CDATA[$F{row.discount}  ]]>
-                </textFieldExpression>
-            </textField>
-
-            <!-- % -->
-            <textField>
-                <reportElement x="432" y="0" width="10" height="12">
-                    <printWhenExpression>
-                         <![CDATA[new Boolean($F{row.discount} != null) ]]>
-                    </printWhenExpression>
-                </reportElement>
-                <textElement textAlignment="Left">
-                    <font size="8" isBold="false"/>
-                </textElement>
-                <textFieldExpression >
-                    <![CDATA[new String("%") ]]>
-                </textFieldExpression>
-            </textField>
-
-
-            <!-- Row sum  -->
-            <textField isBlankWhenNull="true" pattern="#,##0.00">
-                <reportElement x="460" y="0" width="50" height="12"/>
-                <textElement textAlignment="Right">
-                    <font size="8" isBold="false"/>
-                </textElement>
-                <textFieldExpression class="java.math.BigDecimal">
-                    <![CDATA[$F{row.sum}]]>
-                </textFieldExpression>
-            </textField>
-
-
-
-        </band>
-    </detail>
-
-    <summary>
-        <band height="24" isSplitAllowed="false">
-            <line>
-                <reportElement x="60" y="0" width="450" height="1"/>
-            </line>
-
-            <textField>
-                <reportElement x="60" y="0" width="250" height="12"/>
-                <textElement>
-                    <font size="8" isBold="false"/>
-                </textElement>
-                <textFieldExpression>
-                    <![CDATA[$R{invoicelistreport.sum}]]>
-                </textFieldExpression>
-            </textField>
-
-            <textField>
-                <reportElement x="60" y="12" width="250" height="12"/>
-                <textElement>
-                    <font size="8" isBold="false"/>
-                </textElement>
-                <textFieldExpression>
-                    <![CDATA[$R{invoicelistreport.taxsum}]]>
-                </textFieldExpression>
-            </textField>
-
-            <!-- <![CDATA[$V{sum}]]><![CDATA[$V{sum}]]> -->
-
-            <textField pattern="#,##0.00" isBlankWhenNull="false">
-                <reportElement x="260" y="0" width="250" height="12"/>
-                <textElement textAlignment="Right">
-                    <font size="8" isBold="false"/>
-                </textElement>
-                <textFieldExpression class="java.math.BigDecimal">
-                    <![CDATA[$P{invoice.sum}]]>
-                </textFieldExpression>
-            </textField>
-
-            <textField pattern="#,##0.00" isBlankWhenNull="false">
-                <reportElement x="260" y="12" width="250" height="12"/>
-                <textElement textAlignment="Right">
-                    <font size="8" isBold="false"/>
-                </textElement>
-                <textFieldExpression class="java.math.BigDecimal">
-                    <![CDATA[$P{invoice.tax}]]>
-                </textFieldExpression>
-            </textField>
-
-
-
-        </band>
-    </summary>
-
-
+<!-- Created with Jaspersoft Studio version 6.21.1.final using JasperReports Library version 6.21.0-4f56c4f36cd19e17675219a9ac4692d5f0f13b06  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="InvoiceListRow" pageWidth="595" pageHeight="842" whenNoDataType="NoPages" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="30" bottomMargin="30" resourceBundle="book" uuid="b8d5edbf-0fa4-4864-9ec3-54ff82e5fcaf">
+	<parameter name="invoice.number" class="java.lang.Integer"/>
+	<parameter name="invoice.sum" class="java.math.BigDecimal"/>
+	<parameter name="invoice.tax" class="java.math.BigDecimal"/>
+	<field name="row.number" class="java.lang.String"/>
+	<field name="row.description" class="java.lang.String"/>
+	<field name="row.count" class="java.math.BigDecimal"/>
+	<field name="row.unit" class="java.lang.String"/>
+	<field name="row.unitprice" class="java.math.BigDecimal"/>
+	<field name="row.discount" class="java.math.BigDecimal"/>
+	<field name="row.sum" class="java.math.BigDecimal"/>
+	<variable name="sum" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{row.sum}]]></variableExpression>
+		<initialValueExpression><![CDATA[new BigDecimal(0.0)]]></initialValueExpression>
+	</variable>
+	<detail>
+		<band height="12" splitType="Stretch">
+			<textField isBlankWhenNull="true">
+				<reportElement x="60" y="0" width="80" height="12" uuid="568ea738-7f0e-47af-8b5b-08fc4fe8cc30"/>
+				<textElement>
+					<font size="8" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{row.number}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="120" y="0" width="250" height="12" uuid="807a70ee-a7af-4f84-97c8-75e0833c614e"/>
+				<textElement>
+					<font size="8" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{row.description}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00" isBlankWhenNull="true">
+				<reportElement x="250" y="0" width="70" height="12" uuid="7f87aacd-a34b-419c-aa40-f2f12d02cfdd"/>
+				<textElement textAlignment="Right">
+					<font size="8" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{row.unitprice}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.0" isBlankWhenNull="true">
+				<reportElement x="290" y="0" width="70" height="12" uuid="517e2607-fa71-4538-8f20-c4debe7cfc26"/>
+				<textElement textAlignment="Right">
+					<font size="8" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{row.count}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="362" y="0" width="10" height="12" uuid="972a63b9-286b-4321-8a48-ec43d6d85f5a"/>
+				<textElement textAlignment="Left">
+					<font size="8" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{row.unit}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00" isBlankWhenNull="true">
+				<reportElement x="360" y="0" width="70" height="12" uuid="576fcb9f-8d0c-4466-9f69-e6453bcc2641"/>
+				<textElement textAlignment="Right">
+					<font size="8" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{row.discount}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="432" y="0" width="10" height="12" uuid="00ff3e20-5ca1-4755-a4f8-b2e978ef642a">
+					<printWhenExpression><![CDATA[new Boolean($F{row.discount} != null)]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Left">
+					<font size="8" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[new String("%")]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00" isBlankWhenNull="true">
+				<reportElement x="460" y="0" width="50" height="12" uuid="3e20eecc-469a-4df8-a44c-a510a781652d"/>
+				<textElement textAlignment="Right">
+					<font size="8" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{row.sum}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<summary>
+		<band height="24" splitType="Prevent">
+			<line>
+				<reportElement x="60" y="0" width="450" height="1" uuid="1e4b7f2d-2a85-43a7-938c-4b7922658b07"/>
+			</line>
+			<textField>
+				<reportElement x="60" y="0" width="250" height="12" uuid="a1e020d4-ec17-451f-8a34-931f0b6a8767"/>
+				<textElement>
+					<font size="8" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$R{invoicelistreport.sum}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="60" y="12" width="250" height="12" uuid="0212fc4c-5dd2-4e52-aafe-caec4c55b972"/>
+				<textElement>
+					<font size="8" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$R{invoicelistreport.taxsum}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00" isBlankWhenNull="false">
+				<reportElement x="260" y="0" width="250" height="12" uuid="d7e0c3ae-98dd-4255-bcc1-6e14cc5f7b53"/>
+				<textElement textAlignment="Right">
+					<font size="8" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{invoice.sum}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00" isBlankWhenNull="false">
+				<reportElement x="260" y="12" width="250" height="12" uuid="bfc7aa7a-d564-4ab2-a84a-fa1714fb404b"/>
+				<textElement textAlignment="Right">
+					<font size="8" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{invoice.tax}]]></textFieldExpression>
+			</textField>
+		</band>
+	</summary>
 </jasperReport>

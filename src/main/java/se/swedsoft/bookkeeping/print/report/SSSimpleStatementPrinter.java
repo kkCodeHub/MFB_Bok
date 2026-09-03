@@ -11,8 +11,10 @@ import se.swedsoft.bookkeeping.gui.util.SSBundle;
 import se.swedsoft.bookkeeping.gui.util.model.SSDefaultTableModel;
 import se.swedsoft.bookkeeping.print.SSPrinter;
 import se.swedsoft.bookkeeping.print.util.SSDefaultJasperDataSource;
+import se.swedsoft.bookkeeping.util.SSDateUtil;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.*;
 
 
@@ -24,9 +26,9 @@ import java.util.*;
  */
 public class SSSimpleStatementPrinter extends SSPrinter {
 
-    private Date iDateFrom;
+    private LocalDate iDateFrom;
 
-    private Date iDateTo;
+    private LocalDate iDateTo;
 
     private GroupPrinter iPrinter;
 
@@ -45,17 +47,12 @@ public class SSSimpleStatementPrinter extends SSPrinter {
      * @param iDateFrom
      * @param iDateTo
      */
-    public SSSimpleStatementPrinter(Date iDateFrom, Date iDateTo) {
-        this(SSDB.getInstance().getAccounts(), iDateFrom, iDateTo);
+    public SSSimpleStatementPrinter(LocalDate iDateFrom, LocalDate iDateTo) {
+        this(se.swedsoft.bookkeeping.data.system.SSAccountingContext.getAccounts(), iDateFrom, iDateTo);
     }
 
-    /**
-     *
-     * @param iAccounts
-     * @param iDateFrom
-     * @param iDateTo
-     */
-    public SSSimpleStatementPrinter(List<SSAccount> iAccounts, Date iDateFrom, Date iDateTo) {
+    public SSSimpleStatementPrinter(List<SSAccount> iAccounts, LocalDate iDateFrom,
+                                    LocalDate iDateTo) {
         this.iDateFrom = iDateFrom;
         this.iDateTo = iDateTo;
         this.iAccounts = iAccounts;
@@ -87,7 +84,7 @@ public class SSSimpleStatementPrinter extends SSPrinter {
     private void calculate() {
         // Get all vouchers
         List<SSVoucher> iVouchers = SSVoucherMath.getVouchers(
-                SSDB.getInstance().getVouchers(), iDateFrom, iDateTo);
+                se.swedsoft.bookkeeping.data.system.SSAccountingContext.getVouchers(), iDateFrom, iDateTo);
 
         iCreditMinusDebetSum = SSVoucherMath.getCreditMinusDebetSum(iVouchers);
         iDebetMinusCreditSum = SSVoucherMath.getDebetMinusCreditSum(iVouchers);
@@ -166,6 +163,9 @@ public class SSSimpleStatementPrinter extends SSPrinter {
             return new BigDecimal(0);
         }
 
+        if (group.equals("B1")) {
+            return BigDecimal.valueOf(666);
+        }
         if (group.equals("B11")) {
             return null;
         }
@@ -264,10 +264,10 @@ public class SSSimpleStatementPrinter extends SSPrinter {
      */
     @Override
     protected SSDefaultTableModel getModel() {
-        addParameter("date.from", iDateFrom);
-        addParameter("date.to", iDateTo);
+        addParameter("date.from", SSDateUtil.toDate(iDateFrom));
+        addParameter("date.to", SSDateUtil.toDate(iDateTo));
 
-        SSNewCompany iCompany = SSDB.getInstance().getCurrentCompany();
+        SSNewCompany iCompany = se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.getCurrentCompany();
 
         if (iCompany != null) {
             addParameter("company.name", iCompany.getName());
@@ -531,7 +531,7 @@ public class SSSimpleStatementPrinter extends SSPrinter {
      */
     private BigDecimal getSumForAccounts(Map<SSAccount, BigDecimal> iSums, String... iReportCodes) {
         BigDecimal iSum = new BigDecimal(0);
-        SSNewAccountingYear iYear = SSDB.getInstance().getCurrentYear();
+        SSNewAccountingYear iYear = se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.getCurrentYear();
 
         for (SSAccount iAccount : iAccounts) {
             if (hasReportCode(iAccount, iReportCodes)) {

@@ -15,12 +15,14 @@ import se.swedsoft.bookkeeping.gui.util.components.SSTableComboBox;
 import se.swedsoft.bookkeeping.gui.util.datechooser.SSDateChooser;
 import se.swedsoft.bookkeeping.gui.util.dialogs.SSDialog;
 import se.swedsoft.bookkeeping.persistence.Repositories;
+import se.swedsoft.bookkeeping.util.SSDateUtil;
 
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
 
@@ -107,8 +109,8 @@ public class SSInventoryListDialog extends SSDialog {
         }
         // Filter by date
         if (iCheckDate.isSelected()) {
-            final Date iDateFrom = iFromDate.getDate();
-            final Date iDateTo = iToDate.getDate();
+            final LocalDate iDateFrom = iFromDate.getLocalDate();
+            final LocalDate iDateTo = iToDate.getLocalDate();
 
             iInventories = SSFilterFactory.doFilter(iInventories,
                     new SSFilter<>() {
@@ -138,19 +140,21 @@ public class SSInventoryListDialog extends SSDialog {
     }
 
     /**
+     * Returns the start date of the selected period.
      *
-     * @return
+     * @return the local start date
      */
-    public Date getDateFrom() {
-        return iFromDate.getDate();
+    public LocalDate getLocalDateFrom() {
+        return iFromDate.getLocalDate();
     }
 
     /**
+     * Returns the end date of the selected period.
      *
-     * @return
+     * @return the local end date
      */
-    public Date getDateTo() {
-        return iToDate.getDate();
+    public LocalDate getLocalDateTo() {
+        return iToDate.getLocalDate();
     }
 
     /**

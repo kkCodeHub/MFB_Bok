@@ -53,9 +53,9 @@ public class SSOutpaymentDialog {
 
                 Repositories.outpayments().add(iOutpayment1);
 
-                if (pModel != null) {
-                    pModel.fireTableDataChanged();
-                }
+                SSSupplierInvoiceFrame.fireTableDataChanged();
+                SSOutpaymentFrame.fireTableDataChanged();
+
                 if (SSSupplierInvoiceFrame.getInstance() != null) {
                     SSSupplierInvoiceFrame.getInstance().updateFrame();
                 }
@@ -114,9 +114,9 @@ public class SSOutpaymentDialog {
 
                 Repositories.outpayments().add(iOutpayment1);
 
-                if (pModel != null) {
-                    pModel.fireTableDataChanged();
-                }
+                SSSupplierInvoiceFrame.fireTableDataChanged();
+                SSOutpaymentFrame.fireTableDataChanged();
+
                 if (SSSupplierInvoiceFrame.getInstance() != null) {
                     SSSupplierInvoiceFrame.getInstance().updateFrame();
                 }
@@ -172,10 +172,7 @@ public class SSOutpaymentDialog {
                 SSOutpayment iOutpayment = iPanel.getOutpayment();
 
                 Repositories.outpayments().update(iOutpayment);
-
-                if (pModel != null) {
-                    pModel.fireTableDataChanged();
-                }
+                SSOutpaymentFrame.fireTableDataChanged();
 
                 if (SSSupplierInvoiceFrame.getInstance() != null) {
                     SSSupplierInvoiceFrame.getInstance().updateFrame();

@@ -21,7 +21,7 @@ public class SSAccountPlanPrinter extends SSPrinter {
      *
      */
     public SSAccountPlanPrinter() {
-        this(SSDB.getInstance().getCurrentYear().getAccountPlan());
+        this(se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.getCurrentYear().getAccountPlan());
     }
 
     /**

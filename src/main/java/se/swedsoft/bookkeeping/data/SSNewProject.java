@@ -19,6 +19,9 @@ import java.util.List;
 
 
 /**
+ * V2 target model for projects.
+ *
+ * <p>This is the supported project representation in active V2 code paths.</p>
  */
 public class SSNewProject implements Serializable, SSTableSearchable {
 
@@ -53,13 +56,6 @@ public class SSNewProject implements Serializable, SSTableSearchable {
         iConcludedDate = null;
     }
 
-    public SSNewProject(SSProject iOld) {
-        iNumber = String.valueOf(iOld.getNumber());
-        iName = iOld.getName();
-        iDescription = iOld.getDescription();
-        iConcluded = iOld.getConcluded();
-        iConcludedDate = SSDateUtil.toLocalDate(iOld.getConcludedDate());
-    }
 
     // /////////////////////////////////////////////////////////////////////////
 
@@ -168,10 +164,15 @@ public class SSNewProject implements Serializable, SSTableSearchable {
      * @param iDate
      * @return
      */
-    public boolean isConcluded(Date iDate) {
-        LocalDate localDate = SSDateUtil.toLocalDate(iDate);
-        return iConcluded && iConcludedDate != null && localDate != null
-                && !iConcludedDate.isAfter(localDate);
+    /**
+     * Returns true if this project is concluded on or before {@code iDate}.
+     *
+     * @param iDate the reference date
+     * @return true if concluded
+     */
+    public boolean isConcluded(LocalDate iDate) {
+        return iConcluded && iConcludedDate != null && iDate != null
+                && !iConcludedDate.isAfter(iDate);
     }
 
     // /////////////////////////////////////////////////////////////////////////
@@ -216,7 +217,7 @@ public class SSNewProject implements Serializable, SSTableSearchable {
 
     public BigDecimal getProjectRevenueForMonth(SSMonth iMonth) {
         Double iInvoiceSum = 0.0;
-        List<SSInvoice> iInvoices = SSDB.getInstance().getInvoices();
+        List<SSInvoice> iInvoices = se.swedsoft.bookkeeping.data.system.SSSalesContext.getInvoices();
 
         for (SSInvoice iInvoice : iInvoices) {
             if (iMonth.isDateInMonth(iInvoice.getLocalDate())) {
@@ -231,7 +232,7 @@ public class SSNewProject implements Serializable, SSTableSearchable {
             }
         }
 
-        List<SSCreditInvoice> iCreditInvoices = SSDB.getInstance().getCreditInvoices();
+        List<SSCreditInvoice> iCreditInvoices = se.swedsoft.bookkeeping.data.system.SSSalesContext.getCreditInvoices();
         Double iCreditInvoiceSum = 0.0;
 
         for (SSCreditInvoice iCreditInvoice : iCreditInvoices) {

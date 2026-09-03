@@ -42,7 +42,7 @@ public class SupplierPayment {
     public SupplierPayment(SSSupplierInvoice iInvoice) {
         this.iInvoice = iInvoice;
         iPaymentMethod = PaymentMethod.BANKGIRO;
-        iValue = SSSupplierInvoiceMath.getSaldo(iInvoice.getNumber());
+        iValue = SSSupplierInvoiceMath.getTotalSum(iInvoice);
         iAccount = getBankGiro();
 
         iDate = iInvoice.getLocalDueDate() == null ? SSDateUtil.today() : iInvoice.getLocalDueDate();
@@ -185,7 +185,7 @@ public class SupplierPayment {
      * @return
      */
     public SSSupplier getSupplier() {
-        return iInvoice.getSupplier(SSDB.getInstance().getSuppliers());
+        return iInvoice.getSupplier(se.swedsoft.bookkeeping.data.system.SSPurchaseContext.getSuppliers());
     }
 
     /**
@@ -193,7 +193,7 @@ public class SupplierPayment {
      * @return
      */
     public String getBankGiro() {
-        SSSupplier iSupplier = iInvoice.getSupplier(SSDB.getInstance().getSuppliers());
+        SSSupplier iSupplier = iInvoice.getSupplier(se.swedsoft.bookkeeping.data.system.SSPurchaseContext.getSuppliers());
 
         return iSupplier == null ? null : iSupplier.getBankgiro();
     }
@@ -203,7 +203,7 @@ public class SupplierPayment {
      * @return
      */
     public String getPlusGiro() {
-        SSSupplier iSupplier = iInvoice.getSupplier(SSDB.getInstance().getSuppliers());
+        SSSupplier iSupplier = iInvoice.getSupplier(se.swedsoft.bookkeeping.data.system.SSPurchaseContext.getSuppliers());
 
         return iSupplier == null ? null : iSupplier.getPlusgiro();
     }
@@ -213,7 +213,7 @@ public class SupplierPayment {
      * @return
      */
     public String getKonto() {
-        SSSupplier iSupplier = iInvoice.getSupplier(SSDB.getInstance().getSuppliers());
+        SSSupplier iSupplier = iInvoice.getSupplier(se.swedsoft.bookkeeping.data.system.SSPurchaseContext.getSuppliers());
 
         return iSupplier == null ? null : iSupplier.getBankgiro();
     }
@@ -223,7 +223,7 @@ public class SupplierPayment {
      * @return
      */
     public Integer getOutpaymentNumber() {
-        SSSupplier iSupplier = iInvoice.getSupplier(SSDB.getInstance().getSuppliers());
+        SSSupplier iSupplier = iInvoice.getSupplier(se.swedsoft.bookkeeping.data.system.SSPurchaseContext.getSuppliers());
 
         return iSupplier == null ? null : iSupplier.getOutpaymentNumber();
     }
@@ -233,7 +233,7 @@ public class SupplierPayment {
      * @return
      */
     public SSAddress getAddress() {
-        SSSupplier iSupplier = iInvoice.getSupplier(SSDB.getInstance().getSuppliers());
+        SSSupplier iSupplier = iInvoice.getSupplier(se.swedsoft.bookkeeping.data.system.SSPurchaseContext.getSuppliers());
 
         return iSupplier == null ? null : iSupplier.getAddress();
     }

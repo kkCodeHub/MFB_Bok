@@ -1,243 +1,164 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE jasperReport PUBLIC "-//JasperReports//DTD Report Design//EN"
-        "http://jasperreports.sourceforge.net/dtds/jasperreport.dtd">
-
-<jasperReport name="SRUReport" resourceBundle="book">
-
-    <!-- Declared fields in the report. -->
-
-    <field name="group.number"      class="java.lang.Integer"/>
-    <field name="group.description" class="java.lang.String"/>
-    <field name="group.sum"         class="java.math.BigDecimal"/>
-
-
-    <field name="group.one.index"         class="java.lang.Integer"/>
-    <field name="group.one.titletext"     class="java.lang.String"/>
-
-    <field name="group.two.index"         class="java.lang.Integer"/>
-    <field name="group.two.titletext"     class="java.lang.String"/>
-    <field name="group.two.sumtext"       class="java.lang.String"/>
-
-    <field name="group.summary.titletext" class="java.lang.String"/>
-
-    <variable name="sum" class="java.math.BigDecimal"  resetType="Report" calculation="Sum">
-        <variableExpression>$F{group.sum}</variableExpression>
-        <initialValueExpression>new BigDecimal(0.0) </initialValueExpression>
-    </variable>
-
-    <variable name="group.one.sum" class="java.math.BigDecimal" resetType="Group" calculation="Sum" resetGroup="group.one">
-        <variableExpression>$F{group.sum}</variableExpression>
-        <initialValueExpression>new BigDecimal(0.0) </initialValueExpression>
-    </variable>
-
-    <variable name="group.two.sum" class="java.math.BigDecimal" resetType="Group" calculation="Sum" resetGroup="group.two">
-        <variableExpression>$F{group.sum}</variableExpression>
-        <initialValueExpression>new BigDecimal(0.0) </initialValueExpression>
-    </variable>
-
-    <variable name="group.summary.sum" class="java.math.BigDecimal" resetType="Group" calculation="Sum" resetGroup="group.summary">
-        <variableExpression>$F{group.sum}</variableExpression>
-        <initialValueExpression>new BigDecimal(0.0) </initialValueExpression>
-    </variable>
-
-    <!-- Main group -->
-    <group name="group.one" >
-        <groupExpression>
-            <![CDATA[$F{group.one.index}]]>
-        </groupExpression>
-
-        <groupHeader>
-            <band height="25">
-                <textField>
-                    <reportElement x="20" y="4" width="400" height="16">
-                    </reportElement>
-                    <textElement>
-                        <font size="12" isBold="true"/>
-                    </textElement>
-                    <textFieldExpression>
-                        <![CDATA[$F{group.one.titletext}]]>
-                    </textFieldExpression>
-                </textField>
-            </band>
-        </groupHeader>
-    </group>
-
-    <!-- This is for the special summary sections. -->
-    <group name="group.summary" >
-        <!-- the sections are:
-         200: Summa tillgangar
-         305: Summa eget kapital, avsattningar och skulder
-         527: Rorelseresultat fore avskrivningar
-         556: Rorelseresultat efter avskrivningar
-         569: Resultat efter financiella intakter och kostnader
-         598: Redovisat resultat enligt bokforingen
-        -->
-        <groupExpression><![CDATA[
-            new Integer(
+<!-- Created with Jaspersoft Studio version 6.21.1.final using JasperReports Library version 6.21.0-4f56c4f36cd19e17675219a9ac4692d5f0f13b06  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="SRUReport" pageWidth="595" pageHeight="842" whenNoDataType="NoPages" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="30" bottomMargin="30" resourceBundle="book" uuid="90f2306e-ff18-4731-af57-0b26682b590c">
+	<field name="group.number" class="java.lang.Integer"/>
+	<field name="group.description" class="java.lang.String"/>
+	<field name="group.sum" class="java.math.BigDecimal"/>
+	<field name="group.one.index" class="java.lang.Integer"/>
+	<field name="group.one.titletext" class="java.lang.String"/>
+	<field name="group.two.index" class="java.lang.Integer"/>
+	<field name="group.two.titletext" class="java.lang.String"/>
+	<field name="group.two.sumtext" class="java.lang.String"/>
+	<field name="group.summary.titletext" class="java.lang.String"/>
+	<variable name="sum" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{group.sum}]]></variableExpression>
+		<initialValueExpression><![CDATA[new BigDecimal(0.0)]]></initialValueExpression>
+	</variable>
+	<variable name="group.one.sum" class="java.math.BigDecimal" resetType="Group" resetGroup="group.one" calculation="Sum">
+		<variableExpression><![CDATA[$F{group.sum}]]></variableExpression>
+		<initialValueExpression><![CDATA[new BigDecimal(0.0)]]></initialValueExpression>
+	</variable>
+	<variable name="group.two.sum" class="java.math.BigDecimal" resetType="Group" resetGroup="group.two" calculation="Sum">
+		<variableExpression><![CDATA[$F{group.sum}]]></variableExpression>
+		<initialValueExpression><![CDATA[new BigDecimal(0.0)]]></initialValueExpression>
+	</variable>
+	<variable name="group.summary.sum" class="java.math.BigDecimal" resetType="Group" resetGroup="group.summary" calculation="Sum">
+		<variableExpression><![CDATA[$F{group.sum}]]></variableExpression>
+		<initialValueExpression><![CDATA[new BigDecimal(0.0)]]></initialValueExpression>
+	</variable>
+	<group name="group.one">
+		<groupExpression><![CDATA[$F{group.one.index}]]></groupExpression>
+		<groupHeader>
+			<band height="25" splitType="Stretch">
+				<textField>
+					<reportElement x="20" y="4" width="400" height="16" uuid="6063fbb9-2ab3-48cb-815c-b30f690c87d9"/>
+					<textElement>
+						<font size="12" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{group.one.titletext}]]></textFieldExpression>
+				</textField>
+			</band>
+		</groupHeader>
+	</group>
+	<group name="group.summary">
+		<groupExpression><![CDATA[new Integer(
                 ($F{group.two.index}.intValue() <= 2 ) ? 1 :
                 ($F{group.two.index}.intValue() <= 6 ) ? 2 :
                 ($F{group.two.index}.intValue() <= 10) ? 3 :
                 ($F{group.two.index}.intValue() <= 11) ? 4 :
                 ($F{group.two.index}.intValue() <= 12) ? 5 :
                 ($F{group.two.index}.intValue() <= 13) ? 6 : 0
-            )
-             ]]>
-        </groupExpression>
-
-        <groupFooter>
-            <band height="25">
-
-                <rectangle>
-                    <reportElement x="20" y="0" width="510" height="2" backcolor="#000000"/>
-                    <graphicElement pen="None" fill="Solid"/>
-                </rectangle>
-
-                <textField>
-                    <reportElement x="20" y="3" width="250" height="14"/>
-                    <textElement>
-                        <font size="10" isBold="false"/>
-                    </textElement>
-                    <textFieldExpression>
-                        <![CDATA[$F{group.summary.titletext}]]>
-                    </textFieldExpression>
-                </textField>
-
-                <textField pattern="#,##0.00" isBlankWhenNull="false">
-                    <reportElement x="450" y="3" width="80" height="14"/>
-                    <textElement textAlignment="Right">
-                        <font size="10" isBold="false"/>
-                    </textElement>
-                    <textFieldExpression class="java.math.BigDecimal">
-                        <![CDATA[ $F{group.one.index}.intValue() == 1 ? $V{group.summary.sum} : $V{group.one.sum} ]]>
-                    </textFieldExpression>
-                </textField>
-
-            </band>
-        </groupFooter>
-    </group>
-
-    <!-- Sub group -->
-    <group name="group.two" >
-        <groupExpression>
-            <![CDATA[$F{group.two.index}]]>
-        </groupExpression>
-
-        <groupHeader>
-            <band height="15">
-
-                <textField>
-                    <reportElement x="30" y="0" width="380" height="14">
-                    </reportElement>
-                    <textElement>
-                        <font size="10" isBold="true"/>
-                    </textElement>
-                    <textFieldExpression>
-                        <![CDATA[$F{group.two.titletext}]]>
-                    </textFieldExpression>
-                </textField>
-            </band>
-        </groupHeader>
-
-        <groupFooter>
-            <band height="15">
-
-                <line>
-                    <reportElement x="40" y="0" width="490" height="1"/>
-                </line>
-
-                <textField pattern="#,##0.00">
-                    <reportElement x="40" y="0" width="250" height="12">
-                    </reportElement>
-                    <textElement>
-                        <font size="8" isBold="false"/>
-                    </textElement>
-                    <textFieldExpression class="java.lang.String">
-                        <![CDATA[$F{group.two.sumtext}]]>
-                    </textFieldExpression>
-                </textField>
-
-                <textField pattern="#,##0.00">
-                    <reportElement x="460" y="0" width="70" height="12"/>
-                    <textElement textAlignment="Right">
-                        <font size="8" isBold="false"/>
-                    </textElement>
-                    <textFieldExpression class="java.math.BigDecimal">
-                        <![CDATA[ $V{group.two.sum} ]]>
-                    </textFieldExpression>
-                </textField>
-            </band>
-        </groupFooter>
-
-    </group>
-
-
-
-    <columnHeader>
-        <band height="15">
-            <line>
-                <reportElement x="20" y="12" width="510" height="1"/>
-            </line>
-
-            <textField>
-                <reportElement x="350" y="0" width="70" height="12" />
-                <textElement textAlignment="Center">
-                    <font size="8"/>
-                </textElement>
-                <textFieldExpression class="java.lang.String">
-                    <![CDATA[$R{accountdiagramreport.column.2}]]>
-                </textFieldExpression>
-            </textField>
-
-            <textField>
-                <reportElement x="460" y="0" width="70" height="12" />
-                <textElement textAlignment="Right">
-                    <font size="8"/>
-                </textElement>
-                <textFieldExpression class="java.lang.String">
-                    <![CDATA[$R{accountdiagramreport.column.3}]]>
-                </textFieldExpression>
-            </textField>
-
-        </band>
-    </columnHeader>
-
-
-    <detail>
-        <band height="11" isSplitAllowed="true">
-
-
-
-            <!-- Title -->
-            <textField>
-                <reportElement x="40" y="0" width="300" height="11"/>
-                <textElement>
-                    <font size="8"/>
-                </textElement>
-                <textFieldExpression class="java.lang.String">
-                    <![CDATA[$F{group.description}]]>
-                </textFieldExpression>
-            </textField>
-            <textField>
-                <reportElement x="350" y="0" width="70" height="11"/>
-                <textElement textAlignment="Center">
-                    <font size="8"/>
-                </textElement>
-                <textFieldExpression class="java.lang.Integer">
-                    <![CDATA[$F{group.number}]]>
-                </textFieldExpression>
-            </textField>
-
-            <textField pattern="#,##0.00">
-                <reportElement x="460" y="0" width="70" height="11"/>
-                <textElement textAlignment="Right">
-                    <font size="8"/>
-                </textElement>
-                <textFieldExpression class="java.math.BigDecimal">
-                    <![CDATA[ $F{group.sum} ]]>
-                </textFieldExpression>
-            </textField>
-
-        </band>
-    </detail>
-
+            )]]></groupExpression>
+		<groupFooter>
+			<band height="25" splitType="Stretch">
+				<rectangle>
+					<reportElement x="20" y="0" width="510" height="2" backcolor="#000000" uuid="c5f2acce-f81f-470c-b5b2-af54fc15e2db"/>
+					<graphicElement fill="Solid">
+						<pen lineWidth="0.0" lineStyle="Solid"/>
+					</graphicElement>
+				</rectangle>
+				<textField>
+					<reportElement x="20" y="3" width="250" height="14" uuid="de24ea27-eb8f-4f04-9646-64a8cc0e5c4f"/>
+					<textElement>
+						<font size="10" isBold="false"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{group.summary.titletext}]]></textFieldExpression>
+				</textField>
+				<textField pattern="#,##0.00" isBlankWhenNull="false">
+					<reportElement x="450" y="3" width="80" height="14" uuid="0bdd6d0e-c99c-48b4-bfa4-d59dc7844ac2"/>
+					<textElement textAlignment="Right">
+						<font size="10" isBold="false"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{group.one.index}.intValue() == 1 ? $V{group.summary.sum} : $V{group.one.sum}]]></textFieldExpression>
+				</textField>
+			</band>
+		</groupFooter>
+	</group>
+	<group name="group.two">
+		<groupExpression><![CDATA[$F{group.two.index}]]></groupExpression>
+		<groupHeader>
+			<band height="15" splitType="Stretch">
+				<textField>
+					<reportElement x="30" y="0" width="380" height="14" uuid="f4870673-35c0-4ece-b542-d953b4208133"/>
+					<textElement>
+						<font size="10" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{group.two.titletext}]]></textFieldExpression>
+				</textField>
+			</band>
+		</groupHeader>
+		<groupFooter>
+			<band height="15" splitType="Stretch">
+				<line>
+					<reportElement x="40" y="0" width="490" height="1" uuid="cecf44b8-d680-4094-be0e-5367f11e86ba"/>
+				</line>
+				<textField pattern="#,##0.00">
+					<reportElement x="40" y="0" width="250" height="12" uuid="62076cc1-9c7f-47dc-9210-957011bf2ea9"/>
+					<textElement>
+						<font size="8" isBold="false"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{group.two.sumtext}]]></textFieldExpression>
+				</textField>
+				<textField pattern="#,##0.00">
+					<reportElement x="460" y="0" width="70" height="12" uuid="04f1569a-107c-48eb-beb4-d2e25c4558c0"/>
+					<textElement textAlignment="Right">
+						<font size="8" isBold="false"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{group.two.sum}]]></textFieldExpression>
+				</textField>
+			</band>
+		</groupFooter>
+	</group>
+	<columnHeader>
+		<band height="15" splitType="Stretch">
+			<line>
+				<reportElement x="20" y="12" width="510" height="1" uuid="86f0fc5f-384b-44be-83ab-73363f882caf"/>
+			</line>
+			<textField>
+				<reportElement x="390" y="0" width="70" height="12" uuid="9637c36e-b0ea-4d87-ab8c-bafee7702f5d">
+					<property name="com.jaspersoft.studio.unit.x" value="px"/>
+				</reportElement>
+				<textElement textAlignment="Center">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$R{accountdiagramreport.column.2}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="460" y="0" width="70" height="12" uuid="f8528afe-a030-4dd3-859b-c3318459bf55"/>
+				<textElement textAlignment="Right">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$R{accountdiagramreport.column.3}]]></textFieldExpression>
+			</textField>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="11" splitType="Stretch">
+			<textField>
+				<reportElement x="40" y="0" width="340" height="11" uuid="fa9b934e-c04f-454a-8e24-e030fdfa6a24">
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+				</reportElement>
+				<textElement>
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{group.description}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="390" y="0" width="70" height="11" uuid="7bac5690-c88f-4a09-8b5f-cf92f29e4ab2">
+					<property name="com.jaspersoft.studio.unit.x" value="px"/>
+				</reportElement>
+				<textElement textAlignment="Center">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{group.number}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00">
+				<reportElement x="460" y="0" width="70" height="11" uuid="f1551d73-ded1-4542-8325-3c79f4239224"/>
+				<textElement textAlignment="Right">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{group.sum}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
 </jasperReport>

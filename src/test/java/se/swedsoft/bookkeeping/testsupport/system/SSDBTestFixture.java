@@ -40,7 +40,8 @@ public final class SSDBTestFixture {
 
     /** JDBC URL for the shared in-memory HSQLDB instance. */
     static final String JDBC_URL = "jdbc:hsqldb:mem:fribok_test";
-    private static final String CREATE_TABLES_V2_SQL = "/sql/create_tables_v2.sql";
+    private static final String CREATE_TABLES_V2_PUBLIC_SQL = "/sql/create_tables_v2_Public.sql";
+    private static final String CREATE_TABLES_V2_COMPANY_SQL = "/sql/create_tables_v2_Company.sql";
 
     /**
      * Collects uncaught exceptions from background threads (e.g. HSQLDB
@@ -209,7 +210,8 @@ public final class SSDBTestFixture {
     }
 
     private static void prepareSchemaForStartup(Connection pConnection) throws SQLException, IOException {
-        executeSqlScript(pConnection, CREATE_TABLES_V2_SQL);
+        executeSqlScript(pConnection, CREATE_TABLES_V2_PUBLIC_SQL);
+        executeSqlScript(pConnection, CREATE_TABLES_V2_COMPANY_SQL);
 
         try (Statement iStatement = pConnection.createStatement();
              java.sql.ResultSet iResultSet = iStatement.executeQuery("SELECT 1 FROM tbl_accountplan")) {

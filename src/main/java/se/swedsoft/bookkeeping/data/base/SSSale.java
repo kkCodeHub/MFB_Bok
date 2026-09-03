@@ -7,8 +7,6 @@ import se.swedsoft.bookkeeping.data.system.SSDB;
 import se.swedsoft.bookkeeping.gui.util.table.SSTableSearchable;
 import se.swedsoft.bookkeeping.util.SSDateUtil;
 
-import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -89,7 +87,7 @@ public abstract class SSSale implements SSTableSearchable, Serializable {
         iDeliveryAddress = new SSAddress();
         iRows = new LinkedList<>();
         iPrinted = false;
-        SSNewCompany iCompany = SSDB.getInstance().getCurrentCompany();
+        SSNewCompany iCompany = se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.getCurrentCompany();
 
         if (iCompany != null) {
             iPaymentTerm = iCompany.getPaymentTerm();
@@ -192,23 +190,6 @@ public abstract class SSSale implements SSTableSearchable, Serializable {
 
     // //////////////////////////////////////////////////
 
-    /**
-     * @return the date as a legacy {@link Date}
-     * @deprecated Use {@link #getLocalDate()} instead.
-     */
-    @Deprecated
-    public Date getDate() {
-        return SSDateUtil.toDate(iDate);
-    }
-
-    /**
-     * @param iDate the date as a legacy {@link Date}
-     * @deprecated Use {@link #setLocalDate(LocalDate)} instead.
-     */
-    @Deprecated
-    public void setDate(Date iDate) {
-        this.iDate = SSDateUtil.toLocalDate(iDate);
-    }
 
     /**
      * Returns the date as a {@link LocalDate}.
@@ -439,6 +420,9 @@ public abstract class SSSale implements SSTableSearchable, Serializable {
      * @return
      */
     public BigDecimal getTaxRate2() {
+        if (iTaxRate2 == null) {
+            iTaxRate2 = new BigDecimal(12);
+        }
         return iTaxRate2;
     }
 
@@ -609,7 +593,7 @@ public abstract class SSSale implements SSTableSearchable, Serializable {
      * @return
      */
     public Optional<SSAccount> getDefaultAccount(SSAccountPlan iAccountPlan, SSDefaultAccount iDefaultAccount) {
-        Integer iAccountNumber = iDefaultAccounts.get(iDefaultAccount);
+        Integer iAccountNumber = getDefaultAccount(iDefaultAccount);
 
         if (iAccountNumber == null) {
             return Optional.empty();
@@ -624,7 +608,11 @@ public abstract class SSSale implements SSTableSearchable, Serializable {
      * @return
      */
     public Integer getDefaultAccount(SSDefaultAccount iDefaultAccount) {
-        return iDefaultAccounts.get(iDefaultAccount);
+        if (iDefaultAccounts != null && iDefaultAccounts.containsKey(iDefaultAccount)) {
+            return iDefaultAccounts.get(iDefaultAccount);
+        } else {
+            return iDefaultAccount.getDefaultAccountNumber();
+        }
     }
 
     /**
@@ -633,7 +621,9 @@ public abstract class SSSale implements SSTableSearchable, Serializable {
      */
     public void setDefaultAccounts(Map<SSDefaultAccount, Integer> iDefaultAccounts) {
         this.iDefaultAccounts = new HashMap<>();
-        this.iDefaultAccounts.putAll(iDefaultAccounts);
+        if (iDefaultAccounts != null) {
+            this.iDefaultAccounts.putAll(iDefaultAccounts);
+        }
     }
 
     // //////////////////////////////////////////////////
@@ -673,7 +663,7 @@ public abstract class SSSale implements SSTableSearchable, Serializable {
      * @return
      */
     public SSCustomer getCustomer() {
-        return getCustomer(SSDB.getInstance().getCustomers());
+        return getCustomer(se.swedsoft.bookkeeping.data.system.SSSalesContext.getCustomers());
     }
 
     /**
@@ -803,38 +793,5 @@ public abstract class SSSale implements SSTableSearchable, Serializable {
         return iNumber == null ? "" : iNumber.toString();
     }
 
-    /**
-     * Custom deserialization to handle backward compatibility.
-     * Pre-migration serialized streams stored {@code iDate} as {@code java.util.Date}.
-     * This method reads it as a raw object and converts via
-     * {@link SSDateUtil#readLocalDate(Object)}.
-     */
-    @SuppressWarnings("unchecked")
-    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
-        ObjectInputStream.GetField fields = in.readFields();
-        iNumber = (Integer) fields.get("iNumber", null);
-        iDate = SSDateUtil.readLocalDate(fields.get("iDate", null));
-        iCustomerNr = (String) fields.get("iCustomerNr", null);
-        iCustomerName = (String) fields.get("iCustomerName", null);
-        iOurContactPerson = (String) fields.get("iOurContactPerson", null);
-        iYourContactPerson = (String) fields.get("iYourContactPerson", null);
-        iDelayInterest = (BigDecimal) fields.get("iDelayInterest", null);
-        iCurrency = (SSCurrency) fields.get("iCurrency", null);
-        iPaymentTerm = (SSPaymentTerm) fields.get("iPaymentTerm", null);
-        iDeliveryTerm = (SSDeliveryTerm) fields.get("iDeliveryTerm", null);
-        iDeliveryWay = (SSDeliveryWay) fields.get("iDeliveryWay", null);
-        iTaxFree = fields.get("iTaxFree", false);
-        iText = (String) fields.get("iText", null);
-        iTaxRate1 = (BigDecimal) fields.get("iTaxRate1", null);
-        iTaxRate2 = (BigDecimal) fields.get("iTaxRate2", null);
-        iTaxRate3 = (BigDecimal) fields.get("iTaxRate3", null);
-        iEuSaleCommodity = fields.get("iEuSaleCommodity", false);
-        iEuSaleYhirdPartCommodity = fields.get("iEuSaleYhirdPartCommodity", false);
-        iInvoiceAddress = (SSAddress) fields.get("iInvoiceAddress", null);
-        iDeliveryAddress = (SSAddress) fields.get("iDeliveryAddress", null);
-        iPrinted = fields.get("iPrinted", false);
-        iDefaultAccounts = (Map<SSDefaultAccount, Integer>) fields.get("iDefaultAccounts", null);
-        iRows = (List<SSSaleRow>) fields.get("iRows", null);
-    }
 
 }

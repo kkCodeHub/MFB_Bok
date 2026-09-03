@@ -9,7 +9,6 @@ import se.swedsoft.bookkeeping.data.system.SSDB;
 import se.swedsoft.bookkeeping.util.SSDateUtil;
 
 import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -341,7 +340,7 @@ public class SSVoucherRow implements Serializable, Cloneable {
      * @return
      */
     public SSAccount getAccount() {
-        return getAccount(SSDB.getInstance().getAccounts());
+        return getAccount(se.swedsoft.bookkeeping.data.system.SSAccountingContext.getAccounts());
     }
 
     /**
@@ -377,7 +376,7 @@ public class SSVoucherRow implements Serializable, Cloneable {
      * @return
      */
     public SSNewProject getProject() {
-        return getProject(SSDB.getInstance().getProjects());
+        return getProject(se.swedsoft.bookkeeping.data.system.SSProjectContext.getProjects());
     }
 
     /**
@@ -413,7 +412,7 @@ public class SSVoucherRow implements Serializable, Cloneable {
      * @return
      */
     public SSNewResultUnit getResultUnit() {
-        return getResultUnit(SSDB.getInstance().getResultUnits());
+        return getResultUnit(se.swedsoft.bookkeeping.data.system.SSResultUnitContext.getResultUnits());
 
     }
 
@@ -454,29 +453,6 @@ public class SSVoucherRow implements Serializable, Cloneable {
         iProject = null;
         iResultUnit = null;
         out.defaultWriteObject();
-    }
-
-    /**
-     *
-     * @param in
-     * @throws IOException
-     * @throws ClassNotFoundException
-     */
-    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
-        in.defaultReadObject();
-        if (iAccount != null) {
-            iAccountNr = iAccount.getNumber();
-        }
-        if (iProject != null) {
-            iProjectNumber = iProject.getNumber();
-        }
-        if (iResultUnit != null) {
-            iResultUnitNumber = iResultUnit.getNumber();
-        }
-
-        iAccount = null;
-        iProject = null;
-        iResultUnit = null;
     }
 
     // //////////////////////////////////////////////////////////////////
@@ -570,7 +546,7 @@ public class SSVoucherRow implements Serializable, Cloneable {
      return new SSVoucherRow(getAccount(), getCredit(), getDebet(), getProject(), getResultUnit());
      }
      */
-    
+
     /**
      * Indicates that this row has an account and one value in one of credit or debet.
      * Also, empty rows are isValid rows.

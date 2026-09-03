@@ -10,6 +10,7 @@ import se.swedsoft.bookkeeping.gui.util.model.SSDefaultTableModel;
 import se.swedsoft.bookkeeping.persistence.Repositories;
 import se.swedsoft.bookkeeping.print.SSPrinter;
 import se.swedsoft.bookkeeping.print.util.SSDefaultJasperDataSource;
+import se.swedsoft.bookkeeping.print.util.SSQuantityPrintUtil;
 
 import java.math.BigDecimal;
 import java.text.DateFormat;
@@ -186,7 +187,7 @@ public class SSTenderListPrinter extends SSPrinter {
                         break;
 
                     case 2:
-                        value = iRow.getQuantity();
+                        value = SSQuantityPrintUtil.toDisplay(iRow.getQuantity());
                         break;
 
                     case 3:

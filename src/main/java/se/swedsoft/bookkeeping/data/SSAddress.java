@@ -6,6 +6,7 @@ package se.swedsoft.bookkeeping.data;
 
 
 import java.io.Serializable;
+import java.util.Objects;
 
 
 /**
@@ -222,9 +223,9 @@ public class SSAddress implements Serializable {
         if (obj instanceof SSAddress) {
             SSAddress iOther = (SSAddress) obj;
 
-            return iName.equals(iOther.iName) && iAddress.equals(iOther.iAddress)
-                    && iStreet.equals(iOther.iStreet) && iZipCode.equals(iOther.iZipCode)
-                    && iCity.equals(iOther.iCity) && iCountry.equals(iOther.iCountry);
+            return Objects.equals(iName, iOther.iName) && Objects.equals(iAddress, iOther.iAddress)
+                    && Objects.equals(iStreet, iOther.iStreet) && Objects.equals(iZipCode, iOther.iZipCode)
+                    && Objects.equals(iCity, iOther.iCity) && Objects.equals(iCountry, iOther.iCountry);
 
         }
 

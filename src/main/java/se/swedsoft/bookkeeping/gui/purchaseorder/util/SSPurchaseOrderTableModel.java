@@ -230,7 +230,7 @@ public class SSPurchaseOrderTableModel extends SSTableModel<SSPurchaseOrder> {
             "Beräknad leverans") {
         @Override
         public Object getValue(SSPurchaseOrder iObject) {
-            return iObject.getEstimatedDelivery();
+            return SSDateUtil.toDate(iObject.getLocalEstimatedDelivery());
         }
 
         @Override

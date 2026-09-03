@@ -236,7 +236,7 @@ public class SSTenderTableModel extends SSTableModel<SSTender> {
             SSBundle.getBundle().getString("tendertable.column.7")) {
         @Override
         public Object getValue(SSTender iTender) {
-            return iTender.getOrderNr(); // iTender.getOrder( SSDB.getInstance().getOrders() );
+            return iTender.getOrderNr(); // iTender.getOrder( se.swedsoft.bookkeeping.data.system.SSSalesContext.getOrders() );
         }
 
         @Override

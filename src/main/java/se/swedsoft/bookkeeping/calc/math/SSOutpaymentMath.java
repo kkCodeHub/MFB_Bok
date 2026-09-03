@@ -4,6 +4,7 @@ package se.swedsoft.bookkeeping.calc.math;
 import se.swedsoft.bookkeeping.data.SSOutpayment;
 import se.swedsoft.bookkeeping.data.SSOutpaymentRow;
 import se.swedsoft.bookkeeping.data.SSSupplierInvoice;
+import se.swedsoft.bookkeeping.data.system.SSDB;
 import se.swedsoft.bookkeeping.persistence.Repositories;
 import se.swedsoft.bookkeeping.util.SSDateUtil;
 
@@ -24,19 +25,18 @@ public class SSOutpaymentMath {
     private SSOutpaymentMath() {}
 
     /**
+     * Returns true if the outpayment's date falls within [pFrom, pTo] inclusive.
      *
-     * @param iOutpayment
-     * @param pFrom
-     * @param pTo
-     * @return
+     * @param iOutpayment the outpayment to test
+     * @param pFrom       the start of the period
+     * @param pTo         the end of the period
+     * @return true if within the period
      */
-    public static boolean inPeriod(SSOutpayment iOutpayment, Date pFrom, Date pTo) {
+    public static boolean inPeriod(SSOutpayment iOutpayment, LocalDate pFrom, LocalDate pTo) {
         LocalDate iDate = iOutpayment.getLocalDate();
-        LocalDate iFrom = SSDateUtil.toLocalDate(pFrom);
-        LocalDate iTo = SSDateUtil.toLocalDate(pTo);
 
-        return iDate != null && iFrom != null && iTo != null
-                && !iDate.isBefore(iFrom) && !iDate.isAfter(iTo);
+        return iDate != null && pFrom != null && pTo != null
+                && !iDate.isBefore(pFrom) && !iDate.isAfter(pTo);
     }
 
     /**
@@ -151,8 +151,8 @@ public class SSOutpaymentMath {
      * @return the sum
      */
     public static BigDecimal getSumForInvoice(SSSupplierInvoice iInvoice) {
-        // Get all credit invoices from the db
-        List<SSOutpayment> iOutpayments = Repositories.outpayments().findAll();
+        // Get all outpayments from SSDB cache instead of Repositories to ensure fresh/updated data
+        List<SSOutpayment> iOutpayments = se.swedsoft.bookkeeping.data.system.SSPaymentContext.getOutpayments();
 
         BigDecimal iSum = new BigDecimal(0);
 
@@ -168,7 +168,8 @@ public class SSOutpaymentMath {
     public static HashMap<Integer, BigDecimal> getSumsForSupplierInvoices() {
         HashMap<Integer, BigDecimal> iSums = new HashMap<>();
 
-        List<SSOutpayment> iOutpayments = Repositories.outpayments().findAll();
+        // Use SSDB cache instead of Repositories to ensure fresh/updated data
+        List<SSOutpayment> iOutpayments = se.swedsoft.bookkeeping.data.system.SSPaymentContext.getOutpayments();
 
         for (SSOutpayment iOutpayment : iOutpayments) {
             for (SSOutpaymentRow iRow : iOutpayment.getRows()) {
@@ -188,7 +189,8 @@ public class SSOutpaymentMath {
     public static HashMap<Integer, BigDecimal> getSumsForSupplierInvoices(Date iDate) {
         HashMap<Integer, BigDecimal> iSums = new HashMap<>();
 
-        List<SSOutpayment> iOutpayments = Repositories.outpayments().findAll();
+        // Use SSDB cache instead of Repositories to ensure fresh/updated data
+        List<SSOutpayment> iOutpayments = se.swedsoft.bookkeeping.data.system.SSPaymentContext.getOutpayments();
         LocalDate localDate = SSDateUtil.toLocalDate(iDate);
 
         for (SSOutpayment iOutpayment : iOutpayments) {
@@ -217,7 +219,8 @@ public class SSOutpaymentMath {
      * @return the sum
      */
     public static BigDecimal getSumForInvoice(SSSupplierInvoice iInvoice, Date iDate) {
-        List<SSOutpayment> iOutpayments = Repositories.outpayments().findAll();
+        // Use SSDB cache instead of Repositories to ensure fresh/updated data
+        List<SSOutpayment> iOutpayments = se.swedsoft.bookkeeping.data.system.SSPaymentContext.getOutpayments();
 
         LocalDate localDate = SSDateUtil.toLocalDate(iDate);
         BigDecimal iSum = new BigDecimal(0);

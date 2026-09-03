@@ -5,8 +5,11 @@
 package se.swedsoft.bookkeeping.gui.accountingyear.dialog;
 
 
+import org.fribok.bookkeeping.app.SSDBUiInitializer;
 import se.swedsoft.bookkeeping.data.SSNewAccountingYear;
-import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.data.SSAccountPlan;
+import se.swedsoft.bookkeeping.data.system.SSCompanyYearContext;
+import se.swedsoft.bookkeeping.data.system.SSAccountingContext;
 import se.swedsoft.bookkeeping.data.system.SSDBConfig;
 import se.swedsoft.bookkeeping.gui.SSMainFrame;
 import se.swedsoft.bookkeeping.gui.accountingyear.panel.SSAccountingYearPanel;
@@ -45,10 +48,21 @@ public class SSNewAccountingYearDialog {
 
         iPanel.addOkAction(
                 e -> {
+                        if (!iPanel.validatePreviousYearSelection(iDialog)) {
+                            return;
+                        }
 
                         SSNewAccountingYear iAccountingYear = iPanel.getAccountingYear();
 
-                        SSDB.getInstance().addAccountingYear(iAccountingYear);
+                        if (iAccountingYear.getAccountPlan() != null) {
+                            // Year creation copies the selected template into year-owned account rows.
+                            // Do not create a new template plan row when creating a year.
+                            SSAccountPlan iDetachedPlan = new SSAccountPlan(iAccountingYear.getAccountPlan());
+                            iDetachedPlan.setId(null);
+                            iAccountingYear.setAccountPlan(iDetachedPlan);
+                        }
+
+                        SSAccountingContext.addAccountingYear(iAccountingYear);
 
                         int iResponce = SSQueryDialog.showDialog(iMainFrame, SSBundle.getBundle(),
                                 "accountingyearframe.replaceyear",
@@ -56,9 +70,9 @@ public class SSNewAccountingYearDialog {
 
                         if (iResponce == JOptionPane.YES_OPTION) {
 
-                            SSDB.getInstance().setCurrentYear(iAccountingYear);
-                            SSDB.getInstance().initYear(true);
-                            SSDBConfig.setYearId(SSDB.getInstance().getCurrentCompany().getId(),
+                            SSCompanyYearContext.openYear(iAccountingYear);
+                            SSDBUiInitializer.initYear(true);
+                            SSDBConfig.setYearId(SSAccountingContext.getCurrentCompany().getId(),
                                     iAccountingYear.getId());
                             // Close all year related frames
                             SSFrameManager.getInstance().close();
@@ -77,3 +91,5 @@ public class SSNewAccountingYearDialog {
     }
 
 }
+
+

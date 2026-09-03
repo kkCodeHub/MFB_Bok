@@ -4,8 +4,9 @@ package se.swedsoft.bookkeeping.gui.voucher.util;
 import se.swedsoft.bookkeeping.data.SSAccount;
 import se.swedsoft.bookkeeping.data.SSNewProject;
 import se.swedsoft.bookkeeping.data.SSNewResultUnit;
+import se.swedsoft.bookkeeping.data.SSVoucher;
 import se.swedsoft.bookkeeping.data.SSVoucherRow;
-import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.data.system.SSAccountingContext;
 import se.swedsoft.bookkeeping.gui.util.SSBundle;
 import se.swedsoft.bookkeeping.gui.util.table.SSTable;
 import se.swedsoft.bookkeeping.gui.util.table.model.SSEditableTableModel;
@@ -28,6 +29,26 @@ import java.util.List;
 public class SSVoucherRowTableModel extends SSEditableTableModel<SSVoucherRow> {
 
     private int iReadOnlyCount;
+
+    private boolean iReadOnlyMode;
+
+    /**
+     * Enable/disable strict read-only rendering mode (no trailing edit row).
+     */
+    public void setReadOnlyMode(boolean pReadOnlyMode) {
+        iReadOnlyMode = pReadOnlyMode;
+        if (iReadOnlyMode) {
+            iReadOnlyCount = Integer.MAX_VALUE;
+        }
+        fireTableDataChanged();
+    }
+
+    /**
+     * Convenience API for voucher previews.
+     */
+    public void setVoucher(SSVoucher pVoucher, boolean pEditing) {
+        setObjects(pVoucher.getRows(), pEditing);
+    }
 
     /**
      *
@@ -60,9 +81,25 @@ public class SSVoucherRowTableModel extends SSEditableTableModel<SSVoucherRow> {
      * @param iEditing
      */
     public void setObjects(List<SSVoucherRow> iObjects, boolean iEditing) {
-        iReadOnlyCount = iEditing ? iObjects.size() : 0;
+        iReadOnlyCount = iReadOnlyMode ? Integer.MAX_VALUE : (iEditing ? iObjects.size() : 0);
 
         super.setObjects(iObjects);
+    }
+
+    @Override
+    public int getRowCount() {
+        if (iReadOnlyMode) {
+            return getObjects().size();
+        }
+        return super.getRowCount();
+    }
+
+    @Override
+    public SSVoucherRow getObject(int row) {
+        if (iReadOnlyMode) {
+            return getObjects().get(row);
+        }
+        return super.getObject(row);
     }
 
     /**
@@ -105,7 +142,7 @@ public class SSVoucherRowTableModel extends SSEditableTableModel<SSVoucherRow> {
             SSBundle.getBundle().getString("voucherrowtable.column.1")) {
         @Override
         public Object getValue(SSVoucherRow iVoucherRow) {
-            SSAccount iAccount = iVoucherRow.getAccount(SSDB.getInstance().getAccounts());
+            SSAccount iAccount = iVoucherRow.getAccount(SSAccountingContext.getAccounts());
 
             return iAccount != null ? iAccount : iVoucherRow.getAccountNr();
         }
@@ -141,7 +178,7 @@ public class SSVoucherRowTableModel extends SSEditableTableModel<SSVoucherRow> {
             SSBundle.getBundle().getString("voucherrowtable.column.2")) {
         @Override
         public Object getValue(SSVoucherRow iVoucherRow) {
-            SSAccount iAccount = iVoucherRow.getAccount(SSDB.getInstance().getAccounts());
+            SSAccount iAccount = iVoucherRow.getAccount(SSAccountingContext.getAccounts());
 
             return  iAccount != null ? iAccount.getDescription() : null;
         }
@@ -401,3 +438,4 @@ public class SSVoucherRowTableModel extends SSEditableTableModel<SSVoucherRow> {
         return sb.toString();
     }
 }
+

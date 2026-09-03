@@ -42,8 +42,8 @@ public class SSAccountsPayablePrinter extends SSPrinter {
      *
      * @param iDate
      */
-    public SSAccountsPayablePrinter(Date iDate) {
-        this(iDate, SSDB.getInstance().getSuppliers());
+    public SSAccountsPayablePrinter(LocalDate iDate) {
+        this(iDate, se.swedsoft.bookkeeping.data.system.SSPurchaseContext.getSuppliers());
     }
 
     /**
@@ -51,12 +51,12 @@ public class SSAccountsPayablePrinter extends SSPrinter {
      * @param iDate
      * @param iSuppliers
      */
-    public SSAccountsPayablePrinter(Date iDate, List<SSSupplier> iSuppliers) {
+    public SSAccountsPayablePrinter(LocalDate iDate, List<SSSupplier> iSuppliers) {
         // Get all customers
         this.iSuppliers = iSuppliers;
-        this.iDate = iDate;
+        this.iDate = SSDateUtil.toDate(iDate);
 
-        LocalDate iCeiledDate = SSDateUtil.toLocalDate(this.iDate);
+        LocalDate iCeiledDate = iDate;
 
         iOutpaymentSum = SSOutpaymentMath.getSumsForSupplierInvoices(SSDateUtil.toDate(iCeiledDate));
 
@@ -77,7 +77,7 @@ public class SSAccountsPayablePrinter extends SSPrinter {
             iSupplierInvoicesMap.put(iSupplierNumber, iInvoicesForCustomer);
         }
         addParameter("periodTitle", iBundle.getString("accountspayablereport.periodtitle"));
-        addParameter("periodText", iDate);
+        addParameter("periodText", this.iDate);
 
         setPageHeader("header_period.jrxml");
         setColumnHeader("accountspayable.jrxml");

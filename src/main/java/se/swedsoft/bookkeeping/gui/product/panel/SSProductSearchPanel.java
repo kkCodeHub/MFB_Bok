@@ -2,7 +2,7 @@ package se.swedsoft.bookkeeping.gui.product.panel;
 
 
 import se.swedsoft.bookkeeping.data.SSProduct;
-import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.data.system.SSProductContext;
 import se.swedsoft.bookkeeping.gui.product.util.SSProductTableModel;
 
 import javax.swing.*;
@@ -41,7 +41,7 @@ public class SSProductSearchPanel extends JPanel {
     }
 
     public void ApplyFilter() {
-        List<SSProduct> iProducts = SSDB.getInstance().getProducts();
+        List<SSProduct> iProducts = SSProductContext.getProducts();
         List<SSProduct> iFiltered = new LinkedList<>();
 
         String iText = iTextField.getText();

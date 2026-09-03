@@ -57,11 +57,21 @@ public class SSSalePrinterUtils {    private static final Logger LOG = LoggerFac
 
         iPrinter.addParameter("company.weightunit", iCompany.getWeightUnit());
         iPrinter.addParameter("company.volumeunit", iCompany.getVolumeUnit());
+        iPrinter.addParameter("invoice.swishText", iCompany.getSwishText());
 
     }
 
     /**
-     * 
+     *
+     * @param iCompany
+     * @param iPrinter
+     */
+    public static void addParameterForSwishImage(SSNewCompany iCompany, SSPrinter iPrinter) {
+        iPrinter.addParameter("invoice.swishImage", iCompany.getSwishImage().orElse(null));
+    }
+
+    /**
+     *
      * @param urqData
      * @param iPrinter
      */
@@ -83,7 +93,7 @@ public class SSSalePrinterUtils {    private static final Logger LOG = LoggerFac
             LOG.info("Unexpected character encoding: " + uqrData.toString());
         }
 
-        iPrinter.addParameter("invoice.qrcode", SSSalePrinterUtils.getImage(uqrFile));
+        iPrinter.addParameter("invoice.swishImage", SSSalePrinterUtils.getImage(uqrFile));
     }
 
     /**
@@ -111,7 +121,7 @@ public class SSSalePrinterUtils {    private static final Logger LOG = LoggerFac
 
     }
 
-    
+
     public static String getPrimaryPaymentMethod(final SSNewCompany iCompany) {
         // fixme! - Check SE, NO, DK
         if (!"".equals(iCompany.getBankGiroNumber())) {
@@ -126,7 +136,7 @@ public class SSSalePrinterUtils {    private static final Logger LOG = LoggerFac
         }
         return "IBAN";
     }
-    
+
     public static String getPrimaryPaymentAccount(final SSNewCompany iCompany) {
         // fixme! - Check SE, NO, DK
         if (!"".equals(iCompany.getBankGiroNumber())) {

@@ -22,33 +22,31 @@ public class SSInventoryMath {
     private SSInventoryMath() {}
 
     /**
+     * Returns true if the inventory's date is on or before pTo.
      *
-     * @param iInventory
-     * @param pTo
-     * @return
+     * @param iInventory the inventory to test
+     * @param pTo        the upper bound
+     * @return true if within the period
      */
-    public static boolean inPeriod(SSInventory iInventory, Date pTo) {
+    public static boolean inPeriod(SSInventory iInventory, LocalDate pTo) {
         LocalDate iDate = iInventory.getLocalDate();
-        LocalDate iTo = SSDateUtil.toLocalDate(pTo);
 
-        return iDate != null && iTo != null && !iDate.isAfter(iTo);
-
+        return iDate != null && pTo != null && !iDate.isAfter(pTo);
     }
 
     /**
+     * Returns true if the inventory's date falls within [pFrom, pTo] inclusive.
      *
-     * @param iInventory
-     * @param pFrom
-     * @param pTo
-     * @return
+     * @param iInventory the inventory to test
+     * @param pFrom      the start of the period
+     * @param pTo        the end of the period
+     * @return true if within the period
      */
-    public static boolean inPeriod(SSInventory iInventory, Date pFrom, Date pTo) {
+    public static boolean inPeriod(SSInventory iInventory, LocalDate pFrom, LocalDate pTo) {
         LocalDate iDate = iInventory.getLocalDate();
-        LocalDate iFrom = SSDateUtil.toLocalDate(pFrom);
-        LocalDate iTo = SSDateUtil.toLocalDate(pTo);
 
-        return iDate != null && iFrom != null && iTo != null
-                && !iDate.isBefore(iFrom) && !iDate.isAfter(iTo);
+        return iDate != null && pFrom != null && pTo != null
+                && !iDate.isBefore(pFrom) && !iDate.isAfter(pTo);
     }
 
     /**

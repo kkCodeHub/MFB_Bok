@@ -1,0 +1,45 @@
+{
+  "Kunder": [
+    {
+      "Kund-id": "K001",
+      "Namn": "Kundföretaget AB",
+      "Er kontaktperson": "Kund Kontakt"
+    },
+    {
+      "Kund-id": "K002",
+      "Namn": "Exempelkunden AB",
+      "Er kontaktperson": "Exempel Kontakt"
+    }
+  ],
+
+  "Leverantörer": [
+    {
+      "Leverantörs-id": "L001",
+      "Namn": "Leverantören AB",
+      "Er kontaktperson": "Leveran Kontakt"
+    },
+    {
+      "Leverantörs-id": "L002",
+      "Namn": "Kontorsvaror AB",
+      "Er kontaktperson": "Kontor Kontakt"
+    }
+  ],
+
+  "Produkter": [
+    {
+      "Produktnummer": "P001",
+      "Beskrivning": "Konsulttjänst",
+      "Försäljningspris": 1000.00
+    },
+    {
+      "Produktnummer": "P002",
+      "Beskrivning": "Fönster",
+      "Försäljningspris": 2500.00
+    },
+    {
+      "Produktnummer": "P003",
+      "Beskrivning": "Spik",
+      "Försäljningspris": 500.00
+    }
+  ]
+}

@@ -2,7 +2,8 @@ package se.swedsoft.bookkeeping.gui.supplierinvoice;
 
 
 import se.swedsoft.bookkeeping.data.*;
-import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.data.system.SSProductContext;
+import se.swedsoft.bookkeeping.data.system.SSPurchaseContext;
 
 import se.swedsoft.bookkeeping.gui.SSMainFrame;
 import se.swedsoft.bookkeeping.gui.supplierinvoice.panel.SSSupplierInvoicePanel;
@@ -58,9 +59,7 @@ public class SSSupplierInvoiceDialog {
 
                 Repositories.supplierInvoices().add(iSupplierInvoice1);
 
-                if (pModel != null) {
-                    pModel.fireTableDataChanged();
-                }
+                SSSupplierInvoiceFrame.fireTableDataChanged();
 
                 iPanel.dispose();
                 iDialog.closeDialog();
@@ -175,7 +174,7 @@ public class SSSupplierInvoiceDialog {
         iNew.setEntered(false);
         iNew.setBGCEntered(false);
 
-        for (SSSupplier iSupplier : SSDB.getInstance().getSuppliers()) {
+        for (SSSupplier iSupplier : SSPurchaseContext.getSuppliers()) {
             if (iCopyFrom.getSupplierNr().equals(iSupplier.getNumber())) {
                 iNew.setPaymentTerm(iSupplier.getPaymentTerm());
             }
@@ -192,9 +191,7 @@ public class SSSupplierInvoiceDialog {
 
                 Repositories.supplierInvoices().add(iSupplierInvoice);
 
-                if (pModel != null) {
-                    pModel.fireTableDataChanged();
-                }
+                SSSupplierInvoiceFrame.fireTableDataChanged();
 
                 iPanel.dispose();
                 iDialog.closeDialog();
@@ -247,7 +244,7 @@ public class SSSupplierInvoiceDialog {
 
         for (SSSupplierInvoiceRow iRow : iSupplierInvoice.getRows()) {
             if (iRow.getProductNr() != null) {
-                SSProduct iProduct = iRow.getProduct(SSDB.getInstance().getProducts());
+                SSProduct iProduct = iRow.getProduct(SSProductContext.getProducts());
 
                 iRow.setUnitFreight(iProduct == null ? null : iProduct.getUnitFreight());
                 iRow.setProject(
@@ -279,9 +276,7 @@ public class SSSupplierInvoiceDialog {
                     Repositories.purchaseOrders().update(iPurchaseOrder);
                 }
 
-                if (iModel != null) {
-                    iModel.fireTableDataChanged();
-                }
+                SSSupplierInvoiceFrame.fireTableDataChanged();
 
                 iPanel.dispose();
                 iDialog.closeDialog();

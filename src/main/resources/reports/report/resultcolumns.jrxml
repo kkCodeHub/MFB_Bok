@@ -1,81 +1,49 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
-<!DOCTYPE jasperReport PUBLIC "-//JasperReports//DTD Report Design//EN"
-        "http://jasperreports.sourceforge.net/dtds/jasperreport.dtd">
-
-<jasperReport name="ResultColumnHeader" resourceBundle="book">
-
-    <!-- Declared fields in the report. -->
-
-
-    <parameter name="column.text.1"    class="java.lang.String"/>
-    <parameter name="column.text.2"    class="java.lang.String"/>
-    <parameter name="column.text.3"    class="java.lang.String"/>
-
-
-    <columnHeader>
-        <band height="15">
-            <line>
-                <reportElement x="20" y="12" width="510" height="1"/>
-            </line>
-
-            <!-- Number -->
-            <textField>
-                <reportElement x="40" y="0" width="30" height="12"/>
-                <textElement>
-                    <font size="8"/>
-                </textElement>
-                <textFieldExpression class="java.lang.String">
-                    <![CDATA[$R{resultreport.column.8}]]>
-                </textFieldExpression>
-            </textField>
-
-            <!-- Description -->
-            <textField>
-                <reportElement x="100" y="0" width="250" height="12"/>
-                <textElement>
-                    <font size="8"/>
-                </textElement>
-                <textFieldExpression class="java.lang.String">
-                    <![CDATA[$R{resultreport.column.9}]]>
-                </textFieldExpression>
-            </textField>
-
-            <!-- Column 1 -->
-            <textField isBlankWhenNull="true">
-                <reportElement x="290" y="0" width="80" height="12"/>
-                <textElement textAlignment="Right">
-                    <font size="8"/>
-                </textElement>
-                <textFieldExpression class="java.lang.String">
-                    <![CDATA[$P{column.text.1}]]>
-                </textFieldExpression>
-            </textField>
-
-            <!-- Column 2 -->
-            <textField isBlankWhenNull="true">
-                <reportElement x="370" y="0" width="80" height="12" />
-                <textElement textAlignment="Right">
-                    <font size="8"/>
-                </textElement>
-                <textFieldExpression class="java.lang.String">
-                    <![CDATA[$P{column.text.2}]]>
-                </textFieldExpression>
-            </textField>
-
-            <!-- Column 3 -->
-            <textField isBlankWhenNull="true">
-                <reportElement x="450" y="0" width="80" height="12" />
-                <textElement textAlignment="Right">
-                    <font size="8"/>
-                </textElement>
-                <textFieldExpression class="java.lang.String">
-                    <![CDATA[$P{column.text.3}]]>
-                </textFieldExpression>
-            </textField>
-
-
-        </band>
-    </columnHeader>
-
+<!-- Created with Jaspersoft Studio version 6.21.1.final using JasperReports Library version 6.21.0-4f56c4f36cd19e17675219a9ac4692d5f0f13b06  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="ResultColumnHeader" pageWidth="595" pageHeight="842" whenNoDataType="NoPages" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="30" bottomMargin="30" resourceBundle="book" uuid="503b0ad5-5707-4691-9812-29b73ab10725">
+	<parameter name="column.text.1" class="java.lang.String"/>
+	<parameter name="column.text.2" class="java.lang.String"/>
+	<parameter name="column.text.3" class="java.lang.String"/>
+	<columnHeader>
+		<band height="15" splitType="Stretch">
+			<line>
+				<reportElement x="20" y="12" width="510" height="1" uuid="07e9ee85-0246-44a7-bebe-d4e3a9595a77"/>
+			</line>
+			<textField>
+				<reportElement x="40" y="0" width="30" height="12" uuid="973823a1-f98c-45ef-8cd3-ef34d686002c"/>
+				<textElement>
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$R{resultreport.column.8}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="100" y="0" width="250" height="12" uuid="5e4909f9-07e9-4549-a525-81ddbad8fa88"/>
+				<textElement>
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$R{resultreport.column.9}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="290" y="0" width="80" height="12" uuid="fedecc55-e7f8-4765-81af-fa70036bef9d"/>
+				<textElement textAlignment="Right">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{column.text.1}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="370" y="0" width="80" height="12" uuid="be81f020-d0bb-43fa-b533-8e5aa6282d40"/>
+				<textElement textAlignment="Right">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{column.text.2}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="450" y="0" width="80" height="12" uuid="6e1e5019-4cc6-41eb-96c5-4ccf19c8ccfe"/>
+				<textElement textAlignment="Right">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{column.text.3}]]></textFieldExpression>
+			</textField>
+		</band>
+	</columnHeader>
 </jasperReport>

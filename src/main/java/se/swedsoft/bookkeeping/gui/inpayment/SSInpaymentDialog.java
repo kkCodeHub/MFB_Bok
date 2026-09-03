@@ -47,10 +47,7 @@ public class SSInpaymentDialog {
                 SSInpayment iInpayment = iPanel.getInpayment();
 
                 Repositories.inpayments().update(iInpayment);
-
-                if (pModel != null) {
-                    pModel.fireTableDataChanged();
-                }
+                SSInpaymentFrame.fireTableDataChanged();
 
                 if (SSInvoiceFrame.getInstance() != null) {
                     SSInvoiceFrame.getInstance().updateFrame();
@@ -108,10 +105,7 @@ public class SSInpaymentDialog {
 
                 Repositories.inpayments().add(iInpayment1);
                 SSInvoiceFrame.fireTableDataChanged();
-
-                if (pModel != null) {
-                    pModel.fireTableDataChanged();
-                }
+                SSInpaymentFrame.fireTableDataChanged();
 
                 if (SSInvoiceFrame.getInstance() != null) {
                     SSInvoiceFrame.getInstance().updateFrame();
@@ -172,6 +166,7 @@ public class SSInpaymentDialog {
                 Repositories.inpayments().add(iInpayment1);
 
                 SSInvoiceFrame.fireTableDataChanged();
+                SSInpaymentFrame.fireTableDataChanged();
 
                 if (SSInvoiceFrame.getInstance() != null) {
                     SSInvoiceFrame.getInstance().updateFrame();

@@ -5,6 +5,9 @@ import se.swedsoft.bookkeeping.calc.math.SSOrderMath;
 import se.swedsoft.bookkeeping.data.*;
 import se.swedsoft.bookkeeping.data.system.SSDB;
 import se.swedsoft.bookkeeping.data.system.SSMail;
+import se.swedsoft.bookkeeping.data.system.SSSalesContext;
+import se.swedsoft.bookkeeping.data.system.SSCompanyYearContext;
+import se.swedsoft.bookkeeping.data.system.SSProductContext;
 import se.swedsoft.bookkeeping.gui.SSMainFrame;
 import se.swedsoft.bookkeeping.gui.order.panel.SSOrderSearchPanel;
 import se.swedsoft.bookkeeping.gui.order.util.SSOrderTableModel;
@@ -79,6 +82,8 @@ public class SSOrderFrame extends SSDefaultTableFrame {    private static final 
     private JTabbedPane iTabbedPane;
 
     private SSTable iTable;
+
+    private JScrollPane iTableScrollPane;
 
     private SSOrderTableModel iModel;
 
@@ -254,7 +259,7 @@ public class SSOrderFrame extends SSDefaultTableFrame {    private static final 
                                     SSPurchaseOrderRow iRow = new SSPurchaseOrderRow();
 
                                     iRow.setProduct(
-                                            iParcelRow.getProduct(SSDB.getInstance().getProducts()));
+                                            iParcelRow.getProduct(se.swedsoft.bookkeeping.data.system.SSProductContext.getProducts()));
                                     iRow.setQuantity(
                                             ssProductIntegerEntry.getValue()
                                                     * iParcelRow.getQuantity());
@@ -359,14 +364,14 @@ public class SSOrderFrame extends SSDefaultTableFrame {    private static final 
                                 break;
 
                             case JOptionPane.NO_OPTION:
-                                iItems = SSDB.getInstance().getOrders();
+                                iItems = SSSalesContext.getOrders();
                                 break;
 
                             default:
                                 return;
                             }
                         } else {
-                            iItems = SSDB.getInstance().getOrders();
+                            iItems = SSSalesContext.getOrders();
                         }
                         if (!iItems.isEmpty()) {
 
@@ -498,10 +503,12 @@ public class SSOrderFrame extends SSDefaultTableFrame {    private static final 
         iTabbedPane.add(SSBundle.getBundle().getString("orderframe.filter.2"),
                 new SSTabbedPanePanel());
 
-        iTabbedPane.addChangeListener(e -> iSearchPanel.ApplyFilter(SSDB.getInstance().getOrders()));
+        iTabbedPane.addChangeListener(e -> iSearchPanel.ApplyFilter(SSSalesContext.getOrders()));
         // setFilterIndex(0);
 
-        // iModel.setObjects(SSDB.getInstance().getOrders());
+        // iModel.setObjects(se.swedsoft.bookkeeping.data.system.SSSalesContext.getOrders());
+        iTableScrollPane = new JScrollPane(iTable);
+
         JPanel iPanel = new JPanel();
 
         iSearchPanel = new SSOrderSearchPanel(iModel);
@@ -521,12 +528,25 @@ public class SSOrderFrame extends SSDefaultTableFrame {    private static final 
     public void setFilterIndex(int index, List<SSOrder> iOrders) {
         JPanel iPanel = (JPanel) iTabbedPane.getComponentAt(index);
 
-        iPanel.removeAll();
-        iPanel.add(new JScrollPane(iTable), BorderLayout.CENTER);
+        // Move the shared scroll pane to the selected tab panel, if needed.
+        if (iTableScrollPane.getParent() != iPanel) {
+            Container iOldParent = iTableScrollPane.getParent();
+
+            if (iOldParent != null) {
+                iOldParent.remove(iTableScrollPane);
+                if (iOldParent instanceof JComponent) {
+                    ((JComponent) iOldParent).revalidate();
+                }
+            }
+            iPanel.removeAll();
+            iPanel.add(iTableScrollPane, BorderLayout.CENTER);
+            iPanel.revalidate();
+            iPanel.repaint();
+        }
 
         List<SSOrder> iFiltered = Collections.emptyList();
 
-        List<SSInvoice> iInvoices = SSDB.getInstance().getInvoices();
+        List<SSInvoice> iInvoices = SSSalesContext.getInvoices();
 
         switch (index) {
         // Alla
@@ -546,6 +566,7 @@ public class SSOrderFrame extends SSDefaultTableFrame {    private static final 
             break;
         }
         iModel.setObjects(iFiltered);
+        iTabbedPane.revalidate();
         iTabbedPane.repaint();
     }
 
@@ -615,21 +636,30 @@ public class SSOrderFrame extends SSDefaultTableFrame {    private static final 
                     }
                 }
                 iTenders = null;
-                SSDB.getInstance().deleteOrder(iOrder);
+                SSSalesContext.deleteOrder(iOrder);
             }
         }
     }
 
     private SSOrder getOrder(SSOrder iOrder) {
-        return SSDB.getInstance().getOrder(iOrder).orElse(null);
+        return SSSalesContext.getOrder(iOrder).orElse(null);
     }
 
     private List<SSOrder> getOrders(List<SSOrder> iOrders) {
-        return SSDB.getInstance().getOrders(iOrders);
+        return SSSalesContext.getOrders(iOrders);
+    }
+
+    /**
+     * Convenience method that updates the order frame if it is currently open.
+     */
+    public static void fireTableDataChanged() {
+        if (cInstance != null) {
+            cInstance.updateFrame();
+        }
     }
 
     public void updateFrame() {
-        iSearchPanel.ApplyFilter(SSDB.getInstance().getOrders());
+        iSearchPanel.ApplyFilter(SSSalesContext.getOrders());
     }
 
     public void actionPerformed(ActionEvent e) {

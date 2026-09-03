@@ -32,11 +32,22 @@ public class SSOutdelivery implements Serializable {
      *
      */
     public SSOutdelivery() {
+        this(true);
+    }
+
+    /**
+     * Constructor that optionally skips auto-increment; use {@code false} when
+     * mapping rows from the database to avoid recursive repository calls.
+     *
+     * @param autoIncrement whether to call {@link #doAutoIncrement()}
+     */
+    public SSOutdelivery(boolean autoIncrement) {
         iDate = SSDateUtil.toDate(SSDateUtil.today());
         iText = null;
         iRows = new LinkedList<>();
-
-        doAutoIncrement();
+        if (autoIncrement) {
+            doAutoIncrement();
+        }
     }
 
     /**

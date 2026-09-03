@@ -1,22 +1,20 @@
 package se.swedsoft.bookkeeping.data.common;
 
 
-import org.apache.xerces.parsers.DOMParser;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.fribok.bookkeeping.app.Path;
 import se.swedsoft.bookkeeping.gui.util.SSBundle;
 import se.swedsoft.bookkeeping.gui.util.table.SSTableSearchable;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 import java.io.InputStream;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -128,15 +126,14 @@ public class SSVATCode implements SSTableSearchable {    private static final Lo
         if (iValues == null) {
             iValues = new LinkedList<>();
 
-            DOMParser iParser = new DOMParser();
-
             try {
-                // parser.set(false)
                 InputStream istream = SSVATCode.class.getResourceAsStream("/vatcodes.xml");
 
-                iParser.parse(new InputSource(istream));
-                NodeList iNodes = iParser.getDocument().getDocumentElement().getElementsByTagName(
-                        "vatcode");
+                NodeList iNodes = DocumentBuilderFactory.newInstance()
+                        .newDocumentBuilder()
+                        .parse(istream)
+                        .getDocumentElement()
+                        .getElementsByTagName("vatcode");
 
                 for (int i = 0; i < iNodes.getLength(); i++) {
                     Node iNode = iNodes.item(i);
@@ -151,7 +148,7 @@ public class SSVATCode implements SSTableSearchable {    private static final Lo
 
                     iValues.add(iVatCode);
                 }
-            } catch (IOException | SAXException ex) {
+            } catch (IOException | ParserConfigurationException | SAXException ex) {
                 LOG.error("Unexpected error", ex);
             }
         }

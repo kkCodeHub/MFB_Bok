@@ -45,6 +45,7 @@ public class SSFilterFactory<T> {
      *
      * @param iFilters
      */
+    @SuppressWarnings({"unchecked", "varargs"})
     public void applyFilter(SSFilter<T>... iFilters) {
         for (SSFilter<T> iFilter : iFilters) {
             applyFilter(iFilter);

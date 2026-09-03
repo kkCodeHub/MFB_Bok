@@ -3,6 +3,8 @@ package se.swedsoft.bookkeeping.gui.creditinvoice.dialog;
 
 import se.swedsoft.bookkeeping.data.SSInvoice;
 import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.data.system.SSInvoiceActionPolicy;
+import se.swedsoft.bookkeeping.data.system.SSSalesContext;
 import se.swedsoft.bookkeeping.gui.SSMainFrame;
 import se.swedsoft.bookkeeping.gui.invoice.util.SSInvoiceTableModel;
 import se.swedsoft.bookkeeping.gui.util.SSBundle;
@@ -14,6 +16,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.LinkedList;
+import java.util.List;
 
 
 /**
@@ -57,7 +61,9 @@ public class SSSelectInvoiceDialog extends SSDialog {
 
         getRootPane().setDefaultButton(iButtonPanel.getOkButton());
 
-        iInvoice.setModel(SSInvoiceTableModel.getDropDownModel());
+        List<SSInvoice> iAllowedInvoices = new LinkedList<>(SSSalesContext.getInvoices());
+        iAllowedInvoices.removeIf(iInvoice -> !SSInvoiceActionPolicy.canCreateCreditInvoice(iInvoice));
+        iInvoice.setModel(SSInvoiceTableModel.getDropDownModel(iAllowedInvoices));
     }
 
     /**
@@ -105,7 +111,7 @@ public class SSSelectInvoiceDialog extends SSDialog {
 
         SSInvoice selected = iDialog.iInvoice.getSelected();
 
-        return SSDB.getInstance().getInvoice(selected).orElse(null);
+        return SSSalesContext.getInvoice(selected).orElse(null);
     }
 
     @Override

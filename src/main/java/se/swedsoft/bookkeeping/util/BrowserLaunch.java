@@ -60,7 +60,7 @@ public class BrowserLaunch {
 
         try {
             if (WINDOWS) {
-                Runtime.getRuntime().exec("rundll32 url.dll,FileProtocolHandler " + url);
+                new ProcessBuilder("rundll32", "url.dll,FileProtocolHandler", url).start();
             } else { // assume Unix
                 // hone BROWSER variable
                 List<String> browsers = new ArrayList<>(10);
@@ -88,8 +88,7 @@ public class BrowserLaunch {
                 String browser = null;
 
                 for (String br : browsers) {
-                    Process process = Runtime.getRuntime().exec(
-                            new String[] { "which", br});
+                    Process process = new ProcessBuilder("which", br).start();
 
                     try {
                         if (process.waitFor() == 0) {
@@ -100,8 +99,7 @@ public class BrowserLaunch {
 
                 // launch browser
                 if (browser != null) {
-                    String[] commandLine = { browser, url};
-                    Process process = Runtime.getRuntime().exec(commandLine);
+                    new ProcessBuilder(browser, url).start();
                 } else {
                     error = "Could not find web browser";
                 }

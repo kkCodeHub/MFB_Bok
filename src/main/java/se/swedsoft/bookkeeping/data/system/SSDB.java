@@ -1,57 +1,27 @@
 package se.swedsoft.bookkeeping.data.system;
 
 
-import se.swedsoft.bookkeeping.SSTriggerHandler;
+import com.fasterxml.jackson.databind.JsonNode;
 import org.fribok.bookkeeping.app.Path;
 import se.swedsoft.bookkeeping.calc.math.*;
-import se.swedsoft.bookkeeping.calc.service.SaldoDeltaService;
-import se.swedsoft.bookkeeping.calc.util.SSAutoIncrement;
 import se.swedsoft.bookkeeping.data.*;
-import se.swedsoft.bookkeeping.data.base.SSSaleRow;
 import se.swedsoft.bookkeeping.data.common.*;
 import se.swedsoft.bookkeeping.gui.SSMainFrame;
-import se.swedsoft.bookkeeping.gui.autodist.SSAutoDistFrame;
-import se.swedsoft.bookkeeping.gui.creditinvoice.SSCreditInvoiceFrame;
-import se.swedsoft.bookkeeping.gui.customer.SSCustomerFrame;
-import se.swedsoft.bookkeeping.gui.indelivery.SSIndeliveryFrame;
-import se.swedsoft.bookkeeping.gui.inpayment.SSInpaymentFrame;
-import se.swedsoft.bookkeeping.gui.inventory.SSInventoryFrame;
-import se.swedsoft.bookkeeping.gui.invoice.SSInvoiceFrame;
-import se.swedsoft.bookkeeping.gui.order.SSOrderFrame;
-import se.swedsoft.bookkeeping.gui.outdelivery.SSOutdeliveryFrame;
-import se.swedsoft.bookkeeping.gui.outpayment.SSOutpaymentFrame;
-import se.swedsoft.bookkeeping.gui.ownreport.SSOwnReportFrame;
-import se.swedsoft.bookkeeping.gui.ownreport.util.SSOwnReportAccountRow;
-import se.swedsoft.bookkeeping.gui.periodicinvoice.SSPeriodicInvoiceFrame;
-import se.swedsoft.bookkeeping.gui.product.SSProductFrame;
-import se.swedsoft.bookkeeping.gui.project.SSProjectFrame;
-import se.swedsoft.bookkeeping.gui.purchaseorder.SSPurchaseOrderFrame;
-import se.swedsoft.bookkeeping.gui.resultunit.SSResultUnitFrame;
-import se.swedsoft.bookkeeping.gui.supplier.SSSupplierFrame;
-import se.swedsoft.bookkeeping.gui.suppliercreditinvoice.SSSupplierCreditInvoiceFrame;
-import se.swedsoft.bookkeeping.gui.supplierinvoice.SSSupplierInvoiceFrame;
-import se.swedsoft.bookkeeping.gui.tender.SSTenderFrame;
 import se.swedsoft.bookkeeping.gui.util.dialogs.SSErrorDialog;
-import se.swedsoft.bookkeeping.gui.util.dialogs.SSInitDialog;
-import se.swedsoft.bookkeeping.gui.util.frame.SSFrameManager;
-import se.swedsoft.bookkeeping.gui.voucher.SSVoucherFrame;
-import se.swedsoft.bookkeeping.gui.vouchertemplate.SSVoucherTemplateFrame;
 import se.swedsoft.bookkeeping.persistence.Repositories;
 import se.swedsoft.bookkeeping.persistence.v2.schema.SSSchemaBuilder;
-import se.swedsoft.bookkeeping.persistence.v2.schema.SSSchemaEnsurer;
-import se.swedsoft.bookkeeping.persistence.v2.schema.SSSchemaMigrationManager;
+import se.swedsoft.bookkeeping.importexport.excel.SSAccountPlanDefaultResourceDiscovery;
 import se.swedsoft.bookkeeping.importexport.excel.SSAccountPlanImporter;
+import se.swedsoft.bookkeeping.importexport.excel.SSAccountPlanLoader;
 import se.swedsoft.bookkeeping.importexport.util.SSImportException;
 import se.swedsoft.bookkeeping.util.SSUtil;
-import se.swedsoft.bookkeeping.data.system.trigger.SSEventTriggerDispatcher;
+import se.swedsoft.bookkeeping.data.system.trigger.SSTriggerSchemaService;
 
-import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.*;
 import java.math.BigDecimal;
 import java.sql.*;
 import java.util.*;
-import java.util.Date;
 import java.util.Optional;
 
 import org.slf4j.Logger;
@@ -63,6 +33,13 @@ public class SSDB {
 
     private static final String SCHEMA_VERSION_PROPERTY = "fribok.schema.version";
     private static final String SCHEMA_V2 = "v2";
+    private static final String DEFAULT_SCHEMA_NAME = "PUBLIC";
+    private static final String DEMO_SCHEMA_NAME = "co_0";
+    private static final String DEMO_COMPANY_NAME = "Demoföretaget";
+    private static final String SEED_STATE_TABLE = "PUBLIC.tbl_seed_state";
+    private static final String SEED_PUBLIC_FILE = "seed/Seed_Public.json";
+    private static final String SEED_COMPANY_FILE = "seed/Seed_Company_Demo.json";
+    private static final String SEED_VER_FAKT_FILE = "seed/Seed_Demo_VerFakt.json";
 
     private static SSDB cInstance;
 
@@ -96,11 +73,9 @@ public class SSDB {
     List<SSOwnReport> iOwnReports;
 
     private final SSDBEventBus iEventBus = new SSDBEventBus();
-    private final ThreadLocal<Boolean> iBypassTriggerDispatcher = ThreadLocal.withInitial(() -> Boolean.FALSE);
-    private final SSEventTriggerDispatcher iEventTriggerDispatcher;
+    private final SSTriggerSchemaService iTriggerSchemaService;
 
     private Connection iConnection;
-    private String iDetectedSchemaVersion = SCHEMA_V2;
 
     public static SSDB getInstance() {
         if (cInstance == null) {
@@ -110,15 +85,22 @@ public class SSDB {
     }
 
     private SSDB() {
-        iEventTriggerDispatcher = new SSEventTriggerDispatcher(this);
+        iTriggerSchemaService = new SSTriggerSchemaService(() -> iConnection);
     }
 
     public void startupLocal(Connection pConnection) throws SQLException {
+ //       LOG.info("KK startupLocal, SSDB.java");
         prepareStartupConnection(pConnection);
+        failIfLegacySingleSchemaDatabase();
         createNewTables();
-        dropTriggers();
-        createLocalTriggers();
         Repositories.init(this);
+        checkImportDefaultAccountPlans();
+        ensureCatalogBootstrapForCurrentSchema();
+        ensureDemoSeedIsRun();
+        validateSchemaContract();
+        iTriggerSchemaService.rebuildLocalTriggers();
+        initializeCurrentCompanyAndYear();
+        logStartupV2Mode();
     }
 
     void prepareStartupConnection(Connection pConnection) throws SQLException {
@@ -129,64 +111,45 @@ public class SSDB {
         // company/year state tied to a previous DB connection.
         iCurrentCompany = null;
         iCurrentYear = null;
-        iVouchers = null;
         clearCachedLists();
 
         // V2-only mode: force schema selection to V2 for all runtimes/tests.
-        iDetectedSchemaVersion = SCHEMA_V2;
+        String iDetectedSchemaVersion = SCHEMA_V2;
         System.setProperty(SCHEMA_VERSION_PROPERTY, SCHEMA_V2);
     }
 
-     void initializeSchemaRuntime() {
-         initializeSchema();
-         Repositories.init(this);
-     }
+    public void initializeCurrentCompanyAndYear() {
+        Repositories.companies().applyActiveCompanySchema();
+        Optional<String> iActiveCatalogCompanyName = Repositories.companies().findActiveCompanyName();
 
-     private void initializeSchema() {
-         try {
-             SSSchemaBuilder builder = new SSSchemaBuilder(iConnection);
-             builder.createBaseTables();
-
-             SSSchemaEnsurer ensurer = new SSSchemaEnsurer(iConnection);
-             ensurer.ensureAllForwardCompatibility();
-
-             SSSchemaMigrationManager migrationManager = new SSSchemaMigrationManager(iConnection);
-             migrationManager.ensureQuantityScaleMigration();
-
-             iConnection.commit();
-
-             builder.dropTriggers();
-             builder.createLocalTriggers();
-         } catch (SQLException e) {
-             LOG.error("Unexpected error in initializeSchema", e);
-         }
-     }
-
-    void seedDemoDataIfNeeded() {
-        boolean iShouldSeedDemoData = shouldSeedV2DemoDataV2();
-        if (iShouldSeedDemoData) {
-            checkImportDefaultAccountPlans();
-        }
-
-        runV2DemoSeedScript();
-        if (iShouldSeedDemoData) {
-            logV2DemoSeedSummary();
-        }
-    }
-
-    void initializeCurrentCompanyAndYear() {
         List<SSNewCompany> iCompanies = loadCompanies();
-        if (!iCompanies.isEmpty()) {
-            if (iCurrentCompany == null || Repositories.companies().findById(iCurrentCompany).isEmpty()) {
-                setCurrentCompany(Repositories.companies().findByName("DemofÃƒÆ’Ã‚Â¶retaget").orElse(iCompanies.get(0)));
+        if (iCompanies.isEmpty()) {
+            setCurrentCompany(null);
+            setCurrentYear(null);
+            return;
+        }
+
+        if (!iActiveCatalogCompanyName.isPresent()) {
+            setCurrentCompany(null);
+            setCurrentYear(null);
+            return;
+        }
+
+        if (iCurrentCompany == null || Repositories.companies().findById(iCurrentCompany).isEmpty()) {
+            SSNewCompany iSelectedCompany;
+            String iCatalogCompanyName = iActiveCatalogCompanyName.get();
+            iSelectedCompany = Repositories.companies().findByName(iCatalogCompanyName).orElse(iCompanies.get(0));
+            if (!Objects.equals(iCatalogCompanyName, iSelectedCompany.getName())) {
+                showUiWarning("Företagsnamn avviker mellan katalog och företagsdata. Kontrollera företagsuppgifter.");
             }
+            setCurrentCompany(iSelectedCompany);
         }
 
         if (iCurrentYear == null && iCurrentCompany != null) {
             Optional<SSNewAccountingYear> iDemoYear = getAccountingYearByRangeV2(
                     iCurrentCompany,
-                    java.time.LocalDate.of(2024, 1, 1),
-                    java.time.LocalDate.of(2024, 12, 31));
+                    java.time.LocalDate.of(2025, 1, 1),
+                    java.time.LocalDate.of(2025, 12, 31));
 
             if (iDemoYear.isPresent()) {
                 openYear(iDemoYear.get());
@@ -195,6 +158,372 @@ public class SSDB {
                         .max(Comparator.comparing(SSNewAccountingYear::getLocalTo))
                         .ifPresent(this::openYear);
             }
+        }
+    }
+
+    private void seedDemoEntitiesFromJson() {
+        try {
+            setSchema(DEMO_SCHEMA_NAME);
+            JsonNode seedRoot = SSJsonSeedDataLoader.loadSeedFile("seed/Seed_Demo.json");
+            seedCustomers(seedRoot);
+            seedSuppliers(seedRoot);
+            seedProducts(seedRoot);
+            LOG.info("Successfully seeded demo customers, suppliers and products");
+        } catch (IOException e) {
+            throw new IllegalStateException("Failed to read seed/Seed_Demo.json", e);
+        } catch (SQLException e) {
+            throw new IllegalStateException("Failed to set schema " + DEMO_SCHEMA_NAME + " for demo seed", e);
+        }
+        seedVouchersAndInvoicesFromJson();
+    }
+
+    private void seedVouchersAndInvoicesFromJson() {
+        try {
+            JsonNode seedRoot = SSJsonSeedDataLoader.loadSeedFile(SEED_VER_FAKT_FILE);
+            seedVouchers(seedRoot);
+            seedInvoices(seedRoot);
+            LOG.info("Successfully seeded demo vouchers and invoices from {}", SEED_VER_FAKT_FILE);
+        } catch (IOException e) {
+            LOG.warn("Could not read seed file '{}': {}", SEED_VER_FAKT_FILE, e.getMessage());
+        }
+    }
+
+    /**
+     * Seeds vouchers from the "Verifikationer" array in the given JSON node.
+     * The voucher date is adjusted to the accounting year if the year part does not match.
+     * If no accounting year exists, vouchers are skipped.
+     *
+     * @param seedRoot the parsed JSON root
+     */
+    private void seedVouchers(JsonNode seedRoot) {
+        List<SSNewAccountingYear> years = loadYearsForCompany(iCurrentCompany);
+        if (years.isEmpty()) {
+            LOG.warn("No accounting years found for company '{}'; skipping voucher seed",
+                    iCurrentCompany != null ? iCurrentCompany.getName() : "null");
+            return;
+        }
+        SSNewAccountingYear seedYear = years.stream()
+                .filter(y -> y.getLocalTo() != null)
+                .max((a, b) -> a.getLocalTo().compareTo(b.getLocalTo()))
+                .orElse(years.get(0));
+
+        for (JsonNode verNode : SSJsonSeedDataLoader.getArrayObjects(seedRoot, "Verifikationer")) {
+            try {
+                java.time.LocalDate rawDate = requiredDate(verNode, "Datum");
+                java.time.LocalDate voucherDate = adjustDateToYear(rawDate, seedYear);
+
+                SSVoucher voucher = new SSVoucher();
+                voucher.setLocalDate(voucherDate);
+                voucher.setDescription(requiredText(verNode, "Beskrivning"));
+
+                for (JsonNode rowNode : SSJsonSeedDataLoader.getArrayObjects(verNode, "Rader")) {
+                    SSVoucherRow row = new SSVoucherRow();
+                    row.setAccountNr(rowNode.has("Konto") ? rowNode.get("Konto").asInt() : null);
+                    row.setDebet(optionalBigDecimal(rowNode, "Debet"));
+                    row.setCredit(optionalBigDecimal(rowNode, "Kredit"));
+                    voucher.addVoucherRow(row);
+                }
+
+                Repositories.vouchers().addWithAutoNumber(voucher);
+            } catch (Exception e) {
+                LOG.warn("Skipping voucher '{}': {}",
+                        SSJsonSeedDataLoader.getStringFieldOrNull(verNode, "Beskrivning"), e.getMessage());
+            }
+        }
+    }
+
+    /**
+     * Seeds invoices from the "Fakturor" array in the given JSON node.
+     * Customer and product positions are 1-based row numbers in their respective tables.
+     * Invoice date uses the accounting year's start year with today's month and day.
+     * Payment term is the second entry in tbl_paymentterm.
+     * Duplicates are accepted; each seed run creates new invoices with auto-assigned numbers.
+     *
+     * @param seedRoot the parsed JSON root
+     */
+    private void seedInvoices(JsonNode seedRoot) {
+        List<SSCustomer> customers = Repositories.customers().findAll();
+        List<SSProduct> products = Repositories.products().findAll();
+
+        List<se.swedsoft.bookkeeping.data.common.SSPaymentTerm> paymentTerms =
+                Repositories.paymentTerms().findAll();
+        se.swedsoft.bookkeeping.data.common.SSPaymentTerm paymentTerm =
+                paymentTerms.size() >= 2 ? paymentTerms.get(1)
+                : !paymentTerms.isEmpty() ? paymentTerms.get(0)
+                : null;
+
+        List<SSNewAccountingYear> years = loadYearsForCompany(iCurrentCompany);
+        SSNewAccountingYear seedYear = years.stream()
+                .filter(y -> y.getLocalTo() != null)
+                .max((a, b) -> a.getLocalTo().compareTo(b.getLocalTo()))
+                .orElse(years.isEmpty() ? null : years.get(0));
+
+        java.time.LocalDate invoiceDate = buildInvoiceDate(seedYear);
+        java.time.LocalDate dueDate = paymentTerm != null
+                ? paymentTerm.addDaysToLocalDate(invoiceDate)
+                : invoiceDate;
+
+        for (JsonNode fakturaNode : SSJsonSeedDataLoader.getArrayObjects(seedRoot, "Fakturor")) {
+            try {
+                int customerPos = fakturaNode.get("Kund-id").asInt();
+                if (customerPos < 1 || customerPos > customers.size()) {
+                    LOG.warn("Skipping invoice: Kund-id {} out of range (available customers: {})",
+                            customerPos, customers.size());
+                    continue;
+                }
+                SSCustomer customer = customers.get(customerPos - 1);
+
+                SSInvoice invoice = new SSInvoice(se.swedsoft.bookkeeping.data.common.SSInvoiceType.NORMAL);
+                invoice.setVoucher(null);
+                invoice.setLocalDate(invoiceDate);
+                invoice.setLocalDueDate(dueDate);
+                invoice.setPaymentTerm(paymentTerm);
+                invoice.setCustomerNr(customer.getNumber());
+                invoice.setCustomerName(customer.getName());
+                invoice.setOurContactPerson(customer.getOurContactPerson());
+                invoice.setYourContactPerson(customer.getYourContactPerson());
+                invoice.setInvoiceAddress(customer.getInvoiceAddress());
+                invoice.setDeliveryAddress(customer.getDeliveryAddress());
+
+                for (JsonNode rowNode : SSJsonSeedDataLoader.getArrayObjects(fakturaNode, "Rader")) {
+                    int productPos = rowNode.get("Produktnr").asInt();
+                    if (productPos < 1 || productPos > products.size()) {
+                        LOG.warn("Skipping invoice row: Produktnr {} out of range (available products: {})",
+                                productPos, products.size());
+                        continue;
+                    }
+                    SSProduct product = products.get(productPos - 1);
+                    se.swedsoft.bookkeeping.data.base.SSSaleRow row =
+                            new se.swedsoft.bookkeeping.data.base.SSSaleRow(product);
+                    row.setQuantity(rowNode.get("Antal").asInt() * 10);
+                    invoice.getRows().add(row);
+                }
+
+                if (!invoice.getRows().isEmpty()) {
+                    Repositories.invoices().add(invoice);
+                }
+            } catch (Exception e) {
+                LOG.warn("Skipping invoice node: {}", e.getMessage());
+            }
+        }
+    }
+
+    /**
+     * Adjusts the year part of the given date to match the accounting year's start year.
+     * Month and day are preserved. If the resulting date is invalid (e.g. Feb 29 in a non-leap year),
+     * the day is clamped to the first of the month.
+     *
+     * @param date the original date
+     * @param year the target accounting year
+     * @return a date within the accounting year
+     */
+    private java.time.LocalDate adjustDateToYear(java.time.LocalDate date, SSNewAccountingYear year) {
+        if (year == null || year.getLocalFrom() == null) {
+            return date;
+        }
+        int targetYear = year.getLocalFrom().getYear();
+        if (date.getYear() == targetYear) {
+            return date;
+        }
+        try {
+            return java.time.LocalDate.of(targetYear, date.getMonthValue(), date.getDayOfMonth());
+        } catch (java.time.DateTimeException e) {
+            return java.time.LocalDate.of(targetYear, date.getMonthValue(), 1);
+        }
+    }
+
+    /**
+     * Builds the invoice date using the accounting year's start year combined with
+     * today's month and day. Falls back to today if no accounting year is available.
+     *
+     * @param year the accounting year to derive the year component from
+     * @return the computed invoice date
+     */
+    private java.time.LocalDate buildInvoiceDate(SSNewAccountingYear year) {
+        java.time.LocalDate today = java.time.LocalDate.now();
+        if (year == null || year.getLocalFrom() == null) {
+            return today;
+        }
+        int targetYear = year.getLocalFrom().getYear();
+        try {
+            return java.time.LocalDate.of(targetYear, today.getMonthValue(), today.getDayOfMonth());
+        } catch (java.time.DateTimeException e) {
+            return java.time.LocalDate.of(targetYear, today.getMonthValue(), 1);
+        }
+    }
+
+    /**
+     * Reads an optional BigDecimal field from the given JSON node.
+     * Returns {@code null} if the field is absent or unparseable.
+     *
+     * @param node      the JSON object node
+     * @param fieldName the field to read
+     * @return the value as BigDecimal, or {@code null}
+     */
+    private BigDecimal optionalBigDecimal(JsonNode node, String fieldName) {
+        if (node == null || !node.has(fieldName)) {
+            return null;
+        }
+        String raw = node.get(fieldName).asText();
+        try {
+            return new BigDecimal(raw.replace(',', '.'));
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
+    private void seedCustomers(JsonNode seedRoot) {
+        for (JsonNode customerNode : SSJsonSeedDataLoader.getArrayObjects(seedRoot, "Kunder")) {
+            String number = requiredText(customerNode, "Kund-id");
+            Optional<SSCustomer> existingCustomer = Repositories.customers().findByNumber(number);
+            SSCustomer customer = existingCustomer.orElseGet(SSCustomer::new);
+            customer.setNumber(number);
+            customer.setName(requiredText(customerNode, "Namn"));
+            customer.setYourContactPerson(optionalText(customerNode, "Er kontaktperson"));
+            customer.setEMail(optionalText(customerNode, "E-post"));
+            applyInvoiceAddress(customer, customerNode);
+
+            if (existingCustomer.isPresent()) {
+                Repositories.customers().update(customer);
+            } else {
+                Repositories.customers().add(customer);
+            }
+        }
+    }
+
+    private void seedSuppliers(JsonNode seedRoot) {
+        for (JsonNode supplierNode : SSJsonSeedDataLoader.getArrayObjects(seedRoot, "Leverantörer")) {
+            String number = requiredText(supplierNode, "Leverantörs-id");
+            SSSupplier probe = new SSSupplier();
+            probe.setNumber(number);
+            Optional<SSSupplier> existingSupplier = Repositories.suppliers().findBySupplier(probe);
+            SSSupplier supplier = existingSupplier.orElseGet(SSSupplier::new);
+            supplier.setNumber(number);
+            supplier.setName(requiredText(supplierNode, "Namn"));
+            supplier.setYourContact(optionalText(supplierNode, "Er kontaktperson"));
+            supplier.setEMail(optionalText(supplierNode, "E-post"));
+            applySupplierAddress(supplier, supplierNode);
+
+            if (existingSupplier.isPresent()) {
+                Repositories.suppliers().update(supplier);
+            } else {
+                Repositories.suppliers().add(supplier);
+            }
+        }
+    }
+
+    private void seedProducts(JsonNode seedRoot) {
+        for (JsonNode productNode : SSJsonSeedDataLoader.getArrayObjects(seedRoot, "Produkter")) {
+            String number = requiredText(productNode, "Produktnummer");
+            Optional<SSProduct> existingProduct = Repositories.products().findByNumber(number);
+            SSProduct product = existingProduct.orElseGet(SSProduct::new);
+            product.setNumber(number);
+            product.setDescription(requiredText(productNode, "Beskrivning"));
+            product.setSellingPrice(requiredBigDecimal(productNode, "Försäljningspris"));
+
+            if (existingProduct.isPresent()) {
+                Repositories.products().update(product);
+            } else {
+                Repositories.products().add(product);
+            }
+        }
+    }
+
+    private void applyInvoiceAddress(SSCustomer customer, JsonNode node) {
+        SSAddress address = customer.getInvoiceAddress();
+        if (address == null) {
+            address = new SSAddress();
+            customer.setInvoiceAddress(address);
+        }
+        boolean hasAddress = false;
+        String address1 = optionalText(node, "Adress 1");
+        String address2 = optionalText(node, "Adress 2");
+        String zipCode = optionalText(node, "Postnummer");
+        String city = optionalText(node, "Ort");
+        String country = optionalText(node, "Land");
+        String name = optionalText(node, "Adressnamn");
+
+        if (name != null) {
+            address.setName(name);
+            hasAddress = true;
+        }
+        if (address1 != null) {
+            address.setAddress1(address1);
+            hasAddress = true;
+        }
+        if (address2 != null) {
+            address.setAddress2(address2);
+            hasAddress = true;
+        }
+        if (zipCode != null) {
+            address.setZipCode(zipCode);
+            hasAddress = true;
+        }
+        if (city != null) {
+            address.setCity(city);
+            hasAddress = true;
+        }
+        if (country != null) {
+            address.setCountry(country);
+            hasAddress = true;
+        }
+        if (!hasAddress) {
+            customer.setInvoiceAddress(address);
+        }
+    }
+
+    private void applySupplierAddress(SSSupplier supplier, JsonNode node) {
+        SSAddress address = supplier.getAddress();
+        if (address == null) {
+            address = new SSAddress();
+            supplier.setAddress(address);
+        }
+        boolean hasAddress = false;
+        String address1 = optionalText(node, "Adress 1");
+        String address2 = optionalText(node, "Adress 2");
+        String zipCode = optionalText(node, "Postnummer");
+        String city = optionalText(node, "Ort");
+        String country = optionalText(node, "Land");
+        String name = optionalText(node, "Adressnamn");
+
+        if (name != null) {
+            address.setName(name);
+            hasAddress = true;
+        }
+        if (address1 != null) {
+            address.setAddress1(address1);
+            hasAddress = true;
+        }
+        if (address2 != null) {
+            address.setAddress2(address2);
+            hasAddress = true;
+        }
+        if (zipCode != null) {
+            address.setZipCode(zipCode);
+            hasAddress = true;
+        }
+        if (city != null) {
+            address.setCity(city);
+            hasAddress = true;
+        }
+        if (country != null) {
+            address.setCountry(country);
+            hasAddress = true;
+        }
+        if (!hasAddress) {
+            supplier.setAddress(address);
+        }
+    }
+
+    private BigDecimal requiredBigDecimal(JsonNode node, String fieldName) {
+        if (node == null || !node.has(fieldName)) {
+            throw new IllegalStateException("Missing decimal field '" + fieldName + "' in seed JSON.");
+        }
+        String raw = node.get(fieldName).asText();
+        try {
+            return new BigDecimal(raw.replace(',', '.'));
+        } catch (NumberFormatException e) {
+            throw new IllegalStateException("Invalid decimal '" + raw + "' in field '" + fieldName + "'.", e);
         }
     }
 
@@ -279,6 +608,8 @@ public class SSDB {
     }
 
     public void loadLocalDatabase() {
+        // loadLocalDatabase enbart använd vid inläsning av säkerhetsbackup.
+//        LOG.info("KK loadLocalDatabase, SSDB.java");
         try {
             if (iConnection != null) {
                 iConnection.close();
@@ -299,39 +630,72 @@ public class SSDB {
             iConnection = DriverManager.getConnection(
                     "jdbc:hsqldb:file:" + dbDir.getAbsolutePath() + File.separator + "JFSDB", "sa", "");
             iConnection.setAutoCommit(false);
+            failIfLegacySingleSchemaDatabase();
             createNewTables();
-            dropTriggers();
-            createLocalTriggers();
+            //  Inlagda metoder för att testa inläsning av säkerhetsbackup ab DB.
+            Repositories.init(this);
+            checkImportDefaultAccountPlans();
+            ensureCatalogBootstrapForCurrentSchema();
+            validateSchemaContract();
+            iTriggerSchemaService.rebuildLocalTriggers();
+            initializeCurrentCompanyAndYear();
+            logStartupV2Mode();
 
         } catch (SQLException e) {
             LOG.error("Unexpected error", e);
         }
     }
 
-    private boolean shouldSeedV2DemoDataV2() {
+    private void ensureDemoSeedIsRun() {
         try {
             if (iConnection == null || iConnection.isClosed()) {
-                return false;
+                return;
             }
 
-            try (PreparedStatement iStatement = iConnection.prepareStatement(
-                    "SELECT 1 FROM tbl_company WHERE name=?")) {
-                iStatement.setObject(1, "DemofÃƒÆ’Ã‚Â¶retaget");
-                try (ResultSet iResultSet = iStatement.executeQuery()) {
-                    return !iResultSet.next();
-                }
+            boolean seedDone = isSeedAlreadyDone();
+            if (seedDone) {
+                return;
             }
+
+            Optional<String> demoSchemaName = loadActiveCatalogSchemaName();
+            if (!demoSchemaName.isPresent() || !demoSchemaName.get().equals(DEMO_SCHEMA_NAME)) {
+                return;
+            }
+
+            // Seed PUBLIC schema tables first (Currency, Unit, PaymentTerm, DeliveryTerm, DeliveryWay)
+            seedPublicTables();
+
+            // Then seed demo company + year + account plan in co_0 from JSON
+            seedDemoCompanyAndAccountingYear();
+
+            // Seed demo customers, suppliers and products from JSON.
+            seedDemoEntitiesFromJson();
+
+            setSeedDone(true);
+            iConnection.commit();
         } catch (SQLException e) {
-            LOG.error("Unexpected error", e);
+            LOG.error("Unexpected error during demo seed", e);
             try {
                 iConnection.rollback();
             } catch (SQLException ignored) {}
-            return false;
+        } catch (Exception e) {
+            LOG.error("Unexpected error during JSON seeding", e);
+            try {
+                iConnection.rollback();
+            } catch (SQLException ignored) {}
         }
     }
 
-    private void runV2DemoSeedScript() {
-        executeSqlScriptResource("sql/seed_v2_demo.sql");
+    private boolean isSeedAlreadyDone() throws SQLException {
+        try (PreparedStatement iStatement = iConnection.prepareStatement(
+                "SELECT seed_done FROM " + SEED_STATE_TABLE)) {
+            try (ResultSet iResultSet = iStatement.executeQuery()) {
+                if (iResultSet.next()) {
+                    return iResultSet.getBoolean("seed_done");
+                }
+            }
+        }
+        return false;
     }
 
     private Optional<SSNewAccountingYear> getAccountingYearByRangeV2(
@@ -357,6 +721,129 @@ public class SSDB {
         } catch (SQLException e) {
             LOG.error("Unexpected error", e);
             return Optional.empty();
+        }
+    }
+
+    private void seedDemoCompanyAndAccountingYear() {
+        try {
+            setSchema(DEMO_SCHEMA_NAME);
+            JsonNode seedRoot = SSJsonSeedDataLoader.loadSeedFile(SEED_COMPANY_FILE);
+            JsonNode companyNode = requiredObject(seedRoot, "Företag");
+
+            SSNewCompany seededCompany = ensureDemoCompanyInCo0(companyNode);
+            setCurrentCompany(seededCompany);
+
+            JsonNode yearNode = requiredObject(companyNode, "Bokföringsår");
+            java.time.LocalDate fromDate = requiredDate(yearNode, "Från");
+            java.time.LocalDate toDate = requiredDate(yearNode, "Till");
+            if (toDate.isBefore(fromDate)) {
+                throw new IllegalStateException("Invalid Bokföringsår in " + SEED_COMPANY_FILE + ": Till before Från.");
+            }
+
+            if (getAccountingYearByRangeV2(seededCompany, fromDate, toDate).isPresent()) {
+                return;
+            }
+
+            SSAccountPlan templatePlan = resolveSeedAccountPlan(companyNode);
+            SSAccountPlan yearPlan = createSeedYearPlan(templatePlan, seededCompany.getName(), fromDate);
+
+            SSNewAccountingYear accountingYear = new SSNewAccountingYear();
+            accountingYear.setLocalFrom(fromDate);
+            accountingYear.setLocalTo(toDate);
+            accountingYear.setAccountPlan(yearPlan);
+            Repositories.accountingYears().add(accountingYear);
+        } catch (IOException e) {
+            throw new IllegalStateException("Failed to read " + SEED_COMPANY_FILE, e);
+        } catch (SQLException e) {
+            throw new IllegalStateException("Failed to seed demo company/year in schema " + DEMO_SCHEMA_NAME, e);
+        }
+    }
+
+    private SSNewCompany ensureDemoCompanyInCo0(JsonNode companyNode) throws SQLException {
+        String companyName = requiredText(companyNode, "Företagsnamn");
+        String contactPerson = optionalText(companyNode, "Kontaktperson");
+        String logotype = optionalText(companyNode, "Logotyp");
+
+        SSNewCompany template = new SSNewCompany();
+        template.setName(companyName);
+        template.setContactPerson(contactPerson);
+        template.setLogotype(logotype);
+
+        return Repositories.companies().ensureCompanyInSchema(DEMO_SCHEMA_NAME, template);
+    }
+
+    private SSAccountPlan resolveSeedAccountPlan(JsonNode companyNode) throws IOException {
+        String requestedPlanName = requiredText(companyNode, "Kontoplan");
+        List<SSAccountPlan> availablePlans = new LinkedList<>(Repositories.accountPlans().findAll());
+        availablePlans.sort(Comparator.comparing(SSAccountPlan::getId, Comparator.nullsLast(Integer::compareTo)));
+
+        SSAccountPlan selectedPlan = null;
+        for (SSAccountPlan plan : availablePlans) {
+            if (plan != null && requestedPlanName.equals(plan.getName())) {
+                selectedPlan = plan;
+                break;
+            }
+        }
+        if (selectedPlan == null && !availablePlans.isEmpty()) {
+            selectedPlan = availablePlans.get(0);
+            LOG.warn("Requested account plan '{}' not found. Falling back to first available plan '{}'.",
+                    requestedPlanName, selectedPlan.getName());
+        }
+        if (selectedPlan == null) {
+            throw new IllegalStateException("No account plans found in PUBLIC.tbl_accountplan. Seed cannot continue.");
+        }
+        if (selectedPlan.isTemplatePlan()) {
+            return SSAccountPlanLoader.loadPlan(selectedPlan);
+        }
+        return selectedPlan;
+    }
+
+    private SSAccountPlan createSeedYearPlan(SSAccountPlan templatePlan, String companyName, java.time.LocalDate fromDate) {
+        SSAccountPlan yearPlan = new SSAccountPlan(templatePlan);
+        int startYear = fromDate.getYear();
+        String safeCompanyName = companyName == null ? "" : companyName.trim();
+
+        String planName = safeCompanyName.isEmpty()
+                ? Integer.toString(startYear)
+                : safeCompanyName + " " + startYear;
+        yearPlan.setName(planName);
+        yearPlan.setExcelPath(null);
+        yearPlan.setDefaultPlan(false);
+
+        String baseName = templatePlan.getName();
+        if (baseName == null || baseName.trim().isEmpty()) {
+            baseName = planName;
+        }
+        yearPlan.setBaseName(baseName);
+        return yearPlan;
+    }
+
+    private JsonNode requiredObject(JsonNode node, String fieldName) {
+        if (node == null || !node.has(fieldName) || !node.get(fieldName).isObject()) {
+            throw new IllegalStateException("Missing object field '" + fieldName + "' in seed JSON.");
+        }
+        return node.get(fieldName);
+    }
+
+    private String requiredText(JsonNode node, String fieldName) {
+        String value = optionalText(node, fieldName);
+        if (value == null || value.isEmpty()) {
+            throw new IllegalStateException("Missing text field '" + fieldName + "' in seed JSON.");
+        }
+        return value;
+    }
+
+    private String optionalText(JsonNode node, String fieldName) {
+        String value = SSJsonSeedDataLoader.getStringFieldOrNull(node, fieldName);
+        return value == null ? null : value.trim();
+    }
+
+    private java.time.LocalDate requiredDate(JsonNode node, String fieldName) {
+        String raw = requiredText(node, fieldName);
+        try {
+            return java.time.LocalDate.parse(raw);
+        } catch (Exception e) {
+            throw new IllegalStateException("Invalid date '" + raw + "' in field '" + fieldName + "'.", e);
         }
     }
 
@@ -411,12 +898,13 @@ public class SSDB {
             iStatement.setObject(2, iTo);
             iStatement.setObject(3, iFrom);
             iStatement.setObject(4, iTo);
-            iStatement.setObject(5, "DemofÃƒÆ’Ã‚Â¶retaget");
+//            iStatement.setObject(5, "DemofÃƒÆ’Ã‚Â¶retaget");
+            iStatement.setObject(5, "Demoföretaget");
 
             try (ResultSet iResultSet = iStatement.executeQuery()) {
                 if (iResultSet.next()) {
                     LOG.info(
-                            "V2 demo seed complete: company='{}', year=2024, years={}, customers={}, products={}, suppliers={}, vouchers={}",
+                            "V2 demo seed complete: company='{}', year=2025, years={}, customers={}, products={}, suppliers={}, vouchers={}",
                             iResultSet.getString("cname"),
                             iResultSet.getInt("year_count"),
                             iResultSet.getInt("customer_count"),
@@ -437,51 +925,73 @@ public class SSDB {
                 return;
             }
 
-            try (Statement iStatement = iConnection.createStatement();
-                 ResultSet iResultSet = iStatement.executeQuery("SELECT 0 FROM tbl_accountplan")) {
-                if (iResultSet.next()) {
-                    // Have at least one account plan in DB. Dont import defaults
-                    return;
-                }
-            }
+            List<String> discoveredDefaultPaths = SSAccountPlanDefaultResourceDiscovery.discoverDefaultExcelResources(
+                    SSDB.class.getClassLoader());
+            Set<String> validDefaultPaths = new HashSet<>();
 
-            LOG.info("Creating default account plans.");
-
-            String[] defaults = new String[]{
-                "BAS96(07)-AB & EF.xlsx",
-                "BAS96(07)-Enskild-naringsidkare.xlsx",
-                "BAS96(07)-HB & KB.xlsx",
-                "Bas2006(07)-AB & EF.xlsx",
-                "Bas2006(07)-Enskild-naringsidkare.xlsx",
-                "Bas2006(07)-HB & KB.xlsx",
-                "Bas2007(K1)-Enskild-naringsidkare.xlsx",};
-
-            for (String s : defaults) {
-                LOG.info(s);
-                String path = "account/default/" + s;
-                InputStream is = SSDB.class.getClassLoader().getResourceAsStream(path);
-                // Keep loading old packaged .xls files until all bundled defaults are renamed.
-                if (is == null && s.endsWith(".xlsx")) {
-                    String legacyPath = "account/default/" + s.substring(0, s.length() - 1);
-                    is = SSDB.class.getClassLoader().getResourceAsStream(legacyPath);
-                    if (is != null) {
-                        path = legacyPath;
+            for (String path : discoveredDefaultPaths) {
+                String fileName = getFileName(path);
+                try (InputStream is = SSDB.class.getClassLoader().getResourceAsStream(path)) {
+                    if (is == null) {
+                        LOG.warn("Default account-plan resource not found: {}", path);
+                        continue;
                     }
-                }
-                if (is == null) {
-                    throw new RuntimeException("Resource not found: " + path);
-                }
-                try {
-                    SSAccountPlanImporter.doImport(is);
-                } catch (IOException ex) {
-                    LOG.error("Unexpected error", ex);
-                } catch (SSImportException ex) {
-                    LOG.error("Unexpected error", ex);
+
+                    SSAccountPlan plan = SSAccountPlanLoader.readPlan(is);
+                    SSAccountPlanImporter.validateFileNameAgainstPlanName(fileName, plan);
+                    plan.setExcelPath(path);
+                    plan.setDefaultPlan(true);
+
+                    upsertDefaultAccountPlan(plan);
+                    validDefaultPaths.add(path);
+                } catch (SSImportException | IOException | SQLException e) {
+                    LOG.warn("Skipping invalid default account-plan '{}': {}", path, e.getMessage());
                 }
             }
-        } catch (SQLException e) {
+
+            cleanupRemovedDefaultAccountPlans(validDefaultPaths);
+        } catch (SQLException | IOException e) {
             LOG.error("Unexpected error", e);
         }
+    }
+
+    private void upsertDefaultAccountPlan(SSAccountPlan plan) throws SQLException {
+        Integer existingId = null;
+        try (PreparedStatement exists = iConnection.prepareStatement("SELECT id FROM tbl_accountplan WHERE name=?")) {
+            exists.setObject(1, plan.getName());
+            try (ResultSet resultSet = exists.executeQuery()) {
+                if (resultSet.next()) {
+                    existingId = resultSet.getInt(1);
+                }
+            }
+        }
+
+        if (existingId != null) {
+            plan.setId(existingId);
+            Repositories.accountPlans().update(plan);
+            return;
+        }
+        Repositories.accountPlans().add(plan);
+    }
+
+    private void cleanupRemovedDefaultAccountPlans(Set<String> validDefaultPaths) {
+        for (SSAccountPlan existing : Repositories.accountPlans().findAll()) {
+            if (!existing.isDefaultPlan()) {
+                continue;
+            }
+            String excelPath = existing.getExcelPath();
+            if (excelPath == null || !validDefaultPaths.contains(excelPath)) {
+                Repositories.accountPlans().delete(existing);
+            }
+        }
+    }
+
+    private String getFileName(String path) {
+        if (path == null) {
+            return null;
+        }
+        int separatorIndex = path.lastIndexOf('/');
+        return separatorIndex < 0 ? path : path.substring(separatorIndex + 1);
     }
 
     public void deleteDatabaseFiles() {
@@ -523,6 +1033,10 @@ public class SSDB {
     }
 
     public void clearCachedLists() {
+        clearCachedListsInternal();
+    }
+
+    void clearCachedListsInternal() {
         iProducts = null;
         iCustomers = null;
         iSuppliers = null;
@@ -541,40 +1055,33 @@ public class SSDB {
         iIndeliveries = null;
         iOutdeliveries = null;
         iOwnReports = null;
+    }
+
+    void clearYearCachesInternal() {
+        iVouchers = null;
     }
 
     public void setCurrentCompany(SSNewCompany iCompany) {
-        setCurrentCompanyInternal(iCompany);
-    }
-
-    void setCurrentCompanyInternal(SSNewCompany iCompany) {
+        if (iCompany == null) {
+            iCurrentCompany = null;
+            clearCachedListsInternal();
+            notifyListeners("COMPANY", iCurrentCompany, null);
+            return;
+        }
         iCurrentCompany = Repositories.companies().findById(iCompany).orElse(iCompany);
-        iProducts = null;
-        iCustomers = null;
-        iSuppliers = null;
-        iAutoDists = null;
-        iInpayments = null;
-        iTenders = null;
-        iOrders = null;
-        iInvoices = null;
-        iCreditInvoices = null;
-        iPeriodicInvoices = null;
-        iOutpayments = null;
-        iPurchaseOrders = null;
-        iSupplierInvoices = null;
-        iSupplierCreditInvoices = null;
-        iInventories = null;
-        iIndeliveries = null;
-        iOutdeliveries = null;
-        iOwnReports = null;
+        if (iCurrentCompany.getId() != null) {
+            Repositories.companies().activateAndApplySchema(iCurrentCompany.getId());
+        } else if (iCurrentCompany.getSchemaName() != null) {
+            Repositories.companies().registerOrActivateCompanySchema(iCurrentCompany.getSchemaName(),
+                    iCurrentCompany.getName());
+            iCurrentCompany = Repositories.companies().findBySchemaName(iCurrentCompany.getSchemaName())
+                    .orElse(iCurrentCompany);
+        }
+        clearCachedListsInternal();
         notifyListeners("COMPANY", iCurrentCompany, null);
     }
 
     public SSNewCompany getCurrentCompany() {
-        return getCurrentCompanyInternal();
-    }
-
-    SSNewCompany getCurrentCompanyInternal() {
         return iCurrentCompany;
     }
 
@@ -582,7 +1089,7 @@ public class SSDB {
     public void setCurrentYear(SSNewAccountingYear iYear) {
         if (iYear == null) {
             iCurrentYear = null;
-            iVouchers = null;
+            clearYearCachesInternal();
             notifyListeners("YEAR", iCurrentYear, null);
             return;
         }
@@ -591,7 +1098,7 @@ public class SSDB {
 
     public void applyOpenedYearFromRepository(SSNewAccountingYear iYear) {
         iCurrentYear = iYear;
-        iVouchers = null;
+        clearYearCachesInternal();
         notifyListeners("YEAR", iCurrentYear, null);
     }
 
@@ -657,10 +1164,6 @@ public class SSDB {
         iEventBus.notifyListeners(this, pProperty, pNewValue, pOldValue);
     }
 
-    public Optional<SSAutoIncrement> getAutoIncrement() {
-        return Optional.empty();
-    }
-
     public List<SSVoucher> loadVouchers() {
         List<SSVoucher> cached = iVouchers;
         if (cached != null) {
@@ -684,6 +1187,252 @@ public class SSDB {
             return iCurrentYear.getAccountPlan();
         }
         return new SSAccountPlan("Default");
+    }
+
+    private void failIfLegacySingleSchemaDatabase() throws SQLException {
+        if (iConnection == null || iConnection.isClosed()) {
+            return;
+        }
+        boolean iHasCompanyTable = tableExistsInSchema(DEFAULT_SCHEMA_NAME, "TBL_COMPANY");
+        boolean iHasCatalogTable = tableExistsInSchema(DEFAULT_SCHEMA_NAME, "TBL_COMPANY_CATALOG");
+        if (iHasCompanyTable && !iHasCatalogTable) {
+            throw new SQLException("Legacy single-schema database detected. Migration is not supported.");
+        }
+    }
+
+    private boolean tableExistsInSchema(String schemaName, String tableNameUpper) throws SQLException {
+        String sql = "SELECT 1 FROM INFORMATION_SCHEMA.TABLES WHERE UPPER(TABLE_SCHEMA)=? AND UPPER(TABLE_NAME)=?";
+        try (PreparedStatement iStatement = iConnection.prepareStatement(sql)) {
+            iStatement.setString(1, schemaName.toUpperCase(Locale.ROOT));
+            iStatement.setString(2, tableNameUpper.toUpperCase(Locale.ROOT));
+            try (ResultSet iResultSet = iStatement.executeQuery()) {
+                return iResultSet.next();
+            }
+        }
+    }
+
+    private boolean columnExistsInSchema(String schemaName, String tableNameUpper, String columnNameUpper) throws SQLException {
+        String sql = "SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS WHERE UPPER(TABLE_SCHEMA)=? AND UPPER(TABLE_NAME)=? "
+                + "AND UPPER(COLUMN_NAME)=?";
+        try (PreparedStatement iStatement = iConnection.prepareStatement(sql)) {
+            iStatement.setString(1, schemaName.toUpperCase(Locale.ROOT));
+            iStatement.setString(2, tableNameUpper.toUpperCase(Locale.ROOT));
+            iStatement.setString(3, columnNameUpper.toUpperCase(Locale.ROOT));
+            try (ResultSet iResultSet = iStatement.executeQuery()) {
+                return iResultSet.next();
+            }
+        }
+    }
+
+    private void validateSchemaContract() throws SQLException {
+        if (!tableExistsInSchema(DEFAULT_SCHEMA_NAME, "TBL_COMPANY_CATALOG")) {
+            throw new SQLException("Database schema mismatch: missing PUBLIC.TBL_COMPANY_CATALOG");
+        }
+        if (!tableExistsInSchema(DEFAULT_SCHEMA_NAME, "TBL_ACCOUNTPLAN")) {
+            throw new SQLException("Database schema mismatch: missing PUBLIC.TBL_ACCOUNTPLAN");
+        }
+
+        Optional<String> iActiveSchemaOptional = loadActiveCatalogSchemaName();
+        if (iActiveSchemaOptional.isEmpty()) {
+            throw new SQLException("Database schema mismatch: no active company schema in PUBLIC.TBL_COMPANY_CATALOG");
+        }
+
+        String iActiveSchema = iActiveSchemaOptional.get();
+        if (!schemaExists(iActiveSchema)) {
+            throw new SQLException("Database schema mismatch: active schema does not exist: " + iActiveSchema);
+        }
+
+        requireTable(iActiveSchema, "TBL_COMPANY");
+        requireTable(iActiveSchema, "TBL_ACCOUNTINGYEAR");
+        requireTable(iActiveSchema, "TBL_ACCOUNT");
+        requireTable(iActiveSchema, "TBL_PRODUCT");
+        requireTable(iActiveSchema, "TBL_CUSTOMER");
+        requireTable(iActiveSchema, "TBL_SUPPLIER");
+        requireTable(iActiveSchema, "TBL_INVOICE");
+
+        requireColumn(iActiveSchema, "TBL_COMPANY", "ID");
+        requireColumn(iActiveSchema, "TBL_COMPANY", "NAME");
+        requireColumn(iActiveSchema, "TBL_ACCOUNTINGYEAR", "ID");
+        requireColumn(iActiveSchema, "TBL_ACCOUNTINGYEAR", "COMPANYID");
+        requireColumn(iActiveSchema, "TBL_ACCOUNTINGYEAR", "FROM_DATE");
+        requireColumn(iActiveSchema, "TBL_ACCOUNTINGYEAR", "TO_DATE");
+        requireColumn(iActiveSchema, "TBL_ACCOUNT", "ACCOUNTINGYEAR_ID");
+        requireColumn(iActiveSchema, "TBL_ACCOUNT", "NUMBER");
+        requireColumn(iActiveSchema, "TBL_PRODUCT", "NUMBER");
+        requireColumn(iActiveSchema, "TBL_CUSTOMER", "NUMBER");
+        requireColumn(iActiveSchema, "TBL_SUPPLIER", "NUMBER");
+        requireColumn(iActiveSchema, "TBL_INVOICE", "NUMBER");
+    }
+
+    private void requireTable(String schemaName, String tableNameUpper) throws SQLException {
+        if (!tableExistsInSchema(schemaName, tableNameUpper)) {
+            throw new SQLException("Database schema mismatch: missing " + schemaName + "." + tableNameUpper);
+        }
+    }
+
+    private void requireColumn(String schemaName, String tableNameUpper, String columnNameUpper) throws SQLException {
+        if (!columnExistsInSchema(schemaName, tableNameUpper, columnNameUpper)) {
+            throw new SQLException("Database schema mismatch: missing column "
+                    + schemaName + "." + tableNameUpper + "." + columnNameUpper);
+        }
+    }
+
+    private void ensureCatalogBootstrapForCurrentSchema() {
+        try {
+            if (!tableExistsInSchema(DEFAULT_SCHEMA_NAME, "TBL_COMPANY_CATALOG")) {
+                return;
+            }
+            ensureSeedStateTable();
+
+            int iCatalogRows = 0;
+            try (PreparedStatement iCountStatement = iConnection.prepareStatement(
+                    "SELECT COUNT(*) FROM PUBLIC.tbl_company_catalog");
+                 ResultSet iCountResult = iCountStatement.executeQuery()) {
+                if (iCountResult.next()) {
+                    iCatalogRows = iCountResult.getInt(1);
+                }
+            }
+
+            if (iCatalogRows == 0) {
+                setSchema(DEFAULT_SCHEMA_NAME);
+                if (schemaExists(DEMO_SCHEMA_NAME)) {
+                    dropSchema(DEMO_SCHEMA_NAME);
+                }
+                createSchemaIfMissing(DEMO_SCHEMA_NAME);
+                setSchema(DEMO_SCHEMA_NAME);
+
+                SSSchemaBuilder iBuilder = new SSSchemaBuilder(iConnection);
+                iBuilder.createCompanyTables();
+
+                String iCompanyName = resolvePreferredCompanyNameInCurrentSchema();
+                if (iCompanyName == null) {
+                    iCompanyName = DEMO_COMPANY_NAME;
+                }
+
+                try (PreparedStatement iInsertStatement = iConnection.prepareStatement(
+                        "INSERT INTO PUBLIC.tbl_company_catalog(schema_name, company_name, is_active) VALUES (?, ?, TRUE)")) {
+                    iInsertStatement.setString(1, DEMO_SCHEMA_NAME);
+                    iInsertStatement.setString(2, iCompanyName);
+                    iInsertStatement.executeUpdate();
+                }
+                iConnection.commit();
+                return;
+            }
+
+            Optional<String> iActiveSchemaName = loadActiveCatalogSchemaName();
+            if (iActiveSchemaName.isPresent()) {
+                setSchema(iActiveSchemaName.get());
+                new SSSchemaBuilder(iConnection).createCompanyTables();
+                iConnection.commit();
+            }
+        } catch (SQLException e) {
+            LOG.error("Unexpected error", e);
+            try {
+                iConnection.rollback();
+            } catch (SQLException ignored) {}
+        }
+    }
+
+    private void ensureSeedStateTable() throws SQLException {
+        try (PreparedStatement iCreateTable = iConnection.prepareStatement(
+                "CREATE TABLE IF NOT EXISTS " + SEED_STATE_TABLE + " (seed_done BOOLEAN DEFAULT FALSE NOT NULL)")) {
+            iCreateTable.executeUpdate();
+        }
+        try (PreparedStatement iCountStatement = iConnection.prepareStatement(
+                "SELECT COUNT(*) FROM " + SEED_STATE_TABLE);
+             ResultSet iCountResult = iCountStatement.executeQuery()) {
+            if (iCountResult.next() && iCountResult.getInt(1) == 0) {
+                try (PreparedStatement iInsert = iConnection.prepareStatement(
+                        "INSERT INTO " + SEED_STATE_TABLE + "(seed_done) VALUES(FALSE)")) {
+                    iInsert.executeUpdate();
+                }
+            }
+        }
+    }
+
+    private void setSeedDone(boolean seedDone) throws SQLException {
+        try (PreparedStatement iUpdate = iConnection.prepareStatement(
+                "UPDATE " + SEED_STATE_TABLE + " SET seed_done=?")) {
+            iUpdate.setBoolean(1, seedDone);
+            iUpdate.executeUpdate();
+        }
+    }
+
+    private Optional<String> loadActiveCatalogSchemaName() throws SQLException {
+        try (PreparedStatement iStatement = iConnection.prepareStatement(
+                "SELECT schema_name FROM PUBLIC.tbl_company_catalog WHERE is_active=TRUE "
+                        + "ORDER BY catalog_id FETCH FIRST 1 ROWS ONLY");
+             ResultSet iResultSet = iStatement.executeQuery()) {
+            if (iResultSet.next()) {
+                return Optional.ofNullable(iResultSet.getString("schema_name"));
+            }
+            return Optional.empty();
+        }
+    }
+
+    private String resolvePreferredCompanyNameInCurrentSchema() throws SQLException {
+        try (PreparedStatement iCompanyStatement = iConnection.prepareStatement(
+                "SELECT name FROM tbl_company ORDER BY CASE WHEN name=? THEN 0 ELSE 1 END, id FETCH FIRST 1 ROWS ONLY")) {
+            iCompanyStatement.setString(1, DEMO_COMPANY_NAME);
+            try (ResultSet iResultSet = iCompanyStatement.executeQuery()) {
+                if (iResultSet.next()) {
+                    return iResultSet.getString(1);
+                }
+                return null;
+            }
+        }
+    }
+
+    private void createSchemaIfMissing(String schemaName) throws SQLException {
+        try (Statement iStatement = iConnection.createStatement()) {
+            iStatement.execute("CREATE SCHEMA " + quoteIdentifier(schemaName));
+        } catch (SQLException e) {
+            String iMessage = e.getMessage();
+            if (iMessage == null || !iMessage.toLowerCase(Locale.ROOT).contains("already exists")) {
+                throw e;
+            }
+        }
+    }
+
+    private boolean schemaExists(String schemaName) throws SQLException {
+        try (PreparedStatement iStatement = iConnection.prepareStatement(
+                "SELECT 1 FROM INFORMATION_SCHEMA.SCHEMATA WHERE UPPER(SCHEMA_NAME)=?")) {
+            iStatement.setString(1, schemaName.toUpperCase(Locale.ROOT));
+            try (ResultSet iResultSet = iStatement.executeQuery()) {
+                return iResultSet.next();
+            }
+        }
+    }
+
+    private void dropSchema(String schemaName) throws SQLException {
+        try (Statement iStatement = iConnection.createStatement()) {
+            iStatement.execute("DROP SCHEMA " + quoteIdentifier(schemaName) + " CASCADE");
+        }
+    }
+
+    private void setSchema(String schemaName) throws SQLException {
+        String iSafeSchema = schemaName == null || schemaName.trim().isEmpty()
+                ? DEFAULT_SCHEMA_NAME
+                : schemaName;
+        try (Statement iStatement = iConnection.createStatement()) {
+            iStatement.execute("SET SCHEMA " + quoteIdentifier(iSafeSchema));
+        }
+    }
+
+    private String quoteIdentifier(String identifier) {
+        return "\"" + identifier.replace("\"", "\"\"") + "\"";
+    }
+
+    private void showUiWarning(String message) {
+        LOG.warn(message);
+        if (java.awt.GraphicsEnvironment.isHeadless()) {
+            return;
+        }
+        javax.swing.JOptionPane.showMessageDialog(
+                SSMainFrame.getInstance(),
+                message,
+                "Varning",
+                javax.swing.JOptionPane.WARNING_MESSAGE);
     }
 
     /**
@@ -710,1106 +1459,6 @@ public class SSDB {
     // ---- V2 database API for SSCurrency repository ----
 
     // //////////////////////////////////////////////////////////////////////////////////////
-
-    public synchronized void triggerAction(String iTriggerName, String iTableName, String iNumber) {
-
-        /** KÃƒÆ’Ã‚Â¶rs dÃƒÆ’Ã‚Â¥ en trigger triggas i databasen. De flesta triggers uppdaterar listan som
-         *  som motsvarar objekten triggen kÃƒÆ’Ã‚Â¶rts pÃƒÆ’Ã‚Â¥. Projekt, Resultatenhet och konteringsmallar fÃƒÆ’Ã‚Â¥r
-         *  behandlas nÃƒÆ’Ã‚Â¥got annorlunda dÃƒÆ’Ã‚Â¥ dessa inte lÃƒÆ’Ã‚Â¤sts in i minnet vid uppstart.
-         */
-
-        try {
-
-            if (!iBypassTriggerDispatcher.get()) {
-                if (iEventTriggerDispatcher.dispatch(iTriggerName, iTableName, iNumber)) {
-                    return;
-                }
-                LOG.warn("Trigger {} not dispatched, using legacy fallback path", iTriggerName);
-            }
-
-            if (iTriggerName.equals("NEWPURCHASEORDER")
-                    && iPurchaseOrders != null) {
-                SSPurchaseOrder iPurchaseOrder = new SSPurchaseOrder();
-
-                iPurchaseOrder.setNumber(Integer.parseInt(iNumber));
-                Optional<SSPurchaseOrder> optPurchaseOrder = Repositories.purchaseOrders()
-                        .findByPurchaseOrder(iPurchaseOrder);
-                if (optPurchaseOrder.isEmpty()) {
-                    LOG.warn("NEWPURCHASEORDER trigger: entity not found for number {}", iNumber);
-                    return;
-                }
-                iPurchaseOrder = optPurchaseOrder.get();
-                if (!iPurchaseOrders.contains(iPurchaseOrder)) {
-                    iPurchaseOrders.add(iPurchaseOrder);
-                }
-                if (SSPurchaseOrderFrame.getInstance() != null) {
-                    SSPurchaseOrderFrame.getInstance().updateFrame();
-                }
-            } else if (iTriggerName.equals("EDITPURCHASEORDER")
-                    && iPurchaseOrders != null) {
-                SSPurchaseOrder iPurchaseOrder = new SSPurchaseOrder();
-
-                iPurchaseOrder.setNumber(Integer.parseInt(iNumber));
-                Optional<SSPurchaseOrder> optPurchaseOrder = Repositories.purchaseOrders()
-                        .findByPurchaseOrder(iPurchaseOrder);
-                if (optPurchaseOrder.isEmpty()) {
-                    LOG.warn("EDITPURCHASEORDER trigger: entity not found for number {}", iNumber);
-                    return;
-                }
-                iPurchaseOrder = optPurchaseOrder.get();
-                int iIndex = iPurchaseOrders.lastIndexOf(iPurchaseOrder);
-                if (iIndex == -1) {
-                    return;
-                }
-                iPurchaseOrders.remove(iIndex);
-                iPurchaseOrders.add(iIndex, iPurchaseOrder);
-                if (SSPurchaseOrderFrame.getInstance() != null) {
-                    SSPurchaseOrderFrame.getInstance().updateFrame();
-                }
-            } else if (iTriggerName.equals("DELETEPURCHASEORDER")
-                    && iPurchaseOrders != null) {
-                SSPurchaseOrder iPurchaseOrder = new SSPurchaseOrder();
-
-                iPurchaseOrder.setNumber(Integer.parseInt(iNumber));
-                iPurchaseOrders.remove(iPurchaseOrder);
-                if (SSOrderFrame.getInstance() != null) {
-                    SSOrderFrame.getInstance().updateFrame();
-                }
-                if (SSPurchaseOrderFrame.getInstance() != null) {
-                    SSPurchaseOrderFrame.getInstance().updateFrame();
-                }
-            }
-        } catch (NumberFormatException e) {
-            LOG.error("Unexpected error", e);
-        }
-    }
-
-    public boolean handleMasterdataTriggers(String iTriggerName, String iTableName, String iNumber) {
-        if (iTriggerName == null) {
-            return false;
-        }
-        if (iTriggerName.contains("PROJECT")) {
-            if (SSProjectFrame.getInstance() != null) {
-                SSProjectFrame.getInstance().updateFrame();
-            }
-            return true;
-        }
-        if (iTriggerName.contains("RESULTUNIT")) {
-            if (SSResultUnitFrame.getInstance() != null) {
-                SSResultUnitFrame.getInstance().updateFrame();
-            }
-            return true;
-        }
-        if (iTriggerName.contains("VOUCHERTEMPLATE")) {
-            if (SSVoucherTemplateFrame.getInstance() != null) {
-                SSVoucherTemplateFrame.getInstance().updateFrame();
-            }
-            return true;
-        }
-
-        if (isAnyTrigger(iTriggerName, "NEWPRODUCT", "EDITPRODUCT", "DELETEPRODUCT")) {
-            if (iProducts == null) {
-                return true;
-            }
-            SSProduct iProduct = new SSProduct();
-            iProduct.setNumber(iNumber);
-
-            if (iTriggerName.equals("NEWPRODUCT")) {
-                Optional<SSProduct> optProduct = Repositories.products().findByProduct(iProduct);
-                if (optProduct.isEmpty()) {
-                    LOG.warn("NEWPRODUCT trigger: product not found for number {}", iNumber);
-                    return true;
-                }
-                iProduct = optProduct.get();
-                if (!iProducts.contains(iProduct)) {
-                    iProducts.add(iProduct);
-                }
-            } else if (iTriggerName.equals("EDITPRODUCT")) {
-                Optional<SSProduct> optProduct = Repositories.products().findByProduct(iProduct);
-                if (optProduct.isEmpty()) {
-                    LOG.warn("EDITPRODUCT trigger: product not found for number {}", iNumber);
-                    return true;
-                }
-                iProduct = optProduct.get();
-                int iIndex = iProducts.lastIndexOf(iProduct);
-                if (iIndex == -1) {
-                    return true;
-                }
-                iProducts.remove(iIndex);
-                iProducts.add(iIndex, iProduct);
-            } else {
-                iProducts.remove(iProduct);
-            }
-
-            if (SSProductFrame.getInstance() != null) {
-                SSProductFrame.getInstance().updateFrame();
-            }
-            return true;
-        }
-
-        if (isAnyTrigger(iTriggerName, "NEWCUSTOMER", "EDITCUSTOMER", "DELETECUSTOMER")) {
-            if (iCustomers == null) {
-                return true;
-            }
-            SSCustomer iCustomer = new SSCustomer();
-            iCustomer.setNumber(iNumber);
-
-            if (iTriggerName.equals("NEWCUSTOMER")) {
-                Optional<SSCustomer> optCustomer = Repositories.customers().findByCustomer(iCustomer);
-                if (optCustomer.isEmpty()) {
-                    LOG.warn("NEWCUSTOMER trigger: customer not found for number {}", iNumber);
-                    return true;
-                }
-                iCustomer = optCustomer.get();
-                if (!iCustomers.contains(iCustomer)) {
-                    iCustomers.add(iCustomer);
-                }
-                if (SSCustomerMath.iInvoicesForCustomers == null) {
-                    SSCustomerMath.iInvoicesForCustomers = new HashMap<>();
-                }
-                SSCustomerMath.iInvoicesForCustomers.put(iCustomer.getNumber(), new LinkedList<>());
-            } else if (iTriggerName.equals("EDITCUSTOMER")) {
-                Optional<SSCustomer> optCustomer = Repositories.customers().findByCustomer(iCustomer);
-                if (optCustomer.isEmpty()) {
-                    LOG.warn("EDITCUSTOMER trigger: customer not found for number {}", iNumber);
-                    return true;
-                }
-                iCustomer = optCustomer.get();
-                int iIndex = iCustomers.lastIndexOf(iCustomer);
-                if (iIndex == -1) {
-                    return true;
-                }
-                iCustomers.remove(iIndex);
-                iCustomers.add(iIndex, iCustomer);
-            } else {
-                iCustomers.remove(iCustomer);
-            }
-
-            if (SSCustomerFrame.getInstance() != null) {
-                SSCustomerFrame.getInstance().updateFrame();
-            }
-            return true;
-        }
-
-        if (isAnyTrigger(iTriggerName, "NEWSUPPLIER", "EDITSUPPLIER", "DELETESUPPLIER")) {
-            if (iSuppliers == null) {
-                return true;
-            }
-            SSSupplier iSupplier = new SSSupplier();
-            iSupplier.setNumber(iNumber);
-
-            if (iTriggerName.equals("NEWSUPPLIER")) {
-                Optional<SSSupplier> optSupplier = Repositories.suppliers().findBySupplier(iSupplier);
-                if (optSupplier.isEmpty()) {
-                    LOG.warn("NEWSUPPLIER trigger: supplier not found for number {}", iNumber);
-                    return true;
-                }
-                iSupplier = optSupplier.get();
-                if (!iSuppliers.contains(iSupplier)) {
-                    iSuppliers.add(iSupplier);
-                }
-                if (SSSupplierMath.iInvoicesForSuppliers == null) {
-                    SSSupplierMath.iInvoicesForSuppliers = new HashMap<>();
-                }
-                SSSupplierMath.iInvoicesForSuppliers.put(iSupplier.getNumber(), new LinkedList<>());
-            } else if (iTriggerName.equals("EDITSUPPLIER")) {
-                Optional<SSSupplier> optSupplier = Repositories.suppliers().findBySupplier(iSupplier);
-                if (optSupplier.isEmpty()) {
-                    LOG.warn("EDITSUPPLIER trigger: supplier not found for number {}", iNumber);
-                    return true;
-                }
-                iSupplier = optSupplier.get();
-                int iIndex = iSuppliers.lastIndexOf(iSupplier);
-                if (iIndex == -1) {
-                    return true;
-                }
-                iSuppliers.remove(iIndex);
-                iSuppliers.add(iIndex, iSupplier);
-            } else {
-                iSuppliers.remove(iSupplier);
-            }
-
-            if (SSSupplierFrame.getInstance() != null) {
-                SSSupplierFrame.getInstance().updateFrame();
-            }
-            return true;
-        }
-
-        if (isAnyTrigger(iTriggerName, "NEWAUTODIST", "EDITAUTODIST", "DELETEAUTODIST")) {
-            if (iAutoDists == null) {
-                return true;
-            }
-            Integer iAccount = Integer.parseInt(iNumber);
-            SSAutoDist iAutoDist = new SSAutoDist();
-            iAutoDist.setAccountNumber(iAccount);
-
-            if (iTriggerName.equals("NEWAUTODIST")) {
-                Optional<SSAutoDist> optAutoDist = Repositories.autoDists().findByAutoDist(iAutoDist);
-                if (optAutoDist.isEmpty()) {
-                    LOG.warn("NEWAUTODIST trigger: autodist not found for number {}", iNumber);
-                    return true;
-                }
-                iAutoDist = optAutoDist.get();
-                if (!iAutoDists.contains(iAutoDist)) {
-                    iAutoDists.add(iAutoDist);
-                }
-            } else if (iTriggerName.equals("EDITAUTODIST")) {
-                Optional<SSAutoDist> optAutoDist = Repositories.autoDists().findByAutoDist(iAutoDist);
-                if (optAutoDist.isEmpty()) {
-                    LOG.warn("EDITAUTODIST trigger: autodist not found for number {}", iNumber);
-                    return true;
-                }
-                iAutoDist = optAutoDist.get();
-                int iIndex = iAutoDists.lastIndexOf(iAutoDist);
-                if (iIndex == -1) {
-                    return true;
-                }
-                iAutoDists.remove(iIndex);
-                iAutoDists.add(iIndex, iAutoDist);
-            } else {
-                iAutoDists.remove(iAutoDist);
-            }
-
-            if (SSAutoDistFrame.getInstance() != null) {
-                SSAutoDistFrame.getInstance().updateFrame();
-            }
-            return true;
-        }
-
-        return false;
-    }
-
-    public boolean handleSalesTriggers(String iTriggerName, String iTableName, String iNumber) {
-        if (iTriggerName == null) {
-            return false;
-        }
-        if (!isAnyTrigger(iTriggerName,
-                "NEWTENDER", "EDITTENDER", "DELETETENDER",
-                "NEWORDER", "EDITORDER", "DELETEORDER",
-                "NEWINVOICE", "EDITINVOICE", "DELETEINVOICE",
-                "NEWCREDITINVOICE", "EDITCREDITINVOICE", "DELETECREDITINVOICE",
-                "NEWPERIODICINVOICE", "EDITPERIODICINVOICE", "DELETEPERIODICINVOICE")) {
-            return false;
-        }
-
-        if (isAnyTrigger(iTriggerName, "NEWTENDER", "EDITTENDER", "DELETETENDER")) {
-            if (iTenders == null) {
-                return true;
-            }
-            SSTender iTender = new SSTender();
-            iTender.setNumber(Integer.parseInt(iNumber));
-
-            if (iTriggerName.equals("NEWTENDER")) {
-                Optional<SSTender> optTender = Repositories.tenders().findByTender(iTender);
-                if (optTender.isEmpty()) {
-                    LOG.warn("NEWTENDER trigger: entity not found for number {}", iNumber);
-                    return true;
-                }
-                iTender = optTender.get();
-                if (!iTenders.contains(iTender)) {
-                    iTenders.add(iTender);
-                }
-            } else if (iTriggerName.equals("EDITTENDER")) {
-                Optional<SSTender> optTender = Repositories.tenders().findByTender(iTender);
-                if (optTender.isEmpty()) {
-                    LOG.warn("EDITTENDER trigger: entity not found for number {}", iNumber);
-                    return true;
-                }
-                iTender = optTender.get();
-                int iIndex = iTenders.lastIndexOf(iTender);
-                if (iIndex == -1) {
-                    return true;
-                }
-                iTenders.remove(iIndex);
-                iTenders.add(iIndex, iTender);
-            } else {
-                iTenders.remove(iTender);
-            }
-
-            if (SSTenderFrame.getInstance() != null) {
-                SSTenderFrame.getInstance().updateFrame();
-            }
-            return true;
-        }
-
-        if (isAnyTrigger(iTriggerName, "NEWORDER", "EDITORDER", "DELETEORDER")) {
-            if (iOrders == null) {
-                return true;
-            }
-            SSOrder iOrder = new SSOrder();
-            iOrder.setNumber(Integer.parseInt(iNumber));
-
-            if (iTriggerName.equals("NEWORDER")) {
-                Optional<SSOrder> optOrder = Repositories.orders().findByOrder(iOrder);
-                if (optOrder.isEmpty()) {
-                    LOG.warn("NEWORDER trigger: entity not found for number {}", iNumber);
-                    return true;
-                }
-                iOrder = optOrder.get();
-                if (!iOrders.contains(iOrder)) {
-                    iOrders.add(iOrder);
-                }
-            } else if (iTriggerName.equals("EDITORDER")) {
-                Optional<SSOrder> optOrder = Repositories.orders().findByOrder(iOrder);
-                if (optOrder.isEmpty()) {
-                    LOG.warn("EDITORDER trigger: entity not found for number {}", iNumber);
-                    return true;
-                }
-                iOrder = optOrder.get();
-                int iIndex = iOrders.lastIndexOf(iOrder);
-                if (iIndex == -1) {
-                    return true;
-                }
-                iOrders.remove(iIndex);
-                iOrders.add(iIndex, iOrder);
-            } else {
-                iOrders.remove(iOrder);
-            }
-
-            if (SSOrderFrame.getInstance() != null) {
-                SSOrderFrame.getInstance().updateFrame();
-            }
-            return true;
-        }
-
-        if (isAnyTrigger(iTriggerName, "NEWINVOICE", "EDITINVOICE", "DELETEINVOICE")) {
-            if (iInvoices == null) {
-                return true;
-            }
-            SSInvoice iInvoice = new SSInvoice();
-            iInvoice.setNumber(Integer.parseInt(iNumber));
-
-            if (iTriggerName.equals("NEWINVOICE")) {
-                Optional<SSInvoice> optInvoice = Repositories.invoices().findByInvoice(iInvoice);
-                if (optInvoice.isEmpty()) {
-                    LOG.warn("NEWINVOICE trigger: entity not found for number {}", iNumber);
-                    return true;
-                }
-                iInvoice = optInvoice.get();
-                if (!iInvoices.contains(iInvoice)) {
-                    iInvoices.add(iInvoice);
-                }
-                SSInvoiceMath.iSaldoMap.put(iInvoice.getNumber(), SSInvoiceMath.getSaldo(iInvoice));
-                if (SSCustomerMath.iInvoicesForCustomers.containsKey(iInvoice.getCustomerNr())) {
-                    SSCustomerMath.iInvoicesForCustomers.get(iInvoice.getCustomerNr()).add(iInvoice);
-                } else {
-                    List<SSInvoice> iNumbers = new LinkedList<>();
-                    iNumbers.add(iInvoice);
-                    SSCustomerMath.iInvoicesForCustomers.put(iInvoice.getCustomerNr(), iNumbers);
-                }
-                if (SSOrderFrame.getInstance() != null) {
-                    SSOrderFrame.getInstance().updateFrame();
-                }
-                if (SSCustomerFrame.getInstance() != null) {
-                    SSCustomerFrame.getInstance().updateFrame();
-                }
-                if (SSInvoiceFrame.getInstance() != null) {
-                    SSInvoiceFrame.getInstance().updateFrame();
-                }
-                return true;
-            }
-
-            if (iTriggerName.equals("EDITINVOICE")) {
-                Optional<SSInvoice> optInvoice = Repositories.invoices().findByInvoice(iInvoice);
-                if (optInvoice.isEmpty()) {
-                    LOG.warn("EDITINVOICE trigger: entity not found for number {}", iNumber);
-                    return true;
-                }
-                iInvoice = optInvoice.get();
-                int iIndex = iInvoices.lastIndexOf(iInvoice);
-                if (iIndex == -1) {
-                    return true;
-                }
-                iInvoices.remove(iIndex);
-                iInvoices.add(iIndex, iInvoice);
-                SSInvoiceMath.iSaldoMap.put(iInvoice.getNumber(), SSInvoiceMath.getSaldo(iInvoice));
-                iIndex = SSCustomerMath.iInvoicesForCustomers.get(iInvoice.getCustomerNr()).indexOf(iInvoice);
-                if (iIndex != -1) {
-                    SSCustomerMath.iInvoicesForCustomers.get(iInvoice.getCustomerNr()).remove(iIndex);
-                    SSCustomerMath.iInvoicesForCustomers.get(iInvoice.getCustomerNr()).add(iIndex, iInvoice);
-                }
-                if (SSOrderFrame.getInstance() != null) {
-                    SSOrderFrame.getInstance().updateFrame();
-                }
-                if (SSCustomerFrame.getInstance() != null) {
-                    SSCustomerFrame.getInstance().updateFrame();
-                }
-                if (SSInvoiceFrame.getInstance() != null) {
-                    SSInvoiceFrame.getInstance().updateFrame();
-                }
-                return true;
-            }
-
-            iInvoices.remove(iInvoice);
-            SSInvoiceMath.iSaldoMap.remove(iInvoice.getNumber());
-            if (SSCustomerFrame.getInstance() != null) {
-                SSCustomerFrame.getInstance().updateFrame();
-            }
-            if (SSInvoiceFrame.getInstance() != null) {
-                SSInvoiceFrame.getInstance().updateFrame();
-            }
-            return true;
-        }
-
-        if (isAnyTrigger(iTriggerName, "NEWCREDITINVOICE", "EDITCREDITINVOICE", "DELETECREDITINVOICE")) {
-            if (iCreditInvoices == null) {
-                return true;
-            }
-            SSCreditInvoice iCreditInvoice = new SSCreditInvoice();
-            iCreditInvoice.setNumber(Integer.parseInt(iNumber));
-
-            if (iTriggerName.equals("NEWCREDITINVOICE")) {
-                Optional<SSCreditInvoice> optCreditInvoice = Repositories.creditInvoices().findByCreditInvoice(iCreditInvoice);
-                if (optCreditInvoice.isEmpty()) {
-                    LOG.warn("NEWCREDITINVOICE trigger: entity not found for number {}", iNumber);
-                    return true;
-                }
-                iCreditInvoice = optCreditInvoice.get();
-                if (!iCreditInvoices.contains(iCreditInvoice)) {
-                    iCreditInvoices.add(iCreditInvoice);
-                }
-                SaldoDeltaService.applyCustomerCreditInvoiceNew(iCreditInvoice);
-                if (SSCustomerFrame.getInstance() != null) {
-                    SSCustomerFrame.getInstance().updateFrame();
-                }
-                if (SSInvoiceFrame.getInstance() != null) {
-                    SSInvoiceFrame.getInstance().updateFrame();
-                }
-                if (SSCreditInvoiceFrame.getInstance() != null) {
-                    SSCreditInvoiceFrame.getInstance().updateFrame();
-                }
-                return true;
-            }
-
-            if (iTriggerName.equals("EDITCREDITINVOICE")) {
-                Optional<SSCreditInvoice> optCreditInvoice = Repositories.creditInvoices().findByCreditInvoice(iCreditInvoice);
-                if (optCreditInvoice.isEmpty()) {
-                    LOG.warn("EDITCREDITINVOICE trigger: entity not found for number {}", iNumber);
-                    return true;
-                }
-                iCreditInvoice = optCreditInvoice.get();
-                int iIndex = iCreditInvoices.lastIndexOf(iCreditInvoice);
-                if (iIndex == -1) {
-                    return true;
-                }
-                SSCreditInvoice iOldCreditInvoice = iCreditInvoices.get(iIndex);
-                SaldoDeltaService.applyCustomerCreditInvoiceEditRevert(iOldCreditInvoice);
-                if (SSCustomerFrame.getInstance() != null) {
-                    SSCustomerFrame.getInstance().updateFrame();
-                }
-                if (SSInvoiceFrame.getInstance() != null) {
-                    SSInvoiceFrame.getInstance().updateFrame();
-                }
-                iCreditInvoices.remove(iIndex);
-                iCreditInvoices.add(iIndex, iCreditInvoice);
-                SaldoDeltaService.applyCustomerCreditInvoiceEditApply(iCreditInvoice);
-                if (SSInvoiceFrame.getInstance() != null) {
-                    SSInvoiceFrame.getInstance().updateFrame();
-                }
-                if (SSCreditInvoiceFrame.getInstance() != null) {
-                    SSCreditInvoiceFrame.getInstance().updateFrame();
-                }
-                return true;
-            }
-
-            iCreditInvoices.remove(iCreditInvoice);
-            if (SSCustomerFrame.getInstance() != null) {
-                SSCustomerFrame.getInstance().updateFrame();
-            }
-            if (SSCreditInvoiceFrame.getInstance() != null) {
-                SSCreditInvoiceFrame.getInstance().updateFrame();
-            }
-            return true;
-        }
-
-        if (isAnyTrigger(iTriggerName, "NEWPERIODICINVOICE", "EDITPERIODICINVOICE", "DELETEPERIODICINVOICE")) {
-            if (iPeriodicInvoices == null) {
-                return true;
-            }
-            SSPeriodicInvoice iPeriodicInvoice = new SSPeriodicInvoice();
-            iPeriodicInvoice.setNumber(Integer.parseInt(iNumber));
-
-            if (iTriggerName.equals("NEWPERIODICINVOICE")) {
-                Optional<SSPeriodicInvoice> optPeriodicInvoice = Repositories.periodicInvoices().findByPeriodicInvoice(iPeriodicInvoice);
-                if (optPeriodicInvoice.isEmpty()) {
-                    LOG.warn("NEWPERIODICINVOICE trigger: entity not found for number {}", iNumber);
-                    return true;
-                }
-                iPeriodicInvoice = optPeriodicInvoice.get();
-                if (!iPeriodicInvoices.contains(iPeriodicInvoice)) {
-                    iPeriodicInvoices.add(iPeriodicInvoice);
-                }
-            } else if (iTriggerName.equals("EDITPERIODICINVOICE")) {
-                Optional<SSPeriodicInvoice> optPeriodicInvoice = Repositories.periodicInvoices().findByPeriodicInvoice(iPeriodicInvoice);
-                if (optPeriodicInvoice.isEmpty()) {
-                    LOG.warn("EDITPERIODICINVOICE trigger: entity not found for number {}", iNumber);
-                    return true;
-                }
-                iPeriodicInvoice = optPeriodicInvoice.get();
-                int iIndex = iPeriodicInvoices.lastIndexOf(iPeriodicInvoice);
-                if (iIndex == -1) {
-                    return true;
-                }
-                iPeriodicInvoices.remove(iIndex);
-                iPeriodicInvoices.add(iIndex, iPeriodicInvoice);
-            } else {
-                iPeriodicInvoices.remove(iPeriodicInvoice);
-            }
-
-            if (SSPeriodicInvoiceFrame.getInstance() != null) {
-                SSPeriodicInvoiceFrame.getInstance().updateFrame();
-            }
-            return true;
-        }
-
-        return true;
-    }
-
-    public boolean handleCustomerPaymentTriggers(String iTriggerName, String iTableName, String iNumber) {
-        if (iTriggerName == null) {
-            return false;
-        }
-        if (!isAnyTrigger(iTriggerName, "NEWINPAYMENT", "EDITINPAYMENT", "DELETEINPAYMENT")) {
-            return false;
-        }
-
-        if (iInpayments == null) {
-            return true;
-        }
-
-        if (iTriggerName.equals("NEWINPAYMENT")) {
-            SSInpayment iInpayment = new SSInpayment();
-            iInpayment.setNumber(Integer.parseInt(iNumber));
-
-            Optional<SSInpayment> optInpayment = Repositories.inpayments().findByInpayment(iInpayment);
-            if (optInpayment.isEmpty()) {
-                LOG.warn("NEWINPAYMENT trigger: inpayment not found for number {}", iNumber);
-                return true;
-            }
-            iInpayment = optInpayment.get();
-            if (!iInpayments.contains(iInpayment)) {
-                iInpayments.add(iInpayment);
-                applyInpaymentSaldoDelta(iInpayment, false);
-            }
-            if (SSCustomerFrame.getInstance() != null) {
-                SSCustomerFrame.getInstance().updateFrame();
-            }
-            if (SSInvoiceFrame.getInstance() != null) {
-                SSInvoiceFrame.getInstance().updateFrame();
-            }
-            if (SSInpaymentFrame.getInstance() != null) {
-                SSInpaymentFrame.getInstance().updateFrame();
-            }
-            return true;
-        }
-
-        if (iTriggerName.equals("EDITINPAYMENT")) {
-            SSInpayment iInpayment = new SSInpayment();
-            iInpayment.setNumber(Integer.parseInt(iNumber));
-
-            Optional<SSInpayment> optInpayment = Repositories.inpayments().findByInpayment(iInpayment);
-            if (optInpayment.isEmpty()) {
-                LOG.warn("EDITINPAYMENT trigger: entity not found for number {}", iNumber);
-                return true;
-            }
-            iInpayment = optInpayment.get();
-            int iIndex = iInpayments.lastIndexOf(iInpayment);
-            if (iIndex == -1) {
-                return true;
-            }
-            SSInpayment iOldInpayment = iInpayments.get(iIndex);
-            applyInpaymentSaldoDelta(iOldInpayment, true);
-            iInpayments.remove(iIndex);
-            iInpayments.add(iIndex, iInpayment);
-            applyInpaymentSaldoDelta(iInpayment, false);
-            if (SSCustomerFrame.getInstance() != null) {
-                SSCustomerFrame.getInstance().updateFrame();
-            }
-            if (SSInvoiceFrame.getInstance() != null) {
-                SSInvoiceFrame.getInstance().updateFrame();
-            }
-            if (SSInpaymentFrame.getInstance() != null) {
-                SSInpaymentFrame.getInstance().updateFrame();
-            }
-            return true;
-        }
-
-        if (iTriggerName.equals("DELETEINPAYMENT")) {
-            SSInpayment iInpayment = new SSInpayment();
-            iInpayment.setNumber(Integer.parseInt(iNumber));
-
-            int iIndex = iInpayments.lastIndexOf(iInpayment);
-            if (iIndex != -1) {
-                SSInpayment iOldInpayment = iInpayments.get(iIndex);
-                applyInpaymentSaldoDelta(iOldInpayment, true);
-                iInpayments.remove(iIndex);
-            }
-            if (SSCustomerFrame.getInstance() != null) {
-                SSCustomerFrame.getInstance().updateFrame();
-            }
-            if (SSInvoiceFrame.getInstance() != null) {
-                SSInvoiceFrame.getInstance().updateFrame();
-            }
-            if (SSInpaymentFrame.getInstance() != null) {
-                SSInpaymentFrame.getInstance().updateFrame();
-            }
-            return true;
-        }
-        return false;
-    }
-
-    public boolean handlePurchaseSupplierTriggers(String iTriggerName, String iTableName, String iNumber) {
-        if (iTriggerName == null) {
-            return false;
-        }
-        if (!isAnyTrigger(iTriggerName,
-                "NEWPURCHASEORDER", "EDITPURCHASEORDER", "DELETEPURCHASEORDER",
-                "NEWOUTPAYMENT",
-                "NEWSUPPLIERCREDITINVOICE", "EDITSUPPLIERCREDITINVOICE", "DELETESUPPLIERCREDITINVOICE")) {
-            return false;
-        }
-
-        if (isAnyTrigger(iTriggerName, "NEWOUTPAYMENT")) {
-            if (iOutpayments == null) {
-                return true;
-            }
-            SSOutpayment iOutpayment = new SSOutpayment();
-            iOutpayment.setNumber(Integer.parseInt(iNumber));
-
-            Optional<SSOutpayment> optOutpayment = Repositories.outpayments().findByOutpayment(iOutpayment);
-            if (optOutpayment.isEmpty()) {
-                LOG.warn("NEWOUTPAYMENT trigger: entity not found for number {}", iNumber);
-                return true;
-            }
-            iOutpayment = optOutpayment.get();
-            if (!iOutpayments.contains(iOutpayment)) {
-                iOutpayments.add(iOutpayment);
-                applyOutpaymentSaldoDelta(iOutpayment, false);
-            }
-            if (SSSupplierFrame.getInstance() != null) {
-                SSSupplierFrame.getInstance().updateFrame();
-            }
-            if (SSSupplierInvoiceFrame.getInstance() != null) {
-                SSSupplierInvoiceFrame.getInstance().updateFrame();
-            }
-            if (SSOutpaymentFrame.getInstance() != null) {
-                SSOutpaymentFrame.getInstance().updateFrame();
-            }
-            if (SSSupplierCreditInvoiceFrame.getInstance() != null) {
-                SSSupplierCreditInvoiceFrame.getInstance().updateFrame();
-            }
-            return true;
-        }
-
-        if (isAnyTrigger(iTriggerName,
-                "NEWSUPPLIERCREDITINVOICE", "EDITSUPPLIERCREDITINVOICE", "DELETESUPPLIERCREDITINVOICE")) {
-            if (iSupplierCreditInvoices == null) {
-                return true;
-            }
-            SSSupplierCreditInvoice iSupplierCreditInvoice = new SSSupplierCreditInvoice();
-            iSupplierCreditInvoice.setNumber(Integer.parseInt(iNumber));
-
-            if (iTriggerName.equals("NEWSUPPLIERCREDITINVOICE")) {
-                Optional<SSSupplierCreditInvoice> optSupplierCreditInvoice = Repositories.supplierCreditInvoices()
-                        .findBySupplierCreditInvoice(iSupplierCreditInvoice);
-                if (optSupplierCreditInvoice.isEmpty()) {
-                    LOG.warn("NEWSUPPLIERCREDITINVOICE trigger: entity not found for number {}", iNumber);
-                    return true;
-                }
-                iSupplierCreditInvoice = optSupplierCreditInvoice.get();
-                if (!iSupplierCreditInvoices.contains(iSupplierCreditInvoice)) {
-                    iSupplierCreditInvoices.add(iSupplierCreditInvoice);
-                }
-                SaldoDeltaService.applySupplierCreditInvoiceNew(iSupplierCreditInvoice);
-            } else if (iTriggerName.equals("EDITSUPPLIERCREDITINVOICE")) {
-                Optional<SSSupplierCreditInvoice> optSupplierCreditInvoice = Repositories.supplierCreditInvoices()
-                        .findBySupplierCreditInvoice(iSupplierCreditInvoice);
-                if (optSupplierCreditInvoice.isEmpty()) {
-                    LOG.warn("EDITSUPPLIERCREDITINVOICE trigger: entity not found for number {}", iNumber);
-                    return true;
-                }
-                iSupplierCreditInvoice = optSupplierCreditInvoice.get();
-                int iIndex = iSupplierCreditInvoices.lastIndexOf(iSupplierCreditInvoice);
-                if (iIndex == -1) {
-                    return true;
-                }
-                SSSupplierCreditInvoice iOldSupplierCreditInvoice = iSupplierCreditInvoices.get(iIndex);
-                SaldoDeltaService.applySupplierCreditInvoiceEditRevert(iOldSupplierCreditInvoice);
-                iSupplierCreditInvoices.remove(iIndex);
-                iSupplierCreditInvoices.add(iIndex, iSupplierCreditInvoice);
-                SaldoDeltaService.applySupplierCreditInvoiceEditApply(iSupplierCreditInvoice);
-            } else {
-                int iIndex = iSupplierCreditInvoices.lastIndexOf(iSupplierCreditInvoice);
-                SSSupplierCreditInvoice iRemovedSupplierCreditInvoice =
-                        iIndex >= 0 ? iSupplierCreditInvoices.get(iIndex) : iSupplierCreditInvoice;
-                iSupplierCreditInvoices.remove(iSupplierCreditInvoice);
-                SaldoDeltaService.applySupplierCreditInvoiceDeleteRevert(iRemovedSupplierCreditInvoice);
-            }
-
-            if (SSSupplierFrame.getInstance() != null) {
-                SSSupplierFrame.getInstance().updateFrame();
-            }
-            if (SSSupplierInvoiceFrame.getInstance() != null) {
-                SSSupplierInvoiceFrame.getInstance().updateFrame();
-            }
-            if (SSSupplierCreditInvoiceFrame.getInstance() != null) {
-                SSSupplierCreditInvoiceFrame.getInstance().updateFrame();
-            }
-            return true;
-        }
-
-        return false;
-    }
-
-    public boolean handleInventoryTriggers(String iTriggerName, String iTableName, String iNumber) {
-        if (iTriggerName == null) {
-            return false;
-        }
-        if (!isAnyTrigger(iTriggerName,
-                "NEWINVENTORY", "EDITINVENTORY", "DELETEINVENTORY",
-                "NEWINDELIVERY", "EDITINDELIVERY", "DELETEINDELIVERY",
-                "NEWOUTDELIVERY", "EDITOUTDELIVERY", "DELETEOUTDELIVERY")) {
-            return false;
-        }
-
-        if (iTriggerName.equals("NEWINVENTORY")) {
-            if (iInventories == null) {
-                return true;
-            }
-            SSInventory iInventory = new SSInventory();
-
-            iInventory.setNumber(Integer.parseInt(iNumber));
-            Optional<SSInventory> optInventory = Repositories.inventories().findByInventory(iInventory);
-            if (optInventory.isEmpty()) {
-                LOG.warn("NEWINVENTORY trigger: entity not found for number {}", iNumber);
-                return true;
-            }
-            iInventory = optInventory.get();
-            if (!iInventories.contains(iInventory)) {
-                iInventories.add(iInventory);
-            }
-            if (SSInventoryFrame.getInstance() != null) {
-                SSInventoryFrame.getInstance().updateFrame();
-            }
-            return true;
-        }
-
-        if (iTriggerName.equals("EDITINVENTORY")) {
-            if (iInventories == null) {
-                return true;
-            }
-            SSInventory iInventory = new SSInventory();
-
-            iInventory.setNumber(Integer.parseInt(iNumber));
-            Optional<SSInventory> optInventory = Repositories.inventories().findByInventory(iInventory);
-            if (optInventory.isEmpty()) {
-                LOG.warn("EDITINVENTORY trigger: entity not found for number {}", iNumber);
-                return true;
-            }
-            iInventory = optInventory.get();
-            int iIndex = iInventories.lastIndexOf(iInventory);
-
-            if (iIndex == -1) {
-                return true;
-            }
-            iInventories.remove(iIndex);
-            iInventories.add(iIndex, iInventory);
-            if (SSInventoryFrame.getInstance() != null) {
-                SSInventoryFrame.getInstance().updateFrame();
-            }
-            return true;
-        }
-
-        if (iTriggerName.equals("DELETEINVENTORY")) {
-            if (iInventories == null) {
-                return true;
-            }
-            SSInventory iInventory = new SSInventory();
-
-            iInventory.setNumber(Integer.parseInt(iNumber));
-            iInventories.remove(iInventory);
-            if (SSInventoryFrame.getInstance() != null) {
-                SSInventoryFrame.getInstance().updateFrame();
-            }
-            return true;
-        }
-
-        if (iTriggerName.equals("NEWINDELIVERY")) {
-            if (iIndeliveries == null) {
-                return true;
-            }
-            SSIndelivery iIndelivery = new SSIndelivery();
-
-            iIndelivery.setNumber(Integer.parseInt(iNumber));
-            Optional<SSIndelivery> optIndelivery = Repositories.indeliveries().findByIndelivery(iIndelivery);
-            if (optIndelivery.isEmpty()) {
-                LOG.warn("NEWINDELIVERY trigger: entity not found for number {}", iNumber);
-                return true;
-            }
-            iIndelivery = optIndelivery.get();
-            if (!iIndeliveries.contains(iIndelivery)) {
-                iIndeliveries.add(iIndelivery);
-            }
-            if (SSIndeliveryFrame.getInstance() != null) {
-                SSIndeliveryFrame.getInstance().updateFrame();
-            }
-            return true;
-        }
-
-        if (iTriggerName.equals("EDITINDELIVERY")) {
-            if (iIndeliveries == null) {
-                return true;
-            }
-            SSIndelivery iIndelivery = new SSIndelivery();
-
-            iIndelivery.setNumber(Integer.parseInt(iNumber));
-            Optional<SSIndelivery> optIndelivery = Repositories.indeliveries().findByIndelivery(iIndelivery);
-            if (optIndelivery.isEmpty()) {
-                LOG.warn("EDITINDELIVERY trigger: entity not found for number {}", iNumber);
-                return true;
-            }
-            iIndelivery = optIndelivery.get();
-            int iIndex = iIndeliveries.lastIndexOf(iIndelivery);
-
-            if (iIndex == -1) {
-                return true;
-            }
-            iIndeliveries.remove(iIndex);
-            iIndeliveries.add(iIndex, iIndelivery);
-            if (SSIndeliveryFrame.getInstance() != null) {
-                SSIndeliveryFrame.getInstance().updateFrame();
-            }
-            return true;
-        }
-
-        if (iTriggerName.equals("DELETEINDELIVERY")) {
-            if (iIndeliveries == null) {
-                return true;
-            }
-            SSIndelivery iIndelivery = new SSIndelivery();
-
-            iIndelivery.setNumber(Integer.parseInt(iNumber));
-            iIndeliveries.remove(iIndelivery);
-            if (SSIndeliveryFrame.getInstance() != null) {
-                SSIndeliveryFrame.getInstance().updateFrame();
-            }
-            return true;
-        }
-
-        if (iTriggerName.equals("NEWOUTDELIVERY")) {
-            if (iOutdeliveries == null) {
-                return true;
-            }
-            SSOutdelivery iOutdelivery = new SSOutdelivery();
-
-            iOutdelivery.setNumber(Integer.parseInt(iNumber));
-            Optional<SSOutdelivery> optOutdelivery = Repositories.outdeliveries().findByOutdelivery(iOutdelivery);
-            if (optOutdelivery.isEmpty()) {
-                LOG.warn("NEWOUTDELIVERY trigger: entity not found for number {}", iNumber);
-                return true;
-            }
-            iOutdelivery = optOutdelivery.get();
-            if (!iOutdeliveries.contains(iOutdelivery)) {
-                iOutdeliveries.add(iOutdelivery);
-            }
-            if (SSOutdeliveryFrame.getInstance() != null) {
-                SSOutdeliveryFrame.getInstance().updateFrame();
-            }
-            return true;
-        }
-
-        if (iTriggerName.equals("EDITOUTDELIVERY")) {
-            if (iOutdeliveries == null) {
-                return true;
-            }
-            SSOutdelivery iOutdelivery = new SSOutdelivery();
-
-            iOutdelivery.setNumber(Integer.parseInt(iNumber));
-            Optional<SSOutdelivery> optOutdelivery = Repositories.outdeliveries().findByOutdelivery(iOutdelivery);
-            if (optOutdelivery.isEmpty()) {
-                LOG.warn("EDITOUTDELIVERY trigger: entity not found for number {}", iNumber);
-                return true;
-            }
-            iOutdelivery = optOutdelivery.get();
-            int iIndex = iOutdeliveries.lastIndexOf(iOutdelivery);
-
-            if (iIndex == -1) {
-                return true;
-            }
-            iOutdeliveries.remove(iIndex);
-            iOutdeliveries.add(iIndex, iOutdelivery);
-            if (SSOutdeliveryFrame.getInstance() != null) {
-                SSOutdeliveryFrame.getInstance().updateFrame();
-            }
-            return true;
-        }
-
-        if (iTriggerName.equals("DELETEOUTDELIVERY")) {
-            if (iOutdeliveries == null) {
-                return true;
-            }
-            SSOutdelivery iOutdelivery = new SSOutdelivery();
-
-            iOutdelivery.setNumber(Integer.parseInt(iNumber));
-            iOutdeliveries.remove(iOutdelivery);
-            if (SSOutdeliveryFrame.getInstance() != null) {
-                SSOutdeliveryFrame.getInstance().updateFrame();
-            }
-            return true;
-        }
-        return true;
-    }
-
-    public boolean handleAccountingTriggers(String iTriggerName, String iTableName, String iNumber) {
-        if (iTriggerName == null) {
-            return false;
-        }
-        if (!isAnyTrigger(iTriggerName, "NEWVOUCHER", "EDITVOUCHER", "DELETEVOUCHER")) {
-            return false;
-        }
-
-        if (iVouchers == null) {
-            return true;
-        }
-
-        if (iTriggerName.equals("NEWVOUCHER")) {
-            SSVoucher iVoucher = new SSVoucher(Integer.parseInt(iNumber));
-
-            Optional<SSVoucher> optVoucher = Repositories.vouchers().findVoucher(iVoucher);
-            if (optVoucher.isEmpty()) {
-                LOG.warn("NEWVOUCHER trigger: entity not found for number {}", iNumber);
-                return true;
-            }
-            iVoucher = optVoucher.get();
-            if (!iVouchers.contains(iVoucher)) {
-                iVouchers.add(iVoucher);
-            }
-            if (SSVoucherFrame.getInstance() != null) {
-                SSVoucherFrame.getInstance().updateFrame();
-            }
-            return true;
-        }
-
-        if (iTriggerName.equals("EDITVOUCHER")) {
-            SSVoucher iVoucher = new SSVoucher(Integer.parseInt(iNumber));
-
-            Optional<SSVoucher> optVoucher = Repositories.vouchers().findVoucher(iVoucher);
-            if (optVoucher.isEmpty()) {
-                LOG.warn("EDITVOUCHER trigger: entity not found for number {}", iNumber);
-                return true;
-            }
-            iVoucher = optVoucher.get();
-            int iIndex = iVouchers.lastIndexOf(iVoucher);
-
-            if (iIndex == -1) {
-                return true;
-            }
-            iVouchers.remove(iIndex);
-            iVouchers.add(iIndex, iVoucher);
-            if (SSVoucherFrame.getInstance() != null) {
-                SSVoucherFrame.getInstance().updateFrame();
-            }
-            return true;
-        }
-
-        if (iTriggerName.equals("DELETEVOUCHER")) {
-            SSVoucher iVoucher = new SSVoucher(Integer.parseInt(iNumber));
-
-            iVouchers.remove(iVoucher);
-            if (SSVoucherFrame.getInstance() != null) {
-                SSVoucherFrame.getInstance().updateFrame();
-            }
-            return true;
-        }
-        return true;
-    }
-
-    public boolean handleReportTriggers(String iTriggerName, String iTableName, String iNumber) {
-        if (iTriggerName == null) {
-            return false;
-        }
-        if (!isAnyTrigger(iTriggerName, "NEWOWNREPORT", "EDITOWNREPORT", "DELETEOWNREPORT")) {
-            return false;
-        }
-        if (iOwnReports == null) {
-            // Preserve previous behavior: report triggers were ignored until the cache list was initialized.
-            return true;
-        }
-        if (iTriggerName.equals("NEWOWNREPORT")) {
-            SSOwnReport iOwnReport = new SSOwnReport();
-
-            iOwnReport.setId(Integer.parseInt(iNumber));
-            Optional<SSOwnReport> optOwnReport = Repositories.ownReports().findByOwnReport(iOwnReport);
-            if (optOwnReport.isEmpty()) {
-                LOG.warn("NEWOWNREPORT trigger: entity not found for number {}", iNumber);
-                return true;
-            }
-            iOwnReport = optOwnReport.get();
-            if (!iOwnReports.contains(iOwnReport) && iOwnReport.getId() != -1) {
-                iOwnReports.add(iOwnReport);
-            }
-            if (SSOwnReportFrame.getInstance() != null) {
-                SSOwnReportFrame.getInstance().updateFrame();
-            }
-            return true;
-        }
-        if (iTriggerName.equals("EDITOWNREPORT")) {
-            SSOwnReport iOwnReport = new SSOwnReport();
-
-            iOwnReport.setId(Integer.parseInt(iNumber));
-            Optional<SSOwnReport> optOwnReport = Repositories.ownReports().findByOwnReport(iOwnReport);
-            if (optOwnReport.isEmpty()) {
-                LOG.warn("EDITOWNREPORT trigger: entity not found for number {}", iNumber);
-                return true;
-            }
-            iOwnReport = optOwnReport.get();
-            int iIndex = iOwnReports.lastIndexOf(iOwnReport);
-
-            if (iIndex != -1) {
-                iOwnReports.remove(iIndex);
-                iOwnReports.add(iIndex, iOwnReport);
-            } else {
-                iOwnReports.add(iOwnReport);
-            }
-            if (SSOwnReportFrame.getInstance() != null) {
-                SSOwnReportFrame.getInstance().updateFrame();
-            }
-            return true;
-        }
-        if (iTriggerName.equals("DELETEOWNREPORT")) {
-            SSOwnReport iOwnReport = new SSOwnReport();
-
-            iOwnReport.setId(Integer.parseInt(iNumber));
-            iOwnReports.remove(iOwnReport);
-            if (SSOwnReportFrame.getInstance() != null) {
-                SSOwnReportFrame.getInstance().updateFrame();
-            }
-            return true;
-        }
-        return true;
-    }
-
-    private boolean isAnyTrigger(String iTriggerName, String... iTriggers) {
-        if (iTriggerName == null) {
-            return false;
-        }
-        for (String iTrigger : iTriggers) {
-            if (iTriggerName.equals(iTrigger)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private void executeLegacyTriggerAction(String iTriggerName, String iTableName, String iNumber) {
-        boolean iPrevious = iBypassTriggerDispatcher.get();
-        iBypassTriggerDispatcher.set(true);
-        try {
-            triggerAction(iTriggerName, iTableName, iNumber);
-        } finally {
-            iBypassTriggerDispatcher.set(iPrevious);
-        }
-    }
 
     public List<SSProduct> loadProducts() {
         if (iProducts != null) {
@@ -1985,16 +1634,6 @@ public class SSDB {
         return iInpayments;
     }
 
-    private void applyInpaymentSaldoDelta(SSInpayment iInpayment, boolean iAddToSaldo) {
-        // Transitional adapter while trigger orchestration still lives in SSDB.
-        SaldoDeltaService.applyInpaymentDelta(iInpayment, iAddToSaldo);
-    }
-
-
-    private void applyOutpaymentSaldoDelta(SSOutpayment iOutpayment, boolean iAddToSaldo) {
-        // Transitional adapter while trigger orchestration still lives in SSDB.
-        SaldoDeltaService.applyOutpaymentDelta(iOutpayment, iAddToSaldo);
-    }
 
     /**
      * Returns the outpayments in the current company.
@@ -2222,6 +1861,105 @@ public class SSDB {
 
     // /////////////////////////////////////////////////////////////////////////////
 
+    private void seedPublicTables() throws SQLException {
+        try {
+            setSchema("PUBLIC");
+            JsonNode seedData = SSJsonSeedDataLoader.loadSeedFile(SEED_PUBLIC_FILE);
+
+            seedCurrencies(seedData);
+            seedUnits(seedData);
+            seedPaymentTerms(seedData);
+            seedDeliveryTerms(seedData);
+            seedDeliveryWays(seedData);
+
+            LOG.info("Successfully seeded PUBLIC schema tables");
+        } catch (IOException e) {
+            LOG.error("Failed to load Seed_Public.json", e);
+            throw new IllegalStateException("Cannot load seed data for PUBLIC tables", e);
+        }
+    }
+
+    private void seedCurrencies(JsonNode seedData) {
+        List<JsonNode> currencies = SSJsonSeedDataLoader.getArrayObjects(seedData, "Valuta");
+        for (JsonNode currency : currencies) {
+            String code = requiredText(currency, "Kod");
+            String description = optionalText(currency, "Beskrivning");
+
+            SSCurrency ssCurrency = new SSCurrency(code, description);
+            if (Repositories.currencies().findByCode(code).isPresent()) {
+                Repositories.currencies().update(ssCurrency);
+            } else {
+                Repositories.currencies().add(ssCurrency);
+            }
+        }
+    }
+
+    private void seedUnits(JsonNode seedData) {
+        List<JsonNode> units = SSJsonSeedDataLoader.getArrayObjects(seedData, "Standardenhet");
+        for (JsonNode unit : units) {
+            String name = requiredText(unit, "Namn");
+            String description = optionalText(unit, "Beskrivning");
+
+            SSUnit ssUnit = new SSUnit(name, description);
+            if (Repositories.units().findByName(name).isPresent()) {
+                Repositories.units().update(ssUnit);
+            } else {
+                Repositories.units().add(ssUnit);
+            }
+        }
+    }
+
+    private void seedPaymentTerms(JsonNode seedData) {
+        List<JsonNode> terms = SSJsonSeedDataLoader.getArrayObjects(seedData, "Betalningsvillkor");
+        for (JsonNode term : terms) {
+            String name = requiredText(term, "Namn");
+            String description = optionalText(term, "Beskrivning");
+            Integer days = term.has("Dagar") && !term.get("Dagar").isNull()
+                    ? term.get("Dagar").asInt()
+                    : null;
+
+            SSPaymentTerm ssPaymentTerm = new SSPaymentTerm(name, description);
+            ssPaymentTerm.setDays(days);
+            if (Repositories.paymentTerms().findByName(name).isPresent()) {
+                Repositories.paymentTerms().update(ssPaymentTerm);
+            } else {
+                Repositories.paymentTerms().add(ssPaymentTerm);
+            }
+        }
+    }
+
+    private void seedDeliveryTerms(JsonNode seedData) {
+        List<JsonNode> terms = SSJsonSeedDataLoader.getArrayObjects(seedData, "Leveransvillkor");
+        for (JsonNode term : terms) {
+            String name = requiredText(term, "Namn");
+            String description = optionalText(term, "Beskrivning");
+
+            SSDeliveryTerm ssDeliveryTerm = new SSDeliveryTerm(name, description);
+            if (Repositories.deliveryTerms().findByName(name).isPresent()) {
+                Repositories.deliveryTerms().update(ssDeliveryTerm);
+            } else {
+                Repositories.deliveryTerms().add(ssDeliveryTerm);
+            }
+        }
+    }
+
+    private void seedDeliveryWays(JsonNode seedData) {
+        List<JsonNode> ways = SSJsonSeedDataLoader.getArrayObjects(seedData, "Leveranssätt");
+        for (JsonNode way : ways) {
+            String name = requiredText(way, "Namn");
+            String description = optionalText(way, "Beskrivning");
+
+            SSDeliveryWay ssDeliveryWay = new SSDeliveryWay(name, description);
+            if (Repositories.deliveryWays().findByName(name).isPresent()) {
+                Repositories.deliveryWays().update(ssDeliveryWay);
+            } else {
+                Repositories.deliveryWays().add(ssDeliveryWay);
+            }
+        }
+    }
+
+    // /////////////////////////////////////////////////////////////////////////////
+
     public List<SSOwnReport> loadOwnReports() {
         if (iOwnReports != null) {
             return iOwnReports;
@@ -2238,317 +1976,16 @@ public class SSDB {
 
     // /////////////////////////////////////////////////////////////////////////////
 
-    public void createLocalTriggers() {
-        try {
-            SSSchemaBuilder builder = new SSSchemaBuilder(iConnection);
-            builder.createLocalTriggers();
-        } catch (SQLException e) {
-            LOG.debug("createLocalTriggers encountered: {}", e.getMessage());
-        }
-    }
-
-    public void createTriggers() {
-        createLocalTriggers();
-    }
-
-    public void dropTriggers() {
-        try {
-            SSSchemaBuilder builder = new SSSchemaBuilder(iConnection);
-            builder.dropTriggers();
-        } catch (SQLException e) {
-            LOG.debug("dropTriggers encountered: {}", e.getMessage());
-        }
-    }
-
-    private String getSchemaResource() {
-        return "sql/create_tables_v2.sql";
-    }
-
     public void createNewTables() {
         if (iConnection == null) {
             return;
         }
         try {
             SSSchemaBuilder builder = new SSSchemaBuilder(iConnection);
-            builder.createBaseTables();
+            builder.createPublicTables();
             iConnection.commit();
         } catch (SQLException e) {
             LOG.error("Unexpected error in createNewTables", e);
-        }
-    }
-
-    private void ensureAccountingYearSnapshotColumnsV2() throws SQLException {
-        ensureColumnExistsV2("tbl_accountingyear", "accountplan", "CLOB");
-        ensureColumnExistsV2("tbl_accountingyear", "accountplan_schema_version", "INTEGER DEFAULT 1");
-        ensureColumnExistsV2("tbl_accountingyear", "accountplan_compression_flag", "VARCHAR(10) DEFAULT 'gzip'");
-        ensureColumnExistsV2("tbl_accountingyear", "accountplan_checksum", "VARCHAR(64)");
-        ensureColumnExistsV2("tbl_accountingyear", "accountplan_snapshot_version", "INTEGER DEFAULT 0");
-        ensureColumnExistsV2("tbl_accountingyear", "accountplan_updated_at", "TIMESTAMP");
-        ensureColumnExistsV2("tbl_accountingyear", "accountplan_updated_by", "VARCHAR(100)");
-        ensureColumnExistsV2("tbl_accountingyear", "accountplan_name", "VARCHAR(256)");
-        ensureColumnExistsV2("tbl_accountingyear", "accountplan_dirty_flag", "BOOLEAN DEFAULT FALSE");
-    }
-
-    private void ensureCompanyMailServerColumnsV2() throws SQLException {
-        ensureColumnExistsV2("tbl_company", "smtp_name", "VARCHAR(255)");
-        ensureColumnExistsV2("tbl_company", "smtp_port", "INTEGER");
-        ensureColumnExistsV2("tbl_company", "smtp_bcc_addresses", "VARCHAR(1000)");
-        ensureColumnExistsV2("tbl_company", "smtp_auth", "BOOLEAN DEFAULT FALSE");
-        ensureColumnExistsV2("tbl_company", "smtp_connection_security", "VARCHAR(20)");
-        ensureColumnExistsV2("tbl_company", "smtp_username", "VARCHAR(255)");
-        ensureColumnExistsV2("tbl_company", "smtp_password", "VARCHAR(1024)");
-    }
-
-    private void ensureProductQuantityColumnsV2() throws SQLException {
-        ensureColumnExistsV2("tbl_product", "only_whole_quantity", "BOOLEAN DEFAULT FALSE");
-    }
-
-    private void ensureProductParcelRowsTableV2() throws SQLException {
-        String ddl = "CREATE TABLE IF NOT EXISTS tbl_product_row ("
-                + "product_id INTEGER NOT NULL,"
-                + "row_index INTEGER NOT NULL,"
-                + "product_nr VARCHAR(50),"
-                + "description VARCHAR(500),"
-                + "quantity INTEGER,"
-                + "CONSTRAINT pk_product_row PRIMARY KEY (product_id, row_index),"
-                + "CONSTRAINT fk_pr_product FOREIGN KEY (product_id) REFERENCES tbl_product(id) ON DELETE CASCADE"
-                + ")";
-        try (PreparedStatement iStatement = iConnection.prepareStatement(ddl)) {
-            iStatement.executeUpdate();
-        }
-    }
-
-    public void ensureQuantityScaleMigrationV2() throws SQLException {
-        final String migrationKey = "quantity_scale_x10_v2";
-
-        ensureSchemaMigrationTableV2();
-
-        if (isSchemaMigrationAppliedV2(migrationKey)) {
-            return;
-        }
-
-        scaleIntegerColumnByTenV2("tbl_invoice_row", "count");
-        scaleIntegerColumnByTenV2("tbl_creditinvoice_row", "count");
-        scaleIntegerColumnByTenV2("tbl_periodicinvoice_row", "count");
-        scaleIntegerColumnByTenV2("tbl_order_row", "count");
-        scaleIntegerColumnByTenV2("tbl_tender_row", "count");
-        scaleIntegerColumnByTenV2("tbl_purchaseorder_row", "quantity");
-        scaleIntegerColumnByTenV2("tbl_supplierinvoice_row", "quantity");
-        scaleIntegerColumnByTenV2("tbl_suppliercreditinvoice_row", "quantity");
-        scaleIntegerColumnByTenV2("tbl_inventory_row", "quantity");
-        scaleIntegerColumnByTenV2("tbl_inventory_row", "change_qty");
-        scaleIntegerColumnByTenV2("tbl_indelivery_row", "change_qty");
-        scaleIntegerColumnByTenV2("tbl_outdelivery_row", "change_qty");
-
-        markSchemaMigrationAppliedV2(migrationKey);
-    }
-
-    private void ensureSchemaMigrationTableV2() throws SQLException {
-        String ddl = "CREATE TABLE IF NOT EXISTS tbl_schema_migration ("
-                + "migration_key VARCHAR(128) PRIMARY KEY,"
-                + "applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP"
-                + ")";
-        try (PreparedStatement iStatement = iConnection.prepareStatement(ddl)) {
-            iStatement.executeUpdate();
-        }
-    }
-
-    private boolean isSchemaMigrationAppliedV2(String migrationKey) throws SQLException {
-        try (PreparedStatement iStatement = iConnection.prepareStatement(
-                "SELECT 1 FROM tbl_schema_migration WHERE migration_key=?")) {
-            iStatement.setString(1, migrationKey);
-            try (ResultSet iResultSet = iStatement.executeQuery()) {
-                return iResultSet.next();
-            }
-        }
-    }
-
-    private void markSchemaMigrationAppliedV2(String migrationKey) throws SQLException {
-        try (PreparedStatement iStatement = iConnection.prepareStatement(
-                "INSERT INTO tbl_schema_migration(migration_key) VALUES (?)")) {
-            iStatement.setString(1, migrationKey);
-            iStatement.executeUpdate();
-        }
-    }
-
-    private void scaleIntegerColumnByTenV2(String tableName, String columnName) throws SQLException {
-        if (!columnExistsV2(tableName, columnName)) {
-            return;
-        }
-
-        String sql = "UPDATE " + tableName + " SET " + columnName + "=" + columnName + "*10 WHERE "
-                + columnName + " IS NOT NULL";
-        try (PreparedStatement iStatement = iConnection.prepareStatement(sql)) {
-            iStatement.executeUpdate();
-        }
-    }
-
-    private void ensureTemplateAccountTableV2() throws SQLException {
-        String ddl = "CREATE TABLE IF NOT EXISTS tbl_accountplan_account ("
-                + "id INTEGER IDENTITY,"
-                + "accountplan_id INTEGER NOT NULL,"
-                + "number INTEGER NOT NULL,"
-                + "description VARCHAR(255),"
-                + "sru_code VARCHAR(20),"
-                + "vat_code VARCHAR(20),"
-                + "report_code VARCHAR(20),"
-                + "active BOOLEAN DEFAULT TRUE,"
-                + "project_required BOOLEAN DEFAULT FALSE,"
-                + "result_unit_required BOOLEAN DEFAULT FALSE,"
-                + "CONSTRAINT pk_accountplan_account PRIMARY KEY (id),"
-                + "CONSTRAINT fk_accountplan_account_plan FOREIGN KEY (accountplan_id) REFERENCES tbl_accountplan(id) ON DELETE CASCADE"
-                + ")";
-        try (PreparedStatement iStatement = iConnection.prepareStatement(ddl)) {
-            iStatement.executeUpdate();
-        }
-
-        if (columnExistsV2("tbl_account", "accountplan_id")) {
-            try (PreparedStatement iCopy = iConnection.prepareStatement(
-                    "INSERT INTO tbl_accountplan_account(accountplan_id,number,description,sru_code,vat_code,report_code,active,project_required,result_unit_required) "
-                            + "SELECT accountplan_id,number,description,sru_code,vat_code,report_code,active,project_required,result_unit_required "
-                            + "FROM tbl_account WHERE accountplan_id IS NOT NULL")) {
-                iCopy.executeUpdate();
-            } catch (SQLException e) {
-                LOG.warn("Template account migration skipped: {}", e.getMessage());
-            }
-        }
-    }
-
-    private void ensureYearOwnedAccountTableV2() throws SQLException {
-        ensureColumnExistsV2("tbl_account", "accountingyear_id", "INTEGER");
-
-        dropConstraintIfExistsV2("tbl_account", "fk_account_plan");
-        dropConstraintIfExistsV2("tbl_account", "fk_account_year");
-
-        if (columnExistsV2("tbl_account", "accountplan_id")) {
-            try (PreparedStatement iDropColumn = iConnection.prepareStatement(
-                    "ALTER TABLE tbl_account DROP COLUMN accountplan_id")) {
-                iDropColumn.executeUpdate();
-            } catch (SQLException e) {
-                LOG.warn("Could not drop tbl_account.accountplan_id: {}", e.getMessage());
-            }
-        }
-
-        try (PreparedStatement iAddFk = iConnection.prepareStatement(
-                "ALTER TABLE tbl_account ADD CONSTRAINT fk_account_year "
-                        + "FOREIGN KEY (accountingyear_id) REFERENCES tbl_accountingyear(id) ON DELETE CASCADE")) {
-            iAddFk.executeUpdate();
-        } catch (SQLException e) {
-            String msg = e.getMessage() == null ? "" : e.getMessage().toLowerCase(Locale.ROOT);
-            if (!msg.contains("already exists") && !msg.contains("duplicate")
-                    && !msg.contains("integrity constraint")) {
-                throw e;
-            }
-        }
-
-        try (PreparedStatement iUnique = iConnection.prepareStatement(
-                "ALTER TABLE tbl_account ADD CONSTRAINT uq_account_year_number "
-                        + "UNIQUE (accountingyear_id, number)")) {
-            iUnique.executeUpdate();
-        } catch (SQLException e) {
-            String msg = e.getMessage() == null ? "" : e.getMessage().toLowerCase(Locale.ROOT);
-            if (!msg.contains("already exists") && !msg.contains("duplicate")
-                    && !msg.contains("integrity constraint")) {
-                throw e;
-            }
-        }
-    }
-
-    private void ensureSingleActiveAccountYearV2() throws SQLException {
-        List<Integer> iYearIds = new ArrayList<>();
-        try (PreparedStatement iStatement = iConnection.prepareStatement(
-                "SELECT DISTINCT accountingyear_id FROM tbl_account WHERE accountingyear_id IS NOT NULL ORDER BY accountingyear_id");
-             ResultSet iResultSet = iStatement.executeQuery()) {
-            while (iResultSet.next()) {
-                iYearIds.add((Integer) iResultSet.getObject(1));
-            }
-        }
-
-        if (iYearIds.size() <= 1) {
-            return;
-        }
-
-        Integer iKeepYearId = SSDBConfig.getYearId();
-        if (iKeepYearId == null || !iYearIds.contains(iKeepYearId)) {
-            iKeepYearId = iYearIds.get(0);
-        }
-
-        try (PreparedStatement iDelete = iConnection.prepareStatement(
-                "DELETE FROM tbl_account WHERE accountingyear_id<>?")) {
-            iDelete.setObject(1, iKeepYearId);
-            int iDeletedRows = iDelete.executeUpdate();
-            if (iDeletedRows > 0) {
-                LOG.warn("tbl_account contained multiple accountingyear_id values {}; kept {}, removed {} rows",
-                        iYearIds, iKeepYearId, iDeletedRows);
-            }
-        }
-    }
-
-    /**
-     * Ensures {@code fk_year_plan} on {@code tbl_accountingyear} is removed.
-     * <p>
-     * In the snapshot model the year owns a self-contained CLOB copy of its account plan.
-     * The FK to {@code tbl_accountplan} must therefore not exist; years must be readable
-     * even after a template plan has been deleted.  This method is idempotent.
-     * </p>
-     *
-     * @throws SQLException if the DDL operation fails with an unexpected error
-     */
-    private void ensureDropYearPlanFkV2() throws SQLException {
-        try (PreparedStatement iDrop = iConnection.prepareStatement(
-                "ALTER TABLE tbl_accountingyear DROP CONSTRAINT fk_year_plan")) {
-            iDrop.executeUpdate();
-            iConnection.commit();
-            LOG.info("Dropped fk_year_plan from tbl_accountingyear (snapshot model migration)");
-        } catch (SQLException e) {
-            String msg = e.getMessage() == null ? "" : e.getMessage().toLowerCase(Locale.ROOT);
-            if (msg.contains("not found") || msg.contains("does not exist")
-                    || msg.contains("no constraint") || msg.contains("cannot find")) {
-                // Already absent ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â nothing to do.
-                return;
-            }
-            LOG.warn("Could not drop fk_year_plan (unexpected): {}", e.getMessage());
-        }
-    }
-
-    private void ensureColumnExistsV2(String tableName, String columnName, String columnDefinition) throws SQLException {
-        String ddl = "ALTER TABLE " + tableName + " ADD COLUMN " + columnName + " " + columnDefinition;
-        try (PreparedStatement iStatement = iConnection.prepareStatement(ddl)) {
-            iStatement.executeUpdate();
-            LOG.info("Added missing column {}.{}", tableName, columnName);
-        } catch (SQLException e) {
-            String message = e.getMessage() == null ? "" : e.getMessage().toLowerCase(Locale.ROOT);
-            if (message.contains("duplicate") || message.contains("already exists")) {
-                return;
-            }
-            throw e;
-        }
-    }
-
-    private boolean columnExistsV2(String tableName, String columnName) {
-        String sql = "SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS WHERE UPPER(TABLE_NAME)=? AND UPPER(COLUMN_NAME)=?";
-        try (PreparedStatement iStatement = iConnection.prepareStatement(sql)) {
-            iStatement.setString(1, tableName.toUpperCase(Locale.ROOT));
-            iStatement.setString(2, columnName.toUpperCase(Locale.ROOT));
-            try (ResultSet iResultSet = iStatement.executeQuery()) {
-                return iResultSet.next();
-            }
-        } catch (SQLException e) {
-            LOG.warn("Could not inspect column {}.{}: {}", tableName, columnName, e.getMessage());
-            return false;
-        }
-    }
-
-    private void dropConstraintIfExistsV2(String tableName, String constraintName) throws SQLException {
-        try (PreparedStatement iDrop = iConnection.prepareStatement(
-                "ALTER TABLE " + tableName + " DROP CONSTRAINT " + constraintName)) {
-            iDrop.executeUpdate();
-        } catch (SQLException e) {
-            String msg = e.getMessage() == null ? "" : e.getMessage().toLowerCase(Locale.ROOT);
-            if (!msg.contains("not found") && !msg.contains("does not exist")
-                    && !msg.contains("no constraint") && !msg.contains("cannot find")) {
-                throw e;
-            }
         }
     }
 
@@ -2584,9 +2021,3 @@ public class SSDB {
         return sb.toString();
     }
 }
-
-
-
-
-
-

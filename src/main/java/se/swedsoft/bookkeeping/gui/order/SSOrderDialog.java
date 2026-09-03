@@ -5,10 +5,10 @@ import se.swedsoft.bookkeeping.calc.math.SSOrderMath;
 import se.swedsoft.bookkeeping.data.*;
 import se.swedsoft.bookkeeping.data.common.SSInvoiceType;
 import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.data.system.SSSalesContext;
 import se.swedsoft.bookkeeping.persistence.Repositories;
 import se.swedsoft.bookkeeping.gui.SSMainFrame;
 import se.swedsoft.bookkeeping.gui.invoice.SSInvoiceDialog;
-import se.swedsoft.bookkeeping.gui.invoice.SSInvoiceFrame;
 import se.swedsoft.bookkeeping.gui.order.panel.SSOrderPanel;
 import se.swedsoft.bookkeeping.gui.order.util.SSOrderTableModel;
 import se.swedsoft.bookkeeping.gui.periodicinvoice.SSPeriodicInvoiceDialog;
@@ -60,7 +60,7 @@ public class SSOrderDialog {
 
                 SSOrder iOrder = iPanel.getOrder();
 
-                SSDB.getInstance().addOrder(iOrder);
+                SSSalesContext.addOrder(iOrder);
 
                 if (iPanel.doSaveCustomerAndProducts()) {
                     SSOrderMath.addCustomerAndProducts(iOrder);
@@ -125,7 +125,7 @@ public class SSOrderDialog {
 
                 SSOrder iOrder1 = iPanel.getOrder();
 
-                SSDB.getInstance().addOrder(iOrder1);
+                SSSalesContext.addOrder(iOrder1);
 
                 iTender.setOrder(iOrder1);
                 Repositories.tenders().update(iTender);
@@ -137,7 +137,7 @@ public class SSOrderDialog {
                 if (iModel != null) {
                     iModel.fireTableDataChanged();
                 }
-                // iModel.setObjects(SSDB.getInstance().getOrders());
+                // iModel.setObjects(se.swedsoft.bookkeeping.data.system.SSSalesContext.getOrders());
                 iPanel.dispose();
 
                 iDialog.closeDialog();
@@ -194,7 +194,7 @@ public class SSOrderDialog {
 
                 SSOrder iOrder1 = iPanel.getOrder();
 
-                SSDB.getInstance().updateOrder(iOrder1);
+                SSSalesContext.updateOrder(iOrder1);
 
                 if (iPanel.doSaveCustomerAndProducts()) {
                     SSOrderMath.addCustomerAndProducts(iOrder1);
@@ -263,7 +263,7 @@ public class SSOrderDialog {
 
                 iOrder1.doAutoIncrecement();
 
-                SSDB.getInstance().addOrder(iOrder1);
+                SSSalesContext.addOrder(iOrder1);
 
                 if (iPanel.doSaveCustomerAndProducts()) {
                     SSOrderMath.addCustomerAndProducts(iOrder1);
@@ -348,12 +348,7 @@ public class SSOrderDialog {
 
         iInvoice.setOrderNumers(iOrders);
 
-        if (SSInvoiceFrame.getInstance() != null) {
-            SSInvoiceDialog.newDialog(iMainFrame, iInvoice, iOrders,
-                    SSInvoiceFrame.getInstance().getModel());
-        } else {
-            SSInvoiceDialog.newDialog(iMainFrame, iInvoice, iOrders, null);
-        }
+        SSInvoiceDialog.newDialog(iMainFrame, iInvoice, iOrders);
         // if(iModel != null) iModel.fireTableDataChanged();
     }
 
@@ -393,12 +388,7 @@ public class SSOrderDialog {
 
         iInvoice.setOrderNumers(iOrders);
 
-        if (SSInvoiceFrame.getInstance() != null) {
-            SSInvoiceDialog.newDialog(iMainFrame, iInvoice, iOrders,
-                    SSInvoiceFrame.getInstance().getModel());
-        } else {
-            SSInvoiceDialog.newDialog(iMainFrame, iInvoice, iOrders, null);
-        }
+        SSInvoiceDialog.newDialog(iMainFrame, iInvoice, iOrders);
         // if(iModel != null) iModel.fireTableDataChanged();
     }
 

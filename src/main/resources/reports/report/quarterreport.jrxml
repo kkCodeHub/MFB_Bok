@@ -1,484 +1,311 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
-<!DOCTYPE jasperReport PUBLIC "-//JasperReports//DTD Report Design//EN" "http://jasperreports.sourceforge.net/dtds/jasperreport.dtd">
-
-<jasperReport name="Invoice">
-    <!--- Declared parameters in the report. -->
-    <parameter name="title"      class="java.lang.String"/>
-
-    <!--- Declared parameters in the report. -->
-
-    <parameter name="number"    class="java.lang.String"/>
-    <parameter name="date"      class="java.lang.String"/>
-    <parameter name="quarter"      class="java.lang.String"/>
-
-    <parameter name="company.logo"       class="java.awt.Image"/>
-
-    <parameter name="company.name"      class="java.lang.String"/>
-    <parameter name="company.address1"  class="java.lang.String"/>
-    <parameter name="company.address2"  class="java.lang.String"/>
-    <parameter name="company.zipcode"   class="java.lang.String"/>
-    <parameter name="company.city"      class="java.lang.String"/>
-    <parameter name="company.country"   class="java.lang.String"/>
-    <parameter name="company.phone"     class="java.lang.String"/>
-    <parameter name="company.telefax"   class="java.lang.String"/>
-    <parameter name="company.residence" class="java.lang.String"/>
-    <parameter name="company.email"     class="java.lang.String"/>
-    <parameter name="company.homepage"  class="java.lang.String"/>
-
-    <parameter name="company.plusaccount"  class="java.lang.String"/>
-    <parameter name="company.bankaccount"  class="java.lang.String"/>
-
-    <parameter name="company.bic"   class="java.lang.String"/>
-    <parameter name="company.iban"  class="java.lang.String"/>
-    <parameter name="company.bank"  class="java.lang.String"/>
-
-    <field name="customer.number"     class="java.lang.String"/>
-    <field name="customer.name"       class="java.lang.String"/>
-    <field name="customer.vatnumber"  class="java.lang.String"/>
-    <field name="customer.eusalecommodity"                class="java.math.BigDecimal"/>
-    <field name="customer.eusalethirdpartcommodity"       class="java.math.BigDecimal"/>
-
-
-    <variable name="eusalecommodity.sum" class="java.math.BigDecimal" resetType="Report" calculation="Sum">
-        <variableExpression>
-            <![CDATA[$F{customer.eusalecommodity}]]>
-        </variableExpression>
-        <initialValueExpression>
-            <![CDATA[new BigDecimal(0.0)]]>
-        </initialValueExpression>
-    </variable>
-
-    <variable name="eusalethirdpartcommodity.sum" class="java.math.BigDecimal" resetType="Report" calculation="Sum">
-        <variableExpression>
-            <![CDATA[$F{customer.eusalethirdpartcommodity}]]>
-        </variableExpression>
-        <initialValueExpression>
-            <![CDATA[new BigDecimal(0.0)]]>
-        </initialValueExpression>
-    </variable>
-
-    <pageHeader>
-        <band isSplitAllowed="false" height="80">
-
-            <!-- Logo -->
-            <image onErrorType="Icon">
-                <reportElement x="20" y="0" width="180" height="55"/>
-
-                <imageExpression class="java.awt.Image">
-                    <![CDATA[$P{company.logo}]]>
-                </imageExpression>
-            </image>
-
-            <!-- Title -->
-            <textField isBlankWhenNull="true">
-                <reportElement x="300" y="0" width="230" height="20"/>
-                <textElement textAlignment="Right">
-                    <font fontName="Arial" size="16" isBold="true" pdfFontName="Helvetica"/>
-                </textElement>
-                <textFieldExpression>
-                    <![CDATA[$P{title}]]>
-                </textFieldExpression>
-            </textField>
-
-            <!-- Number and date frame -->
-            <frame>
-                <reportElement x="230" y="20" width="300" height="25"/>
-
-                <box border="1Point" borderColor="#000000"/>
-
-                <!-- Number text -->
-                <textField isBlankWhenNull="true">
-                    <reportElement x="5" y="1" width="140" height="12"/>
-                    <textElement textAlignment="Left">
-                        <font size="8"/>
-                    </textElement>
-                    <textFieldExpression>
-                        <![CDATA[$R{quarterreport.title.date}]]>
-                    </textFieldExpression>
-                </textField>
-
-                <!-- Number -->
-                <textField isBlankWhenNull="true">
-                    <reportElement x="5" y="11" width="140" height="14"/>
-                    <textElement textAlignment="Right">
-                        <font size="10"/>
-                    </textElement>
-                    <textFieldExpression>
-                        <![CDATA[$P{date}]]>
-                    </textFieldExpression>
-                </textField>
-
-
-                <!-- Separator -->
-                <line>
-                    <reportElement x="150" y="0" width="1" height="25"/>
-                </line>
-
-                <!-- Date text -->
-                <textField isBlankWhenNull="true">
-                    <reportElement x="155" y="1" width="140" height="12"/>
-                    <textElement textAlignment="Left">
-                        <font size="8"/>
-                    </textElement>
-                    <textFieldExpression>
-                        <![CDATA[$R{quarterreport.title.number}]]>
-                    </textFieldExpression>
-                </textField>
-
-                <!-- Date -->
-                <textField isBlankWhenNull="true">
-                    <reportElement x="155" y="11" width="140" height="14"/>
-                    <textElement textAlignment="Right">
-                        <font size="10"/>
-                    </textElement>
-                    <textFieldExpression>
-                        <![CDATA[$P{number}]]>
-                    </textFieldExpression>
-                </textField>
-
-            </frame>
-
-
-            <!-- Quarter code -->
-            <frame>
-                <reportElement x="430" y="50" width="100" height="25"/>
-
-                <box border="1Point" borderColor="#000000"/>
-
-                <!-- Number text -->
-                <textField isBlankWhenNull="true">
-                    <reportElement x="5" y="1" width="90" height="12"/>
-                    <textElement textAlignment="Left">
-                        <font size="8"/>
-                    </textElement>
-                    <textFieldExpression>
-                        <![CDATA[$R{quarterreport.title.quarter}]]>
-                    </textFieldExpression>
-                </textField>
-
-                <!-- Number -->
-                <textField isBlankWhenNull="true">
-                    <reportElement x="5" y="11" width="90" height="14"/>
-                    <textElement textAlignment="Right">
-                        <font size="10"/>
-                    </textElement>
-                    <textFieldExpression>
-                        <![CDATA[$P{quarter}]]>
-                    </textFieldExpression>
-                </textField>
-
-            </frame>
-
-        </band>
-    </pageHeader>
-
-
-    <columnHeader>
-        <band isSplitAllowed="false" height="110">
-
-            <!-- company adress frame -->
-            <frame>
-                <reportElement x="280" y="0" width="250" height="86"/>
-
-                <box border="1Point" borderColor="#000000"/>
-
-                <!-- Adress text -->
-                <textField isBlankWhenNull="true">
-                    <reportElement x="5" y="2" width="240" height="14"/>
-                    <textElement textAlignment="Left">
-                        <font size="8"/>
-                    </textElement>
-                    <textFieldExpression>
-                        <![CDATA[$R{quarterreport.address}]]>
-                    </textFieldExpression>
-                </textField>
-
-                <!-- Name -->
-                <textField isBlankWhenNull="true">
-                    <reportElement x="10" y="14" width="240" height="14"/>
-                    <textElement textAlignment="Left">
-                        <font size="10"/>
-                    </textElement>
-                    <textFieldExpression>
-                        <![CDATA[$P{company.name}]]>
-                    </textFieldExpression>
-                </textField>
-
-                <!-- Address 1 -->
-                <textField isBlankWhenNull="true">
-                    <reportElement x="10" y="28" width="240" height="14"/>
-                    <textElement textAlignment="Left">
-                        <font size="10"/>
-                    </textElement>
-                    <textFieldExpression>
-                        <![CDATA[$P{company.address1}]]>
-                    </textFieldExpression>
-                </textField>
-
-                <!-- Address 2 -->
-                <textField isBlankWhenNull="true">
-                    <reportElement x="10" y="42" width="240" height="14"/>
-                    <textElement textAlignment="Left">
-                        <font size="10"/>
-                    </textElement>
-                    <textFieldExpression>
-                        <![CDATA[$P{company.address2}]]>
-                    </textFieldExpression>
-                </textField>
-
-                <!-- Zip Code + City -->
-                <textField isBlankWhenNull="true">
-                    <reportElement x="10" y="56" width="240" height="14"/>
-                    <textElement textAlignment="Left">
-                        <font size="10"/>
-                    </textElement>
-                    <textFieldExpression>
-                        <![CDATA[$P{company.zipcode} + " " + $P{company.city}]]>
-                    </textFieldExpression>
-                </textField>
-
-                <!-- Country -->
-                <textField isBlankWhenNull="true">
-                    <reportElement x="10" y="70" width="240" height="14"/>
-                    <textElement textAlignment="Left">
-                        <font size="10"/>
-                    </textElement>
-                    <textFieldExpression>
-                        <![CDATA[$P{company.country}]]>
-                    </textFieldExpression>
-                </textField>
-
-            </frame>
-
-            <frame>
-                <reportElement x="0" y="95" width="530" height="15"/>
-
-                <line>
-                    <reportElement x="20" y="0" width="510" height="1"/>
-                </line>
-
-
-                <line>
-                    <reportElement x="20" y="12" width="510" height="1"/>
-                </line>
-
-                <!-- Vat number -->
-                <textField>
-                    <reportElement x="20" y="2" width="100" height="12"/>
-                    <textElement textAlignment="Left">
-                        <font size="8"/>
-                    </textElement>
-                    <textFieldExpression>
-                        <![CDATA[$R{quarterreport.column.1}]]>
-                    </textFieldExpression>
-                </textField>
-
-
-                <!-- Customer nr -->
-                <textField isBlankWhenNull="true">
-                    <reportElement x="120" y="2" width="60" height="12"/>
-                    <textElement textAlignment="Left">
-                        <font size="8"/>
-                    </textElement>
-                    <textFieldExpression>
-                        <![CDATA[$R{quarterreport.column.2}]]>
-                    </textFieldExpression>
-                </textField>
-
-                <!-- Customer name -->
-                <textField isBlankWhenNull="true">
-                    <reportElement x="180" y="2" width="110" height="12"/>
-                    <textElement textAlignment="Left">
-                        <font size="8"/>
-                    </textElement>
-                    <textFieldExpression>
-                        <![CDATA[$R{quarterreport.column.3}]]>
-                    </textFieldExpression>
-                </textField>
-
-
-                <!-- Goods -->
-                <textField isBlankWhenNull="true">
-                    <reportElement x="290" y="2" width="110" height="12"/>
-                    <textElement textAlignment="Right">
-                        <font size="8"/>
-                    </textElement>
-                    <textFieldExpression>
-                        <![CDATA[$R{quarterreport.column.4}]]>
-                    </textFieldExpression>
-                </textField>
-
-                <!-- 3rd party trade -->
-                <textField isBlankWhenNull="true">
-                    <reportElement x="400" y="2" width="110" height="12"/>
-                    <textElement textAlignment="Right">
-                        <font size="8"/>
-                    </textElement>
-                    <textFieldExpression>
-                        <![CDATA[$R{quarterreport.column.5}]]>
-                    </textFieldExpression>
-                </textField>
-            </frame>
-
-
-        </band>
-    </columnHeader>
-
-
-    <detail>
-        <band isSplitAllowed="true" height="14">
-            <printWhenExpression>
-                <![CDATA[new Boolean($F{customer.eusalecommodity}.signum() != 0 || $F{customer.eusalethirdpartcommodity}.signum() != 0 ) ]]>
-            </printWhenExpression>
-
-            <!-- Customer VAT-Number -->
-            <textField isBlankWhenNull="true">
-                <reportElement x="20" y="0" width="100" height="12"/>
-                <textElement>
-                    <font size="8" isBold="false"/>
-                </textElement>
-                <textFieldExpression>
-                    <![CDATA[$F{customer.vatnumber}]]>
-                </textFieldExpression>
-            </textField>
-
-            <!-- Customer number -->
-            <textField isBlankWhenNull="true">
-                <reportElement x="120" y="0" width="60" height="12"/>
-                <textElement>
-                    <font size="8" isBold="false"/>
-                </textElement>
-                <textFieldExpression>
-                    <![CDATA[$F{customer.number}]]>
-                </textFieldExpression>
-            </textField>
-
-
-            <!-- Customer name -->
-            <textField isBlankWhenNull="true">
-                <reportElement x="180" y="0" width="110" height="12"/>
-                <textElement textAlignment="Left">
-                    <font size="8" isBold="false"/>
-                </textElement>
-                <textFieldExpression>
-                    <![CDATA[$F{customer.name}]]>
-                </textFieldExpression>
-            </textField>
-
-
-            <!-- EU Sale Commodity -->
-            <textField pattern="#,##0"  isBlankWhenNull="true">
-                <reportElement x="290" y="0" width="110" height="12"/>
-                <textElement textAlignment="Right">
-                    <font size="8" isBold="false"/>
-                </textElement>
-                <textFieldExpression class="java.math.BigDecimal">
-                    <![CDATA[$F{customer.eusalecommodity}]]>
-                </textFieldExpression>
-            </textField>
-
-
-
-
-            <!-- EU Sale Thirdpart Commodity -->
-            <textField pattern="#,##0"  isBlankWhenNull="true">
-                <reportElement x="400" y="0" width="110" height="12"/>
-                <textElement textAlignment="Right">
-                    <font size="8" isBold="false"/>
-                </textElement>
-                <textFieldExpression class="java.math.BigDecimal">
-                    <![CDATA[$F{customer.eusalethirdpartcommodity} ]]>
-                </textFieldExpression>
-            </textField>
-
-
-
-        </band>
-    </detail>
-
-    <pageFooter>
-        <band height="16">
-            <!-- page number-->
-            <elementGroup>
-                <textField evaluationTime="Report">
-                    <reportElement x="365" y="0" width="100" height="15"/>
-                    <textElement textAlignment="Right">
-                        <font size="8"/>
-                    </textElement>
-                    <textFieldExpression class="java.lang.String">
-                        <![CDATA[$R{quarterreport.page}]]>
-                    </textFieldExpression>
-                </textField>
-                <textField evaluationTime="Now">
-                    <reportElement x="465" y="0" width="25" height="15"/>
-                    <textElement textAlignment="Right">
-                        <font size="8"/>
-                    </textElement>
-                    <textFieldExpression class="java.lang.Integer">
-                        <![CDATA[$V{PAGE_NUMBER}]]>
-                    </textFieldExpression>
-                </textField>
-                <textField evaluationTime="Report">
-                    <reportElement x="490" y="0" width="15" height="15"/>
-                    <textElement textAlignment="Right">
-                        <font size="8"/>
-                    </textElement>
-                    <textFieldExpression class="java.lang.String">
-                        <![CDATA[$R{quarterreport.page.of}]]>
-                    </textFieldExpression>
-                </textField>
-                <textField evaluationTime="Report">
-                    <reportElement x="505" y="0" width="25" height="15"/>
-                    <textElement textAlignment="Right">
-                        <font size="8"/>
-                    </textElement>
-                    <textFieldExpression class="java.lang.Integer">
-                        <![CDATA[$V{PAGE_NUMBER}]]>
-                    </textFieldExpression>
-                </textField>
-            </elementGroup>
-        </band>
-    </pageFooter>
-
-    <summary>
-        <band height="16">
-
-            <rectangle>
-                <reportElement x="20" y="0" width="510" height="2" backcolor="#000000"/>
-                <graphicElement pen="None" fill="Solid"/>
-            </rectangle>
-
-            <textField>
-                <reportElement x="20" y="2" width="100" height="14"/>
-                <textElement textAlignment="Left">
-                    <font size="10"/>
-                </textElement>
-                <textFieldExpression>
-                    <![CDATA[$R{quarterreport.sum}]]>
-                </textFieldExpression>
-            </textField>
-
-            <textField pattern="#,##0" isBlankWhenNull="true">
-                <reportElement x="290" y="2" width="110" height="14"/>
-                <textElement textAlignment="Right">
-                    <font size="10"/>
-                </textElement>
-                <textFieldExpression class="java.math.BigDecimal">
-                    <![CDATA[$V{eusalecommodity.sum}]]>
-                </textFieldExpression>
-            </textField>
-
-            <textField pattern="#,##0" isBlankWhenNull="true">
-                <reportElement x="400" y="2" width="110" height="14"/>
-                <textElement textAlignment="Right">
-                    <font size="10"/>
-                </textElement>
-                <textFieldExpression class="java.math.BigDecimal">
-                    <![CDATA[$V{eusalethirdpartcommodity.sum}]]>
-                </textFieldExpression>
-            </textField>
-        </band>
-    </summary>
-
+<!-- Created with Jaspersoft Studio version 6.21.1.final using JasperReports Library version 6.21.0-4f56c4f36cd19e17675219a9ac4692d5f0f13b06  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="Invoice" pageWidth="595" pageHeight="842" whenNoDataType="NoPages" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="30" bottomMargin="30" uuid="cc2da9fc-0572-480d-b2ff-43285deb563a">
+	<parameter name="title" class="java.lang.String"/>
+	<parameter name="number" class="java.lang.String"/>
+	<parameter name="date" class="java.lang.String"/>
+	<parameter name="quarter" class="java.lang.String"/>
+	<parameter name="company.logo" class="java.awt.Image"/>
+	<parameter name="company.name" class="java.lang.String"/>
+	<parameter name="company.address1" class="java.lang.String"/>
+	<parameter name="company.address2" class="java.lang.String"/>
+	<parameter name="company.zipcode" class="java.lang.String"/>
+	<parameter name="company.city" class="java.lang.String"/>
+	<parameter name="company.country" class="java.lang.String"/>
+	<parameter name="company.phone" class="java.lang.String"/>
+	<parameter name="company.telefax" class="java.lang.String"/>
+	<parameter name="company.residence" class="java.lang.String"/>
+	<parameter name="company.email" class="java.lang.String"/>
+	<parameter name="company.homepage" class="java.lang.String"/>
+	<parameter name="company.plusaccount" class="java.lang.String"/>
+	<parameter name="company.bankaccount" class="java.lang.String"/>
+	<parameter name="company.bic" class="java.lang.String"/>
+	<parameter name="company.iban" class="java.lang.String"/>
+	<parameter name="company.bank" class="java.lang.String"/>
+	<field name="customer.number" class="java.lang.String"/>
+	<field name="customer.name" class="java.lang.String"/>
+	<field name="customer.vatnumber" class="java.lang.String"/>
+	<field name="customer.eusalecommodity" class="java.math.BigDecimal"/>
+	<field name="customer.eusalethirdpartcommodity" class="java.math.BigDecimal"/>
+	<variable name="eusalecommodity.sum" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{customer.eusalecommodity}]]></variableExpression>
+		<initialValueExpression><![CDATA[new BigDecimal(0.0)]]></initialValueExpression>
+	</variable>
+	<variable name="eusalethirdpartcommodity.sum" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{customer.eusalethirdpartcommodity}]]></variableExpression>
+		<initialValueExpression><![CDATA[new BigDecimal(0.0)]]></initialValueExpression>
+	</variable>
+	<pageHeader>
+		<band height="80" splitType="Prevent">
+			<image onErrorType="Icon">
+				<reportElement x="20" y="0" width="180" height="55" uuid="dfeca4f3-fbab-430a-8fae-b8981ca0c952"/>
+				<imageExpression><![CDATA[$P{company.logo}]]></imageExpression>
+			</image>
+			<textField isBlankWhenNull="true">
+				<reportElement x="300" y="0" width="230" height="20" uuid="365dd19f-598b-48c3-bdb3-6af7a3ce7b80"/>
+				<textElement textAlignment="Right">
+					<font fontName="Arial" size="16" isBold="true" pdfFontName="Helvetica"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{title}]]></textFieldExpression>
+			</textField>
+			<frame>
+				<reportElement x="230" y="20" width="300" height="25" uuid="3b5ff0e7-22dd-47db-b6c3-1eb21a60f2ee"/>
+				<box>
+					<pen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textField isBlankWhenNull="true">
+					<reportElement x="5" y="1" width="140" height="12" uuid="947a9d1b-9fc8-41ca-bc83-3da5aab07db9"/>
+					<textElement textAlignment="Left">
+						<font size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$R{quarterreport.title.date}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement x="5" y="11" width="140" height="14" uuid="d4587453-8c7d-4430-bf37-f1490a4263c6"/>
+					<textElement textAlignment="Right">
+						<font size="10"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$P{date}]]></textFieldExpression>
+				</textField>
+				<line>
+					<reportElement x="150" y="0" width="1" height="25" uuid="f2f257ee-4f78-4c2f-9706-b6e8eab11563"/>
+				</line>
+				<textField isBlankWhenNull="true">
+					<reportElement x="155" y="1" width="140" height="12" uuid="8790ddab-74be-41f6-aa02-fa210ba00620"/>
+					<textElement textAlignment="Left">
+						<font size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$R{quarterreport.title.number}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement x="155" y="11" width="140" height="14" uuid="2962f7c0-1498-4308-9025-cd52c68bdb4d"/>
+					<textElement textAlignment="Right">
+						<font size="10"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$P{number}]]></textFieldExpression>
+				</textField>
+			</frame>
+			<frame>
+				<reportElement x="430" y="50" width="100" height="25" uuid="9a4ce380-c379-47d6-b5bd-5010c672703c"/>
+				<box>
+					<pen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textField isBlankWhenNull="true">
+					<reportElement x="5" y="1" width="90" height="12" uuid="97a3d0aa-9428-4b0b-a825-6b9560582618"/>
+					<textElement textAlignment="Left">
+						<font size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$R{quarterreport.title.quarter}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement x="5" y="11" width="90" height="14" uuid="a7ac45a5-5429-499b-bfb3-a791e634f1db"/>
+					<textElement textAlignment="Right">
+						<font size="10"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$P{quarter}]]></textFieldExpression>
+				</textField>
+			</frame>
+		</band>
+	</pageHeader>
+	<columnHeader>
+		<band height="110" splitType="Prevent">
+			<frame>
+				<reportElement x="280" y="0" width="250" height="86" uuid="e7473fcf-0fe4-4a32-9c95-45aef2ef5f13"/>
+				<box>
+					<pen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textField isBlankWhenNull="true">
+					<reportElement x="5" y="2" width="240" height="14" uuid="095e30f1-1bc0-47c4-9c93-62baece0fa30"/>
+					<textElement textAlignment="Left">
+						<font size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$R{quarterreport.address}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement x="10" y="14" width="240" height="14" uuid="b754ca36-0528-454e-bbe6-361cd8d486a3"/>
+					<textElement textAlignment="Left">
+						<font size="10"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$P{company.name}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement x="10" y="28" width="240" height="14" uuid="a2b14aa2-c948-45cd-98c1-9eb5d88743b6"/>
+					<textElement textAlignment="Left">
+						<font size="10"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$P{company.address1}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement x="10" y="42" width="240" height="14" uuid="9069295d-bb03-4dd9-a98b-7e0bd9cfd31c"/>
+					<textElement textAlignment="Left">
+						<font size="10"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$P{company.address2}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement x="10" y="56" width="240" height="14" uuid="aac6e5cf-bde5-48d5-9cb5-a9cd2396a73a"/>
+					<textElement textAlignment="Left">
+						<font size="10"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$P{company.zipcode} + " " + $P{company.city}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement x="10" y="70" width="240" height="14" uuid="4f529809-6690-4570-8b89-ad8381f3f7f6"/>
+					<textElement textAlignment="Left">
+						<font size="10"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$P{company.country}]]></textFieldExpression>
+				</textField>
+			</frame>
+			<frame>
+				<reportElement x="0" y="95" width="530" height="15" uuid="80fcf4bb-4fc3-4728-9f48-f78a09a77f96"/>
+				<line>
+					<reportElement x="20" y="0" width="510" height="1" uuid="5be3ddf2-81c0-4964-a685-7852eafa388f"/>
+				</line>
+				<line>
+					<reportElement x="20" y="12" width="510" height="1" uuid="950eb29d-99e9-4630-bb67-3f3f5b778ae8"/>
+				</line>
+				<textField>
+					<reportElement x="20" y="2" width="100" height="12" uuid="4dfac69b-6875-43d6-9d1e-f4f8e5285888"/>
+					<textElement textAlignment="Left">
+						<font size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$R{quarterreport.column.1}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement x="120" y="2" width="60" height="12" uuid="eb89de1b-e0ca-47ab-b80e-87ba9f1d9626"/>
+					<textElement textAlignment="Left">
+						<font size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$R{quarterreport.column.2}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement x="180" y="2" width="110" height="12" uuid="9c4e316b-fccd-4f12-a41c-3714d88acf58"/>
+					<textElement textAlignment="Left">
+						<font size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$R{quarterreport.column.3}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement x="290" y="2" width="110" height="12" uuid="bda8e660-b987-40c4-94cc-e8300c99ed84"/>
+					<textElement textAlignment="Right">
+						<font size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$R{quarterreport.column.4}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement x="400" y="2" width="110" height="12" uuid="42ebdbc6-a87b-4310-9c1a-3861a5854fb6"/>
+					<textElement textAlignment="Right">
+						<font size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$R{quarterreport.column.5}]]></textFieldExpression>
+				</textField>
+			</frame>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="14" splitType="Stretch">
+			<printWhenExpression><![CDATA[new Boolean($F{customer.eusalecommodity}.signum() != 0 || $F{customer.eusalethirdpartcommodity}.signum() != 0 )]]></printWhenExpression>
+			<textField isBlankWhenNull="true">
+				<reportElement x="20" y="0" width="100" height="12" uuid="3a0a8956-7442-4880-af25-4ebe896d8115"/>
+				<textElement>
+					<font size="8" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{customer.vatnumber}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="120" y="0" width="60" height="12" uuid="5e2f3335-4778-46d9-a29f-8676cbc6ea39"/>
+				<textElement>
+					<font size="8" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{customer.number}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="180" y="0" width="110" height="12" uuid="2c00b06b-e43f-4e53-bb22-9a7ea8e6be00"/>
+				<textElement textAlignment="Left">
+					<font size="8" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{customer.name}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0" isBlankWhenNull="true">
+				<reportElement x="290" y="0" width="110" height="12" uuid="544c2938-75f0-442e-86a6-0f2c14562c72"/>
+				<textElement textAlignment="Right">
+					<font size="8" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{customer.eusalecommodity}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0" isBlankWhenNull="true">
+				<reportElement x="400" y="0" width="110" height="12" uuid="7e62681a-20d2-4e13-9d8e-0aa0196a7132"/>
+				<textElement textAlignment="Right">
+					<font size="8" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{customer.eusalethirdpartcommodity}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<pageFooter>
+		<band height="16" splitType="Stretch">
+			<elementGroup>
+				<textField evaluationTime="Report">
+					<reportElement x="365" y="0" width="100" height="15" uuid="03cb3689-ff91-4401-86e2-f87cf71994a4"/>
+					<textElement textAlignment="Right">
+						<font size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$R{quarterreport.page}]]></textFieldExpression>
+				</textField>
+				<textField>
+					<reportElement x="465" y="0" width="25" height="15" uuid="b093dcf8-78c2-4c44-adf4-55733c799a4b"/>
+					<textElement textAlignment="Right">
+						<font size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{PAGE_NUMBER}]]></textFieldExpression>
+				</textField>
+				<textField evaluationTime="Report">
+					<reportElement x="490" y="0" width="15" height="15" uuid="064864e0-0524-40eb-b876-7be67066d0fd"/>
+					<textElement textAlignment="Right">
+						<font size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$R{quarterreport.page.of}]]></textFieldExpression>
+				</textField>
+				<textField evaluationTime="Report">
+					<reportElement x="505" y="0" width="25" height="15" uuid="28479ec7-4642-4073-888a-b3b35ff45a38"/>
+					<textElement textAlignment="Right">
+						<font size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{PAGE_NUMBER}]]></textFieldExpression>
+				</textField>
+			</elementGroup>
+		</band>
+	</pageFooter>
+	<summary>
+		<band height="16" splitType="Stretch">
+			<rectangle>
+				<reportElement x="20" y="0" width="510" height="2" backcolor="#000000" uuid="587ad43b-1bc1-402e-861d-2d88aa0a41aa"/>
+				<graphicElement fill="Solid">
+					<pen lineWidth="0.0" lineStyle="Solid"/>
+				</graphicElement>
+			</rectangle>
+			<textField>
+				<reportElement x="20" y="2" width="100" height="14" uuid="6e509d53-accb-4429-86c3-74ee2165ba75"/>
+				<textElement textAlignment="Left">
+					<font size="10"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$R{quarterreport.sum}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0" isBlankWhenNull="true">
+				<reportElement x="290" y="2" width="110" height="14" uuid="bdc8cc7e-ce2f-43a6-b0cc-6e590f5b9516"/>
+				<textElement textAlignment="Right">
+					<font size="10"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{eusalecommodity.sum}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0" isBlankWhenNull="true">
+				<reportElement x="400" y="2" width="110" height="14" uuid="c0c4167a-9185-4f44-9b4f-68411af0de2e"/>
+				<textElement textAlignment="Right">
+					<font size="10"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{eusalethirdpartcommodity.sum}]]></textFieldExpression>
+			</textField>
+		</band>
+	</summary>
 </jasperReport>

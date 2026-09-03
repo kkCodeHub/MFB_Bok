@@ -1,15 +1,11 @@
 package se.swedsoft.bookkeeping.data;
 
 
-import se.swedsoft.bookkeeping.util.SSDateUtil;
-
-import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.io.Serializable;
-import java.text.DateFormat;
 import java.text.DateFormatSymbols;
 import java.time.LocalDate;
-import java.util.Date;
+import java.time.format.DateTimeFormatter;
+import java.time.format.FormatStyle;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -27,100 +23,32 @@ public class SSMonth  implements Serializable {
 
     private LocalDate iTo;
 
-    /**
-     * @deprecated Use {@link #SSMonth(LocalDate)} instead.
-     */
-    @Deprecated
-    public SSMonth(Date pFrom) {
-        iFrom = SSDateUtil.toLocalDate(pFrom);
-        iTo = null;
-    }
-
-    /**
-     * @param pFrom the start date as a LocalDate
-     */
     public SSMonth(LocalDate pFrom) {
         iFrom = pFrom;
         iTo = null;
     }
 
-    /**
-     * @deprecated Use {@link #SSMonth(LocalDate, LocalDate)} instead.
-     */
-    @Deprecated
-    public SSMonth(Date pFrom, Date pTo) {
-        iFrom = SSDateUtil.toLocalDate(pFrom);
-        iTo = SSDateUtil.toLocalDate(pTo);
-    }
-
-    /**
-     * @param pFrom the start date as a LocalDate
-     * @param pTo the end date as a LocalDate
-     */
     public SSMonth(LocalDate pFrom, LocalDate pTo) {
         iFrom = pFrom;
         iTo = pTo;
     }
 
-    /**
-     *
-     * @return The date
-     */
-    @Deprecated
-    public Date getDate() {
-        return SSDateUtil.toDate(iFrom);
+    public LocalDate getFrom() {
+        return iFrom;
     }
 
-    /**
-     *
-     * @return The date
-     */
-    @Deprecated
-    public Date getFrom() {
-        return SSDateUtil.toDate(iFrom);
-    }
-
-    /**
-     * @return the from date as a LocalDate
-     */
     public LocalDate getLocalFrom() {
         return iFrom;
     }
 
-    /**
-     *
-     * @return The date
-     */
-    @Deprecated
-    public Date getTo() {
-        return SSDateUtil.toDate(iTo);
+    public LocalDate getTo() {
+        return iTo;
     }
 
-    /**
-     * @return the to date as a LocalDate
-     */
     public LocalDate getLocalTo() {
         return iTo;
     }
 
-    /**
-     *
-     * @param pFrom
-     * @param pTo
-     * @return boolean
-     */
-    @Deprecated
-    public boolean isBetween(Date pFrom, Date pTo) {
-        LocalDate localFrom = SSDateUtil.toLocalDate(pFrom);
-        LocalDate localTo = SSDateUtil.toLocalDate(pTo);
-        return !iFrom.isBefore(localFrom) && !iFrom.isAfter(localTo);
-    }
-
-    /**
-     * @param pFrom the start date as a LocalDate
-     * @param pTo the end date as a LocalDate
-     * @return true if this month's from date is between pFrom and pTo (inclusive)
-     */
     public boolean isBetween(LocalDate pFrom, LocalDate pTo) {
         return !iFrom.isBefore(pFrom) && !iFrom.isAfter(pTo);
     }
@@ -141,9 +69,8 @@ public class SSMonth  implements Serializable {
     }
 
     public String toString() {
-        DateFormat format = DateFormat.getDateInstance(DateFormat.SHORT);
-
-        return format.format(SSDateUtil.toDate(iFrom)).substring(0, 7);
+        DateTimeFormatter format = DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT);
+        return format.format(iFrom).substring(0, 7);
     }
 
     /**
@@ -168,39 +95,12 @@ public class SSMonth  implements Serializable {
         return splitYearIntoMonths(pYearData.getLocalFrom(), pYearData.getLocalTo());
     }
 
-    public boolean isDateInMonth(Date iDate) {
-        LocalDate checkDate = SSDateUtil.toLocalDate(iDate);
-        return checkDate != null
-                && checkDate.getMonth() == iFrom.getMonth()
-                && checkDate.getYear() == iFrom.getYear();
-    }
-
     public boolean isDateInMonth(LocalDate iDate) {
         return iDate != null
                 && iDate.getMonth() == iFrom.getMonth()
                 && iDate.getYear() == iFrom.getYear();
     }
 
-    /**
-     * Breaks a year into its months.
-     *
-     * @param iFrom the start date
-     * @param iTo the end date
-     * @return List of months
-     * @deprecated Use {@link #splitYearIntoMonths(LocalDate, LocalDate)} instead
-     */
-    @Deprecated
-    public static List<SSMonth> splitYearIntoMonths(Date iFrom, Date iTo) {
-        return splitYearIntoMonths(SSDateUtil.toLocalDate(iFrom), SSDateUtil.toLocalDate(iTo));
-    }
-
-    /**
-     * Breaks a year into its months.
-     *
-     * @param from the start date
-     * @param to the end date
-     * @return List of months covering each calendar month in the range
-     */
     public static List<SSMonth> splitYearIntoMonths(LocalDate from, LocalDate to) {
         List<SSMonth> iMonths = new LinkedList<>();
 
@@ -217,18 +117,6 @@ public class SSMonth  implements Serializable {
             current = current.plusMonths(1);
         }
         return iMonths;
-    }
-
-    /**
-     * Custom deserialization to handle backward compatibility.
-     * Pre-migration serialized streams stored {@code iFrom} and {@code iTo} as
-     * {@code java.util.Date}.  This method reads them as raw objects and converts
-     * via {@link SSDateUtil#readLocalDate(Object)}.
-     */
-    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
-        ObjectInputStream.GetField fields = in.readFields();
-        iFrom = SSDateUtil.readLocalDate(fields.get("iFrom", null));
-        iTo = SSDateUtil.readLocalDate(fields.get("iTo", null));
     }
 
 }

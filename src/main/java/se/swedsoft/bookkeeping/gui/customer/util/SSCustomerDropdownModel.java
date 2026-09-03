@@ -20,7 +20,7 @@ public class SSCustomerDropdownModel extends SSDefaultTableModel<SSCustomer> {
      * Default constructor.
      */
     public SSCustomerDropdownModel() {
-        this(SSDB.getInstance().getCustomers());
+        this(se.swedsoft.bookkeeping.data.system.SSSalesContext.getCustomers());
     }
 
     /**

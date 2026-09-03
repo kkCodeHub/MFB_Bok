@@ -12,7 +12,6 @@ import se.swedsoft.bookkeeping.persistence.Repositories;
 import se.swedsoft.bookkeeping.util.SSDateUtil;
 
 import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -59,7 +58,7 @@ public class SSOutpayment implements SSTableSearchable, Serializable {
         iEntered = false;
         iDefaultAccounts = new HashMap<>();
         iDefaultAccounts.putAll(
-                SSDB.getInstance().getCurrentCompany().getDefaultAccounts());
+                se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.getCurrentCompany().getDefaultAccounts());
 
     }
 
@@ -117,7 +116,11 @@ public class SSOutpayment implements SSTableSearchable, Serializable {
     public void doAutoIncrecement() {
         List<SSOutpayment> iOutpayments = Repositories.outpayments().findAll();
 
-        int iNumber = SSDB.getInstance().getAutoIncrement().orElse(new SSAutoIncrement()).getNumber("outpayment");
+        SSNewCompany iCurrentCompany = se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.getCurrentCompany();
+        SSAutoIncrement iAutoIncrement = iCurrentCompany != null && iCurrentCompany.getAutoIncrement() != null
+                ? iCurrentCompany.getAutoIncrement()
+                : new SSAutoIncrement();
+        int iNumber = iAutoIncrement.getNumber("outpayment");
 
         for (SSOutpayment iOutpayment: iOutpayments) {
             if (iOutpayment.iNumber != null && iOutpayment.iNumber > iNumber) {
@@ -146,24 +149,6 @@ public class SSOutpayment implements SSTableSearchable, Serializable {
     }
 
     // //////////////////////////////////////////////////
-
-    /**
-     *
-     * @return
-     */
-    @Deprecated
-    public Date getDate() {
-        return SSDateUtil.toDate(iDate);
-    }
-
-    /**
-     *
-     * @param iDate
-     */
-    @Deprecated
-    public void setDate(Date iDate) {
-        this.iDate = SSDateUtil.toLocalDate(iDate);
-    }
 
     /**
      * @return the date as a LocalDate
@@ -205,7 +190,7 @@ public class SSOutpayment implements SSTableSearchable, Serializable {
      */
     public Map<SSDefaultAccount, Integer> getDefaultAccounts() {
         if (iDefaultAccounts == null) {
-            SSNewCompany iCompany = SSDB.getInstance().getCurrentCompany();
+            SSNewCompany iCompany = se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.getCurrentCompany();
 
             if (iCompany != null) {
                 iDefaultAccounts = iCompany.getDefaultAccounts();
@@ -415,7 +400,7 @@ public class SSOutpayment implements SSTableSearchable, Serializable {
         String iDescription = SSBundle.getBundle().getString(
                 "outpaymentframe.voucherdescription");
 
-        SSAccountPlan iAccountPlan = SSDB.getInstance().getCurrentAccountPlan();
+        SSAccountPlan iAccountPlan = se.swedsoft.bookkeeping.data.system.SSAccountingContext.getCurrentAccountPlan();
 
         BigDecimal iSum = SSOutpaymentMath.getSum(this);
         BigDecimal iCurrencyRateDifference = SSOutpaymentMath.getCurrencyRateDifference(
@@ -465,25 +450,6 @@ public class SSOutpayment implements SSTableSearchable, Serializable {
         iVoucher = SSVoucherMath.compress(iVoucher);
 
         return iVoucher;
-    }
-
-    /**
-     * Custom deserialization to handle backward compatibility.
-     * Pre-migration serialized streams stored {@code iDate} as {@code java.util.Date}.
-     * This method reads it as a raw object and converts via
-     * {@link SSDateUtil#readLocalDate(Object)}.
-     */
-    @SuppressWarnings("unchecked")
-    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
-        ObjectInputStream.GetField fields = in.readFields();
-        iNumber = (Integer) fields.get("iNumber", null);
-        iDate = SSDateUtil.readLocalDate(fields.get("iDate", null));
-        iText = (String) fields.get("iText", null);
-        iRows = (List<SSOutpaymentRow>) fields.get("iRows", null);
-        iVoucher = (SSVoucher) fields.get("iVoucher", null);
-        iDifference = (SSVoucher) fields.get("iDifference", null);
-        iEntered = fields.get("iEntered", false);
-        iDefaultAccounts = (Map<SSDefaultAccount, Integer>) fields.get("iDefaultAccounts", null);
     }
 
 }

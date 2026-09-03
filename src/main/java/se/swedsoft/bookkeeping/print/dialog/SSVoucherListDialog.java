@@ -13,12 +13,14 @@ import se.swedsoft.bookkeeping.gui.util.components.SSTableComboBox;
 import se.swedsoft.bookkeeping.gui.util.datechooser.SSDateChooser;
 import se.swedsoft.bookkeeping.gui.util.dialogs.SSDialog;
 import se.swedsoft.bookkeeping.gui.voucher.util.SSVoucherTableModel;
+import se.swedsoft.bookkeeping.util.SSDateUtil;
 
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
 
@@ -58,7 +60,7 @@ public class SSVoucherListDialog extends SSDialog {
     public SSVoucherListDialog(SSMainFrame iMainFrame) {
         super(iMainFrame, SSBundle.getBundle().getString("voucherlistreport.dialog.title"));
 
-        List<SSVoucher> iVouchers = SSDB.getInstance().getCurrentYear().getVouchers();
+        List<SSVoucher> iVouchers = se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.getCurrentYear().getVouchers();
 
         setPanel(iPanel);
 
@@ -128,7 +130,7 @@ public class SSVoucherListDialog extends SSDialog {
      * @param pDateFrom
      */
     public void setDateFrom(Date pDateFrom) {
-        iFromDate.setDate(pDateFrom);
+        iFromDate.setLocalDate(SSDateUtil.toLocalDate(pDateFrom));
     }
 
     /**
@@ -136,7 +138,35 @@ public class SSVoucherListDialog extends SSDialog {
      * @param pDateTo
      */
     public void setDateTo(Date pDateTo) {
-        iToDate.setDate(pDateTo);
+        iToDate.setLocalDate(SSDateUtil.toLocalDate(pDateTo));
+    }
+
+    /**
+     * @param pDateFrom the start date
+     */
+    public void setLocalDateFrom(LocalDate pDateFrom) {
+        iFromDate.setLocalDate(pDateFrom);
+    }
+
+    /**
+     * @param pDateTo the end date
+     */
+    public void setLocalDateTo(LocalDate pDateTo) {
+        iToDate.setLocalDate(pDateTo);
+    }
+
+    /**
+     * @return the start date as a {@link LocalDate}
+     */
+    public LocalDate getLocalDateFrom() {
+        return iFromDate.getLocalDate();
+    }
+
+    /**
+     * @return the end date as a {@link LocalDate}
+     */
+    public LocalDate getLocalDateTo() {
+        return iToDate.getLocalDate();
     }
 
     /**
@@ -164,7 +194,7 @@ public class SSVoucherListDialog extends SSDialog {
      * @return
      */
     public Date getDateFrom() {
-        return iFromDate.getDate();
+        return SSDateUtil.toDate(iFromDate.getLocalDate());
     }
 
     /**
@@ -172,7 +202,7 @@ public class SSVoucherListDialog extends SSDialog {
      * @return
      */
     public Date getDateTo() {
-        return iToDate.getDate();
+        return SSDateUtil.toDate(iToDate.getLocalDate());
     }
 
     /**
@@ -198,7 +228,7 @@ public class SSVoucherListDialog extends SSDialog {
      */
     public List<SSVoucher> getElementsToPrint() {
 
-        List<SSVoucher> iVouchers = SSDB.getInstance().getVouchers();
+        List<SSVoucher> iVouchers = se.swedsoft.bookkeeping.data.system.SSAccountingContext.getVouchers();
 
         // Filter by non payed invoices
         if (iRadioNumber.isSelected()) {
@@ -216,8 +246,8 @@ public class SSVoucherListDialog extends SSDialog {
         }
         // Filter by date
         if (iRadioDate.isSelected()) {
-            final Date iDateFrom = iFromDate.getDate();
-            final Date iDateTo = iToDate.getDate();
+            final LocalDate iDateFrom = iFromDate.getLocalDate();
+            final LocalDate iDateTo = iToDate.getLocalDate();
 
             iVouchers = SSFilterFactory.doFilter(iVouchers, new SSFilter<>() {
                 public boolean applyFilter(SSVoucher iInvoice) {

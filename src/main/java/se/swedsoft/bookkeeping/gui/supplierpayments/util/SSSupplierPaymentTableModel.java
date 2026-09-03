@@ -5,6 +5,7 @@ import se.swedsoft.bookkeeping.data.SSSupplier;
 import se.swedsoft.bookkeeping.data.SSSupplierInvoice;
 import se.swedsoft.bookkeeping.data.common.SSCurrency;
 import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.data.system.SSPurchaseContext;
 import se.swedsoft.bookkeeping.gui.SSMainFrame;
 import se.swedsoft.bookkeeping.gui.supplier.SSSupplierDialog;
 import se.swedsoft.bookkeeping.gui.util.SSBundle;
@@ -230,7 +231,8 @@ public class SSSupplierPaymentTableModel extends SSTableModel<SupplierPayment> {
             }
 
             if (iPayment.getPaymentMethod() == PaymentMethod.CASH) {
-                iPayment.setAccount(iPayment.getOutpaymentNumber().toString());
+                Integer iOutpaymentNumber = iPayment.getOutpaymentNumber();
+                iPayment.setAccount(iOutpaymentNumber == null ? null : iOutpaymentNumber.toString());
             }
 
         }
@@ -285,7 +287,7 @@ public class SSSupplierPaymentTableModel extends SSTableModel<SupplierPayment> {
         @Override
         public Object getValue(SupplierPayment iPayment) {
             return iPayment.getSupplierInvoice().getSupplier(
-                    SSDB.getInstance().getSuppliers());
+                    SSPurchaseContext.getSuppliers());
         }
 
         @Override
@@ -342,12 +344,13 @@ public class SSSupplierPaymentTableModel extends SSTableModel<SupplierPayment> {
          * Constructs a {@code DefaultCellEditor} that uses a text field.
          *
          */
+        @SuppressWarnings("unchecked")
         public PaymentMethodCellEditor() {
-            super(new JComboBox());
+            super(new JComboBox<PaymentMethod>());
 
-            JComboBox iComboBox = (JComboBox) getComponent();
+            JComboBox<PaymentMethod> iComboBox = (JComboBox<PaymentMethod>) getComponent();
 
-            DefaultComboBoxModel iModel = new DefaultComboBoxModel();
+            DefaultComboBoxModel<PaymentMethod> iModel = new DefaultComboBoxModel<>();
 
             iModel.addElement(PaymentMethod.BANKGIRO);
             iModel.addElement(PaymentMethod.PLUSGIRO);
@@ -358,7 +361,7 @@ public class SSSupplierPaymentTableModel extends SSTableModel<SupplierPayment> {
             iComboBox.setRenderer(
                     new DefaultListCellRenderer() {
                 @Override
-                public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+                public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
                     super.getListCellRendererComponent(list, value, index, isSelected,
                             cellHasFocus);
 

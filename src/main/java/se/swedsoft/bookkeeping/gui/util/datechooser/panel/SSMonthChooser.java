@@ -24,7 +24,7 @@ public class SSMonthChooser implements ItemListener {
 
     private JPanel iPanel;
     // The combobox
-    private JComboBox iComboBox;
+    private JComboBox<String> iComboBox;
     // the spinner
     private JSpinner iSpinner;
 
@@ -39,7 +39,7 @@ public class SSMonthChooser implements ItemListener {
     public SSMonthChooser() {
         iChangeListeners = new LinkedList<>();
 
-        iComboBox = new JComboBox();
+        iComboBox = new JComboBox<>();
         iComboBox.addItemListener(this);
         iComboBox.setBorder(BorderFactory.createEmptyBorder());
         iComboBox.setLightWeightPopupEnabled(true);
@@ -63,28 +63,10 @@ public class SSMonthChooser implements ItemListener {
     }
 
     /**
-     * @return the selected date as a legacy Date
-     * @deprecated Use {@link #getLocalDate()} instead.
-     */
-    @Deprecated
-    public Date getDate() {
-        return SSDateUtil.toDate(iLocalDate);
-    }
-
-    /**
      * @return the selected date
      */
     public LocalDate getLocalDate() {
         return iLocalDate;
-    }
-
-    /**
-     * @param iDate the date
-     * @deprecated Use {@link #setLocalDate(LocalDate)} instead.
-     */
-    @Deprecated
-    public void setDate(Date iDate) {
-        setLocalDate(SSDateUtil.toLocalDate(iDate));
     }
 
     /**
@@ -95,7 +77,7 @@ public class SSMonthChooser implements ItemListener {
     public void setLocalDate(LocalDate date) {
         this.iLocalDate = date;
 
-        ComboBoxModel iComboBoxModel = iComboBox.getModel();
+        ComboBoxModel<String> iComboBoxModel = iComboBox.getModel();
 
         // LocalDate months are 1-based; combo box is 0-based
         int iIndex = date.getMonthValue() - 1;

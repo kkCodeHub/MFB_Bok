@@ -109,10 +109,12 @@ public class SSSupplierPaymentExporter {    private static final Logger LOG = Lo
         for (SupplierPayment iPayment : iFiltered) {
 
             PaymentMethod iPaymentMethod = iPayment.getPaymentMethod();
+            String iAccount = iPayment.getAccount();
 
             // Bangiro
             if (iPaymentMethod == PaymentMethod.BANKGIRO) {
-                iPosts.add(new LBinPostTK14(iPayment, iPayment.getBankGiro()));
+                iPosts.add(new LBinPostTK14(iPayment,
+                        requirePaymentAccount(iPayment, iPaymentMethod, iAccount)));
             }
             // Plusgiro
             if (iPaymentMethod == PaymentMethod.PLUSGIRO) {
@@ -121,13 +123,20 @@ public class SSSupplierPaymentExporter {    private static final Logger LOG = Lo
                             "supplierpaymentframe.error.plusgirocurrency");
                 }
 
-                iPosts.add(new LBinPostTK54(iPayment));
+                iPosts.add(new LBinPostTK54(iPayment,
+                        requirePaymentAccount(iPayment, iPaymentMethod, iAccount)));
             }
             // Utbetalningskort
             if (iPaymentMethod == PaymentMethod.CASH) {
+                Integer iOutpaymentNumber = iPayment.getOutpaymentNumber();
+                if (iOutpaymentNumber == null) {
+                    throw new SSExportException(SSBundle.getBundle(),
+                            "supplierpaymentframe.error.missingoutpaymentnumber",
+                            iPayment.getNumber());
+                }
 
                 iPosts.add(
-                        new LBinPostTK14(iPayment, iPayment.getOutpaymentNumber() + " "));
+                        new LBinPostTK14(iPayment, iOutpaymentNumber + " "));
 
                 iPosts.add(new LBinPostTK26(iPayment));
                 iPosts.add(new LBinPostTK27(iPayment));
@@ -137,7 +146,8 @@ public class SSSupplierPaymentExporter {    private static final Logger LOG = Lo
             if (iPaymentMethod == PaymentMethod.KONTO) {
 
                 iPosts.add(
-                        new LBinPostTK14(iPayment, iPayment.getBankGiro()));
+                        new LBinPostTK14(iPayment,
+                                requirePaymentAccount(iPayment, iPaymentMethod, iAccount)));
 
                 iPosts.add(new LBinPostTK40(iPayment));
             }
@@ -148,6 +158,16 @@ public class SSSupplierPaymentExporter {    private static final Logger LOG = Lo
 
         return iPosts;
 
+    }
+
+    private static String requirePaymentAccount(SupplierPayment iPayment, PaymentMethod iPaymentMethod,
+            String iAccount) {
+        if (iAccount == null || iAccount.trim().isEmpty()) {
+            throw new SSExportException(SSBundle.getBundle(),
+                    "supplierpaymentframe.error.missingpaymentaccount",
+                    iPayment.getNumber(), iPaymentMethod.toString());
+        }
+        return iAccount;
     }
 
 }

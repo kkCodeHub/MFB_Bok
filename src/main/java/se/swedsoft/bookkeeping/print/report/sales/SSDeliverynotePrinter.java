@@ -7,8 +7,10 @@ import se.swedsoft.bookkeeping.data.SSOrder;
 import se.swedsoft.bookkeeping.data.SSProduct;
 import se.swedsoft.bookkeeping.data.base.SSSaleRow;
 import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.data.system.SSSalesContext;
 import se.swedsoft.bookkeeping.gui.util.model.SSDefaultTableModel;
 import se.swedsoft.bookkeeping.print.SSPrinter;
+import se.swedsoft.bookkeeping.print.util.SSQuantityPrintUtil;
 import se.swedsoft.bookkeeping.util.SSDateUtil;
 
 import java.math.BigDecimal;
@@ -78,7 +80,7 @@ public class SSDeliverynotePrinter extends SSPrinter {
      *
      */
     private void addParameters() {
-        SSNewCompany iCompany = SSDB.getInstance().getCurrentCompany();
+        SSNewCompany iCompany = se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.getCurrentCompany();
 
         SSSalePrinterUtils.addParametersForCompany(iCompany, this);
 
@@ -126,7 +128,7 @@ public class SSDeliverynotePrinter extends SSPrinter {
         addParameter("order.taxrate2", iOrder.getTaxRate2().toString());
         addParameter("order.taxrate3", iOrder.getTaxRate3().toString());
 
-        SSCustomer iCustomer = iOrder.getCustomer(SSDB.getInstance().getCustomers());
+        SSCustomer iCustomer = iOrder.getCustomer(SSSalesContext.getCustomers());
 
         if (iCustomer != null) {
             addParameter("order.vatnumber", iCustomer.getVATNumber());
@@ -200,7 +202,7 @@ public class SSDeliverynotePrinter extends SSPrinter {
          */
         @Override
         protected SSDefaultTableModel getModel() {
-            final List<SSProduct> iProducts = SSDB.getInstance().getProducts();
+            final List<SSProduct> iProducts = se.swedsoft.bookkeeping.data.system.SSProductContext.getProducts();
 
             SSDefaultTableModel<SSSaleRow> iModel = new SSDefaultTableModel<>() {
 
@@ -224,7 +226,7 @@ public class SSDeliverynotePrinter extends SSPrinter {
                         break;
 
                     case 2:
-                        value = iRow.getQuantity();
+                        value = SSQuantityPrintUtil.toDisplay(iRow.getQuantity());
                         break;
 
                     case 3:

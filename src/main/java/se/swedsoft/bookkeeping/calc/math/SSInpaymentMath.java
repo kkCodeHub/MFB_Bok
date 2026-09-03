@@ -26,19 +26,18 @@ public class SSInpaymentMath {
     private SSInpaymentMath() {}
 
     /**
+     * Returns true if the inpayment's date falls within [pFrom, pTo] inclusive.
      *
-     * @param iInpayment
-     * @param pFrom
-     * @param pTo
-     * @return
+     * @param iInpayment the inpayment to test
+     * @param pFrom      the start of the period
+     * @param pTo        the end of the period
+     * @return true if within the period
      */
-    public static boolean inPeriod(SSInpayment iInpayment, Date pFrom, Date pTo) {
+    public static boolean inPeriod(SSInpayment iInpayment, LocalDate pFrom, LocalDate pTo) {
         LocalDate iDate = iInpayment.getLocalDate();
-        LocalDate iFrom = SSDateUtil.toLocalDate(pFrom);
-        LocalDate iTo = SSDateUtil.toLocalDate(pTo);
 
-        return iDate != null && iFrom != null && iTo != null
-                && !iDate.isBefore(iFrom) && !iDate.isAfter(iTo);
+        return iDate != null && pFrom != null && pTo != null
+                && !iDate.isBefore(pFrom) && !iDate.isAfter(pTo);
     }
 
     /**
@@ -87,7 +86,8 @@ public class SSInpaymentMath {
      * @return the sum
      */
     public static BigDecimal getSumForInvoice(SSInvoice iInvoice) {
-        List<SSInpayment> iInpayments = Repositories.inpayments().findAll();
+        // Use SSDB cache instead of Repositories to ensure fresh/updated data
+        List<SSInpayment> iInpayments = se.swedsoft.bookkeeping.data.system.SSPaymentContext.getInpayments();
 
         BigDecimal iSum = new BigDecimal(0);
 
@@ -103,7 +103,8 @@ public class SSInpaymentMath {
     public static HashMap<Integer, BigDecimal> getSumsForInvoices() {
         HashMap<Integer, BigDecimal> iSums = new HashMap<>();
 
-        List<SSInpayment> iInpayments = Repositories.inpayments().findAll();
+        // Use SSDB cache instead of Repositories to ensure fresh/updated data
+        List<SSInpayment> iInpayments = se.swedsoft.bookkeeping.data.system.SSPaymentContext.getInpayments();
 
         for (SSInpayment iInpayment : iInpayments) {
             for (SSInpaymentRow iRow : iInpayment.getRows()) {
@@ -123,7 +124,8 @@ public class SSInpaymentMath {
     public static HashMap<Integer, BigDecimal> getSumsForInvoices(Date iDate) {
         HashMap<Integer, BigDecimal> iSums = new HashMap<>();
 
-        List<SSInpayment> iInpayments = Repositories.inpayments().findAll();
+        // Use SSDB cache instead of Repositories to ensure fresh/updated data
+        List<SSInpayment> iInpayments = se.swedsoft.bookkeeping.data.system.SSPaymentContext.getInpayments();
         LocalDate localDate = SSDateUtil.toLocalDate(iDate);
 
         for (SSInpayment iInpayment : iInpayments) {
@@ -152,7 +154,8 @@ public class SSInpaymentMath {
      * @return the sum
      */
     public static BigDecimal getSumForInvoice(SSInvoice iInvoice, Date iDate) {
-        List<SSInpayment> iInpayments = Repositories.inpayments().findAll();
+        // Use SSDB cache instead of Repositories to ensure fresh/updated data
+        List<SSInpayment> iInpayments = se.swedsoft.bookkeeping.data.system.SSPaymentContext.getInpayments();
 
         LocalDate localDate = SSDateUtil.toLocalDate(iDate);
         BigDecimal iSum = new BigDecimal(0);
@@ -178,7 +181,8 @@ public class SSInpaymentMath {
      */
     public static Date getLastInpaymentForInvoice(SSInvoice iInvoice) {
 
-        List<SSInpayment> iInpayments = Repositories.inpayments().findAll();
+        // Use SSDB cache instead of Repositories to ensure fresh/updated data
+        List<SSInpayment> iInpayments = se.swedsoft.bookkeeping.data.system.SSPaymentContext.getInpayments();
 
         LocalDate iDate = null;
 
@@ -228,7 +232,7 @@ public class SSInpaymentMath {
      * @return the saldo
      */
     public static Optional<BigDecimal> getSaldo(SSInpaymentRow iInpaymentRow) {
-        SSInvoice iInvoice = iInpaymentRow.getInvoice(SSDB.getInstance().getInvoices());
+        SSInvoice iInvoice = iInpaymentRow.getInvoice(se.swedsoft.bookkeeping.data.system.SSSalesContext.getInvoices());
 
         if (iInvoice == null) {
             return Optional.empty();
@@ -285,7 +289,7 @@ public class SSInpaymentMath {
      * @return
      */
     public static boolean hasCustomer(SSInpayment iInpayment, SSCustomer iCustomer) {
-        List<SSInvoice> iInvoices = SSDB.getInstance().getInvoices();
+        List<SSInvoice> iInvoices = se.swedsoft.bookkeeping.data.system.SSSalesContext.getInvoices();
 
         for (SSInpaymentRow iRow : iInpayment.getRows()) {
             SSInvoice iInvoice = iRow.getInvoice(iInvoices);

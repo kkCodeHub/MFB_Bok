@@ -10,8 +10,10 @@ import se.swedsoft.bookkeeping.data.system.SSDB;
 import se.swedsoft.bookkeeping.gui.util.SSBundle;
 import se.swedsoft.bookkeeping.gui.util.model.SSDefaultTableModel;
 import se.swedsoft.bookkeeping.print.SSPrinter;
+import se.swedsoft.bookkeeping.util.SSDateUtil;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.*;
 
 
@@ -25,17 +27,17 @@ public class SSBalancePrinter extends SSPrinter {
 
     SSAccountSchema iAccountSchema;
 
-    Date iDateFrom;
+    LocalDate iDateFrom;
 
-    Date iDateTo;
+    LocalDate iDateTo;
 
     /**
      *
      * @param pFrom
      * @param pTo
      */
-    public SSBalancePrinter(Date pFrom, Date pTo) {
-        this(SSDB.getInstance().getCurrentYear(), pFrom, pTo);
+    public SSBalancePrinter(LocalDate pFrom, LocalDate pTo) {
+        this(se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.getCurrentYear(), pFrom, pTo);
     }
 
     /**
@@ -44,7 +46,7 @@ public class SSBalancePrinter extends SSPrinter {
      * @param pFrom
      * @param pTo
      */
-    public SSBalancePrinter(SSNewAccountingYear pYearData, Date pFrom, Date pTo) {
+    public SSBalancePrinter(SSNewAccountingYear pYearData, LocalDate pFrom, LocalDate pTo) {
         iYearData = pYearData;
         iDateFrom = pFrom;
         iDateTo = pTo;
@@ -72,8 +74,8 @@ public class SSBalancePrinter extends SSPrinter {
      */
     @Override
     protected SSDefaultTableModel getModel() {
-        addParameter("dateFrom", iDateFrom);
-        addParameter("dateTo", iDateTo);
+        addParameter("dateFrom", SSDateUtil.toDate(iDateFrom));
+        addParameter("dateTo", SSDateUtil.toDate(iDateTo));
 
         SSBalanceCalculator iCalculator = new SSBalanceCalculator(iYearData);
 

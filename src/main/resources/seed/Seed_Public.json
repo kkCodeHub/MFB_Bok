@@ -1,0 +1,176 @@
+{
+  "Valuta": [
+    {
+       "Kod": "SEK",
+       "Beskrivning": "Svenska kronor",
+       "Kurs": "1.000"
+    },
+    {
+       "Kod": "EUR",
+       "Beskrivning": "Euro",
+       "Kurs": "1.000"
+    },
+    {
+       "Kod": "USD",
+       "Beskrivning": "US Dollar",
+       "Kurs": "1.000"
+    },
+    {
+       "Kod": "DKK",
+       "Beskrivning": "Danska kronor",
+       "Kurs": "1.000"
+    },
+    {
+       "Kod": "NOK",
+       "Beskrivning": "Norska kronor",
+       "Kurs": "1.000"
+    },
+    {
+       "Kod": "ISK",
+       "Beskrivning": "Isländska kronor",
+       "Kurs": "1.000"
+    }
+  ],
+  "Standardenhet": [
+    {
+       "Namn": "st",
+       "Beskrivning": "Styck"
+    },
+    {
+       "Namn": "h",
+       "Beskrivning": "Timmar"
+    },
+    {
+       "Namn": "tim",
+       "Beskrivning": "Timmar"
+    },
+    {
+       "Namn": "min",
+       "Beskrivning": "Minuter"
+    },
+    {
+      "Namn": "mil",
+      "Beskrivning": "Mil"
+    },
+    {
+      "Namn": "km",
+      "Beskrivning": "Kilometer"
+    },
+    {
+       "Namn": "kg",
+       "Beskrivning": "Kilo"
+    },
+    {
+       "Namn": "lit",
+       "Beskrivning": "Liter"
+    },
+    {
+       "Namn": "m",
+       "Beskrivning": "Meter"
+    },
+    {
+       "Namn": "m2",
+       "Beskrivning": "Kvadratmeter"
+    },
+    {
+       "Namn": "m3",
+       "Beskrivning": "Kubikmeter"
+    }
+  ],
+  "Betalningsvillkor": [
+    {
+      "Namn": "30 dagar",
+      "Beskrivning": "30 dagar netto",
+      "Dagar": "30"
+    },
+    {
+       "Namn": "10 dagar",
+       "Beskrivning": "10 dagar netto",
+       "Dagar": "10"
+    },
+    {
+       "Namn": "15 dagar",
+       "Beskrivning": "15 dagar netto",
+       "Dagar": "15"
+    },
+    {
+       "Namn": "20 dagar",
+       "Beskrivning": "20 dagar netto",
+       "Dagar": "20"
+    },
+    {
+       "Namn": "60 dagar",
+       "Beskrivning": "60 dagar netto",
+       "Dagar": "60"
+    },
+    {
+       "Namn": "90 dagar",
+       "Beskrivning": "90 dagar netto",
+       "Dagar": "90"
+    },
+    {
+      "Namn": "Kontant",
+      "Beskrivning": "Kontant betalning",
+      "Dagar": "0"
+    },
+    {
+      "Namn": "Förskott",
+      "Beskrivning": "Betalning innan leverans",
+      "Dagar": "0"
+    },
+    {
+      "Namn": "Vid leverans",
+      "Beskrivning": "Betalning vid leverans",
+      "Dagar": "0"
+    }
+  ],
+  "Leveransvillkor": [
+    {
+      "Namn": "---",
+      "Beskrivning": "Ej revant"
+    },
+    {
+       "Namn": "Fritt vårt lager",
+       "Beskrivning": "Kund hämtar"
+    },
+    {
+       "Namn": "Fri frakt",
+       "Beskrivning": "Säljare betalar frakt"
+    },
+    {
+       "Namn": "Mot ersättning",
+       "Beskrivning": "Kund betalar frakt"
+    },
+    {
+       "Namn": "Frakt debiteras",
+       "Beskrivning": "Kund betalar frakt"
+    }
+  ],
+  "Leveranssätt": [
+    {
+       "Namn": "---",
+       "Beskrivning": "Ej revant"
+    },
+    {
+       "Namn": "Postnord",
+       "Beskrivning": "Postnord"
+    },
+    {
+       "Namn": "DHL",
+       "Beskrivning": "DHL"
+    },
+    {
+       "Namn": "Till utlämningsställe",
+       "Beskrivning": "Till utlämningsställe"
+    },
+    {
+       "Namn": "Till dörr",
+       "Beskrivning": "Till dörr"
+    },
+    {
+       "Namn": "Hemleverans",
+       "Beskrivning": "Hemleverans"
+    }
+ ]
+
+}

@@ -6,12 +6,14 @@ import se.swedsoft.bookkeeping.gui.util.SSBundle;
 import se.swedsoft.bookkeeping.gui.util.SSButtonPanel;
 import se.swedsoft.bookkeeping.gui.util.datechooser.SSDateChooser;
 import se.swedsoft.bookkeeping.gui.util.dialogs.SSDialog;
+import se.swedsoft.bookkeeping.util.SSDateUtil;
 
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.time.LocalDate;
 import java.util.Date;
 
 
@@ -75,11 +77,10 @@ public class SSInventoryBasisDialog extends SSDialog {
     }
 
     /**
-     *
-     * @return
+     * @return the selected date as a {@link LocalDate}
      */
-    public Date getDate() {
-        return iDate.getDate();
+    public LocalDate getLocalDate() {
+        return iDate.getLocalDate();
     }
 
     @Override

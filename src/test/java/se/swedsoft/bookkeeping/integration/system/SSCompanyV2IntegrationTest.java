@@ -75,6 +75,7 @@ class SSCompanyV2IntegrationTest {
         company.setTaxRegistered(true);
         company.setCorporateID("556677-8899");
         company.setLogotype("C:/logos/v2.png");
+        company.setSwishImagePath("C:/swish/556677-8899-v2.png");
         company.setBank("Nordbanken");
         company.setVATNumber("SE556677889901");
         company.setBankGiroNumber("123-4567");
@@ -125,6 +126,7 @@ class SSCompanyV2IntegrationTest {
         assertThat(fetched.getTaxRegistered()).isTrue();
         assertThat(fetched.getCorporateID()).isEqualTo("556677-8899");
         assertThat(fetched.getLogotype()).isEqualTo("C:/logos/v2.png");
+        assertThat(fetched.getSwishImagePath()).isEqualTo("C:/swish/556677-8899-v2.png");
         assertThat(fetched.getBank()).isEqualTo("Nordbanken");
         assertThat(fetched.getVATNumber()).isEqualTo("SE556677889901");
         assertThat(fetched.getBankGiroNumber()).isEqualTo("123-4567");
@@ -274,5 +276,3 @@ class SSCompanyV2IntegrationTest {
         se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.deleteCompany(fetched);
     }
 }
-
-

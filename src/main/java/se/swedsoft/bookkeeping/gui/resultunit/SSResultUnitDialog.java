@@ -2,16 +2,16 @@ package se.swedsoft.bookkeeping.gui.resultunit;
 
 
 import se.swedsoft.bookkeeping.data.SSNewResultUnit;
-import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.data.system.SSResultUnitContext;
 import se.swedsoft.bookkeeping.gui.SSMainFrame;
 import se.swedsoft.bookkeeping.gui.resultunit.panel.SSResultUnitPanel;
 import se.swedsoft.bookkeeping.gui.util.SSBundle;
 import se.swedsoft.bookkeeping.gui.util.dialogs.SSDialog;
 import se.swedsoft.bookkeeping.gui.util.dialogs.SSErrorDialog;
 import se.swedsoft.bookkeeping.gui.util.dialogs.SSQueryDialog;
+import se.swedsoft.bookkeeping.gui.util.table.model.SSTableModel;
 
 import javax.swing.*;
-import javax.swing.table.AbstractTableModel;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -33,7 +33,7 @@ public class SSResultUnitDialog {
      * @param iMainFrame
      * @param model
      */
-    public static void newDialog(final SSMainFrame iMainFrame, final AbstractTableModel model) {
+    public static void newDialog(final SSMainFrame iMainFrame, final SSTableModel<SSNewResultUnit> model) {
         final SSDialog          iDialog = new SSDialog(iMainFrame,
                 SSBundle.getBundle().getString("resultunitframe.new.title"));
         final SSResultUnitPanel iPanel = new SSResultUnitPanel(false);
@@ -44,7 +44,7 @@ public class SSResultUnitDialog {
 
                 SSNewResultUnit iResultUnit = iPanel.getResultUnit();
 
-                List<SSNewResultUnit> iResultUnits = SSDB.getInstance().getResultUnits();
+                List<SSNewResultUnit> iResultUnits = SSResultUnitContext.getResultUnits();
 
                 for (SSNewResultUnit pResultUnit : iResultUnits) {
                     if (iResultUnit.getNumber().equals(pResultUnit.getNumber())) {
@@ -54,9 +54,14 @@ public class SSResultUnitDialog {
                     }
                 }
 
-                SSDB.getInstance().addResultUnit(iResultUnit);
+                SSResultUnitContext.addResultUnit(iResultUnit);
 
-                model.fireTableDataChanged();
+                if (model != null) {
+                    model.setObjects(SSResultUnitContext.getResultUnits());
+                }
+                if (SSResultUnitFrame.getInstance() != null) {
+                    SSResultUnitFrame.getInstance().updateFrame();
+                }
 
                 iDialog.closeDialog();
 
@@ -91,7 +96,7 @@ public class SSResultUnitDialog {
      * @param pResultUnit
      * @param model
      */
-    public static void editDialog(final SSMainFrame iMainFrame, SSNewResultUnit pResultUnit, final AbstractTableModel model) {
+    public static void editDialog(final SSMainFrame iMainFrame, SSNewResultUnit pResultUnit, final SSTableModel<SSNewResultUnit> model) {
         final SSDialog          iDialog = new SSDialog(iMainFrame,
                 SSBundle.getBundle().getString("resultunitframe.edit.title"));
         final SSResultUnitPanel iPanel = new SSResultUnitPanel(true);
@@ -103,9 +108,14 @@ public class SSResultUnitDialog {
 
                 SSNewResultUnit iResultUnit = iPanel.getResultUnit();
 
-                SSDB.getInstance().updateResultUnit(iResultUnit);
+                SSResultUnitContext.updateResultUnit(iResultUnit);
 
-                model.fireTableDataChanged();
+                if (model != null) {
+                    model.setObjects(SSResultUnitContext.getResultUnits());
+                }
+                if (SSResultUnitFrame.getInstance() != null) {
+                    SSResultUnitFrame.getInstance().updateFrame();
+                }
                 iDialog.closeDialog();
 
             };

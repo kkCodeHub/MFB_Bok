@@ -25,7 +25,7 @@ public class SSCustomerListPrinter extends SSPrinter {
      *
      */
     public SSCustomerListPrinter() {
-        this(SSDB.getInstance().getCustomers());
+        this(se.swedsoft.bookkeeping.data.system.SSSalesContext.getCustomers());
     }
 
     /**

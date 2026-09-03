@@ -4,6 +4,7 @@ package se.swedsoft.bookkeeping.gui.status;
 import org.fribok.bookkeeping.app.Version;
 import se.swedsoft.bookkeeping.data.SSNewAccountingYear;
 import se.swedsoft.bookkeeping.data.SSNewCompany;
+import se.swedsoft.bookkeeping.data.system.SSCompanyYearContext;
 import se.swedsoft.bookkeeping.data.system.SSDB;
 import se.swedsoft.bookkeeping.gui.util.SSBundle;
 import se.swedsoft.bookkeeping.util.SSDateUtil;
@@ -43,10 +44,10 @@ public class SSMainStatusBar {    private static final Logger LOG = LoggerFactor
         iMemLabel = new JLabel();
         iNameLabel.setText(String.format("%s %s", Version.APP_TITLE, Version.APP_VERSION));
 
-        setCompanyText(/* SSDB.getInstance().getCurrentCompany()*/null);
-        setYearText(/* SSDB.getInstance().getCurrentYear()*/null);
+        setCompanyText(null);
+        setYearText(null);
 
-        SSDB.getInstance().addPropertyChangeListener("COMPANY",
+        SSCompanyYearContext.addPropertyChangeListener("COMPANY",
                 evt -> {
 
                         SSNewCompany iCompany = (SSNewCompany) evt.getNewValue();
@@ -55,7 +56,7 @@ public class SSMainStatusBar {    private static final Logger LOG = LoggerFactor
 
 
                     });
-        SSDB.getInstance().addPropertyChangeListener("YEAR",
+        SSCompanyYearContext.addPropertyChangeListener("YEAR",
                 evt -> {
 
                         SSNewAccountingYear iAccountingYear = (SSNewAccountingYear) evt.getNewValue();

@@ -3,6 +3,7 @@ package se.swedsoft.bookkeeping.gui.invoice.dialog;
 
 import se.swedsoft.bookkeeping.data.SSInvoice;
 import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.data.system.SSSalesContext;
 import se.swedsoft.bookkeeping.gui.SSMainFrame;
 import se.swedsoft.bookkeeping.gui.invoice.panel.SSInterestInvoicePanel;
 import se.swedsoft.bookkeeping.gui.util.SSBundle;
@@ -56,7 +57,7 @@ public class SSInterestInvoiceDialog {
                 List<SSInvoice> iInterestInvoices = iPanel.getInterestInvoices();
 
                 for (SSInvoice iInvoice : iInterestInvoices) {
-                    SSDB.getInstance().addInvoice(iInvoice);
+                    SSSalesContext.addInvoice(iInvoice);
                 }
 
                 if (pModel != null) {

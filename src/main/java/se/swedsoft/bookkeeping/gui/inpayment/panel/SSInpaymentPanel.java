@@ -17,7 +17,7 @@ import se.swedsoft.bookkeeping.gui.util.table.SSTable;
 import se.swedsoft.bookkeeping.gui.util.table.actions.SSDeleteAction;
 import se.swedsoft.bookkeeping.gui.util.table.actions.SSTraversalAction;
 import se.swedsoft.bookkeeping.gui.util.table.editors.SSInvoiceCellEditor;
-import se.swedsoft.bookkeeping.gui.voucher.util.SSVoucherRowTableModelOld;
+import se.swedsoft.bookkeeping.gui.voucher.util.SSVoucherRowTableModel;
 
 import javax.swing.*;
 import javax.swing.event.TableModelEvent;
@@ -65,9 +65,9 @@ public class SSInpaymentPanel {
 
     private SSInpaymentRowTableModel iModel;
 
-    private SSVoucherRowTableModelOld iVoucherTableModel;
+    private SSVoucherRowTableModel iVoucherTableModel;
 
-    private SSVoucherRowTableModelOld iDifferenceTableModel;
+    private SSVoucherRowTableModel iDifferenceTableModel;
 
     /**
      *
@@ -90,29 +90,22 @@ public class SSInpaymentPanel {
 
         iTable.setColorReadOnly(true);
         iTable.setSingleSelect();
+        iTable.setSelectionForeground(Color.BLACK);
 
-        iVoucherTableModel = new SSVoucherRowTableModelOld(false, true) {
-            @Override
-            public int getColumnCount() {
-                // Hide the project and result unit columns
-                return 4;
-            }
-        };
+        iVoucherTableModel = new SSVoucherRowTableModel();
+        iVoucherTableModel.addColumn(SSVoucherRowTableModel.COLUMN_ACCOUNT, true);
+        iVoucherTableModel.addColumn(SSVoucherRowTableModel.COLUMN_DESCRIPTION, true);
+        iVoucherTableModel.addColumn(SSVoucherRowTableModel.COLUMN_DEBET, true);
+        iVoucherTableModel.addColumn(SSVoucherRowTableModel.COLUMN_CREDIT, true);
+        iVoucherTableModel.setReadOnlyMode(true);
+        iVoucherTableModel.setupTable(iVoucherTable, true);
 
-        iVoucherTable.setModel(iVoucherTableModel);
-
-        SSVoucherRowTableModelOld.setupTable(iVoucherTable, iVoucherTableModel);
-
-        iDifferenceTableModel = new SSVoucherRowTableModelOld(false, false) {
-            @Override
-            public int getColumnCount() {
-                // Hide the project and result unit columns
-                return 4;
-            }
-        };
-        iDifferenceTable.setModel(iDifferenceTableModel);
-
-        SSVoucherRowTableModelOld.setupTable(iDifferenceTable, iDifferenceTableModel);
+        iDifferenceTableModel = new SSVoucherRowTableModel();
+        iDifferenceTableModel.addColumn(SSVoucherRowTableModel.COLUMN_ACCOUNT, true);
+        iDifferenceTableModel.addColumn(SSVoucherRowTableModel.COLUMN_DESCRIPTION, true);
+        iDifferenceTableModel.addColumn(SSVoucherRowTableModel.COLUMN_DEBET, true);
+        iDifferenceTableModel.addColumn(SSVoucherRowTableModel.COLUMN_CREDIT, true);
+        iDifferenceTableModel.setupTable(iDifferenceTable, true);
 
         new SSTraversalAction(iTable) {
             @Override
@@ -201,7 +194,7 @@ public class SSInpaymentPanel {
 
                 SSVoucher iVoucher = iInpayment.generateVoucher();
 
-                iVoucherTableModel.setVoucher(iVoucher);
+                iVoucherTableModel.setVoucher(iVoucher, false);
 
             });
 
@@ -363,9 +356,9 @@ public class SSInpaymentPanel {
         // Standardkonton
         iDefaultAccounts.setDefaultAccounts(iInpayment.getDefaultAccounts());
         // Kontering
-        iVoucherTableModel.setVoucher(iInpayment.getVoucher());
+        iVoucherTableModel.setVoucher(iInpayment.getVoucher(), false);
         // Differens verifikation
-        iDifferenceTableModel.setVoucher(iInpayment.getDifference());
+        iDifferenceTableModel.setVoucher(iInpayment.getDifference(), false);
 
         iModel.setObjects(iInpayment.getRows());
 

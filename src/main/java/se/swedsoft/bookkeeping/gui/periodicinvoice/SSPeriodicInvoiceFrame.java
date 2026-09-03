@@ -4,6 +4,7 @@ package se.swedsoft.bookkeeping.gui.periodicinvoice;
 import se.swedsoft.bookkeeping.data.SSOrder;
 import se.swedsoft.bookkeeping.data.SSPeriodicInvoice;
 import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.data.system.SSSalesContext;
 import se.swedsoft.bookkeeping.gui.SSMainFrame;
 import se.swedsoft.bookkeeping.gui.periodicinvoice.panel.SSListInvoicesPanel;
 import se.swedsoft.bookkeeping.gui.periodicinvoice.panel.SSPeriodicInvoiceSearchPanel;
@@ -300,18 +301,19 @@ public class SSPeriodicInvoiceFrame extends SSDefaultTableFrame {
             for (SSPeriodicInvoice iPeriodicInvoice : delete) {
                 List<SSOrder> iOrdersToUpdate = new LinkedList<>();
 
-                for (SSOrder iOrder : SSDB.getInstance().getOrders()) {
+                for (SSOrder iOrder : SSSalesContext.getOrders()) {
                     if (iOrder.hasPeriodicInvoice(iPeriodicInvoice)) {
                         iOrder.setPeriodicInvoice(null);
                         iOrdersToUpdate.add(iOrder);
                     }
                 }
                 for (SSOrder iOrder : iOrdersToUpdate) {
-                    SSDB.getInstance().updateOrder(iOrder);
+                    se.swedsoft.bookkeeping.data.system.SSSalesContext.updateOrder(iOrder);
                 }
                 iOrdersToUpdate = null;
-                SSDB.getInstance().deletePeriodicInvoice(iPeriodicInvoice);
+                SSSalesContext.deletePeriodicInvoice(iPeriodicInvoice);
             }
+            updateFrame();
         }
     }
 
@@ -320,12 +322,12 @@ public class SSPeriodicInvoiceFrame extends SSDefaultTableFrame {
      */
     public static void fireTableDataChanged() {
         if (cInstance != null) {
-            cInstance.getModel().fireTableDataChanged();
+            cInstance.updateFrame();
         }
     }
 
     private SSPeriodicInvoice getPeriodicInvoice(SSPeriodicInvoice iPeriodicInvoice) {
-        return SSDB.getInstance().getPeriodicInvoice(iPeriodicInvoice).orElse(null);
+        return SSSalesContext.getPeriodicInvoice(iPeriodicInvoice).orElse(null);
     }
 
     public void updateFrame() {

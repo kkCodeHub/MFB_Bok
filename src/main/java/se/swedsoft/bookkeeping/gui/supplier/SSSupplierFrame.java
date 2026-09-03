@@ -2,7 +2,8 @@ package se.swedsoft.bookkeeping.gui.supplier;
 
 
 import se.swedsoft.bookkeeping.data.SSSupplier;
-import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.data.system.SSCompanyYearContext;
+import se.swedsoft.bookkeeping.data.system.SSPurchaseContext;
 import se.swedsoft.bookkeeping.gui.SSMainFrame;
 import se.swedsoft.bookkeeping.gui.supplier.panel.SSSupplierSearchPanel;
 import se.swedsoft.bookkeeping.gui.supplier.util.SSSupplierTableModel;
@@ -29,7 +30,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.io.IOException;
-import java.util.Date;
+import java.time.LocalDate;
 import java.util.List;
 
 
@@ -221,7 +222,7 @@ public class SSSupplierFrame extends SSDefaultTableFrame {
                             iItems = Repositories.suppliers().findAll();
                         }
 
-                        iFilechooser.setSelectedFile(new File("Leverantörslista.xls"));
+                        iFilechooser.setSelectedFile(new File("Leverantörslista.xlsx"));
 
                         if (iFilechooser.showSaveDialog(getMainFrame())
                                 == JFileChooser.APPROVE_OPTION) {
@@ -384,26 +385,25 @@ public class SSSupplierFrame extends SSDefaultTableFrame {
         SSPeriodSelectionDialog iDialog = new SSPeriodSelectionDialog(getMainFrame(),
                 SSBundle.getBundle().getString("supplierrevenue.perioddialog.title"));
 
-        if (SSDB.getInstance().getCurrentYear() != null) {
-            iDialog.setFrom(se.swedsoft.bookkeeping.util.SSDateUtil.toDate(
-                    SSDB.getInstance().getCurrentYear().getLocalFrom()));
-            iDialog.setTo(se.swedsoft.bookkeeping.util.SSDateUtil.toDate(
-                    SSDB.getInstance().getCurrentYear().getLocalTo()));
+        if (SSCompanyYearContext.getCurrentYear() != null) {
+            iDialog.setLocalFrom(SSCompanyYearContext.getCurrentYear().getLocalFrom());
+            iDialog.setLocalTo(SSCompanyYearContext.getCurrentYear().getLocalTo());
         } else {
-            java.time.LocalDate now = java.time.LocalDate.now();
-            iDialog.setFrom(se.swedsoft.bookkeeping.util.SSDateUtil.toDate(now));
-            iDialog.setTo(se.swedsoft.bookkeeping.util.SSDateUtil.toDate(now.plusMonths(1)));
+            LocalDate now = LocalDate.now();
+            iDialog.setLocalFrom(now);
+            iDialog.setLocalTo(now.plusMonths(1));
         }
         iDialog.setLocationRelativeTo(getMainFrame());
         if (iDialog.showDialog() != JOptionPane.OK_OPTION) {
             return;
         }
 
-        final Date iFrom = iDialog.getFrom();
-        final Date iTo = iDialog.getTo();
+        final LocalDate iFrom = iDialog.getLocalFrom();
+        final LocalDate iTo = iDialog.getLocalTo();
 
         final SSSupplierRevenuePrinter iPrinter = new SSSupplierRevenuePrinter(iSuppliers,
-                iFrom, iTo);
+                se.swedsoft.bookkeeping.util.SSDateUtil.toDate(iFrom),
+                se.swedsoft.bookkeeping.util.SSDateUtil.toDate(iTo));
 
         SSProgressDialog.runProgress(getMainFrame(), () -> iPrinter.preview(getMainFrame()));
     }
@@ -452,6 +452,12 @@ public class SSSupplierFrame extends SSDefaultTableFrame {
 
     private List<SSSupplier> getSuppliers(List<SSSupplier> iSuppliers) {
         return Repositories.suppliers().findAll(iSuppliers);
+    }
+
+    public static void fireTableDataChanged() {
+        if (cInstance != null) {
+            cInstance.updateFrame();
+        }
     }
 
     public void updateFrame() {

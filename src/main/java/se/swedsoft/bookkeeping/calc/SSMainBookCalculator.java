@@ -29,7 +29,7 @@ public class SSMainBookCalculator {
 
         private String       iDescription;
 
-        private Date         iDate;
+        private LocalDate    iDate;
 
         private boolean      iCrossed;
 
@@ -57,12 +57,11 @@ public class SSMainBookCalculator {
             return iDescription;
         }
 
-        public Date getDate() {
-            return iDate;
-        }
-
+        /**
+         * @return the date as a {@link LocalDate}
+         */
         public LocalDate getLocalDate() {
-            return SSDateUtil.toLocalDate(iDate);
+            return iDate;
         }
 
         public BigDecimal getDebet() {
@@ -118,8 +117,8 @@ public class SSMainBookCalculator {
     private SSAccount iAccountFrom;
     private SSAccount iAccountTo;
 
-    private Date iDateFrom;
-    private Date iDateTo;
+    private LocalDate iDateFrom;
+    private LocalDate iDateTo;
 
     private SSNewProject iProject;
     private SSNewResultUnit iResultUnit;
@@ -131,30 +130,44 @@ public class SSMainBookCalculator {
     private Map<SSAccount, BigDecimal> iInSaldo;
 
     /**
-     *
-     * @param pAccountFrom
-     * @param pAccountTo
-     * @param pDateFrom
-     * @param pDateTo
-     * @param iProject
-     * @param iResultUnit
+     * @param pAccountFrom the first account in range
+     * @param pAccountTo   the last account in range
+     * @param pDateFrom    the start of the period (inclusive)
+     * @param pDateTo      the end of the period (inclusive)
+     * @param iProject     optional project filter
+     * @param iResultUnit  optional result-unit filter
      */
-    public SSMainBookCalculator(SSAccount pAccountFrom, SSAccount pAccountTo, Date pDateFrom, Date pDateTo, SSNewProject iProject, SSNewResultUnit iResultUnit) {
-        this(SSDB.getInstance().getCurrentYear(), pAccountFrom, pAccountTo, pDateFrom,
+    public SSMainBookCalculator(SSAccount pAccountFrom, SSAccount pAccountTo, LocalDate pDateFrom, LocalDate pDateTo, SSNewProject iProject, SSNewResultUnit iResultUnit) {
+        this(se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.getCurrentYear(), pAccountFrom, pAccountTo, pDateFrom,
                 pDateTo, iProject, iResultUnit);
     }
 
     /**
-     *
-     * @param pYearData
-     * @param pAccountFrom
-     * @param pAccountTo
-     * @param pDateFrom
-     * @param pDateTo
-     * @param iProject
-     * @param iResultUnit
+     * @param pAccountFrom the first account in range
+     * @param pAccountTo   the last account in range
+     * @param pDateFrom    the start of the period as {@link Date}
+     * @param pDateTo      the end of the period as {@link Date}
+     * @param iProject     optional project filter
+     * @param iResultUnit  optional result-unit filter
+     * @deprecated Use {@link #SSMainBookCalculator(SSAccount, SSAccount, LocalDate, LocalDate, SSNewProject, SSNewResultUnit)} instead.
      */
-    public SSMainBookCalculator(SSNewAccountingYear pYearData, SSAccount pAccountFrom, SSAccount pAccountTo, Date pDateFrom, Date pDateTo, SSNewProject iProject, SSNewResultUnit iResultUnit) {
+    @Deprecated
+    public SSMainBookCalculator(SSAccount pAccountFrom, SSAccount pAccountTo, Date pDateFrom, Date pDateTo, SSNewProject iProject, SSNewResultUnit iResultUnit) {
+        this(se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.getCurrentYear(), pAccountFrom, pAccountTo,
+                SSDateUtil.toLocalDate(pDateFrom), SSDateUtil.toLocalDate(pDateTo),
+                iProject, iResultUnit);
+    }
+
+    /**
+     * @param pYearData    the accounting year
+     * @param pAccountFrom the first account in range
+     * @param pAccountTo   the last account in range
+     * @param pDateFrom    the start of the period (inclusive)
+     * @param pDateTo      the end of the period (inclusive)
+     * @param iProject     optional project filter
+     * @param iResultUnit  optional result-unit filter
+     */
+    public SSMainBookCalculator(SSNewAccountingYear pYearData, SSAccount pAccountFrom, SSAccount pAccountTo, LocalDate pDateFrom, LocalDate pDateTo, SSNewProject iProject, SSNewResultUnit iResultUnit) {
         iYearData = pYearData;
         iAccountFrom = pAccountFrom;
         iAccountTo = pAccountTo;
@@ -166,6 +179,23 @@ public class SSMainBookCalculator {
         iRows = new LinkedList<>();
         iInBalance = new HashMap<>();
         iInSaldo = new HashMap<>();
+    }
+
+    /**
+     * @param pYearData    the accounting year
+     * @param pAccountFrom the first account in range
+     * @param pAccountTo   the last account in range
+     * @param pDateFrom    the start of the period as {@link Date}
+     * @param pDateTo      the end of the period as {@link Date}
+     * @param iProject     optional project filter
+     * @param iResultUnit  optional result-unit filter
+     * @deprecated Use {@link #SSMainBookCalculator(SSNewAccountingYear, SSAccount, SSAccount, LocalDate, LocalDate, SSNewProject, SSNewResultUnit)} instead.
+     */
+    @Deprecated
+    public SSMainBookCalculator(SSNewAccountingYear pYearData, SSAccount pAccountFrom, SSAccount pAccountTo, Date pDateFrom, Date pDateTo, SSNewProject iProject, SSNewResultUnit iResultUnit) {
+        this(pYearData, pAccountFrom, pAccountTo,
+                SSDateUtil.toLocalDate(pDateFrom), SSDateUtil.toLocalDate(pDateTo),
+                iProject, iResultUnit);
     }
 
     /**
@@ -191,8 +221,8 @@ public class SSMainBookCalculator {
 
             // If the date of the voucer is before the start date, add to InSaldo
             boolean inSaldo = voucherDate != null
-                    && SSDateUtil.toLocalDate(iDateFrom) != null
-                    && voucherDate.isBefore(SSDateUtil.toLocalDate(iDateFrom));
+                    && iDateFrom != null
+                    && voucherDate.isBefore(iDateFrom);
 
             // If the date of the oucher is in between the start and end date, add to PeriodChange
             boolean inPeriod = SSVoucherMath.inPeriod(iVoucher, iDateFrom, iDateTo);
@@ -232,7 +262,7 @@ public class SSMainBookCalculator {
 
                     iMainBookRow.iNumber = iVoucher.getNumber();
                     iMainBookRow.iDescription = iVoucher.getDescription();
-                    iMainBookRow.iDate = SSDateUtil.toDate(voucherDate);
+                    iMainBookRow.iDate = voucherDate;
 
                     iMainBookRow.iAdded = iVoucherRow.isAdded();
                     iMainBookRow.iCrossed = iVoucherRow.isCrossed();

@@ -4,7 +4,7 @@ package se.swedsoft.bookkeeping.data.backup.util;
 import org.fribok.bookkeeping.app.Path;
 import se.swedsoft.bookkeeping.data.SSNewCompany;
 import se.swedsoft.bookkeeping.data.backup.SSBackup;
-import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.data.system.SSSystemConfigContext;
 import se.swedsoft.bookkeeping.data.system.SSSystemCompany;
 import se.swedsoft.bookkeeping.gui.util.SSBundle;
 import se.swedsoft.bookkeeping.gui.util.frame.SSInternalFrame;
@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory;
  * Time: 11:14:09
  */
 public class SSBackupFactory {    private static final Logger LOG = LoggerFactory.getLogger(SSBackupFactory.class);
+    private static final String METADATA_ENTRY = "backup.properties";
 
     private SSBackupFactory() {}
 
@@ -78,20 +79,25 @@ public class SSBackupFactory {    private static final Logger LOG = LoggerFactor
      */
     public static SSBackup createBackup(String pFilename) {
         SSBackup iBackup = new SSBackup(SSBackupType.FULL);
+        File iBackupInfoFile = null;
 
-        iBackup.setDate(SSDateUtil.toDate(SSDateUtil.now()));
+        iBackup.setLocalDateTime(SSDateUtil.now());
         iBackup.setFilename(pFilename);
 
         // Get the database files
         List<ArchiveFile> iFiles = SSBackupUtils.getFiles();
+        if (iFiles.isEmpty()) {
+            LOG.error("Could not create backup: no database files found to archive");
+            return null;
+        }
 
         try {
             // Create a new temp file
-            File iBackupFile = File.createTempFile("backup", null);
+            iBackupInfoFile = File.createTempFile("backup", null);
 
-            SSBackup.storeBackup(iBackupFile, iBackup);
+            SSBackup.storeBackup(iBackupInfoFile, iBackup);
 
-            iFiles.add(new ArchiveFile(iBackupFile, "backup.info"));
+            iFiles.add(new ArchiveFile(iBackupInfoFile, METADATA_ENTRY));
         } catch (IOException e) {
             LOG.error("Unexpected error", e);
             return null;
@@ -105,9 +111,12 @@ public class SSBackupFactory {    private static final Logger LOG = LoggerFactor
             SSBackupZip.compressFiles(pFilename, iFiles);
         } catch (IOException e) {
             LOG.error("Unexpected error", e);
+            return null;
+        } finally {
+            if (iBackupInfoFile != null && iBackupInfoFile.exists()) {
+                iBackupInfoFile.delete();
+            }
         }
-        // Delete the temporary backupfile
-        // iBackupFile.delete();
 
         return iBackup;
     }
@@ -137,7 +146,7 @@ public class SSBackupFactory {    private static final Logger LOG = LoggerFactor
 
             // Read the backup file, if exists
             if (!SSBackupZip.extractFile(pFilename,
-                    new ArchiveFile(iBackupFile, "backup.info"))) {
+                    new ArchiveFile(iBackupFile, METADATA_ENTRY))) {
                 throw new SSException(SSBundle.getBundle(),
                         "backupframe.importbackup.invalid");
             }
@@ -152,8 +161,6 @@ public class SSBackupFactory {    private static final Logger LOG = LoggerFactor
             iBackupFile.delete();
 
         } catch (IOException ex) {
-            LOG.error("Unexpected error", ex);
-        } catch (ClassNotFoundException ex) {
             LOG.error("Unexpected error", ex);
         }
 
@@ -173,7 +180,7 @@ public class SSBackupFactory {    private static final Logger LOG = LoggerFactor
         String iDirectory = new File(Path.get(Path.USER_DATA), "db").getAbsolutePath() + File.separator;
 
         // Delete all old files
-        SSDB.getInstance().delete();
+        SSSystemConfigContext.deleteDatabaseFiles();
 
         List<ArchiveFile> iFiles = SSBackupUtils.getFiles(pFilename, iDirectory);
 
@@ -181,7 +188,7 @@ public class SSBackupFactory {    private static final Logger LOG = LoggerFactor
         SSBackupZip.extractFiles(pFilename, iFiles);
 
         try {
-            SSDB.getInstance().loadLocalDatabase();
+            SSSystemConfigContext.loadLocalDatabase();
         } catch (RuntimeException e) {
             LOG.error("Unexpected error", e);
         }
@@ -199,15 +206,15 @@ public class SSBackupFactory {    private static final Logger LOG = LoggerFactor
         SSInternalFrame.closeAllFrames();
 
         // Get the database directory
-        // String iDirectory = SSDB.getInstance().getDirectory();
+        // String iDirectory = getDatabaseDirectory();
 
-        // SSSystemCompany iCompany = SSDB.getInstance().getCompany(iRestoredCompany);
+        // SSSystemCompany iCompany = findSystemCompany(iRestoredCompany);
         // Test if the company exists in the database
         /* if(iCompany != null ){
          iRestoredCompany.setCurrent( iCompany.isCurrent() );
 
          // Delete the company
-         SSDB.getInstance().deleteCompany(iCompany);
+         se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.deleteCompany(iCompany);
          } else {
          iRestoredCompany.setCurrent( false );
          } */
@@ -218,9 +225,9 @@ public class SSBackupFactory {    private static final Logger LOG = LoggerFactor
         // SSBackupZip.extractFiles(pFilename, iFiles);
 
         // Add the company to the database
-        // SSDB.getInstance().getSystemCompanies().add(iRestoredCompany);
+        // addSystemCompany(iRestoredCompany);
 
-        if (iRestoredCompany.isCurrent()) {// SSDB.getInstance().setCurrentCompany(iRestoredCompany);
+        if (iRestoredCompany.isCurrent()) {// se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.setCurrentCompany(iRestoredCompany);
         }
     }
 

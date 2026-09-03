@@ -11,6 +11,7 @@ import se.swedsoft.bookkeeping.data.SSSupplierInvoice;
 import se.swedsoft.bookkeeping.data.SSSupplierInvoiceRow;
 import se.swedsoft.bookkeeping.data.common.SSUnit;
 import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.persistence.v2.V2SupplierInvoiceRepository;
 
 import java.math.BigDecimal;
 import java.sql.Connection;
@@ -41,7 +42,7 @@ class SSSupplierInvoiceV2RepositoryTest {
         Class.forName("org.hsqldb.jdbcDriver");
         connection = DriverManager.getConnection(JDBC_URL, "sa", "");
 
-        SSDB.getInstance().startupLocal(connection);
+        se.swedsoft.bookkeeping.data.system.SSSystemConfigContext.startupLocal(connection);
 
         Integer companyId = createCompany("V2 Supplier Invoice Repo Test AB");
         SSNewCompany company = new SSNewCompany();
@@ -49,10 +50,10 @@ class SSSupplierInvoiceV2RepositoryTest {
         company.setName("V2 Supplier Invoice Repo Test AB");
         SSDB.getInstance().setCurrentCompany(company);
 
-        SSNewAccountingYear year = new SSNewAccountingYear(
-                se.swedsoft.bookkeeping.util.SSDateUtil.toDate(LocalDate.of(2025, 1, 1)),
-                se.swedsoft.bookkeeping.util.SSDateUtil.toDate(LocalDate.of(2025, 12, 31)));
-        SSDB.getInstance().addAccountingYear(year);
+        SSNewAccountingYear year = new SSNewAccountingYear();
+        year.setLocalFrom(LocalDate.of(2025, 1, 1));
+        year.setLocalTo(LocalDate.of(2025, 12, 31));
+        se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.addAccountingYear(year);
         SSDB.getInstance().setCurrentYear(year);
 
         Repositories.init(SSDB.getInstance());
@@ -71,14 +72,14 @@ class SSSupplierInvoiceV2RepositoryTest {
 
     @BeforeEach
     void clearCaches() {
-        SSDB.getInstance().clearLists();
+        se.swedsoft.bookkeeping.data.system.SSEventTriggerSyncContext.clearCachedLists();
         SSDB.getInstance().getCurrentYear();
     }
 
     @Test
     void repositoriesInitUsesV2SupplierInvoiceRepository() {
         assertThat(Repositories.isSchemaV2()).isTrue();
-        assertThat(Repositories.supplierInvoices()).isNotNull();
+        assertThat(Repositories.supplierInvoices()).isInstanceOf(V2SupplierInvoiceRepository.class);
     }
 
     @Test
@@ -89,7 +90,7 @@ class SSSupplierInvoiceV2RepositoryTest {
         Repositories.supplierInvoices().add(supplierInvoice);
         assertThat(supplierInvoice.getNumber()).isGreaterThan(0);
 
-        SSDB.getInstance().clearLists();
+        se.swedsoft.bookkeeping.data.system.SSEventTriggerSyncContext.clearCachedLists();
         Optional<SSSupplierInvoice> fetched = Repositories.supplierInvoices().findBySupplierInvoice(supplierInvoice);
         assertThat(fetched).isPresent();
         assertThat(fetched.get().getSupplierName()).isEqualTo("Repo Supplier AB");
@@ -106,7 +107,7 @@ class SSSupplierInvoiceV2RepositoryTest {
                 invoiceRow("P-REPO-002", "Before update row", new BigDecimal("100.00"), 1, 4010));
         Repositories.supplierInvoices().add(supplierInvoice);
 
-        SSDB.getInstance().clearLists();
+        se.swedsoft.bookkeeping.data.system.SSEventTriggerSyncContext.clearCachedLists();
         Optional<SSSupplierInvoice> fetched = Repositories.supplierInvoices().findBySupplierInvoice(supplierInvoice);
         assertThat(fetched).isPresent();
 
@@ -118,7 +119,7 @@ class SSSupplierInvoiceV2RepositoryTest {
                 invoiceRow("P-REPO-003", "After update row", new BigDecimal("750.00"), 3, 4041));
         Repositories.supplierInvoices().update(updatedInvoice);
 
-        SSDB.getInstance().clearLists();
+        se.swedsoft.bookkeeping.data.system.SSEventTriggerSyncContext.clearCachedLists();
         Optional<SSSupplierInvoice> updated = Repositories.supplierInvoices().findBySupplierInvoice(supplierInvoice);
         assertThat(updated).isPresent();
         assertThat(updated.get().getSupplierName()).isEqualTo("After Repo Update");
@@ -128,7 +129,7 @@ class SSSupplierInvoiceV2RepositoryTest {
 
         Integer number = updated.get().getNumber();
         Repositories.supplierInvoices().delete(updated.get());
-        SSDB.getInstance().clearLists();
+        se.swedsoft.bookkeeping.data.system.SSEventTriggerSyncContext.clearCachedLists();
         List<SSSupplierInvoice> all = Repositories.supplierInvoices().findAll();
         assertThat(all).extracting(SSSupplierInvoice::getNumber).doesNotContain(number);
     }
@@ -169,20 +170,9 @@ class SSSupplierInvoiceV2RepositoryTest {
     }
 
     private static Integer createCompany(String name) throws Exception {
-        try (PreparedStatement statement = connection.prepareStatement(
-                "INSERT INTO tbl_company(name) VALUES (?)", Statement.RETURN_GENERATED_KEYS)) {
-            statement.setString(1, name);
-            statement.executeUpdate();
-            connection.commit();
-
-            try (ResultSet keys = statement.getGeneratedKeys()) {
-                if (keys.next()) {
-                    return keys.getInt(1);
-                }
-            }
-        }
-        throw new IllegalStateException(
-                "Could not create test company for supplier-invoice repository V2 integration test");
+        se.swedsoft.bookkeeping.data.SSNewCompany company = new se.swedsoft.bookkeeping.data.SSNewCompany();
+        company.setName(name);
+        se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.addCompany(company);
+        return company.getId();
     }
 }
-

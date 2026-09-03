@@ -5,8 +5,8 @@ import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.time.LocalDate;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -110,6 +110,15 @@ class SIEWriterTest {
         assertThat(writer.getLine()).doesNotContain(" ");
     }
 
+    @Test
+    void appendNegativeDoubleUsesMinus() {
+        writer.append(-1250.0);
+
+        assertThat(writer.getLine()).isEqualTo("-1250.00");
+        assertThat(writer.getLine()).contains("-");
+        assertThat(writer.getLine()).doesNotContain("?");
+    }
+
     // ---- append(Float) ----
 
     @Test
@@ -145,23 +154,21 @@ class SIEWriterTest {
         assertThat(writer.getLine()).isEqualTo("3.14");
     }
 
-    // ---- append(Date) ----
+    // ---- append(LocalDate) ----
 
     @Test
     void appendNullDateAppendsEightZeros() {
-        writer.append((Date) null);
+        writer.append((LocalDate) null);
 
         assertThat(writer.getLine()).isEqualTo("00000000");
     }
 
     @Test
     void appendDateFormatsAsYYYYMMDD() {
-        // January 1 2006 UTC
-        Date d = new Date(1136073600000L); // 2006-01-01 in UTC
+        LocalDate d = LocalDate.of(2006, 1, 1);
         writer.append(d);
 
-        // Just verify the format is 8 digits
-        assertThat(writer.getLine()).matches("\\d{8}");
+        assertThat(writer.getLine()).isEqualTo("20060101");
     }
 
     // ---- append(SSMonth) ----

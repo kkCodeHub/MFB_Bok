@@ -3,6 +3,7 @@ package se.swedsoft.bookkeeping.gui.indelivery;
 
 import se.swedsoft.bookkeeping.data.SSIndelivery;
 import se.swedsoft.bookkeeping.gui.SSMainFrame;
+import se.swedsoft.bookkeeping.gui.product.SSProductFrame;
 import se.swedsoft.bookkeeping.gui.indelivery.util.SSIndeliveryTableModel;
 import se.swedsoft.bookkeeping.gui.util.SSBundle;
 import se.swedsoft.bookkeeping.gui.util.components.SSButton;
@@ -270,8 +271,18 @@ public class SSIndeliveryFrame extends SSDefaultTableFrame {
         return Repositories.indeliveries().findByIndelivery(iIndelivery).orElse(null);
     }
 
+    /**
+     * Convenience method that updates the indelivery frame if it is currently open.
+     */
+    public static void fireTableDataChanged() {
+        if (cInstance != null) {
+            cInstance.updateFrame();
+        }
+    }
+
     public void updateFrame() {
         iModel.setObjects(Repositories.indeliveries().findAll());
+        SSProductFrame.fireTableDataChanged();
     }
 
     public void actionPerformed(ActionEvent e) {

@@ -142,19 +142,10 @@ class SSProductV2IntegrationTest {
     }
 
     private static Integer createCompany(String name) throws Exception {
-        try (PreparedStatement statement = connection.prepareStatement(
-                "INSERT INTO tbl_company(name) VALUES (?)", Statement.RETURN_GENERATED_KEYS)) {
-            statement.setString(1, name);
-            statement.executeUpdate();
-            connection.commit();
-
-            try (ResultSet keys = statement.getGeneratedKeys()) {
-                if (keys.next()) {
-                    return keys.getInt(1);
-                }
-            }
-        }
-        throw new IllegalStateException("Could not create test company for schema V2 product test");
+        se.swedsoft.bookkeeping.data.SSNewCompany company = new se.swedsoft.bookkeeping.data.SSNewCompany();
+        company.setName(name);
+        se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.addCompany(company);
+        return company.getId();
     }
 }
 

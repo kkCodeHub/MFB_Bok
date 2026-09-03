@@ -19,7 +19,10 @@ import java.util.List;
 // Java specific imports
 
 /**
+ * V2 target model for result units.
+ *
  * @author Roger Björnstedt
+ * <p>This is the supported result-unit representation in active V2 code paths.</p>
  */
 public class SSNewResultUnit implements Serializable, SSTableSearchable {
 
@@ -57,11 +60,6 @@ public class SSNewResultUnit implements Serializable, SSTableSearchable {
         iDescription = "";
     }
 
-    public SSNewResultUnit(SSResultUnit iOld) {
-        iNumber = String.valueOf(iOld.getNumber());
-        iName = iOld.getName();
-        iDescription = iOld.getDescription();
-    }
 
     // /////////////////////////////////////////////////////////////////////////
 
@@ -154,7 +152,7 @@ public class SSNewResultUnit implements Serializable, SSTableSearchable {
 
     public BigDecimal getResultUnitRevenueForMonth(SSMonth iMonth) {
         Double iInvoiceSum = 0.0;
-        List<SSInvoice> iInvoices = SSDB.getInstance().getInvoices();
+        List<SSInvoice> iInvoices = se.swedsoft.bookkeeping.data.system.SSSalesContext.getInvoices();
 
         for (SSInvoice iInvoice : iInvoices) {
             if (iMonth.isDateInMonth(iInvoice.getLocalDate())) {
@@ -170,7 +168,7 @@ public class SSNewResultUnit implements Serializable, SSTableSearchable {
             }
         }
 
-        List<SSCreditInvoice> iCreditInvoices = SSDB.getInstance().getCreditInvoices();
+        List<SSCreditInvoice> iCreditInvoices = se.swedsoft.bookkeeping.data.system.SSSalesContext.getCreditInvoices();
         Double iCreditInvoiceSum = 0.0;
 
         for (SSCreditInvoice iCreditInvoice : iCreditInvoices) {

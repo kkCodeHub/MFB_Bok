@@ -71,7 +71,7 @@ public class SSInpaymentRowTableModel extends SSTableModel<SSInpaymentRow> {
             SSBundle.getBundle().getString("outpaymentrowtable.column.1")) {
         @Override
         public Object getValue(SSInpaymentRow iObject) {
-            return iObject.getInvoice(SSDB.getInstance().getInvoices());
+            return iObject.getInvoice(se.swedsoft.bookkeeping.data.system.SSSalesContext.getInvoices());
         }
 
         @Override

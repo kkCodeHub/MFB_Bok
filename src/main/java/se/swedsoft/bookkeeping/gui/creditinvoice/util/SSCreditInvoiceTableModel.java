@@ -5,6 +5,7 @@ import se.swedsoft.bookkeeping.calc.math.SSCreditInvoiceMath;
 import se.swedsoft.bookkeeping.data.SSCreditInvoice;
 import se.swedsoft.bookkeeping.data.common.SSCurrency;
 import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.data.system.SSSalesContext;
 import se.swedsoft.bookkeeping.gui.util.SSBundle;
 import se.swedsoft.bookkeeping.gui.util.graphics.SSIcon;
 import se.swedsoft.bookkeeping.gui.util.table.model.SSTableColumn;
@@ -28,7 +29,7 @@ public class SSCreditInvoiceTableModel extends SSTableModel<SSCreditInvoice> {
      * Default constructor.
      */
     public SSCreditInvoiceTableModel() {
-        super(SSDB.getInstance().getCreditInvoices());
+        super(SSSalesContext.getCreditInvoices());
     }
 
     /**

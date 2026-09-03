@@ -1,59 +1,33 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE jasperReport PUBLIC "-//JasperReports//DTD Report Design//EN"
-        "http://jasperreports.sourceforge.net/dtds/jasperreport.dtd">
-
-<jasperReport name="IndeliveryListRow" resourceBundle="book">
-
-    <parameter name="indelivery.number" class="java.lang.Integer"/>
-
-
-    <field name="indeliveryrow.product"            class="java.lang.String"/>
-    <field name="indeliveryrow.descripion"         class="java.lang.String"/>
-    <field name="indeliveryrow.change"             class="java.lang.Integer"/>
-
-
-    <detail>
-        <band height="12" isSplitAllowed="true">
-
-            <!-- Product number -->
-            <textField isBlankWhenNull="true" >
-                <reportElement x="80" y="0" width="80" height="12"/>
-                <textElement>
-                    <font size="8" isBold="false"/>
-                </textElement>
-                <textFieldExpression class="java.lang.String">
-                    <![CDATA[$F{indeliveryrow.product}]]>
-                </textFieldExpression>
-            </textField>
-
-             <!-- Product description -->
-            <textField isBlankWhenNull="true">
-                <reportElement x="180" y="0" width="70" height="12"/>
-                <textElement>
-                    <font size="8" isBold="false"/>
-                </textElement>
-                <textFieldExpression  class="java.lang.String">
-                    <![CDATA[$F{indeliveryrow.descripion}]]>
-                </textFieldExpression>
-            </textField>
-
-
-            <!-- Inpayment sum  -->
-            <textField isBlankWhenNull="true" pattern="#,##0">
-                <reportElement x="480" y="0" width="50" height="12"/>
-                <textElement textAlignment="Right">
-                    <font size="8" isBold="false"/>
-                </textElement>
-                <textFieldExpression class="java.lang.Integer">
-                    <![CDATA[$F{indeliveryrow.change}  ]]>
-                </textFieldExpression>
-            </textField>
-
-
-
-        </band>
-    </detail>
-
-
-
+<!-- Created with Jaspersoft Studio version 6.21.1.final using JasperReports Library version 6.21.0-4f56c4f36cd19e17675219a9ac4692d5f0f13b06  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="IndeliveryListRow" pageWidth="595" pageHeight="842" whenNoDataType="NoPages" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="30" bottomMargin="30" resourceBundle="book" uuid="9f24d001-f061-4ec8-96e9-4bbe03618b40">
+	<parameter name="indelivery.number" class="java.lang.Integer"/>
+	<field name="indeliveryrow.product" class="java.lang.String"/>
+	<field name="indeliveryrow.descripion" class="java.lang.String"/>
+	<field name="indeliveryrow.change" class="java.math.BigDecimal"/>
+	<detail>
+		<band height="12" splitType="Stretch">
+			<textField isBlankWhenNull="true">
+				<reportElement x="80" y="0" width="80" height="12" uuid="f6eb9492-f922-48ab-aa01-27178b63d57c"/>
+				<textElement>
+					<font size="8" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{indeliveryrow.product}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="180" y="0" width="70" height="12" uuid="736ea259-8106-475a-add6-c0c5119eccd1"/>
+				<textElement>
+					<font size="8" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{indeliveryrow.descripion}]]></textFieldExpression>
+			</textField>
+		<textField pattern="#,##0.0" isBlankWhenNull="true">
+			<reportElement x="480" y="0" width="50" height="12" uuid="8809cf7d-6115-45bd-acf0-94f2a5d52ae1"/>
+			<textElement textAlignment="Right">
+				<font size="8" isBold="false"/>
+			</textElement>
+			<textFieldExpression><![CDATA[$F{indeliveryrow.change}]]></textFieldExpression>
+		</textField>
+		</band>
+	</detail>
 </jasperReport>

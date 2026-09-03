@@ -1,11 +1,10 @@
 package se.swedsoft.bookkeeping.importexport.excel.util;
 
-
-import jxl.Sheet;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
 
 import java.util.LinkedList;
 import java.util.List;
-
 
 /**
  * Date: 2006-feb-14
@@ -30,8 +29,9 @@ public class SSExcelSheet {
     public List<SSExcelRow> getRows() {
         List<SSExcelRow> iList = new LinkedList<>();
 
-        for (int i = 0; i < iSheet.getRows(); i++) {
-            iList.add(new SSExcelRow(iSheet, i));
+        for (int i = 0; i <= iSheet.getLastRowNum(); i++) {
+            Row iRow_POI = iSheet.getRow(i);
+            iList.add(new SSExcelRow(iRow_POI, i));
         }
         return iList;
     }

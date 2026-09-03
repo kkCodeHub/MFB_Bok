@@ -2,16 +2,15 @@ package se.swedsoft.bookkeeping.importexport.sie.util;
 
 
 import se.swedsoft.bookkeeping.data.SSMonth;
-import se.swedsoft.bookkeeping.util.SSDateUtil;
-
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.text.NumberFormat;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 
 
 /**
@@ -135,23 +134,6 @@ public class SIEWriter {
      *
      * @param pValue
      */
-    public void append(Date pValue) {
-        String iValue;
-
-        if (pValue != null) {
-            LocalDate localDate = SSDateUtil.toLocalDate(pValue);
-            iValue = localDate.format(DATE_FORMAT);
-        } else {
-            iValue = "00000000";
-        }
-        iStringBuilder.append(iValue);
-        iStringBuilder.append(' ');
-    }
-
-    /**
-     *
-     * @param pValue
-     */
     public void append(Integer pValue) {
         iStringBuilder.append(pValue);
         iStringBuilder.append(' ');
@@ -174,18 +156,15 @@ public class SIEWriter {
      * @param pValue
      */
     public void append(Double pValue) {
-        NumberFormat iFormat = NumberFormat.getNumberInstance();
-
-        iFormat.setMinimumFractionDigits(2);
-        iFormat.setMaximumFractionDigits(2);
-        iFormat.setGroupingUsed(false);
-
-        String iValue = iFormat.format(pValue);
-
-        iValue = iValue.replace(",", ".");
-
-        iStringBuilder.append(iValue);
-        iStringBuilder.append(' ');
+        if (pValue == null) {
+            append(0);
+        } else {
+            DecimalFormatSymbols symbols = new DecimalFormatSymbols(Locale.US);
+            DecimalFormat format = new DecimalFormat("0.00", symbols);
+            String iValue = format.format(pValue);
+            iStringBuilder.append(iValue);
+            iStringBuilder.append(' ');
+        }
     }
 
     /**
@@ -212,6 +191,20 @@ public class SIEWriter {
      */
     public void append(BigDecimal pValue) {
         append(pValue.doubleValue());
+    }
+
+    /**
+     * Appends a local date formatted as yyyyMMdd, or eight zeros if null.
+     *
+     * @param pValue the date to append, or {@code null}
+     */
+    public void append(LocalDate pValue) {
+        if (pValue != null) {
+            iStringBuilder.append(pValue.format(DATE_FORMAT));
+        } else {
+            iStringBuilder.append("00000000");
+        }
+        iStringBuilder.append(' ');
     }
 
     /**

@@ -3,15 +3,12 @@
   <modelVersion>4.0.0</modelVersion>
   <!-- POM Relationships -->
   <groupId>org.fribok</groupId>
-  <artifactId>fribok</artifactId>
-  <version>2.2-SNAPSHOT</version>
-  <prerequisites>
-    <maven>3.6.3</maven>
-  </prerequisites>
+  <artifactId>mfb_bok</artifactId>
+  <version>0.0.1</version>
   <!-- Project Information -->
-  <name>Fribok</name>
+  <name>MFB Bokföring</name>
   <description>
-    Fribok is a free software bookkeeping package aimed at non-profit
+    MFB Bokföring is a free software bookkeeping package aimed at non-profit
     organizations and small companies.
   </description>
   <url>https://sourceforge.net/projects/jfsaccounting/</url>
@@ -21,6 +18,15 @@
       <url>COPYING</url>
     </license>
   </licenses>
+  <!-- Properties -->
+  <properties>
+    <argLine></argLine>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <timestamp>${maven.build.timestamp}</timestamp>
+    <!--maven.build.timestamp.format>yyyy-MM-dd HH:mm</maven.build.timestamp.format-->
+    <jpackage.appVersion>${project.version}</jpackage.appVersion>
+    <jpackage.maven.plugin.version>1.6.0</jpackage.maven.plugin.version>
+  </properties>
   <!-- Build Settings -->
   <packaging>jar</packaging>
   <build>
@@ -30,8 +36,7 @@
         <artifactId>maven-compiler-plugin</artifactId>
         <version>3.13.0</version>
         <configuration>
-          <source>21</source>
-          <target>21</target>
+          <release>21</release>
           <compilerArgs>
             <arg>-Xlint:deprecation</arg>
             <arg>-Xlint:unchecked</arg>
@@ -40,39 +45,49 @@
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-assembly-plugin</artifactId>
-        <version>3.7.1</version>
+        <artifactId>maven-resources-plugin</artifactId>
+        <version>3.3.1</version>
+        <configuration>
+          <encoding>${project.build.sourceEncoding}</encoding>
+          <propertiesEncoding>${project.build.sourceEncoding}</propertiesEncoding>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <version>3.5.0</version>
         <executions>
           <execution>
-            <id>make-assembly</id>
             <phase>package</phase>
             <goals>
-              <goal>single</goal>
+              <goal>shade</goal>
             </goals>
+            <configuration>
+              <finalName>${project.build.finalName}-jar-with-dependencies</finalName>
+              <transformers>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                  <mainClass>org.fribok.bookkeeping.Bookkeeping</mainClass>
+                </transformer>
+              </transformers>
+              <filters>
+                <filter>
+                  <artifact>*:*</artifact>
+                  <excludes>
+                    <exclude>META-INF/*.SF</exclude>
+                    <exclude>META-INF/*.DSA</exclude>
+                    <exclude>META-INF/*.RSA</exclude>
+                  </excludes>
+                </filter>
+              </filters>
+            </configuration>
           </execution>
         </executions>
-        <configuration>
-          <descriptorRefs>
-            <descriptorRef>jar-with-dependencies</descriptorRef>
-          </descriptorRefs>
-          <dependencySets>
-            <dependencySet>
-              <unpack>true</unpack>
-              <scope>runtime</scope>
-            </dependencySet>
-          </dependencySets>
-          <archive>
-            <manifest>
-              <addClasspath>true</addClasspath>
-              <mainClass>org.fribok.bookkeeping.Bookkeeping</mainClass>
-            </manifest>
-          </archive>
-        </configuration>
       </plugin>
       <plugin>
         <groupId>org.panteleyev</groupId>
         <artifactId>jpackage-maven-plugin</artifactId>
-        <version>1.6.0</version>
+        <version>${jpackage.maven.plugin.version}</version>
         <configuration>
           <name>Fribok</name>
           <appVersion>${jpackage.appVersion}</appVersion>
@@ -86,7 +101,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
-        <version>3.5.2</version>
+        <version>3.5.5</version>
         <executions>
           <!-- Disable the default-test execution so it does not run all tests -->
           <execution>
@@ -281,7 +296,7 @@
         <dependency>
           <groupId>commons-codec</groupId>
         <artifactId>commons-codec</artifactId>
-        <version>1.17.1</version>
+        <version>1.22.0</version>
         <scope>compile</scope>
       </dependency>
     <dependency>
@@ -295,36 +310,36 @@
       <version>2.7.2</version>
       <scope>compile</scope>
     </dependency>
-    <dependency>
+ <!--   <dependency>
       <groupId>com.lowagie</groupId>
       <artifactId>itext</artifactId>
       <version>4.2.2</version>
       <scope>compile</scope>
-    </dependency>
+    </dependency> -->
     <dependency>
       <groupId>net.sf.jasperreports</groupId>
       <artifactId>jasperreports</artifactId>
-      <version>6.21.3</version>
+      <version>6.21.5</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>net.sf.jasperreports</groupId>
       <artifactId>jasperreports-fonts</artifactId>
-      <version>6.21.3</version>
+      <version>6.21.5</version>
     </dependency>
     <dependency>
       <groupId>com.google.zxing</groupId>
       <artifactId>core</artifactId>
-      <version>3.5.3</version>
+      <version>3.5.4</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>com.google.zxing</groupId>
       <artifactId>javase</artifactId>
-      <version>3.5.3</version>
+      <version>3.5.4</version>
       <scope>compile</scope>
     </dependency>
-    <dependency>
+<!--    <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-core</artifactId>
       <version>6.1.14</version>
@@ -335,19 +350,14 @@
       <artifactId>spring-beans</artifactId>
       <version>6.1.14</version>
       <scope>compile</scope>
-    </dependency>
+    </dependency> -->
     <dependency>
       <groupId>javax.help</groupId>
       <artifactId>javahelp</artifactId>
       <version>2.0.05</version>
       <scope>compile</scope>
     </dependency>
-    <dependency>
-      <groupId>net.sourceforge.jexcelapi</groupId>
-      <artifactId>jxl</artifactId>
-      <version>2.6.12</version>
-      <scope>compile</scope>
-    </dependency>
+
     <!--dependency>
       <groupId>com.jgoodies</groupId>
       <artifactId>looks</artifactId>
@@ -364,9 +374,15 @@
         <version>7.0.3</version>
     </dependency-->
     <dependency>
-      <groupId>javax.mail</groupId>
-      <artifactId>mail</artifactId>
-      <version>1.5.0-b01</version>
+      <groupId>com.sun.mail</groupId>
+      <artifactId>javax.mail</artifactId>
+      <version>1.6.2</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.poi</groupId>
+      <artifactId>poi-ooxml</artifactId>
+      <version>5.5.1</version>
       <scope>compile</scope>
     </dependency>
     <!--dependency>
@@ -375,17 +391,6 @@
         <version>3.2-FINAL</version>
         <scope>compile</scope>
         </dependency-->
-    <dependency>
-      <groupId>xml-apis</groupId>
-      <artifactId>xml-apis</artifactId>
-      <version>2.0.2</version>
-    </dependency>
-    <dependency>
-      <groupId>xerces</groupId>
-      <artifactId>xercesImpl</artifactId>
-      <version>2.12.2</version>
-      <scope>compile</scope>
-    </dependency>
     <!-- logging -->
     <dependency>
       <groupId>org.slf4j</groupId>
@@ -396,7 +401,13 @@
     <dependency>
       <groupId>ch.qos.logback</groupId>
       <artifactId>logback-classic</artifactId>
-      <version>1.5.12</version>
+      <version>1.5.32</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-to-slf4j</artifactId>
+      <version>2.21.1</version>
       <scope>compile</scope>
     </dependency>
     <!-- test dependencies -->
@@ -409,14 +420,20 @@
     <dependency>
       <groupId>org.assertj</groupId>
       <artifactId>assertj-core</artifactId>
-      <version>3.26.3</version>
+      <version>3.27.7</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.mockito</groupId>
       <artifactId>mockito-core</artifactId>
-      <version>5.14.2</version>
+      <version>5.23.0</version>
       <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+      <version>2.16.1</version>
+      <scope>compile</scope>
     </dependency>
   </dependencies>
   <reporting>
@@ -462,6 +479,10 @@
   <!-- For IDEA-forms -->
   <pluginRepositories>
     <pluginRepository>
+      <id>central</id>
+      <url>https://repo.maven.apache.org/maven2</url>
+    </pluginRepository>
+    <pluginRepository>
       <id>intellij-repository</id>
       <url>https://www.jetbrains.com/intellij-repository/releases</url>
     </pluginRepository>
@@ -471,13 +492,6 @@
     </pluginRepository>
   </pluginRepositories>
 
-  <properties>
-    <argLine></argLine>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <timestamp>${maven.build.timestamp}</timestamp>
-    <!--maven.build.timestamp.format>yyyy-MM-dd HH:mm</maven.build.timestamp.format-->
-    <jpackage.appVersion>${project.version}</jpackage.appVersion>
-  </properties>
   <profiles>
     <profile>
       <id>coverage</id>
@@ -521,6 +535,7 @@
           <plugin>
             <groupId>org.panteleyev</groupId>
             <artifactId>jpackage-maven-plugin</artifactId>
+            <version>${jpackage.maven.plugin.version}</version>
             <executions>
               <execution>
                 <id>jpackage-linux</id>
@@ -552,6 +567,7 @@
           <plugin>
             <groupId>org.panteleyev</groupId>
             <artifactId>jpackage-maven-plugin</artifactId>
+            <version>${jpackage.maven.plugin.version}</version>
             <executions>
               <execution>
                 <id>jpackage-windows</id>
@@ -585,6 +601,7 @@
           <plugin>
             <groupId>org.panteleyev</groupId>
             <artifactId>jpackage-maven-plugin</artifactId>
+            <version>${jpackage.maven.plugin.version}</version>
             <executions>
               <execution>
                 <id>jpackage-mac</id>

@@ -8,6 +8,7 @@ package se.swedsoft.bookkeeping.gui.backup;
 import se.swedsoft.bookkeeping.data.backup.SSBackup;
 import se.swedsoft.bookkeeping.data.backup.SSBackupDatabase;
 import se.swedsoft.bookkeeping.data.backup.util.SSBackupFactory;
+import se.swedsoft.bookkeeping.data.system.SSCompanyYearContext;
 import se.swedsoft.bookkeeping.data.system.SSDB;
 import se.swedsoft.bookkeeping.gui.SSMainFrame;
 import se.swedsoft.bookkeeping.gui.backup.util.SSBackupTableModel;
@@ -72,6 +73,15 @@ public class SSBackupFrame extends SSDefaultTableFrame {    private static final
         return cInstance;
     }
 
+    /**
+     * Refreshes the backup frame if it is open.
+     */
+    public static void fireTableDataChanged() {
+        if (cInstance != null) {
+            cInstance.updateFrame();
+        }
+    }
+
     private SSBackupDatabase iDatabase;
 
     private SSTable iTable;
@@ -123,12 +133,13 @@ public class SSBackupFrame extends SSDefaultTableFrame {    private static final
                         try {
                             SSBackupFactory.restoreBackup(iBackup.getFilename());
 
-                            SSDB.getInstance().setCurrentCompany(null);
-                            SSDB.getInstance().setCurrentYear(null);
-                            iModel.fireTableDataChanged();
+                            SSCompanyYearContext.setCurrentCompany(null);
+                            SSCompanyYearContext.setCurrentYear(null);
+                            SSBackupFrame.fireTableDataChanged();
                             SSFrameManager.getInstance().close();
 
                             SSCompanyFrame.showFrame(getMainFrame(), 500, 300);
+ //                           SSCompanyYearContext.initializeCurrentCompanyAndYear();
                         } catch (SSException ex) {
                             new SSErrorDialog(getMainFrame(), "exceptiondialog",
                                     ex.getLocalizedMessage());
@@ -156,10 +167,10 @@ public class SSBackupFrame extends SSDefaultTableFrame {    private static final
                         try {
                             SSBackupFactory.restoreBackup(iFileName);
 
-                            SSDB.getInstance().setCurrentCompany(null);
-                            SSDB.getInstance().setCurrentYear(null);
+                            SSCompanyYearContext.setCurrentCompany(null);
+                            SSCompanyYearContext.setCurrentYear(null);
 
-                            iModel.fireTableDataChanged();
+                            SSBackupFrame.fireTableDataChanged();
 
                             SSCompanyFrame.showFrame(getMainFrame(), 500, 300);
                         } catch (SSException ex) {
@@ -212,6 +223,20 @@ public class SSBackupFrame extends SSDefaultTableFrame {    private static final
     }
 
     /**
+     * Reloads the backup list from the underlying database.
+     */
+    public void updateFrame() {
+        if (iDatabase == null || iModel == null) {
+            return;
+        }
+
+        List<SSBackup> iBackups = iDatabase.getBackups();
+
+        Collections.sort(iBackups, (o1, o2) -> o2.getLocalDateTime().compareTo(o1.getLocalDateTime()));
+        iModel.setObjects(iBackups);
+    }
+
+    /**
      * This method should return the status bar content, if any.
      *
      * @return The content for the status bar or null if none is wanted.
@@ -257,7 +282,7 @@ public class SSBackupFrame extends SSDefaultTableFrame {    private static final
 
             iDatabase.getBackups().remove(iBackup);
 
-            iModel.fireTableDataChanged();
+            SSBackupFrame.fireTableDataChanged();
         } catch (RuntimeException ex) {
             LOG.error("Unexpected error", ex);
         }

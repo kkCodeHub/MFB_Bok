@@ -8,11 +8,11 @@ import se.swedsoft.bookkeeping.data.SSVoucherRow;
 import se.swedsoft.bookkeeping.gui.util.model.SSDefaultTableModel;
 import se.swedsoft.bookkeeping.print.SSPrinter;
 import se.swedsoft.bookkeeping.print.util.SSDefaultJasperDataSource;
+import se.swedsoft.bookkeeping.util.SSDateUtil;
 
+import java.time.LocalDate;
 import java.text.DateFormat;
 import java.util.Collections;
-import java.util.Comparator;
-import java.util.Date;
 import java.util.List;
 
 
@@ -36,7 +36,8 @@ public class SSOutpaymentjournalPrinter extends SSPrinter {
      * @param iNumber
      * @param iDate
      */
-    public SSOutpaymentjournalPrinter(List<SSOutpayment> iOutpayments, Integer iNumber, Date iDate) {
+    public SSOutpaymentjournalPrinter(List<SSOutpayment> iOutpayments, Integer iNumber,
+            LocalDate iDate) {
         this.iOutpayments = iOutpayments;
         this.iNumber = iNumber;
 
@@ -46,7 +47,7 @@ public class SSOutpaymentjournalPrinter extends SSPrinter {
         setSummary("journals/outpaymentjournal.jrxml");
 
         addParameter("periodTitle", iBundle.getString("outpaymentjournal.periodtitle"));
-        addParameter("periodText", iDate);
+        addParameter("periodText", iDate == null ? null : SSDateUtil.toDate(iDate));
     }
 
     /**

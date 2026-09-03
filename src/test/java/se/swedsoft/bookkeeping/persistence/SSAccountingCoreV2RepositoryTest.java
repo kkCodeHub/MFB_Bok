@@ -1,6 +1,7 @@
 package se.swedsoft.bookkeeping.persistence;
 
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
@@ -8,17 +9,13 @@ import org.junit.jupiter.api.Test;
 import se.swedsoft.bookkeeping.data.SSAccount;
 import se.swedsoft.bookkeeping.data.SSAccountPlan;
 import se.swedsoft.bookkeeping.data.SSNewAccountingYear;
-import se.swedsoft.bookkeeping.data.SSNewCompany;
 import se.swedsoft.bookkeeping.data.SSVoucher;
 import se.swedsoft.bookkeeping.data.SSVoucherRow;
 import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.testsupport.system.SSV2DatabaseFixture;
 
 import java.math.BigDecimal;
 import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.Statement;
 import java.time.LocalDate;
 import java.util.Optional;
 
@@ -32,37 +29,27 @@ class SSAccountingCoreV2RepositoryTest {
     private static Connection connection;
 
     @BeforeAll
-    static void setupV2Schema() throws Exception {
-        System.setProperty("fribok.schema.version", "v2");
-
-        Class.forName("org.hsqldb.jdbcDriver");
-        connection = DriverManager.getConnection(JDBC_URL, "sa", "");
-
-        SSDB.getInstance().startupLocal(connection);
-
-        Integer companyId = createCompany("V2 Accounting Core Repo Test AB");
-        SSNewCompany company = new SSNewCompany();
-        company.setId(companyId);
-        company.setName("V2 Accounting Core Repo Test AB");
-        SSDB.getInstance().setCurrentCompany(company);
+    static void setupV2Database() throws Exception {
+        connection = SSV2DatabaseFixture.openDatabase(JDBC_URL);
+        Integer iCompanyId = SSV2DatabaseFixture.createCompany(connection, "V2 Accounting Core Repo Test AB");
+        SSV2DatabaseFixture.setCurrentCompany(iCompanyId, "V2 Accounting Core Repo Test AB");
 
         Repositories.init(SSDB.getInstance());
     }
 
     @AfterAll
-    static void teardownV2Schema() throws Exception {
-        try {
-            if (connection != null && !connection.isClosed()) {
-                connection.close();
-            }
-        } finally {
-            System.clearProperty("fribok.schema.version");
-        }
+    static void teardownV2Database() throws Exception {
+        SSV2DatabaseFixture.closeDatabase(connection);
     }
 
     @BeforeEach
-    void clearCaches() {
-        SSDB.getInstance().clearLists();
+    void resetState() {
+        SSV2DatabaseFixture.clearState();
+    }
+
+    @AfterEach
+    void cleanupState() {
+        SSV2DatabaseFixture.clearState();
     }
 
     @Test
@@ -123,20 +110,4 @@ class SSAccountingCoreV2RepositoryTest {
         return row;
     }
 
-    private static Integer createCompany(String name) throws Exception {
-        try (PreparedStatement statement = connection.prepareStatement(
-                "INSERT INTO tbl_company(name) VALUES (?)", Statement.RETURN_GENERATED_KEYS)) {
-            statement.setString(1, name);
-            statement.executeUpdate();
-            connection.commit();
-
-            try (ResultSet keys = statement.getGeneratedKeys()) {
-                if (keys.next()) {
-                    return keys.getInt(1);
-                }
-            }
-        }
-        throw new IllegalStateException("Could not create test company for accounting-core repository test");
-    }
 }
-

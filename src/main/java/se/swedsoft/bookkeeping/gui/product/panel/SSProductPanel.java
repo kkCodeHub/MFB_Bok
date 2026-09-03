@@ -6,13 +6,18 @@ import se.swedsoft.bookkeeping.data.*;
 import se.swedsoft.bookkeeping.data.common.SSDefaultAccount;
 import se.swedsoft.bookkeeping.data.common.SSTaxCode;
 import se.swedsoft.bookkeeping.data.common.SSUnit;
-import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.data.system.SSAccountingContext;
+import se.swedsoft.bookkeeping.data.system.SSCompanyYearContext;
+import se.swedsoft.bookkeeping.data.system.SSProjectContext;
+import se.swedsoft.bookkeeping.data.system.SSResultUnitContext;
+import se.swedsoft.bookkeeping.data.system.SSPurchaseContext;
 import se.swedsoft.bookkeeping.gui.product.util.SSProductRowTableModel;
 import se.swedsoft.bookkeeping.gui.project.util.SSProjectTableModel;
 import se.swedsoft.bookkeeping.gui.resultunit.util.SSResultUnitTableModel;
 import se.swedsoft.bookkeeping.gui.supplier.util.SSSupplierTableModel;
 import se.swedsoft.bookkeeping.gui.util.SSButtonPanel;
 import se.swedsoft.bookkeeping.gui.util.SSInputVerifier;
+import se.swedsoft.bookkeeping.gui.util.SSQuantityPresentationUtil;
 import se.swedsoft.bookkeeping.gui.util.SSSelectionListener;
 import se.swedsoft.bookkeeping.gui.util.components.*;
 import se.swedsoft.bookkeeping.gui.util.dialogs.SSDialog;
@@ -27,7 +32,7 @@ import se.swedsoft.bookkeeping.gui.util.table.editors.SSProductCellEditor;
 import javax.swing.*;
 import javax.swing.text.DefaultFormatterFactory;
 import javax.swing.text.NumberFormatter;
-import java.awt.event.ActionEvent;
+import java.awt.*;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
@@ -77,6 +82,8 @@ public class SSProductPanel {
 
     private JCheckBox iStockGoods;
 
+    private JCheckBox iOnlyWholeQuantity;
+
     private SSIntegerTextField iOrderpoint;
 
     private SSIntegerTextField iOrdercount;
@@ -103,7 +110,7 @@ public class SSProductPanel {
 
     private SSTable iParcel;
 
-    private SSDefaultTableModel<SSProductRow> iParcelModel;
+    private final SSDefaultTableModel<SSProductRow> iParcelModel;
 
     private JLabel iVolumeUnit;
 
@@ -119,27 +126,30 @@ public class SSProductPanel {
 
     private SSBigDecimalTextField iContributionRate;
 
-    private SSInputVerifier iInputVerifier;
+    private final SSInputVerifier iInputVerifier;
     private SSBigDecimalTextField iStockPrice;
 
     /**
+     * Creates a product panel.
      *
-     * @param iOwner
-     * @param iEdit
+     * @param iOwner parent dialog
+     * @param iEdit {@code true} when editing an existing product
      */
-    public SSProductPanel(final SSDialog iOwner, boolean iEdit) {
-        iProductNr.setEnabled(!iEdit);
+     public SSProductPanel(final SSDialog iOwner, boolean iEdit) {
+         iProductNr.setEnabled(!iEdit);
 
-        iParcelModel = new SSProductRowTableModel();
-        iParcelModel.addDeleteAction(iParcel);
+         iParcelModel = new SSProductRowTableModel();
+         iParcelModel.addDeleteAction(iParcel);
+         iParcelModel.addTableModelListener(e -> updateCalculateButtonState());
 
-        iParcel.setModel(iParcelModel);
+         iParcel.setModel(iParcelModel);
         iParcel.setColorReadOnly(true);
+         iParcel.setSelectionForeground(Color.BLACK);
 
         iParcel.setDefaultEditor(SSProduct.class,
                 new SSProductCellEditor(SSProductMath.getNormalProducts(), false));
 
-        SSNewCompany iCompany = SSDB.getInstance().getCurrentCompany();
+        SSNewCompany iCompany = SSCompanyYearContext.getCurrentCompany();
 
         if (iCompany != null) {
             iVolumeUnit.setText(iCompany.getVolumeUnit());
@@ -154,45 +164,31 @@ public class SSProductPanel {
 
         iSellingAccount.setModel(SSAccountTableModel.getDropDownModel());
         iSellingAccount.setSearchColumns(0);
-        iSellingAccount.addSelectionListener(
-                new SSSelectionListener() {
-            public void selected(SSTableSearchable selected) {
-                SSAccount iSelected = iSellingAccount.getSelected();
-
-                iSellingAccountDescription.setText(
-                        iSelected == null ? "" : iSelected.getDescription());
-            }
+        iSellingAccount.addSelectionListener(selected -> {
+            SSAccount iSelected = iSellingAccount.getSelected();
+            iSellingAccountDescription.setText(iSelected == null ? "" : iSelected.getDescription());
         });
         iSellingAccount.setSelected(
-                SSDB.getInstance().getCurrentAccountPlan().getAccount(3041), true);
+                SSAccountingContext.getAccount(3041), true);
 
         iPurchaseAccount.setModel(SSAccountTableModel.getDropDownModel());
         iPurchaseAccount.setSearchColumns(0);
-        iPurchaseAccount.addSelectionListener(
-                new SSSelectionListener() {
-            public void selected(SSTableSearchable selected) {
-                SSAccount iSelected = iPurchaseAccount.getSelected();
-
-                iPurchaseAccountDescription.setText(
-                        iSelected == null ? "" : iSelected.getDescription());
-            }
+        iPurchaseAccount.addSelectionListener(selected -> {
+            SSAccount iSelected = iPurchaseAccount.getSelected();
+            iPurchaseAccountDescription.setText(iSelected == null ? "" : iSelected.getDescription());
         });
         iPurchaseAccount.setSelected(
-                SSDB.getInstance().getCurrentAccountPlan().getAccount(4010), true);
+                SSAccountingContext.getAccount(4010), true);
 
         iProject.setModel(SSProjectTableModel.getDropDownModel());
         iProject.setSearchColumns(0);
-        iProject.addSelectionListener(
-                new SSSelectionListener() {
-            public void selected(SSTableSearchable selected) {
-                SSNewProject iSelected = iProject.getSelected();
+        iProject.addSelectionListener(selected -> {
+            SSNewProject iSelected = iProject.getSelected();
 
-                if (iProject.getText() != null && iProject.getText().length() != 0) {
-                    iProjectDescription.setText(
-                            iSelected == null ? "" : iSelected.getName());
-                } else {
-                    iProjectDescription.setText(null);
-                }
+            if (iProject.getText() != null && !iProject.getText().isEmpty()) {
+                iProjectDescription.setText(iSelected == null ? "" : iSelected.getName());
+            } else {
+                iProjectDescription.setText(null);
             }
         });
 
@@ -209,17 +205,13 @@ public class SSProductPanel {
         });
         iResultUnit.setModel(SSResultUnitTableModel.getDropDownModel());
         iResultUnit.setSearchColumns(0);
-        iResultUnit.addSelectionListener(
-                new SSSelectionListener() {
-            public void selected(SSTableSearchable selected) {
-                SSNewResultUnit iSelected = iResultUnit.getSelected();
+        iResultUnit.addSelectionListener(selected -> {
+            SSNewResultUnit iSelected = iResultUnit.getSelected();
 
-                if (iResultUnit.getText() != null && iResultUnit.getText().length() != 0) {
-                    iResultUnitDescription.setText(
-                            iSelected == null ? "" : iSelected.getName());
-                } else {
-                    iResultUnitDescription.setText(null);
-                }
+            if (iResultUnit.getText() != null && !iResultUnit.getText().isEmpty()) {
+                iResultUnitDescription.setText(iSelected == null ? "" : iSelected.getName());
+            } else {
+                iResultUnitDescription.setText(null);
             }
         });
         iResultUnit.getComponent(0).addKeyListener(new KeyAdapter() {
@@ -247,6 +239,7 @@ public class SSProductPanel {
                 iProduct.getParcelRows().clear();
 
                 iParcelModel.fireTableDataChanged();
+                updateCalculateButtonState();
 
             });
 
@@ -262,14 +255,10 @@ public class SSProductPanel {
 
         iInputVerifier.add(iProductNr);
         iInputVerifier.add(iUnitprice);
-        iInputVerifier.addListener(new SSInputVerifier.SSVerifierListener() {
-            public void updated(SSInputVerifier iVerifier, boolean iValid) {
-                iButtonPanel.getOkButton().setEnabled(iValid);
-            }
-        });
+        iInputVerifier.addListener((iVerifier, iValid) -> iButtonPanel.getOkButton().setEnabled(iValid));
 
-        iDescriptions.addLocale(new Locale("se"), "Svenska:");
-        iDescriptions.addLocale(new Locale("en"), "Engelska:");
+        iDescriptions.addLocale(Locale.forLanguageTag("se"), "Svenska:");
+        iDescriptions.addLocale(Locale.forLanguageTag("en"), "Engelska:");
 
         NumberFormat iFormat = NumberFormat.getNumberInstance();
 
@@ -292,8 +281,9 @@ public class SSProductPanel {
     }
 
     /**
+     * Validates required product input fields.
      *
-     * @return
+     * @return {@code true} when current input passes validation
      */
     public boolean isValid() {
         return iInputVerifier.isValid();
@@ -319,7 +309,9 @@ public class SSProductPanel {
     }
 
     /**
-     * @param pProduct
+     * Populates the panel from a product object.
+     *
+     * @param pProduct product to edit in the panel
      */
     public void setProduct(SSProduct pProduct) {
         iProduct = pProduct;
@@ -336,18 +328,19 @@ public class SSProductPanel {
         iUnit.setSelected(iProduct.getUnit());
         iExpired.setSelected(iProduct.isExpired());
         iStockGoods.setSelected(iProduct.isStockProduct());
+        iOnlyWholeQuantity.setSelected(iProduct.isOnlyWholeQuantity());
         iOrderpoint.setValue(iProduct.getOrderpoint());
         iOrdercount.setValue(iProduct.getOrdercount());
         iWarehouseLocation.setText(iProduct.getWarehouseLocation());
         iSupplierProductNr.setText(iProduct.getSupplierProductNr());
-        iSupplier.setSelected(iProduct.getSupplier(SSDB.getInstance().getSuppliers()));
+        iSupplier.setSelected(iProduct.getSupplier(SSPurchaseContext.getSuppliers()));
 
         // Beskrivningar på alternativa språk
         iDescriptions.setValues(iProduct.getDescriptions());
 
-        SSAccountPlan iAccountPlan = SSDB.getInstance().getCurrentAccountPlan();
+        SSAccountPlan iAccountPlan = SSAccountingContext.getCurrentAccountPlan();
 
-        // SSNewCompany     iCompany     = SSDB.getInstance().getCurrentCompany();
+        // SSNewCompany     iCompany     = SSCompanyYearContext.getCurrentCompany();
 
         // Integer iSalesAccountNumber     = iProduct.getDefaultAccount(SSDefaultAccount.Sales    );//, iCompany.getDefaultAccount(SSDefaultAccount.Sales    ));
         // Integer iPurchasesAccountNumber = iProduct.getDefaultAccount(SSDefaultAccount.Purchases);// iCompany.getDefaultAccount(SSDefaultAccount.Purchases));
@@ -363,7 +356,7 @@ public class SSProductPanel {
                             true);
         }
         if (iProduct.getProjectNr() != null) {
-            for (SSNewProject pProject : SSDB.getInstance().getProjects()) {
+            for (SSNewProject pProject : SSProjectContext.getProjects()) {
                 if (pProject.getNumber().equals(iProduct.getProjectNr())) {
                     iProject.setSelected(pProject);
                     iProjectDescription.setText(pProject.getName());
@@ -374,7 +367,7 @@ public class SSProductPanel {
             iProject.setText(null);
         }
         if (iProduct.getResultUnitNr() != null) {
-            for (SSNewResultUnit pResultUnit : SSDB.getInstance().getResultUnits()) {
+            for (SSNewResultUnit pResultUnit : SSResultUnitContext.getResultUnits()) {
                 if (pResultUnit.getNumber().equals(iProduct.getResultUnitNr())) {
                     iResultUnit.setSelected(pResultUnit);
                     iResultUnitDescription.setText(pResultUnit.getName());
@@ -390,14 +383,17 @@ public class SSProductPanel {
         iParcelModel.setObjects(iProduct.getParcelRows());
 
         updateContribution();
+        updateCalculateButtonState();
     }
 
-    /**
-     * @return
-     */
-    public SSProduct getProduct() {
-        iProduct.setNumber(iProductNr.getText());
-        iProduct.setDescription(iDescription.getText());
+     /**
+      * Copies all UI values to the bound product.
+      *
+      * @return updated product instance
+      */
+     public SSProduct getProduct() {
+         iProduct.setNumber(iProductNr.getText());
+         iProduct.setDescription(iDescription.getText());
         iProduct.setSellingPrice(iUnitprice.getValue());
         iProduct.setTaxCode(iTax.getSelected());
         iProduct.setPurchasePrice(iPurchasePrice.getValue());
@@ -408,6 +404,7 @@ public class SSProductPanel {
         iProduct.setUnit(iUnit.getSelected());
         iProduct.setExpired(iExpired.isSelected());
         iProduct.setStockProduct(iStockGoods.isSelected());
+        iProduct.setOnlyWholeQuantity(iOnlyWholeQuantity.isSelected());
         // beställningsantal
         iProduct.setOrdercount(iOrdercount.getValue());
         // Beställningspunkt
@@ -423,12 +420,12 @@ public class SSProductPanel {
                 iPurchaseAccount.getSelected());
         iProduct.setDefaultAccount(SSDefaultAccount.Sales, iSellingAccount.getSelected());
 
-        if (iProject.getText() != null && iProject.getText().length() != 0) {
+        if (iProject.getText() != null && !iProject.getText().isEmpty()) {
             iProduct.setProject(iProject.getSelected());
         } else {
             iProduct.setProject(null);
         }
-        if (iResultUnit.getText() != null && iResultUnit.getText().length() != 0) {
+        if (iResultUnit.getText() != null && !iResultUnit.getText().isEmpty()) {
             iProduct.setResultUnit(iResultUnit.getSelected());
         } else {
             iProduct.setResultUnit(null);
@@ -438,23 +435,37 @@ public class SSProductPanel {
         return iProduct;
     }
 
-    /**
-     * @return
-     */
-    public JPanel getPanel() {
-        return iPanel;
-    }
+     /**
+      * Returns the root panel component.
+      *
+      * @return product panel UI
+      */
+     public JPanel getPanel() {
+         return iPanel;
+     }
 
-    /**
-     * @param pActionListener
-     */
+     /**
+      * Updates the calculate button enable/disable state based on whether parcel rows exist.
+      */
+     private void updateCalculateButtonState() {
+         boolean hasParcelRows = iProduct != null && !iProduct.getParcelRows().isEmpty();
+         iCalculateButton.setEnabled(hasParcelRows);
+     }
 
-    public void addOkAction(ActionListener pActionListener) {
+     /**
+      * Registers an OK-button action.
+      *
+      * @param pActionListener listener invoked for the OK action
+      */
+
+     public void addOkAction(ActionListener pActionListener) {
         iButtonPanel.addOkActionListener(pActionListener);
     }
 
     /**
-     * @param pActionListener
+     * Registers a Cancel-button action.
+     *
+     * @param pActionListener listener invoked for the cancel action
      */
     public void addCancelAction(ActionListener pActionListener) {
         iButtonPanel.addCancelActionListener(pActionListener);
@@ -484,7 +495,7 @@ public class SSProductPanel {
             BigDecimal iPurchasePrice = iProduct.getPurchasePrice();
             BigDecimal iFreightPrice = iProduct.getUnitFreight();
 
-            BigDecimal dCount = new BigDecimal(iCount);
+            BigDecimal dCount = SSQuantityPresentationUtil.toDisplayQuantity(iCount);
 
             if (iUnitprice != null) {
                 iUnitpriceSum = iUnitpriceSum.add(iUnitprice.multiply(dCount));
@@ -510,10 +521,6 @@ public class SSProductPanel {
         iPurchasePrice.setValue(iPurchasePriceSum);
         iFreight.setValue(iFreightSum);
 
-    }
-
-    public void setEditPanel() {
-        iProductNr.setEditable(false);
     }
 
     public void addKeyListeners() {
@@ -720,51 +727,47 @@ public class SSProductPanel {
 
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder();
-
-        sb.append("se.swedsoft.bookkeeping.gui.product.panel.SSProductPanel");
-        sb.append("{iButtonPanel=").append(iButtonPanel);
-        sb.append(", iCalculateButton=").append(iCalculateButton);
-        sb.append(", iContribution=").append(iContribution);
-        sb.append(", iContributionRate=").append(iContributionRate);
-        sb.append(", iDeleteParcelButton=").append(iDeleteParcelButton);
-        sb.append(", iDescription=").append(iDescription);
-        sb.append(", iDescriptions=").append(iDescriptions);
-        sb.append(", iExpired=").append(iExpired);
-        sb.append(", iFreight=").append(iFreight);
-        sb.append(", iInprice=").append(iInprice);
-        sb.append(", iInputVerifier=").append(iInputVerifier);
-        sb.append(", iOrdercount=").append(iOrdercount);
-        sb.append(", iOrderpoint=").append(iOrderpoint);
-        sb.append(", iPanel=").append(iPanel);
-        sb.append(", iParcel=").append(iParcel);
-        sb.append(", iParcelModel=").append(iParcelModel);
-        sb.append(", iProduct=").append(iProduct);
-        sb.append(", iProductNr=").append(iProductNr);
-        sb.append(", iProject=").append(iProject);
-        sb.append(", iProjectDescription=").append(iProjectDescription);
-        sb.append(", iPurchaseAccount=").append(iPurchaseAccount);
-        sb.append(", iPurchaseAccountDescription=").append(iPurchaseAccountDescription);
-        sb.append(", iPurchasePrice=").append(iPurchasePrice);
-        sb.append(", iResultUnit=").append(iResultUnit);
-        sb.append(", iResultUnitDescription=").append(iResultUnitDescription);
-        sb.append(", iSellingAccount=").append(iSellingAccount);
-        sb.append(", iSellingAccountDescription=").append(iSellingAccountDescription);
-        sb.append(", iStockGoods=").append(iStockGoods);
-        sb.append(", iStockPrice=").append(iStockPrice);
-        sb.append(", iSupplier=").append(iSupplier);
-        sb.append(", iSupplierProductNr=").append(iSupplierProductNr);
-        sb.append(", iTax=").append(iTax);
-        sb.append(", iUnit=").append(iUnit);
-        sb.append(", iUnitprice=").append(iUnitprice);
-        sb.append(", iUpdateContributionButton=").append(iUpdateContributionButton);
-        sb.append(", iVolume=").append(iVolume);
-        sb.append(", iVolumeUnit=").append(iVolumeUnit);
-        sb.append(", iWarehouseLocation=").append(iWarehouseLocation);
-        sb.append(", iWeight=").append(iWeight);
-        sb.append(", iWeightUnit=").append(iWeightUnit);
-        sb.append('}');
-        return sb.toString();
+        return "se.swedsoft.bookkeeping.gui.product.panel.SSProductPanel"
+                + "{iButtonPanel=" + iButtonPanel
+                + ", iCalculateButton=" + iCalculateButton
+                + ", iContribution=" + iContribution
+                + ", iContributionRate=" + iContributionRate
+                + ", iDeleteParcelButton=" + iDeleteParcelButton
+                + ", iDescription=" + iDescription
+                + ", iDescriptions=" + iDescriptions
+                + ", iExpired=" + iExpired
+                + ", iFreight=" + iFreight
+                + ", iInprice=" + iInprice
+                + ", iInputVerifier=" + iInputVerifier
+                + ", iOrdercount=" + iOrdercount
+                + ", iOrderpoint=" + iOrderpoint
+                + ", iPanel=" + iPanel
+                + ", iParcel=" + iParcel
+                + ", iParcelModel=" + iParcelModel
+                + ", iProduct=" + iProduct
+                + ", iProductNr=" + iProductNr
+                + ", iProject=" + iProject
+                + ", iProjectDescription=" + iProjectDescription
+                + ", iPurchaseAccount=" + iPurchaseAccount
+                + ", iPurchaseAccountDescription=" + iPurchaseAccountDescription
+                + ", iPurchasePrice=" + iPurchasePrice
+                + ", iResultUnit=" + iResultUnit
+                + ", iResultUnitDescription=" + iResultUnitDescription
+                + ", iSellingAccount=" + iSellingAccount
+                + ", iSellingAccountDescription=" + iSellingAccountDescription
+                + ", iStockGoods=" + iStockGoods
+                + ", iStockPrice=" + iStockPrice
+                + ", iSupplier=" + iSupplier
+                + ", iSupplierProductNr=" + iSupplierProductNr
+                + ", iTax=" + iTax
+                + ", iUnit=" + iUnit
+                + ", iUnitprice=" + iUnitprice
+                + ", iUpdateContributionButton=" + iUpdateContributionButton
+                + ", iVolume=" + iVolume
+                + ", iVolumeUnit=" + iVolumeUnit
+                + ", iWarehouseLocation=" + iWarehouseLocation
+                + ", iWeight=" + iWeight
+                + ", iWeightUnit=" + iWeightUnit
+                + '}';
     }
 }
-

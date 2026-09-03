@@ -1,10 +1,8 @@
 package se.swedsoft.bookkeeping.importexport.excel;
 
 
-import jxl.Sheet;
-import jxl.Workbook;
-import jxl.WorkbookSettings;
-import jxl.read.biff.BiffException;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -25,6 +23,7 @@ import se.swedsoft.bookkeeping.importexport.dialog.SSImportReportDialog;
 import se.swedsoft.bookkeeping.importexport.excel.util.SSExcelCell;
 import se.swedsoft.bookkeeping.importexport.excel.util.SSExcelRow;
 import se.swedsoft.bookkeeping.importexport.excel.util.SSExcelSheet;
+import se.swedsoft.bookkeeping.importexport.excel.util.SSExcelWorkbookReader;
 import se.swedsoft.bookkeeping.importexport.util.SSImportException;
 
 import javax.swing.*;
@@ -43,13 +42,14 @@ import java.util.*;
  */
 public class SSCustomerImporter {
 
-    private File iFile;
+    private final File iFile;
 
-    private Map<String, Integer> iColumns;
+    private final Map<String, Integer> iColumns;
 
     /**
+     * Creates a customer importer.
      *
-     * @param iFile
+     * @param iFile source Excel file
      */
     public SSCustomerImporter(File iFile) {
         this.iFile = iFile;
@@ -57,21 +57,15 @@ public class SSCustomerImporter {
     }
 
     /**
+     * Imports customers from the configured file.
      *
-     * @throws SSImportException
+     * @throws SSImportException if import content is invalid or the file cannot be read
      */
     public void Import()  throws SSImportException {
-        WorkbookSettings iSettings = new WorkbookSettings();
-
-        iSettings.setLocale(new Locale("sv", "SE"));
-        iSettings.setEncoding("windows-1252");
-        iSettings.setExcelDisplayLanguage("SE");
-        iSettings.setExcelRegionalSettings("SE");
-
-        List<SSCustomer> iCustomers = null;
+        List<SSCustomer> iCustomers;
 
         try {
-            Workbook iWorkbook = Workbook.getWorkbook(iFile, iSettings);
+            Workbook iWorkbook = SSExcelWorkbookReader.openWorkbook(iFile);
 
             // Empty workbook, ie nothing to import
             if (iWorkbook.getNumberOfSheets() == 0) {
@@ -79,23 +73,21 @@ public class SSCustomerImporter {
                         "customerframe.import.nosheets");
             }
 
-            Sheet iSheet = iWorkbook.getSheet(0);
+            Sheet iSheet = iWorkbook.getSheetAt(0);
 
             iCustomers = importCustomers(new SSExcelSheet(iSheet));
 
             iWorkbook.close();
 
-        } catch (BiffException e) {
+        } catch (IOException e) {
             throw new SSImportException(e.getLocalizedMessage());
-        } catch (IOException e1) {
-            throw new SSImportException(e1.getLocalizedMessage());
         }
         boolean iResult = showImportReport(iCustomers);
 
-        if (iCustomers != null && iResult) {
+        if (iResult) {
             for (SSCustomer iCustomer : iCustomers) {
-                if (!SSDB.getInstance().getCustomers().contains(iCustomer)) {
-                    SSDB.getInstance().addCustomer(iCustomer);
+                if (!se.swedsoft.bookkeeping.data.system.SSSalesContext.getCustomers().contains(iCustomer)) {
+                    se.swedsoft.bookkeeping.data.system.SSSalesContext.addCustomer(iCustomer);
                 }
 
             }
@@ -103,8 +95,9 @@ public class SSCustomerImporter {
     }
 
     /**
+     * Reads and validates column names from the header row.
      *
-     * @param iColumns
+     * @param iColumns header row
      */
     private void getColumnIndexes(SSExcelRow iColumns) {
 
@@ -114,7 +107,7 @@ public class SSCustomerImporter {
         for (SSExcelCell iColumn : iColumns.getCells()) {
             String iName = iColumn.getString();
 
-            if (iName != null && iName.length() > 0) {
+            if (iName != null && !iName.isEmpty()) {
 
                 if (iName.equalsIgnoreCase(SSCustomerExporter.KUNDNUMMER)) {
                     this.iColumns.put(SSCustomerExporter.KUNDNUMMER, iIndex);
@@ -176,9 +169,10 @@ public class SSCustomerImporter {
     }
 
     /**
+     * Imports customers from the provided worksheet.
      *
-     * @param pSheet
-     * @return
+     * @param pSheet source sheet
+     * @return imported customers
      */
     private List<SSCustomer> importCustomers(SSExcelSheet pSheet) {
 
@@ -189,7 +183,7 @@ public class SSCustomerImporter {
                     "customerframe.import.norows");
         }
 
-        getColumnIndexes(iRows.get(0));
+        getColumnIndexes(iRows.getFirst());
 
         List<SSCustomer> iCustomers = new LinkedList<>();
 
@@ -302,7 +296,7 @@ public class SSCustomerImporter {
                     iCustomer.getDeliveryAddress().setCountry(iValue);
                 }
             }
-            if (iCustomer.getNumber() != null && iCustomer.getNumber().length() > 0) {
+            if (iCustomer.getNumber() != null && !iCustomer.getNumber().isEmpty()) {
                 iCustomers.add(iCustomer);
             }
         }
@@ -310,9 +304,10 @@ public class SSCustomerImporter {
     }
 
     /**
+     * Shows a summary dialog before import is applied.
      *
-     * @param iCustomers
-     * @return
+     * @param iCustomers customers queued for import
+     * @return {@code true} when user confirms import
      */
     private boolean showImportReport(List<SSCustomer> iCustomers) {
         SSImportReportDialog iDialog = new SSImportReportDialog(SSMainFrame.getInstance(),
@@ -417,7 +412,10 @@ public class SSCustomerImporter {
 
         iDialog.setText(sb.toString());
         iDialog.setSize(640, 480);
-        iDialog.setLocationRelativeTo(SSMainFrame.getInstance());
+        SSMainFrame iMainFrame = SSMainFrame.getInstance();
+        if (iMainFrame != null) {
+            iDialog.setLocationRelativeTo(iMainFrame);
+        }
 
         return iDialog.showDialog() == JOptionPane.OK_OPTION;
     }
@@ -449,8 +447,8 @@ public class SSCustomerImporter {
 
                 if (iCustomerNode.getNodeType() == Node.ELEMENT_NODE) {
 
-                    NodeList iTextCustomerAttList = null;
-                    String iValue = null;
+                    NodeList iTextCustomerAttList;
+                    String iValue;
                     Element iCustomerElement = (Element) iCustomerNode;
 
                     // Kund-id
@@ -463,7 +461,7 @@ public class SSCustomerImporter {
                         iValue = iTextCustomerAttList.item(0) == null
                                 ? ""
                                 : iTextCustomerAttList.item(0).getNodeValue().trim();
-                        iCustomer.setNumber(iValue == null ? "" : iValue);
+                        iCustomer.setNumber(iValue);
                     }
 
                     iCustomerAttList = iCustomerElement.getElementsByTagName(
@@ -474,7 +472,7 @@ public class SSCustomerImporter {
                         iValue = iTextCustomerAttList.item(0) == null
                                 ? ""
                                 : iTextCustomerAttList.item(0).getNodeValue().trim();
-                        iCustomer.setName(iValue == null ? "" : iValue);
+                        iCustomer.setName(iValue);
                     }
 
                     // Valuta
@@ -559,7 +557,7 @@ public class SSCustomerImporter {
                         iValue = iTextCustomerAttList.item(0) == null
                                 ? ""
                                 : iTextCustomerAttList.item(0).getNodeValue().trim();
-                        iCustomer.setTaxFree(Boolean.valueOf(iValue));
+                        iCustomer.setTaxFree(Boolean.parseBoolean(iValue));
                     }
 
                     // EU-försäljning
@@ -571,7 +569,7 @@ public class SSCustomerImporter {
                         iValue = iTextCustomerAttList.item(0) == null
                                 ? ""
                                 : iTextCustomerAttList.item(0).getNodeValue().trim();
-                        iCustomer.setEuSaleCommodity(Boolean.valueOf(iValue));
+                        iCustomer.setEuSaleCommodity(Boolean.parseBoolean(iValue));
                     }
 
                     // EU-försäljning 3e-part
@@ -583,7 +581,7 @@ public class SSCustomerImporter {
                         iValue = iTextCustomerAttList.item(0) == null
                                 ? ""
                                 : iTextCustomerAttList.item(0).getNodeValue().trim();
-                        iCustomer.setEuSaleYhirdPartCommodity(Boolean.valueOf(iValue));
+                        iCustomer.setEuSaleYhirdPartCommodity(Boolean.parseBoolean(iValue));
                     }
 
                     // Vat. nr
@@ -812,7 +810,7 @@ public class SSCustomerImporter {
                         iValue = iTextCustomerAttList.item(0) == null
                                 ? "false"
                                 : iTextCustomerAttList.item(0).getNodeValue().trim();
-                        iCustomer.setHideUnitprice(Boolean.valueOf(iValue));
+                        iCustomer.setHideUnitprice(Boolean.parseBoolean(iValue));
                     }
 
                     // Kreditgräns
@@ -864,24 +862,20 @@ public class SSCustomerImporter {
             }
 
             for (SSCustomer pCustomer : iCustomers) {
-                if (SSDB.getInstance().getCustomers().contains(pCustomer)) {
-                    SSDB.getInstance().updateCustomer(pCustomer);
+                if (se.swedsoft.bookkeeping.data.system.SSSalesContext.getCustomers().contains(pCustomer)) {
+                    se.swedsoft.bookkeeping.data.system.SSSalesContext.updateCustomer(pCustomer);
                 } else {
-                    SSDB.getInstance().addCustomer(pCustomer);
+                    se.swedsoft.bookkeeping.data.system.SSSalesContext.addCustomer(pCustomer);
                 }
             }
 
-        } catch (ParserConfigurationException e) {
-            throw new SSImportException(e.getMessage());
-        } catch (SAXException e) {
-            throw new SSImportException(e.getMessage());
-        } catch (IOException e) {
+        } catch (ParserConfigurationException | SAXException | IOException e) {
             throw new SSImportException(e.getMessage());
         }
     }
 
     private SSCurrency getCurrency(String iName) {
-        for (SSCurrency iCurrency : SSDB.getInstance().getCurrencies()) {
+        for (SSCurrency iCurrency : se.swedsoft.bookkeeping.data.system.SSMasterdataContext.getCurrencies()) {
             if (iCurrency.getName().equals(iName)) {
                 return iCurrency;
             }
@@ -890,7 +884,7 @@ public class SSCustomerImporter {
     }
 
     private SSPaymentTerm getPaymentTerm(String iName) {
-        for (SSPaymentTerm iPaymentTerm : SSDB.getInstance().getPaymentTerms()) {
+        for (SSPaymentTerm iPaymentTerm : se.swedsoft.bookkeeping.data.system.SSMasterdataContext.getPaymentTerms()) {
             if (iPaymentTerm.getName().equals(iName)) {
                 return iPaymentTerm;
             }
@@ -899,7 +893,7 @@ public class SSCustomerImporter {
     }
 
     private SSDeliveryTerm getDeliveryTerm(String iName) {
-        for (SSDeliveryTerm iDeliveryTerm : SSDB.getInstance().getDeliveryTerms()) {
+        for (SSDeliveryTerm iDeliveryTerm : se.swedsoft.bookkeeping.data.system.SSMasterdataContext.getDeliveryTerms()) {
             if (iDeliveryTerm.getName().equals(iName)) {
                 return iDeliveryTerm;
             }
@@ -908,7 +902,7 @@ public class SSCustomerImporter {
     }
 
     private SSDeliveryWay getDeliveryWay(String iName) {
-        for (SSDeliveryWay iDeliveryWay : SSDB.getInstance().getDeliveryWays()) {
+        for (SSDeliveryWay iDeliveryWay : se.swedsoft.bookkeeping.data.system.SSMasterdataContext.getDeliveryWays()) {
             if (iDeliveryWay.getName().equals(iName)) {
                 return iDeliveryWay;
             }
@@ -920,7 +914,7 @@ public class SSCustomerImporter {
         try {
             BufferedReader br = new BufferedReader(
                     new InputStreamReader(new FileInputStream(iFile), "Windows-1252"));
-            String text = null;
+            String text;
             Collection<String> al = new ArrayList<>();
             Collection<String> iBadCustomers = new ArrayList<>();
 
@@ -929,12 +923,12 @@ public class SSCustomerImporter {
             }
             br.close();
 
-            Integer iCustomerCount = 0;
+            int iCustomerCount = 0;
 
             for (String iLine : al) {
                 boolean iNewCustomer = false;
                 String[] iFields = iLine.split("\t", -1);
-                SSCustomer iCustomer = SSDB.getInstance().getCustomer(iFields[0]).orElse(null);
+                SSCustomer iCustomer = se.swedsoft.bookkeeping.data.system.SSSalesContext.getCustomer(iFields[0]).orElse(null);
 
                 if (iCustomer == null) {
                     iCustomer = new SSCustomer();
@@ -944,7 +938,7 @@ public class SSCustomerImporter {
                 }
 
                 if (iFields.length == 20) {
-                    if (iFields[2] == null || iFields[2].length() == 0) {
+                    if (iFields[2] == null || iFields[2].isEmpty()) {
                         iCustomer.getInvoiceAddress().setName(
                                 iFields[3] + ' ' + iFields[4]);
                         iCustomer.setName(iFields[3] + ' ' + iFields[4]);
@@ -961,40 +955,41 @@ public class SSCustomerImporter {
                     iCustomer.getInvoiceAddress().setCity(iFields[7]);
                     iCustomer.getInvoiceAddress().setCountry(iFields[8]);
 
+                    String iDeliveryAddressName = (iFields[10] + ' ' + iFields[11]).trim();
                     if (iFields[9] == null
-                            || (iFields[9].length() == 0 && iFields[2].length() == 0)) {
+                            || (iFields[9].isEmpty() && iFields[2].isEmpty())) {
                         iCustomer.getDeliveryAddress().setName(
-                                (iFields[10] + ' ' + iFields[11]).equals(" ")
+                                iDeliveryAddressName.isEmpty()
                                         ? iCustomer.getInvoiceAddress().getName()
                                         : iFields[10] + ' ' + iFields[11]);
                         iCustomer.getDeliveryAddress().setAddress1(
-                                iFields[12].length() == 0
+                                iFields[12].isEmpty()
                                         ? iCustomer.getInvoiceAddress().getAddress1()
                                         : iFields[12]);
                     } else {
                         iCustomer.getDeliveryAddress().setName(
-                                iFields[9].length() == 0
+                                iFields[9].isEmpty()
                                         ? iCustomer.getInvoiceAddress().getName()
                                         : iFields[9]);
                         iCustomer.getDeliveryAddress().setAddress1(
-                                (iFields[10] + ' ' + iFields[11]).equals(" ")
+                                iDeliveryAddressName.isEmpty()
                                         ? iCustomer.getInvoiceAddress().getAddress1()
                                         : iFields[10] + ' ' + iFields[11]);
                         iCustomer.getDeliveryAddress().setAddress2(
-                                iFields[12].length() == 0
+                                iFields[12].isEmpty()
                                         ? iCustomer.getInvoiceAddress().getAddress2()
                                         : iFields[12]);
                     }
                     iCustomer.getDeliveryAddress().setZipCode(
-                            iFields[13].length() == 0
+                            iFields[13].isEmpty()
                                     ? iCustomer.getInvoiceAddress().getZipCode()
                                     : iFields[13]);
                     iCustomer.getDeliveryAddress().setCity(
-                            iFields[14].length() == 0
+                            iFields[14].isEmpty()
                                     ? iCustomer.getInvoiceAddress().getCity()
                                     : iFields[14]);
                     iCustomer.getDeliveryAddress().setCountry(
-                            iFields[15].length() == 0
+                            iFields[15].isEmpty()
                                     ? iCustomer.getInvoiceAddress().getCountry()
                                     : iFields[15]);
 
@@ -1003,13 +998,13 @@ public class SSCustomerImporter {
                     iCustomer.setEMail(iFields[18]);
                     iCustomer.setRegistrationNumber(iFields[19]);
                     if (iNewCustomer) {
-                        SSDB.getInstance().addCustomer(iCustomer);
+                        se.swedsoft.bookkeeping.data.system.SSSalesContext.addCustomer(iCustomer);
                     } else {
-                        SSDB.getInstance().updateCustomer(iCustomer);
+                        se.swedsoft.bookkeeping.data.system.SSSalesContext.updateCustomer(iCustomer);
                     }
                     iCustomerCount++;
                 } else if (iFields.length == 19) {
-                    if (iFields[1] == null || iFields[1].length() == 0) {
+                    if (iFields[1] == null || iFields[1].isEmpty()) {
                         iCustomer.getInvoiceAddress().setName(
                                 iFields[2] + ' ' + iFields[3]);
                         iCustomer.setName(iFields[2] + ' ' + iFields[3]);
@@ -1026,40 +1021,41 @@ public class SSCustomerImporter {
                     iCustomer.getInvoiceAddress().setCity(iFields[6]);
                     iCustomer.getInvoiceAddress().setCountry(iFields[7]);
 
+                    String iDeliveryAddressName = (iFields[9] + ' ' + iFields[10]).trim();
                     if (iFields[8] == null
-                            || (iFields[8].length() == 0 && iFields[1].length() == 0)) {
+                            || (iFields[8].isEmpty() && iFields[1].isEmpty())) {
                         iCustomer.getDeliveryAddress().setName(
-                                (iFields[9] + ' ' + iFields[10]).equals(" ")
+                                iDeliveryAddressName.isEmpty()
                                         ? iCustomer.getInvoiceAddress().getName()
                                         : iFields[9] + ' ' + iFields[10]);
                         iCustomer.getDeliveryAddress().setAddress1(
-                                iFields[11].length() == 0
+                                iFields[11].isEmpty()
                                         ? iCustomer.getInvoiceAddress().getAddress1()
                                         : iFields[11]);
                     } else {
                         iCustomer.getDeliveryAddress().setName(
-                                iFields[8].length() == 0
+                                iFields[8].isEmpty()
                                         ? iCustomer.getInvoiceAddress().getName()
                                         : iFields[8]);
                         iCustomer.getDeliveryAddress().setAddress1(
-                                (iFields[9] + ' ' + iFields[10]).equals(" ")
+                                iDeliveryAddressName.isEmpty()
                                         ? iCustomer.getInvoiceAddress().getAddress1()
                                         : iFields[9] + ' ' + iFields[10]);
                         iCustomer.getDeliveryAddress().setAddress2(
-                                iFields[11].length() == 0
+                                iFields[11].isEmpty()
                                         ? iCustomer.getInvoiceAddress().getAddress2()
                                         : iFields[11]);
                     }
                     iCustomer.getDeliveryAddress().setZipCode(
-                            iFields[12].length() == 0
+                            iFields[12].isEmpty()
                                     ? iCustomer.getInvoiceAddress().getZipCode()
                                     : iFields[12]);
                     iCustomer.getDeliveryAddress().setCity(
-                            iFields[13].length() == 0
+                            iFields[13].isEmpty()
                                     ? iCustomer.getInvoiceAddress().getCity()
                                     : iFields[13]);
                     iCustomer.getDeliveryAddress().setCountry(
-                            iFields[14].length() == 0
+                            iFields[14].isEmpty()
                                     ? iCustomer.getInvoiceAddress().getCountry()
                                     : iFields[14]);
 
@@ -1068,9 +1064,9 @@ public class SSCustomerImporter {
                     iCustomer.setEMail(iFields[17]);
                     iCustomer.setRegistrationNumber(iFields[18]);
                     if (iNewCustomer) {
-                        SSDB.getInstance().addCustomer(iCustomer);
+                        se.swedsoft.bookkeeping.data.system.SSSalesContext.addCustomer(iCustomer);
                     } else {
-                        SSDB.getInstance().updateCustomer(iCustomer);
+                        se.swedsoft.bookkeeping.data.system.SSSalesContext.updateCustomer(iCustomer);
                     }
                     iCustomerCount++;
                 } else {
@@ -1089,11 +1085,11 @@ public class SSCustomerImporter {
                 }
                 bw.close();
                 new SSInformationDialog(SSMainFrame.getInstance(),
-                        "customerframe.import.errors", iCustomerCount.toString(),
+                        "customerframe.import.errors", String.valueOf(iCustomerCount),
                         String.valueOf(iBadCustomers.size()));
             } else {
                 new SSInformationDialog(SSMainFrame.getInstance(),
-                        "customerframe.import.noerrors", iCustomerCount.toString());
+                        "customerframe.import.noerrors", String.valueOf(iCustomerCount));
             }
         } catch (IOException e) {
             throw new SSImportException(e.getMessage());
@@ -1102,12 +1098,9 @@ public class SSCustomerImporter {
 
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder();
-
-        sb.append("se.swedsoft.bookkeeping.importexport.excel.SSCustomerImporter");
-        sb.append("{iColumns=").append(iColumns);
-        sb.append(", iFile=").append(iFile);
-        sb.append('}');
-        return sb.toString();
+        return "se.swedsoft.bookkeeping.importexport.excel.SSCustomerImporter"
+                + "{iColumns=" + iColumns
+                + ", iFile=" + iFile
+                + '}';
     }
 }

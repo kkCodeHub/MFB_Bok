@@ -10,9 +10,11 @@ import se.swedsoft.bookkeeping.data.system.SSDB;
 import se.swedsoft.bookkeeping.gui.util.SSBundle;
 import se.swedsoft.bookkeeping.gui.util.model.SSDefaultTableModel;
 import se.swedsoft.bookkeeping.print.SSPrinter;
+import se.swedsoft.bookkeeping.util.SSDateUtil;
 
 import java.math.BigDecimal;
 import java.text.DateFormat;
+import java.time.LocalDate;
 import java.util.*;
 
 import static se.swedsoft.bookkeeping.calc.SSMainBookCalculator.SSMainBookRow;
@@ -29,36 +31,34 @@ public class SSMainBookPrinter extends SSPrinter {
     SSAccount iAccountFrom;
     SSAccount iAccountTo;
 
-    Date iDateFrom;
-    Date iDateTo;
+    LocalDate iDateFrom;
+    LocalDate iDateTo;
     private SSNewProject iProject;
     private SSNewResultUnit iResultUnit;
 
     /**
-     *
-     * @param pAccountFrom
-     * @param pAccountTo
-     * @param pDateFrom
-     * @param pDateTo
-     * @param iProject
-     * @param iResultUnit
+     * @param pAccountFrom the first account in range
+     * @param pAccountTo   the last account in range
+     * @param pDateFrom    the start of the period (inclusive)
+     * @param pDateTo      the end of the period (inclusive)
+     * @param iProject     optional project filter
+     * @param iResultUnit  optional result-unit filter
      */
-    public SSMainBookPrinter(SSAccount pAccountFrom, SSAccount pAccountTo, Date pDateFrom, Date pDateTo, SSNewProject iProject, SSNewResultUnit iResultUnit) {
-        this(SSDB.getInstance().getCurrentYear(), pAccountFrom, pAccountTo, pDateFrom,
+    public SSMainBookPrinter(SSAccount pAccountFrom, SSAccount pAccountTo, LocalDate pDateFrom, LocalDate pDateTo, SSNewProject iProject, SSNewResultUnit iResultUnit) {
+        this(se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.getCurrentYear(), pAccountFrom, pAccountTo, pDateFrom,
                 pDateTo, iProject, iResultUnit);
     }
 
     /**
-     *
-     * @param pYearData The year
-     * @param pAccountFrom
-     * @param pAccountTo
-     * @param pDateFrom
-     * @param pDateTo
-     * @param iProject
-     * @param iResultUnit
+     * @param pYearData    the accounting year
+     * @param pAccountFrom the first account in range
+     * @param pAccountTo   the last account in range
+     * @param pDateFrom    the start of the period (inclusive)
+     * @param pDateTo      the end of the period (inclusive)
+     * @param iProject     optional project filter
+     * @param iResultUnit  optional result-unit filter
      */
-    public SSMainBookPrinter(SSNewAccountingYear pYearData, SSAccount pAccountFrom, SSAccount pAccountTo, Date pDateFrom, Date pDateTo, SSNewProject iProject, SSNewResultUnit iResultUnit) {
+    public SSMainBookPrinter(SSNewAccountingYear pYearData, SSAccount pAccountFrom, SSAccount pAccountTo, LocalDate pDateFrom, LocalDate pDateTo, SSNewProject iProject, SSNewResultUnit iResultUnit) {
         iYearData = pYearData;
         iAccountFrom = pAccountFrom;
         iAccountTo = pAccountTo;
@@ -89,8 +89,8 @@ public class SSMainBookPrinter extends SSPrinter {
     protected SSDefaultTableModel getModel() {
         final DateFormat iFormat = DateFormat.getDateInstance(DateFormat.SHORT);
 
-        addParameter("dateFrom", iDateFrom);
-        addParameter("dateTo", iDateTo);
+        addParameter("dateFrom", SSDateUtil.toDate(iDateFrom));
+        addParameter("dateTo", SSDateUtil.toDate(iDateTo));
 
         String iPeriodText = String.format(
                 SSBundle.getBundle().getString("mainbookreport.period.account"),

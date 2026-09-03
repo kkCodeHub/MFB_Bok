@@ -27,7 +27,7 @@ public class SSCreditInvoiceMath extends SSInvoiceMath {
      */
     public static BigDecimal getSumForInvoice(SSInvoice iInvoice) {
         // Get all credit invoices from the db
-        List<SSCreditInvoice> iCreditInvoices = SSDB.getInstance().getCreditInvoices();
+        List<SSCreditInvoice> iCreditInvoices = se.swedsoft.bookkeeping.data.system.SSSalesContext.getCreditInvoices();
 
         BigDecimal iSum = new BigDecimal(0);
 
@@ -44,7 +44,7 @@ public class SSCreditInvoiceMath extends SSInvoiceMath {
     public static HashMap<Integer, BigDecimal> getSumsForInvoices() {
         HashMap<Integer, BigDecimal> iSums = new HashMap<>();
 
-        List<SSCreditInvoice> iCreditInvoices = SSDB.getInstance().getCreditInvoices();
+        List<SSCreditInvoice> iCreditInvoices = se.swedsoft.bookkeeping.data.system.SSSalesContext.getCreditInvoices();
 
         for (SSCreditInvoice iCreditInvoice : iCreditInvoices) {
             BigDecimal iRowSum = getTotalSum(iCreditInvoice);
@@ -64,7 +64,7 @@ public class SSCreditInvoiceMath extends SSInvoiceMath {
     public static HashMap<Integer, BigDecimal> getSumsForInvoices(Date iDate) {
         HashMap<Integer, BigDecimal> iSums = new HashMap<>();
 
-        List<SSCreditInvoice> iCreditInvoices = SSDB.getInstance().getCreditInvoices();
+        List<SSCreditInvoice> iCreditInvoices = se.swedsoft.bookkeeping.data.system.SSSalesContext.getCreditInvoices();
         LocalDate localDate = SSDateUtil.toLocalDate(iDate);
 
         for (SSCreditInvoice iCreditInvoice : iCreditInvoices) {
@@ -94,7 +94,7 @@ public class SSCreditInvoiceMath extends SSInvoiceMath {
      */
     public static BigDecimal getSumForInvoice(SSInvoice iInvoice, Date iDate) {
         // Get all credit invoices from the db
-        List<SSCreditInvoice> iCreditInvoices = SSDB.getInstance().getCreditInvoices();
+        List<SSCreditInvoice> iCreditInvoices = se.swedsoft.bookkeeping.data.system.SSSalesContext.getCreditInvoices();
 
         LocalDate localDate = SSDateUtil.toLocalDate(iDate);
         BigDecimal iSum = new BigDecimal(0);
@@ -118,7 +118,7 @@ public class SSCreditInvoiceMath extends SSInvoiceMath {
      * @return list of credit invoices
      */
     public static List<SSCreditInvoice> getCreditInvoicesForInvoice(SSInvoice iInvoice) {
-        return getCreditInvoicesForInvoice(SSDB.getInstance().getCreditInvoices(),
+        return getCreditInvoicesForInvoice(se.swedsoft.bookkeeping.data.system.SSSalesContext.getCreditInvoices(),
                 iInvoice);
 
     }
@@ -143,7 +143,7 @@ public class SSCreditInvoiceMath extends SSInvoiceMath {
      */
     public static List<SSCreditInvoice> getCreditInvoicesForCustomer(SSCustomer iCustomer) {
 
-        return getCreditInvoicesForCustomer(SSDB.getInstance().getCreditInvoices(),
+        return getCreditInvoicesForCustomer(se.swedsoft.bookkeeping.data.system.SSSalesContext.getCreditInvoices(),
                 iCustomer);
     }
 
@@ -161,7 +161,7 @@ public class SSCreditInvoiceMath extends SSInvoiceMath {
     }
 
     public static Map<String, List<SSCreditInvoice>> getCreditInvoicesforCustomers() {
-        List<SSCreditInvoice> iCreditInvoices = SSDB.getInstance().getCreditInvoices();
+        List<SSCreditInvoice> iCreditInvoices = se.swedsoft.bookkeeping.data.system.SSSalesContext.getCreditInvoices();
         Map<String, List<SSCreditInvoice>> iMap = new HashMap<>();
 
         for (SSCreditInvoice iCreditInvoice : iCreditInvoices) {

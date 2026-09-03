@@ -1,10 +1,8 @@
 package se.swedsoft.bookkeeping.importexport.excel;
 
 
-import jxl.Sheet;
-import jxl.Workbook;
-import jxl.WorkbookSettings;
-import jxl.read.biff.BiffException;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
 import se.swedsoft.bookkeeping.calc.math.SSSupplierMath;
 import se.swedsoft.bookkeeping.data.SSSupplier;
 import se.swedsoft.bookkeeping.data.system.SSDB;
@@ -15,6 +13,7 @@ import se.swedsoft.bookkeeping.importexport.dialog.SSImportReportDialog;
 import se.swedsoft.bookkeeping.importexport.excel.util.SSExcelCell;
 import se.swedsoft.bookkeeping.importexport.excel.util.SSExcelRow;
 import se.swedsoft.bookkeeping.importexport.excel.util.SSExcelSheet;
+import se.swedsoft.bookkeeping.importexport.excel.util.SSExcelWorkbookReader;
 import se.swedsoft.bookkeeping.importexport.util.SSImportException;
 
 import javax.swing.*;
@@ -29,13 +28,14 @@ import java.util.*;
  */
 public class SSSupplierImporter {
 
-    private File iFile;
+    private final File iFile;
 
-    private Map<String, Integer> iColumns;
+    private final Map<String, Integer> iColumns;
 
     /**
+     * Creates a supplier importer.
      *
-     * @param iFile
+     * @param iFile source Excel file
      */
     public SSSupplierImporter(File iFile) {
         this.iFile = iFile;
@@ -43,22 +43,16 @@ public class SSSupplierImporter {
     }
 
     /**
+     * Imports suppliers from the configured file.
      *
-     * @throws SSImportException
-     * @throws IOException
+     * @throws SSImportException if import content is invalid
+     * @throws IOException if reading the file fails
      */
     public void Import()  throws IOException, SSImportException {
-        WorkbookSettings iSettings = new WorkbookSettings();
-
-        iSettings.setLocale(new Locale("sv", "SE"));
-        iSettings.setEncoding("windows-1252");
-        iSettings.setExcelDisplayLanguage("SE");
-        iSettings.setExcelRegionalSettings("SE");
-
-        List<SSSupplier> iSuppliers = new LinkedList<>();
+        List<SSSupplier> iSuppliers;
 
         try {
-            Workbook iWorkbook = Workbook.getWorkbook(iFile, iSettings);
+            Workbook iWorkbook = SSExcelWorkbookReader.openWorkbook(iFile);
 
             // Empty workbook, ie nothing to import
             if (iWorkbook.getNumberOfSheets() == 0) {
@@ -66,13 +60,13 @@ public class SSSupplierImporter {
                         "supplierframe.import.nosheets");
             }
 
-            Sheet iSheet = iWorkbook.getSheet(0);
+            Sheet iSheet = iWorkbook.getSheetAt(0);
 
             iSuppliers = importSuppliers(new SSExcelSheet(iSheet));
 
             iWorkbook.close();
 
-        } catch (BiffException e) {
+        } catch (IOException e) {
             throw new SSImportException(e.getLocalizedMessage());
         }
         final List<SSSupplier> iNewSuppliers = new LinkedList<>(iSuppliers);
@@ -81,13 +75,13 @@ public class SSSupplierImporter {
         SSInitDialog.runProgress(SSMainFrame.getInstance(), "Importerar leverant�rer",
                 () -> {
 
-                        if (iNewSuppliers != null && iResult) {
+                        if (iResult) {
                             Integer iOutPaymentNumber = SSSupplierMath.getOutpaymentNumber();
 
                             for (SSSupplier iSupplier : iNewSuppliers) {
-                                if (!SSDB.getInstance().getSuppliers().contains(iSupplier)) {
+                                if (!se.swedsoft.bookkeeping.data.system.SSPurchaseContext.getSuppliers().contains(iSupplier)) {
                                     iSupplier.setOutpaymentNumber(iOutPaymentNumber);
-                                    SSDB.getInstance().addSupplier(iSupplier);
+                                    se.swedsoft.bookkeeping.data.system.SSPurchaseContext.addSupplier(iSupplier);
                                     iOutPaymentNumber++;
                                 }
                             }
@@ -98,8 +92,9 @@ public class SSSupplierImporter {
     }
 
     /**
+     * Reads and validates column names from the header row.
      *
-     * @param iColumns
+     * @param iColumns header row
      */
     private void getColumnIndexes(SSExcelRow iColumns) {
 
@@ -109,7 +104,7 @@ public class SSSupplierImporter {
         for (SSExcelCell iColumn : iColumns.getCells()) {
             String iName = iColumn.getString();
 
-            if (iName != null && iName.length() > 0) {
+            if (iName != null && !iName.isEmpty()) {
 
                 if (iName.equalsIgnoreCase(SSSupplierExporter.LEVERANTORSNUMMER)) {
                     this.iColumns.put(SSSupplierExporter.LEVERANTORSNUMMER, iIndex);
@@ -158,9 +153,10 @@ public class SSSupplierImporter {
     }
 
     /**
+     * Imports supplier rows from the provided worksheet.
      *
-     * @param pSheet
-     * @return
+     * @param pSheet source sheet
+     * @return imported suppliers
      */
     private List<SSSupplier> importSuppliers(SSExcelSheet pSheet) {
         List<SSExcelRow> iRows = pSheet.getRows();
@@ -170,7 +166,7 @@ public class SSSupplierImporter {
                     "supplierframe.import.norows");
         }
 
-        getColumnIndexes(iRows.get(0));
+        getColumnIndexes(iRows.getFirst());
 
         List<SSSupplier> iSuppliers = new LinkedList<>();
 
@@ -265,7 +261,7 @@ public class SSSupplierImporter {
                     iSupplier.getAddress().setCountry(iValue);
                 }
             }
-            if (iSupplier.getNumber() != null && iSupplier.getNumber().length() > 0) {
+            if (iSupplier.getNumber() != null && !iSupplier.getNumber().isEmpty()) {
                 iSuppliers.add(iSupplier);
             }
         }
@@ -273,9 +269,10 @@ public class SSSupplierImporter {
     }
 
     /**
+     * Shows a summary dialog before import is applied.
      *
-     * @param iSuppliers
-     * @return
+     * @param iSuppliers suppliers queued for import
+     * @return {@code true} when user confirms import
      */
     private boolean showImportReport(List<SSSupplier> iSuppliers) {
         SSImportReportDialog iDialog = new SSImportReportDialog(SSMainFrame.getInstance(),
@@ -358,19 +355,19 @@ public class SSSupplierImporter {
 
         iDialog.setText(sb.toString());
         iDialog.setSize(640, 480);
-        iDialog.setLocationRelativeTo(SSMainFrame.getInstance());
+        SSMainFrame iMainFrame = SSMainFrame.getInstance();
+        if (iMainFrame != null) {
+            iDialog.setLocationRelativeTo(iMainFrame);
+        }
 
         return iDialog.showDialog() == JOptionPane.OK_OPTION;
     }
 
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder();
-
-        sb.append("se.swedsoft.bookkeeping.importexport.excel.SSSupplierImporter");
-        sb.append("{iColumns=").append(iColumns);
-        sb.append(", iFile=").append(iFile);
-        sb.append('}');
-        return sb.toString();
+        return "se.swedsoft.bookkeeping.importexport.excel.SSSupplierImporter"
+                + "{iColumns=" + iColumns
+                + ", iFile=" + iFile
+                + '}';
     }
 }

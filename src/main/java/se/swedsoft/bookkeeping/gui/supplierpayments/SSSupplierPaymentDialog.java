@@ -2,7 +2,8 @@ package se.swedsoft.bookkeeping.gui.supplierpayments;
 
 
 import se.swedsoft.bookkeeping.data.SSSupplierInvoice;
-import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.data.system.SSCompanyYearContext;
+import se.swedsoft.bookkeeping.data.system.SSPurchaseContext;
 
 import se.swedsoft.bookkeeping.gui.SSMainFrame;
 import se.swedsoft.bookkeeping.gui.supplierpayments.util.SSSupplierPaymentTableModel;
@@ -73,7 +74,7 @@ public class SSSupplierPaymentDialog extends SSDialog {    private static final 
         iModel.setupTable(iTable);
 
         iOurBankGiroNumber.setText(
-                SSDB.getInstance().getCurrentCompany().getBankGiroNumber());
+                SSCompanyYearContext.getCurrentCompany().getBankGiroNumber());
 
         iButtonPanel.addOkActionListener(
                 e -> {

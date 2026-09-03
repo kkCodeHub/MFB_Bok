@@ -2,6 +2,7 @@ package se.swedsoft.bookkeeping.gui.autodist.util;
 
 
 import se.swedsoft.bookkeeping.data.SSAutoDist;
+import se.swedsoft.bookkeeping.data.system.SSAccountingContext;
 import se.swedsoft.bookkeeping.data.system.SSDB;
 import se.swedsoft.bookkeeping.gui.util.SSBundle;
 import se.swedsoft.bookkeeping.gui.util.table.model.SSTableColumn;
@@ -21,7 +22,7 @@ public class SSAutoDistTableModel extends SSTableModel<SSAutoDist> {
      * Default constructor.
      */
     public SSAutoDistTableModel() {
-        super(SSDB.getInstance().getAutoDists());
+        super(SSAccountingContext.getAutoDists());
     }
 
     /**

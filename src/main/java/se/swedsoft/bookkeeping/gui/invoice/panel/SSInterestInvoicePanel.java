@@ -7,7 +7,9 @@ import se.swedsoft.bookkeeping.data.SSAccount;
 import se.swedsoft.bookkeeping.data.SSInvoice;
 import se.swedsoft.bookkeeping.data.common.SSDefaultAccount;
 import se.swedsoft.bookkeeping.data.common.SSInvoiceType;
+import se.swedsoft.bookkeeping.data.system.SSInvoiceActionPolicy;
 import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.data.system.SSSalesContext;
 import se.swedsoft.bookkeeping.gui.invoice.util.SSInterestInvoiceTableModel;
 import se.swedsoft.bookkeeping.gui.util.SSSelectionListener;
 import se.swedsoft.bookkeeping.gui.util.components.SSButton;
@@ -17,6 +19,7 @@ import se.swedsoft.bookkeeping.gui.util.table.SSTable;
 import se.swedsoft.bookkeeping.util.SSDateUtil;
 
 import javax.swing.*;
+import java.awt.*;
 import java.awt.event.ActionListener;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -47,9 +50,10 @@ public class SSInterestInvoicePanel {
         iModel = new SSInterestInvoiceTableModel(iRows);
 
         iTable.setModel(iModel);
+        iTable.setSelectionForeground(Color.BLACK);
 
-        SSAccount iSelected = SSDB.getInstance().getCurrentCompany().getDefaultAccount(
-                SSDB.getInstance().getCurrentAccountPlan(),
+        SSAccount iSelected = se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.getCurrentCompany().getDefaultAccount(
+                se.swedsoft.bookkeeping.data.system.SSAccountingContext.getCurrentAccountPlan(),
                 SSDefaultAccount.InterestProfit).orElse(null);
 
         iAccount.setModel(SSAccountTableModel.getDropDownModel());
@@ -111,12 +115,15 @@ public class SSInterestInvoicePanel {
      */
     public static List<SSInvoice> getRows() {
         // Get all invoices from the DB
-        List<SSInvoice> iInvoices = SSDB.getInstance().getInvoices();
+        List<SSInvoice> iInvoices = SSSalesContext.getInvoices();
 
         // Get all the rows
         List<SSInvoice> iRows = new LinkedList<>();
 
         for (SSInvoice iInvoice : iInvoices) {
+            if (!SSInvoiceActionPolicy.canSelectForInterestInvoicing(iInvoice)) {
+                continue;
+            }
             // Skip invoices that is flagged as interest invoiced or is a cash sales
             if (iInvoice.isInterestInvoiced() || iInvoice.getType() == SSInvoiceType.CASH) {
                 continue;

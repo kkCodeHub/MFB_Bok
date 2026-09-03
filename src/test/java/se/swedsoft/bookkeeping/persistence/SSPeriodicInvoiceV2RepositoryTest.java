@@ -44,7 +44,7 @@ class SSPeriodicInvoiceV2RepositoryTest {
         Class.forName("org.hsqldb.jdbcDriver");
         connection = DriverManager.getConnection(JDBC_URL, "sa", "");
 
-        SSDB.getInstance().startupLocal(connection);
+        se.swedsoft.bookkeeping.data.system.SSSystemConfigContext.startupLocal(connection);
 
         Integer companyId = createCompany("V2 Periodic Invoice Repo Test AB");
         SSNewCompany company = new SSNewCompany();
@@ -52,10 +52,10 @@ class SSPeriodicInvoiceV2RepositoryTest {
         company.setName("V2 Periodic Invoice Repo Test AB");
         SSDB.getInstance().setCurrentCompany(company);
 
-        SSNewAccountingYear year = new SSNewAccountingYear(
-                se.swedsoft.bookkeeping.util.SSDateUtil.toDate(LocalDate.of(2025, 1, 1)),
-                se.swedsoft.bookkeeping.util.SSDateUtil.toDate(LocalDate.of(2025, 12, 31)));
-        SSDB.getInstance().addAccountingYear(year);
+        SSNewAccountingYear year = new SSNewAccountingYear();
+        year.setLocalFrom(LocalDate.of(2025, 1, 1));
+        year.setLocalTo(LocalDate.of(2025, 12, 31));
+        se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.addAccountingYear(year);
         SSDB.getInstance().setCurrentYear(year);
 
         Repositories.init(SSDB.getInstance());
@@ -74,7 +74,7 @@ class SSPeriodicInvoiceV2RepositoryTest {
 
     @BeforeEach
     void clearCaches() {
-        SSDB.getInstance().clearLists();
+        se.swedsoft.bookkeeping.data.system.SSEventTriggerSyncContext.clearCachedLists();
         SSDB.getInstance().getCurrentYear();
     }
 
@@ -93,7 +93,7 @@ class SSPeriodicInvoiceV2RepositoryTest {
         Repositories.periodicInvoices().add(periodicInvoice);
         assertThat(periodicInvoice.getNumber()).isGreaterThan(0);
 
-        SSDB.getInstance().clearLists();
+        se.swedsoft.bookkeeping.data.system.SSEventTriggerSyncContext.clearCachedLists();
         Optional<SSPeriodicInvoice> fetched = Repositories.periodicInvoices().findByPeriodicInvoice(periodicInvoice);
         assertThat(fetched).isPresent();
         assertThat(fetched.get().getDescription()).isEqualTo("Periodic template in repository test");
@@ -111,7 +111,7 @@ class SSPeriodicInvoiceV2RepositoryTest {
                 row("P-PINV-REPO-002", "Before update row", new BigDecimal("100.00"), 1, 3010));
         Repositories.periodicInvoices().add(periodicInvoice);
 
-        SSDB.getInstance().clearLists();
+        se.swedsoft.bookkeeping.data.system.SSEventTriggerSyncContext.clearCachedLists();
         Optional<SSPeriodicInvoice> fetched = Repositories.periodicInvoices().findByPeriodicInvoice(periodicInvoice);
         assertThat(fetched).isPresent();
 
@@ -128,7 +128,7 @@ class SSPeriodicInvoiceV2RepositoryTest {
         updatedTemplate.getRows().add(row("P-PINV-REPO-003", "After update row", new BigDecimal("750.00"), 3, 3041));
         Repositories.periodicInvoices().update(updatedPeriodicInvoice);
 
-        SSDB.getInstance().clearLists();
+        se.swedsoft.bookkeeping.data.system.SSEventTriggerSyncContext.clearCachedLists();
         Optional<SSPeriodicInvoice> updated = Repositories.periodicInvoices().findByPeriodicInvoice(periodicInvoice);
         assertThat(updated).isPresent();
         assertThat(updated.get().getDescription()).isEqualTo("After Periodic Repo Update");
@@ -143,7 +143,7 @@ class SSPeriodicInvoiceV2RepositoryTest {
 
         Integer number = updated.get().getNumber();
         Repositories.periodicInvoices().delete(updated.get());
-        SSDB.getInstance().clearLists();
+        se.swedsoft.bookkeeping.data.system.SSEventTriggerSyncContext.clearCachedLists();
         List<SSPeriodicInvoice> all = Repositories.periodicInvoices().findAll();
         assertThat(all).extracting(SSPeriodicInvoice::getNumber).doesNotContain(number);
     }
@@ -189,19 +189,10 @@ class SSPeriodicInvoiceV2RepositoryTest {
     }
 
     private static Integer createCompany(String name) throws Exception {
-        try (PreparedStatement statement = connection.prepareStatement(
-                "INSERT INTO tbl_company(name) VALUES (?)", Statement.RETURN_GENERATED_KEYS)) {
-            statement.setString(1, name);
-            statement.executeUpdate();
-            connection.commit();
-
-            try (ResultSet keys = statement.getGeneratedKeys()) {
-                if (keys.next()) {
-                    return keys.getInt(1);
-                }
-            }
-        }
-        throw new IllegalStateException("Could not create test company for periodic-invoice repository V2 integration test");
+        se.swedsoft.bookkeeping.data.SSNewCompany company = new se.swedsoft.bookkeeping.data.SSNewCompany();
+        company.setName(name);
+        se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.addCompany(company);
+        return company.getId();
     }
 }
 

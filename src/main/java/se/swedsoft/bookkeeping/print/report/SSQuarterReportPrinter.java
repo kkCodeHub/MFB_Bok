@@ -11,7 +11,13 @@ import se.swedsoft.bookkeeping.print.report.sales.SSSalePrinterUtils;
 
 import java.math.BigDecimal;
 import java.text.DateFormatSymbols;
-import java.util.*;
+import java.time.LocalDate;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.ResourceBundle;
 
 
 /**
@@ -22,9 +28,9 @@ public class SSQuarterReportPrinter extends SSPrinter {
 
     private Locale iLocale;
 
-    private Date iFrom;
+    private LocalDate iFrom;
 
-    private Date iTo;
+    private LocalDate iTo;
 
     private List<SSCustomer> iCustomers;
 
@@ -33,14 +39,13 @@ public class SSQuarterReportPrinter extends SSPrinter {
     private Map<SSCustomer, BigDecimal> iEuSaleThirdPartCommodity;
 
     /**
-     *
-     * @param iLocale
-     * @param iFrom
-     * @param iTo
+     * @param iLocale the locale to use for report formatting
+     * @param iFrom   the start of the period (inclusive)
+     * @param iTo     the end of the period (inclusive)
      */
-    public SSQuarterReportPrinter(Locale iLocale, Date iFrom, Date iTo) {
+    public SSQuarterReportPrinter(Locale iLocale, LocalDate iFrom, LocalDate iTo) {
         // Get all orders
-        iCustomers = SSDB.getInstance().getCustomers();
+        iCustomers = se.swedsoft.bookkeeping.data.system.SSSalesContext.getCustomers();
         this.iLocale = iLocale;
         this.iFrom = iFrom;
         this.iTo = iTo;
@@ -64,8 +69,8 @@ public class SSQuarterReportPrinter extends SSPrinter {
         Map<String, List<SSInvoice>> iInvoicesForCustomers = SSInvoiceMath.getInvoicesforCustomers();
         Map<String, List<SSCreditInvoice>> iCreditInvoicesForCustomers = SSCreditInvoiceMath.getCreditInvoicesforCustomers();
 
-        // List<SSInvoice>       iInvoices       = SSDB.getInstance().getInvoices();
-        // List<SSCreditInvoice> iCreditInvoices = SSDB.getInstance().getCreditInvoices();
+        // List<SSInvoice>       iInvoices       = se.swedsoft.bookkeeping.data.system.SSSalesContext.getInvoices();
+        // List<SSCreditInvoice> iCreditInvoices = se.swedsoft.bookkeeping.data.system.SSSalesContext.getCreditInvoices();
 
         for (SSCustomer iCustomer : iCustomers) {
             List<SSInvoice>       iInvoicesForCustomer = iInvoicesForCustomers.get(
@@ -141,7 +146,7 @@ public class SSQuarterReportPrinter extends SSPrinter {
      *
      */
     private void addParameters() {
-        SSNewCompany iCompany = SSDB.getInstance().getCurrentCompany();
+        SSNewCompany iCompany = se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.getCurrentCompany();
 
         SSSalePrinterUtils.addParametersForCompany(iCompany, this);
 
@@ -156,10 +161,8 @@ public class SSQuarterReportPrinter extends SSPrinter {
      * @return
      */
     private String getQuarterText() {
-        java.time.LocalDate localFrom = se.swedsoft.bookkeeping.util.SSDateUtil.toLocalDate(iFrom);
-
-        String iYear = Integer.toString(localFrom.getYear()).substring(2);
-        String iMonth = Integer.toString((localFrom.getMonthValue() - 1) / 3 + 1);
+        String iYear = Integer.toString(iFrom.getYear()).substring(2);
+        String iMonth = Integer.toString((iFrom.getMonthValue() - 1) / 3 + 1);
 
         return iYear + '-' + iMonth;
     }
@@ -171,12 +174,9 @@ public class SSQuarterReportPrinter extends SSPrinter {
     private String getPeriodText() {
         String[] iMonths = new DateFormatSymbols().getMonths();
 
-        java.time.LocalDate localFrom = se.swedsoft.bookkeeping.util.SSDateUtil.toLocalDate(iFrom);
-        java.time.LocalDate localTo = se.swedsoft.bookkeeping.util.SSDateUtil.toLocalDate(iTo);
-
-        String iMonthFrom = iMonths[localFrom.getMonthValue() - 1];
-        String iMonthTo = iMonths[localTo.getMonthValue() - 1];
-        String iYear = Integer.toString(localTo.getYear());
+        String iMonthFrom = iMonths[iFrom.getMonthValue() - 1];
+        String iMonthTo = iMonths[iTo.getMonthValue() - 1];
+        String iYear = Integer.toString(iTo.getYear());
 
         return iMonthFrom + " - " + iMonthTo + ' ' + iYear;
 

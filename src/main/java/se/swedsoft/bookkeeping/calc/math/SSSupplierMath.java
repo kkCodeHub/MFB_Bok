@@ -49,7 +49,7 @@ public class SSSupplierMath {
             iInvoicesForSuppliers = new HashMap<>();
         }
 
-        List<SSSupplier> iSuppliers = SSDB.getInstance().getSuppliers();
+        List<SSSupplier> iSuppliers = se.swedsoft.bookkeeping.data.system.SSPurchaseContext.getSuppliers();
 
         for (SSSupplier iSupplier:iSuppliers) {
             List<SSSupplierInvoice> iSupplierInvoices = SSSupplierInvoiceMath.getInvoicesForSupplier(
@@ -66,7 +66,7 @@ public class SSSupplierMath {
     public static Integer getOutpaymentNumber() {
         Integer iOutpaymentNumber = 0;
 
-        List<SSSupplier> iSuppliers = SSDB.getInstance().getSuppliers();
+        List<SSSupplier> iSuppliers = se.swedsoft.bookkeeping.data.system.SSPurchaseContext.getSuppliers();
 
         for (SSSupplier iSupplier : iSuppliers) {
             if (iSupplier.getOutpaymentNumber() != null

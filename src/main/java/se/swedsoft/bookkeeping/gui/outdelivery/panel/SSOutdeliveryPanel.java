@@ -63,6 +63,7 @@ public class SSOutdeliveryPanel {
 
         iTable.setDefaultEditor(SSProduct.class,
                 new SSProductCellEditor(SSProductMath.getNormalProducts(), false));
+        iTable.setSelectionForeground(Color.BLACK);
 
         new SSDeleteAction(iTable) {
             @Override

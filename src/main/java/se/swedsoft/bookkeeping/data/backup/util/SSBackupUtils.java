@@ -31,14 +31,20 @@ public class SSBackupUtils {
 
         // Add the database files
         File dbDir = new File(Path.get(Path.USER_DATA), "db");
-        iFiles.add(
-                new ArchiveFile(new File(dbDir, "JFSDB.properties")));
-        iFiles.add(new ArchiveFile(new File(dbDir, "JFSDB.script")));
-        iFiles.add(new ArchiveFile(new File(dbDir, "JFSDB.data")));
-        iFiles.add(new ArchiveFile(new File(dbDir, "JFSDB.backup")));
-        iFiles.add(new ArchiveFile(new File(dbDir, "JFSDB.log")));
+        addIfExists(iFiles, new File(dbDir, "JFSDB.properties"));
+        addIfExists(iFiles, new File(dbDir, "JFSDB.script"));
+        addIfExists(iFiles, new File(dbDir, "JFSDB.data"));
+        addIfExists(iFiles, new File(dbDir, "JFSDB.backup"));
+        addIfExists(iFiles, new File(dbDir, "JFSDB.log"));
+        addIfExists(iFiles, new File(dbDir, "JFSDB.lobs"));
 
         return iFiles;
+    }
+
+    private static void addIfExists(List<ArchiveFile> iFiles, File iFile) {
+        if (iFile.exists()) {
+            iFiles.add(new ArchiveFile(iFile));
+        }
     }
 
     /**
@@ -50,11 +56,11 @@ public class SSBackupUtils {
         List<ArchiveFile> iFiles = new LinkedList<>();
 
         // Add the company
-        // iFiles.add(  new ArchiveFile( SSDB.getInstance().getFile(pCompany.getId())) );
+        // iFiles.add(new ArchiveFile(getCompanyBackupFile(pCompany.getId())));
 
         // Loop through all years
         for (SSSystemYear iYear: pCompany.getYears()) {// Add the year
-            // iFiles.add(  new ArchiveFile( SSDB.getInstance().getFile(iYear.getId())) );
+            // iFiles.add(new ArchiveFile(getYearBackupFile(iYear.getId())));
         }
 
         return iFiles;
@@ -75,8 +81,8 @@ public class SSBackupUtils {
         // Get the names of the files in the zip file
         for (String iName: SSBackupZip.getFiles(pFilename)) {
 
-            // Don't extract the info file
-            if (iName.equals("backup.info")) {
+            // Don't extract the backup metadata file
+            if (iName.equals("backup.properties")) {
                 continue;
             }
 

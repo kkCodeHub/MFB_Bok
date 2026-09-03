@@ -1,415 +1,267 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
-<!DOCTYPE jasperReport PUBLIC "-//JasperReports//DTD Report Design//EN" "http://jasperreports.sourceforge.net/dtds/jasperreport.dtd">
-
-<jasperReport name="SaleFooter" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0">
-
-    <!--- Declared parameters in the report. -->
-    <parameter name="subreport.report"          class="net.sf.jasperreports.engine.JasperReport"/>
-
-    <parameter name="title"      class="java.lang.String"/>
-    <parameter name="text"       class="java.lang.String"/>
-
-
-    <parameter name="company.name"              class="java.lang.String"/>
-    <parameter name="company.address1"          class="java.lang.String"/>
-    <parameter name="company.address2"          class="java.lang.String"/>
-    <parameter name="company.zipcode"           class="java.lang.String"/>
-    <parameter name="company.city"              class="java.lang.String"/>
-    <parameter name="company.country"           class="java.lang.String"/>
-    <parameter name="company.phone"             class="java.lang.String"/>
-    <parameter name="company.telefax"           class="java.lang.String"/>
-    <parameter name="company.residence"         class="java.lang.String"/>
-    <parameter name="company.email"             class="java.lang.String"/>
-    <parameter name="company.homepage"          class="java.lang.String"/>
-    <parameter name="company.taxregistered"     class="java.lang.Boolean"/>
-
-    <parameter name="company.corporateid"       class="java.lang.String"/>
-    <parameter name="company.vatnr"             class="java.lang.String"/>
-
-    <parameter name="company.plusaccount"       class="java.lang.String"/>
-    <parameter name="company.bankaccount"       class="java.lang.String"/>
-
-    <parameter name="company.bic"   class="java.lang.String"/>
-    <parameter name="company.iban"  class="java.lang.String"/>
-    <parameter name="company.bank"  class="java.lang.String"/>
-
-
-    <pageFooter>
-        <band isSplitAllowed="false" height="140">
-            <!-- Text frame -->
-            <frame>
-                <reportElement x="40" y="10" width="510" height="40" />
-
-                <box border="Thin" borderColor="#000000"/>
-
-                <!-- Text -->
-                <textField isBlankWhenNull="true">
-                    <reportElement x="5" y="4" width="500" height="36"/>
-                    <textElement textAlignment="Left">
-                        <font size="8"/>
-                    </textElement>
-                    <textFieldExpression>
-                        <![CDATA[$P{text}]]>
-                    </textFieldExpression>
-                </textField>
-
-            </frame>
-
-
-            <line>
-                <reportElement x="40" y="58" width="510" height="1"/>
-                <graphicElement pen="Thin"/>
-            </line>
-
-
-            <!-- Company information frame -->
-            <frame>
-                <reportElement x="40" y="60" width="510" height="60"/>
-
-                <!-- Column 1 -->
-
-                <!-- Company name -->
-                <textField isBlankWhenNull="true">
-                    <reportElement x="0" y="0" width="120" height="10"/>
-                    <textElement textAlignment="Left">
-                        <font size="6"/>
-                    </textElement>
-                    <textFieldExpression>
-                        <![CDATA[$P{company.name}]]>
-                    </textFieldExpression>
-                </textField>
-
-
-                <!-- Address 1 -->
-                <textField isBlankWhenNull="true">
-                    <reportElement x="0" y="10" width="120" height="10"/>
-                    <textElement textAlignment="Left">
-                        <font size="6"/>
-                    </textElement>
-                    <textFieldExpression>
-                        <![CDATA[$P{company.address1}]]>
-                    </textFieldExpression>
-                </textField>
-
-                <!-- Address 2 -->
-                <textField isBlankWhenNull="true">
-                    <reportElement x="0" y="20" width="120" height="10"/>
-                    <textElement textAlignment="Left">
-                        <font size="6"/>
-                    </textElement>
-                    <textFieldExpression>
-                        <![CDATA[$P{company.address2}]]>
-                    </textFieldExpression>
-                </textField>
-
-
-                <!-- Zip Code + City -->
-                <textField isBlankWhenNull="true">
-                    <reportElement x="0" y="30" width="120" height="10"/>
-                    <textElement textAlignment="Left">
-                        <font size="6"/>
-                    </textElement>
-                    <textFieldExpression>
-                        <![CDATA[$P{company.zipcode} + " " + $P{company.city}]]>
-                    </textFieldExpression>
-                </textField>
-
-                <!-- Country -->
-                <textField isBlankWhenNull="true">
-                    <reportElement x="0" y="40" width="120" height="10"/>
-                    <textElement textAlignment="Left">
-                        <font size="6"/>
-                    </textElement>
-                    <textFieldExpression>
-                        <![CDATA[$P{company.country}]]>
-                    </textFieldExpression>
-                </textField>
-
-                <!-- Column 2 -->
-
-                <!-- Phone -->
-                <textField isBlankWhenNull="true">
-                    <reportElement x="90" y="0" width="30" height="10"/>
-                    <textElement textAlignment="Left">
-                        <font size="6"/>
-                    </textElement>
-                    <textFieldExpression>
-                        <![CDATA[$R{company.phone}]]>
-                    </textFieldExpression>
-                </textField>
-
-                <textField isBlankWhenNull="true">
-                    <reportElement x="120" y="0" width="120" height="10"/>
-                    <textElement textAlignment="Left">
-                        <font size="6"/>
-                    </textElement>
-                    <textFieldExpression>
-                        <![CDATA[$P{company.phone}]]>
-                    </textFieldExpression>
-                </textField>
-
-                <!-- Telefax -->
-                <textField isBlankWhenNull="true">
-                    <reportElement x="90" y="10" width="30" height="10"/>
-                    <textElement textAlignment="Left">
-                        <font size="6"/>
-                    </textElement>
-                    <textFieldExpression>
-                        <![CDATA[$R{company.telefax}]]>
-                    </textFieldExpression>
-                </textField>
-
-                <textField isBlankWhenNull="true">
-                    <reportElement x="120" y="10" width="120" height="10"/>
-                    <textElement textAlignment="Left">
-                        <font size="6"/>
-                    </textElement>
-                    <textFieldExpression>
-                        <![CDATA[$P{company.telefax}]]>
-                    </textFieldExpression>
-                </textField>
-
-                <!-- Residence -->
-                <textField isBlankWhenNull="true">
-                    <reportElement x="90" y="20" width="30" height="10"/>
-                    <textElement textAlignment="Left">
-                        <font size="6"/>
-                    </textElement>
-                    <textFieldExpression>
-                        <![CDATA[$R{company.residence}]]>
-                    </textFieldExpression>
-                </textField>
-
-                <textField isBlankWhenNull="true">
-                    <reportElement x="120" y="20" width="120" height="10"/>
-                    <textElement textAlignment="Left">
-                        <font size="6"/>
-                    </textElement>
-                    <textFieldExpression>
-                        <![CDATA[$P{company.residence}]]>
-                    </textFieldExpression>
-                </textField>
-
-                <!-- taxregistered -->
-
-                <textField isBlankWhenNull="true">
-                    <reportElement x="90" y="40" width="150" height="10">
-                        <printWhenExpression>
-                            <![CDATA[$P{company.taxregistered}]]>
-                        </printWhenExpression>
-                    </reportElement>
-                    <textElement textAlignment="Left">
-                        <font size="6"/>
-                    </textElement>
-                    <textFieldExpression>
-                        <![CDATA[$R{company.taxregistered}]]>
-                    </textFieldExpression>
-                </textField>
-
-
-
-                <!-- Column 3 -->
-
-
-                <!-- EMail -->
-                <textField isBlankWhenNull="true">
-                    <reportElement x="200" y="0" width="40" height="10"/>
-                    <textElement textAlignment="Left">
-                        <font size="6"/>
-                    </textElement>
-                    <textFieldExpression>
-                        <![CDATA[$R{company.email}]]>
-                    </textFieldExpression>
-                </textField>
-
-                <textField isBlankWhenNull="true">
-                    <reportElement x="240" y="0" width="120" height="10"/>
-                    <textElement textAlignment="Left">
-                        <font size="6"/>
-                    </textElement>
-                    <textFieldExpression>
-                        <![CDATA[$P{company.email}]]>
-                    </textFieldExpression>
-                </textField>
-
-
-                <!-- Homepage -->
-                <textField isBlankWhenNull="true">
-                    <reportElement x="200" y="10" width="40" height="10"/>
-                    <textElement textAlignment="Left">
-                        <font size="6"/>
-                    </textElement>
-                    <textFieldExpression>
-                        <![CDATA[$R{company.homepage}]]>
-                    </textFieldExpression>
-                </textField>
-
-                <textField isBlankWhenNull="true">
-                    <reportElement x="240" y="10" width="120" height="10"/>
-                    <textElement textAlignment="Left">
-                        <font size="6"/>
-                    </textElement>
-                    <textFieldExpression>
-                        <![CDATA[$P{company.homepage}]]>
-                    </textFieldExpression>
-                </textField>
-
-                <!-- Corporateid -->
-                <textField isBlankWhenNull="true">
-                    <reportElement x="200" y="30" width="40" height="10"/>
-                    <textElement textAlignment="Left">
-                        <font size="6"/>
-                    </textElement>
-                    <textFieldExpression>
-                        <![CDATA[$R{company.corporateid}]]>
-                    </textFieldExpression>
-                </textField>
-
-                <textField isBlankWhenNull="true">
-                    <reportElement x="240" y="30" width="120" height="10"/>
-                    <textElement textAlignment="Left">
-                        <font size="6"/>
-                    </textElement>
-                    <textFieldExpression>
-                        <![CDATA[$P{company.corporateid}]]>
-                    </textFieldExpression>
-                </textField>
-
-                <!-- Vatnr -->
-                <textField isBlankWhenNull="true">
-                    <reportElement x="200" y="40" width="40" height="10"/>
-                    <textElement textAlignment="Left">
-                        <font size="6"/>
-                    </textElement>
-                    <textFieldExpression>
-                        <![CDATA[$R{company.vatnr}]]>
-                    </textFieldExpression>
-                </textField>
-
-                <textField isBlankWhenNull="true">
-                    <reportElement x="240" y="40" width="120" height="10"/>
-                    <textElement textAlignment="Left">
-                        <font size="6"/>
-                    </textElement>
-                    <textFieldExpression>
-                        <![CDATA[$P{company.vatnr}]]>
-                    </textFieldExpression>
-                </textField>
-
-                <!-- Column 4 -->
-
-                <!-- plusaccount -->
-                <textField isBlankWhenNull="true">
-                    <reportElement x="350" y="0" width="45" height="10"/>
-                    <textElement textAlignment="Left">
-                        <font size="6"/>
-                    </textElement>
-                    <textFieldExpression>
-                        <![CDATA[$R{company.plusaccount}]]>
-                    </textFieldExpression>
-                </textField>
-
-                <textField isBlankWhenNull="true">
-                    <reportElement x="395" y="0" width="115" height="10"/>
-                    <textElement textAlignment="Left">
-                        <font size="6"/>
-                    </textElement>
-                    <textFieldExpression>
-                        <![CDATA[$P{company.plusaccount}]]>
-                    </textFieldExpression>
-                </textField>
-
-                <!-- bankaccount -->
-                <textField isBlankWhenNull="true">
-                    <reportElement x="350" y="10" width="45" height="10"/>
-                     <textElement textAlignment="Left">
-                        <font size="6"/>
-                    </textElement>
-                    <textFieldExpression>
-                        <![CDATA[$R{company.bankaccount}]]>
-                    </textFieldExpression>
-                </textField>
-
-                <textField isBlankWhenNull="true">
-                    <reportElement x="395" y="10" width="115" height="10"/>
-                    <textElement textAlignment="Left">
-                        <font size="6"/>
-                    </textElement>
-                    <textFieldExpression>
-                        <![CDATA[$P{company.bankaccount}]]>
-                    </textFieldExpression>
-                </textField>
-
-                <!-- bank -->
-                <textField isBlankWhenNull="true">
-                    <reportElement x="350" y="20" width="45" height="10"/>
-                    <textElement textAlignment="Left">
-                        <font size="6"/>
-                    </textElement>
-                    <textFieldExpression>
-                        <![CDATA[$R{company.bank}]]>
-                    </textFieldExpression>
-                </textField>
-
-                <textField isBlankWhenNull="true">
-                    <reportElement x="395" y="20" width="115" height="10"/>
-                    <textElement textAlignment="Left">
-                        <font size="6"/>
-                    </textElement>
-                    <textFieldExpression>
-                        <![CDATA[$P{company.bank}]]>
-                    </textFieldExpression>
-                </textField>
-
-
-                <!-- swift -->
-                <textField isBlankWhenNull="true">
-                    <reportElement x="350" y="30" width="45" height="10"/>
-                    <textElement textAlignment="Left">
-                        <font size="6"/>
-                    </textElement>
-                    <textFieldExpression>
-                        <![CDATA[$R{company.bic}]]>
-                    </textFieldExpression>
-                </textField>
-
-                <textField isBlankWhenNull="true">
-                    <reportElement x="395" y="30" width="115" height="10"/>
-                    <textElement textAlignment="Left">
-                        <font size="6"/>
-                    </textElement>
-                    <textFieldExpression>
-                        <![CDATA[$P{company.bic}]]>
-                    </textFieldExpression>
-                </textField>
-
-
-                <!-- iban -->
-                <textField isBlankWhenNull="true">
-                    <reportElement x="350" y="40" width="45" height="10"/>
-                    <textElement textAlignment="Left">
-                        <font size="6"/>
-                    </textElement>
-                    <textFieldExpression>
-                        <![CDATA[$R{company.iban}]]>
-                    </textFieldExpression>
-                </textField>
-
-                <textField isBlankWhenNull="true">
-                    <reportElement x="395" y="40" width="115" height="10"/>
-                    <textElement textAlignment="Left">
-                        <font size="6"/>
-                    </textElement>
-                    <textFieldExpression>
-                        <![CDATA[$P{company.iban}]]>
-                    </textFieldExpression>
-                </textField>
-            </frame>
-
-
-        </band>
-    </pageFooter>
-
-
+<!-- Created with Jaspersoft Studio version 6.21.1.final using JasperReports Library version 6.21.0-4f56c4f36cd19e17675219a9ac4692d5f0f13b06  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="SaleFooter" pageWidth="595" pageHeight="842" whenNoDataType="NoPages" columnWidth="555" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="12ba1ed7-43f5-4067-a0ba-eef21bf9b567">
+	<parameter name="subreport.report" class="net.sf.jasperreports.engine.JasperReport"/>
+	<parameter name="title" class="java.lang.String"/>
+	<parameter name="text" class="java.lang.String"/>
+	<parameter name="Liten" class="java.lang.Boolean"/>
+	<parameter name="Mellan" class="java.lang.Boolean"/>
+	<parameter name="Stor" class="java.lang.Boolean"/>
+	<parameter name="company.name" class="java.lang.String"/>
+	<parameter name="company.address1" class="java.lang.String"/>
+	<parameter name="company.address2" class="java.lang.String"/>
+	<parameter name="company.zipcode" class="java.lang.String"/>
+	<parameter name="company.city" class="java.lang.String"/>
+	<parameter name="company.country" class="java.lang.String"/>
+	<parameter name="company.phone" class="java.lang.String"/>
+	<parameter name="company.telefax" class="java.lang.String"/>
+	<parameter name="company.residence" class="java.lang.String"/>
+	<parameter name="company.email" class="java.lang.String"/>
+	<parameter name="company.homepage" class="java.lang.String"/>
+	<parameter name="company.taxregistered" class="java.lang.Boolean"/>
+	<parameter name="company.corporateid" class="java.lang.String"/>
+	<parameter name="company.vatnr" class="java.lang.String"/>
+	<parameter name="company.plusaccount" class="java.lang.String"/>
+	<parameter name="company.bankaccount" class="java.lang.String"/>
+	<parameter name="company.bic" class="java.lang.String"/>
+	<parameter name="company.iban" class="java.lang.String"/>
+	<parameter name="company.bank" class="java.lang.String"/>
+	<pageFooter>
+		<band height="140" splitType="Stretch">
+			<frame>
+				<reportElement x="40" y="10" width="510" height="56" uuid="b297e623-2ca0-4618-99e3-c8ec60e5af2f"/>
+				<box>
+					<pen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textField isBlankWhenNull="true">
+					<reportElement x="5" y="4" width="500" height="46" uuid="ac6f14d2-59fc-42f7-a483-eb82c97687c2"/>
+					<textElement textAlignment="Left">
+						<font size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$P{text}]]></textFieldExpression>
+				</textField>
+			</frame>
+			<line>
+				<reportElement x="40" y="74" width="510" height="1" uuid="0acced20-b360-4a81-bd26-dbd163a38164"/>
+				<graphicElement>
+					<pen lineWidth="0.5" lineStyle="Solid"/>
+				</graphicElement>
+			</line>
+			<frame>
+				<reportElement x="40" y="78" width="510" height="60" uuid="12a292ab-af27-4e8d-ac2a-1b89ef0f1221"/>
+				<textField isBlankWhenNull="true">
+					<reportElement x="0" y="0" width="120" height="10" uuid="9f4147d4-9d0a-4ecb-9860-a0a21aafed85"/>
+					<textElement textAlignment="Left">
+						<font size="6"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$P{company.name}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement x="0" y="10" width="120" height="10" uuid="604ad18d-98d6-46a2-b348-e05c9683ef83"/>
+					<textElement textAlignment="Left">
+						<font size="6"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$P{company.address1}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement x="0" y="20" width="120" height="10" uuid="030851c2-3f48-4eff-a43f-cc2654ce327e"/>
+					<textElement textAlignment="Left">
+						<font size="6"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$P{company.address2}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement x="0" y="30" width="120" height="10" uuid="892611e1-f699-4019-9ac7-013a02990444"/>
+					<textElement textAlignment="Left">
+						<font size="6"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$P{company.zipcode} + " " + $P{company.city}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement x="0" y="40" width="120" height="10" uuid="3666c248-803f-4a12-9f32-ac252ffc4003"/>
+					<textElement textAlignment="Left">
+						<font size="6"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$P{company.country}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement x="90" y="0" width="30" height="10" uuid="36d9154a-6662-4f7c-8998-28b3d085efd3"/>
+					<textElement textAlignment="Left">
+						<font size="6"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$R{company.phone}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement x="120" y="0" width="120" height="10" uuid="4f699ede-7ae2-4e99-be76-bc9ab7c5dd65"/>
+					<textElement textAlignment="Left">
+						<font size="6"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$P{company.phone}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement x="90" y="10" width="30" height="10" uuid="0f01ebad-39d8-417b-ae9a-a7c279b5634b"/>
+					<textElement textAlignment="Left">
+						<font size="6"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$R{company.telefax}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement x="120" y="10" width="120" height="10" uuid="6a6aa787-2cfb-4e00-ab5e-49df158cfaaf"/>
+					<textElement textAlignment="Left">
+						<font size="6"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$P{company.telefax}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement x="90" y="20" width="30" height="10" uuid="4f222a01-d7ac-4552-bf7e-7de54f7a83a0"/>
+					<textElement textAlignment="Left">
+						<font size="6"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$R{company.residence}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement x="120" y="20" width="120" height="10" uuid="c155b42d-04d3-4759-859f-d672c34ba6aa"/>
+					<textElement textAlignment="Left">
+						<font size="6"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$P{company.residence}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement x="90" y="40" width="150" height="10" uuid="7c64816f-56f6-4aa8-95b8-2c51e85853d5">
+						<printWhenExpression><![CDATA[$P{company.taxregistered}]]></printWhenExpression>
+					</reportElement>
+					<textElement textAlignment="Left">
+						<font size="6"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$R{company.taxregistered}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement x="200" y="0" width="40" height="10" uuid="68048577-e70e-4d27-9fe9-a7d2f8c4af26"/>
+					<textElement textAlignment="Left">
+						<font size="6"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$R{company.email}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement x="240" y="0" width="120" height="10" uuid="1f2dfb22-1134-47d3-83cd-eb8f86b06fc4"/>
+					<textElement textAlignment="Left">
+						<font size="6"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$P{company.email}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement x="200" y="10" width="40" height="10" uuid="0fe8e346-a96f-445b-ad20-dca76611f6a4"/>
+					<textElement textAlignment="Left">
+						<font size="6"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$R{company.homepage}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement x="240" y="10" width="120" height="10" uuid="4db73feb-5c3a-4e80-be5e-ddcfa97c1f1c"/>
+					<textElement textAlignment="Left">
+						<font size="6"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$P{company.homepage}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement x="200" y="30" width="40" height="10" uuid="6e83c815-b1d1-43e3-8714-31e280674b49"/>
+					<textElement textAlignment="Left">
+						<font size="6"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$R{company.corporateid}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement x="240" y="30" width="120" height="10" uuid="0d1a7734-0428-4c8e-9b88-619b38317c1f"/>
+					<textElement textAlignment="Left">
+						<font size="6"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$P{company.corporateid}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement x="200" y="40" width="40" height="10" uuid="354d2de9-4620-45aa-a8e5-9eb960c31447"/>
+					<textElement textAlignment="Left">
+						<font size="6"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$R{company.vatnr}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement x="240" y="40" width="120" height="10" uuid="bac6cbc2-b104-44b2-8554-e4106e61e09d"/>
+					<textElement textAlignment="Left">
+						<font size="6"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$P{company.vatnr}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement x="350" y="0" width="45" height="10" uuid="ad2d2179-a176-4017-8bce-23eb067ff834"/>
+					<textElement textAlignment="Left">
+						<font size="6"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$R{company.plusaccount}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement x="395" y="0" width="115" height="10" uuid="1b67dc07-976c-4d73-b6b0-6acfe0d59375"/>
+					<textElement textAlignment="Left">
+						<font size="6"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$P{company.plusaccount}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement x="350" y="10" width="45" height="10" uuid="33e0da04-a5c6-437d-8e64-524b9d602cc2"/>
+					<textElement textAlignment="Left">
+						<font size="6"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$R{company.bankaccount}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement x="395" y="10" width="115" height="10" uuid="bbcda66d-5d36-485a-896b-cd1ed8839e26"/>
+					<textElement textAlignment="Left">
+						<font size="6"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$P{company.bankaccount}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement x="350" y="20" width="45" height="10" uuid="8ed35a25-8892-4b47-b5f9-4ec691c3191b"/>
+					<textElement textAlignment="Left">
+						<font size="6"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$R{company.bank}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement x="395" y="20" width="115" height="10" uuid="f0075e9f-1d2e-4dfa-9494-b3e0b53da567"/>
+					<textElement textAlignment="Left">
+						<font size="6"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$P{company.bank}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement x="350" y="30" width="45" height="10" uuid="5b5e60e4-e2d8-471a-95d2-63930f52951c"/>
+					<textElement textAlignment="Left">
+						<font size="6"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$R{company.bic}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement x="395" y="30" width="115" height="10" uuid="55c93b73-8bb0-47a0-9001-49eb716c39d1"/>
+					<textElement textAlignment="Left">
+						<font size="6"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$P{company.bic}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement x="350" y="40" width="45" height="10" uuid="27483cfb-6437-4b33-a4ff-f1522000f402"/>
+					<textElement textAlignment="Left">
+						<font size="6"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$R{company.iban}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement x="395" y="40" width="115" height="10" uuid="a738dab2-2dd8-45e6-8633-3ecf0602b473"/>
+					<textElement textAlignment="Left">
+						<font size="6"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$P{company.iban}]]></textFieldExpression>
+				</textField>
+			</frame>
+		</band>
+	</pageFooter>
 </jasperReport>

@@ -6,8 +6,6 @@ import se.swedsoft.bookkeeping.gui.util.SSButtonPanel;
 import se.swedsoft.bookkeeping.gui.util.dialogs.SSDialog;
 
 import javax.swing.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.util.Locale;
 
 
@@ -51,10 +49,10 @@ public class SSOCRInvoiceDialog extends SSDialog {
      */
     public Locale getLanguage() {
         if (iLanguageRadioSwedish.isSelected()) {
-            return new Locale("se", "", "");
+            return Locale.forLanguageTag("se");
         }
         if (iLanguageRadioEnglish.isSelected()) {
-            return new Locale("en", "", "");
+            return Locale.forLanguageTag("en");
         }
 
         return Locale.getDefault();

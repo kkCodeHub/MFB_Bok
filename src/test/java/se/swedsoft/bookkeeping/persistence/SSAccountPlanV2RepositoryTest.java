@@ -33,7 +33,7 @@ class SSAccountPlanV2RepositoryTest {
         Class.forName("org.hsqldb.jdbcDriver");
         connection = DriverManager.getConnection(JDBC_URL, "sa", "");
 
-        SSDB.getInstance().startupLocal(connection);
+        se.swedsoft.bookkeeping.data.system.SSSystemConfigContext.startupLocal(connection);
 
         Integer companyId = createCompany("V2 AccountPlan Repo Test AB");
         SSNewCompany company = new SSNewCompany();
@@ -57,7 +57,7 @@ class SSAccountPlanV2RepositoryTest {
 
     @BeforeEach
     void clearCaches() {
-        SSDB.getInstance().clearLists();
+        se.swedsoft.bookkeeping.data.system.SSEventTriggerSyncContext.clearCachedLists();
     }
 
     @Test
@@ -66,11 +66,8 @@ class SSAccountPlanV2RepositoryTest {
         plan.setName("PLAN-L-001");
         plan.setBaseName("BAS95");
         plan.setAssessementYear("2026");
-
-        SSAccount account = new SSAccount();
-        account.setNumber(1910);
-        account.setDescription("Cash account");
-        plan.addAccount(account);
+        plan.setExcelPath("PLAN-L-001.xlsx");
+        plan.setDefaultPlan(false);
 
         Repositories.accountPlans().add(plan);
 
@@ -79,17 +76,19 @@ class SSAccountPlanV2RepositoryTest {
         Optional<SSAccountPlan> fetched = Repositories.accountPlans().findById(plan.getId());
         assertThat(fetched).isPresent();
         assertThat(fetched.get().getName()).isEqualTo("PLAN-L-001");
-        assertThat(fetched.get().getAccounts()).hasSize(1);
+        assertThat(fetched.get().getExcelPath()).isEqualTo("PLAN-L-001.xlsx");
+        assertThat(fetched.get().isDefaultPlan()).isFalse();
+        assertThat(fetched.get().getAccounts()).isEmpty();
 
         SSAccountPlan update = fetched.get();
         update.setName("PLAN-L-001-UPDATED");
-        update.getAccounts().get(0).setDescription("Updated cash account");
+        update.setExcelPath("PLAN-L-001-UPDATED.xlsx");
         Repositories.accountPlans().update(update);
 
         Optional<SSAccountPlan> reloaded = Repositories.accountPlans().findById(plan.getId());
         assertThat(reloaded).isPresent();
         assertThat(reloaded.get().getName()).isEqualTo("PLAN-L-001-UPDATED");
-        assertThat(reloaded.get().getAccounts().get(0).getDescription()).isEqualTo("Updated cash account");
+        assertThat(reloaded.get().getExcelPath()).isEqualTo("PLAN-L-001-UPDATED.xlsx");
 
         Repositories.accountPlans().delete(reloaded.get());
 
@@ -97,20 +96,29 @@ class SSAccountPlanV2RepositoryTest {
         assertThat(removed).isEmpty();
     }
 
-    private static Integer createCompany(String name) throws Exception {
-        try (PreparedStatement statement = connection.prepareStatement(
-                "INSERT INTO tbl_company(name) VALUES (?)", Statement.RETURN_GENERATED_KEYS)) {
-            statement.setString(1, name);
-            statement.executeUpdate();
-            connection.commit();
+    @Test
+    void repositoryDoesNotPersistTemplateAccounts() {
+        SSAccountPlan plan = new SSAccountPlan();
+        plan.setName("PLAN-L-NULL-NUMBER");
+        plan.setExcelPath("PLAN-L-NULL-NUMBER.xlsx");
 
-            try (ResultSet keys = statement.getGeneratedKeys()) {
-                if (keys.next()) {
-                    return keys.getInt(1);
-                }
-            }
-        }
-        throw new IllegalStateException("Could not create test company for account-plan repository test");
+        SSAccount validAccount = new SSAccount();
+        validAccount.setNumber(2440);
+        validAccount.setDescription("Leverantorsskulder");
+        plan.addAccount(validAccount);
+
+        Repositories.accountPlans().add(plan);
+        assertThat(plan.getId()).isNotNull();
+
+        Optional<SSAccountPlan> fetched = Repositories.accountPlans().findById(plan.getId());
+        assertThat(fetched).isPresent();
+        assertThat(fetched.get().getAccounts()).isEmpty();
+    }
+
+    private static Integer createCompany(String name) throws Exception {
+        se.swedsoft.bookkeeping.data.SSNewCompany company = new se.swedsoft.bookkeeping.data.SSNewCompany();
+        company.setName(name);
+        se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.addCompany(company);
+        return company.getId();
     }
 }
-

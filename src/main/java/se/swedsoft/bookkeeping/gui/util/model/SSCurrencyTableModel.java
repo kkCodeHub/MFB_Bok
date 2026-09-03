@@ -2,7 +2,7 @@ package se.swedsoft.bookkeeping.gui.util.model;
 
 
 import se.swedsoft.bookkeeping.data.common.SSCurrency;
-import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.data.system.SSMasterdataContext;
 import se.swedsoft.bookkeeping.gui.util.SSBundle;
 import se.swedsoft.bookkeeping.gui.util.components.SSEditableTableComboBox;
 import se.swedsoft.bookkeeping.gui.util.dialogs.SSCurrencyDialog;
@@ -27,7 +27,7 @@ public class SSCurrencyTableModel extends SSTableModel<SSCurrency> {
      * Default constructor.
      */
     public SSCurrencyTableModel() {
-        super(SSDB.getInstance().getCurrencies());
+        super(SSMasterdataContext.getCurrencies());
     }
 
     /**
@@ -50,7 +50,7 @@ public class SSCurrencyTableModel extends SSTableModel<SSCurrency> {
 
     @Override
     public SSCurrencyTableModel getDropdownmodel() {
-        return getDropDownModel(SSDB.getInstance().getCurrencies());
+        return getDropDownModel(SSMasterdataContext.getCurrencies());
     }
 
     /**
@@ -58,7 +58,7 @@ public class SSCurrencyTableModel extends SSTableModel<SSCurrency> {
      * @return
      */
     public static SSCurrencyTableModel getDropDownModel() {
-        return getDropDownModel(SSDB.getInstance().getCurrencies());
+        return getDropDownModel(SSMasterdataContext.getCurrencies());
     }
 
     /**
@@ -124,12 +124,12 @@ public class SSCurrencyTableModel extends SSTableModel<SSCurrency> {
 
         @Override
         public int getDefaultWidth() {
-            return 200;
+            return 150;
         }
     };
 
     /**
-     *  Description
+     *  Exchange Rate
      */
     public static SSTableColumn<SSCurrency> COLUMN_EXCHANGERATE = new SSTableColumn<>(
             SSBundle.getBundle().getString("currencytable.column.3")) {
@@ -180,7 +180,7 @@ public class SSCurrencyTableModel extends SSTableModel<SSCurrency> {
                     iCurrency.setDescription(iDialog.getDescription());
                     iCurrency.setExchangeRate(iDialog.getExchangeRate());
 
-                    SSDB.getInstance().addCurrency(iCurrency);
+                    SSMasterdataContext.addCurrency(iCurrency);
 
                     return iCurrency;
                 }
@@ -198,12 +198,12 @@ public class SSCurrencyTableModel extends SSTableModel<SSCurrency> {
                     iSelected.setName(iDialog.getName());
                     iSelected.setDescription(iDialog.getDescription());
                     iSelected.setExchangeRate(iDialog.getExchangeRate());
-                    SSDB.getInstance().updateCurrency(iSelected);
+                    SSMasterdataContext.updateCurrency(iSelected);
                 }
             }
 
             public void deleteAction(SSCurrency iSelected) {
-                SSDB.getInstance().deleteCurrency(iSelected);
+                SSMasterdataContext.deleteCurrency(iSelected);
             }
 
         };

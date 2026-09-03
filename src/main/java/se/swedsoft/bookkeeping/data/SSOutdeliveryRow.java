@@ -99,7 +99,7 @@ public class SSOutdeliveryRow implements Serializable {
      */
     public SSProduct getProduct() {
         if (iProduct == null && iProductNr != null) {
-            List<SSProduct> iProducts = SSDB.getInstance().getProducts();
+            List<SSProduct> iProducts = se.swedsoft.bookkeeping.data.system.SSProductContext.getProducts();
 
             for (SSProduct iCurrent : iProducts) {
                 if (iProductNr.equals(iCurrent.getNumber())) {

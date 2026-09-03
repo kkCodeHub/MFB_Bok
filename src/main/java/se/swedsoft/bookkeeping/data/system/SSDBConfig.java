@@ -1,26 +1,31 @@
 package se.swedsoft.bookkeeping.data.system;
 
 
-import org.apache.xerces.parsers.DOMParser;
-import org.apache.xml.serialize.OutputFormat;
-import org.apache.xml.serialize.XMLSerializer;
+import org.fribok.bookkeeping.app.Path;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import se.swedsoft.bookkeeping.data.SSNewAccountingYear;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
-import org.fribok.bookkeeping.app.Path;
-import se.swedsoft.bookkeeping.data.SSNewAccountingYear;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Optional;
-import org.xml.sax.SAXException;
-import org.xml.sax.helpers.AttributeListImpl;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 
 /**
@@ -45,20 +50,14 @@ public class SSDBConfig {    private static final Logger LOG = LoggerFactory.get
 
     public static void setCompanyId(Integer iId) {
         iCompanyId = iId;
-        DOMParser iParser = new DOMParser();
 
         try {
-            iParser.parse(new InputSource(new FileInputStream(CONFIG_FILE)));
-            iParser.getDocument().getDocumentElement().setAttribute("company",
+            Document iDocument = loadDocument();
+            iDocument.getDocumentElement().setAttribute("company",
                     iCompanyId == null ? "" : iCompanyId.toString());
 
-            // Write back the database path to the config file.
-            OutputFormat iFormat = new OutputFormat(iParser.getDocument());
-            XMLSerializer serializer = new XMLSerializer(new FileOutputStream(CONFIG_FILE),
-                    iFormat);
-
-            serializer.serialize(iParser.getDocument());
-        } catch (IOException | SAXException ex) {
+            writeDocument(iDocument);
+        } catch (IOException | ParserConfigurationException | SAXException | TransformerException ex) {
             LOG.error("Unexpected error", ex);
         }
     }
@@ -69,15 +68,14 @@ public class SSDBConfig {    private static final Logger LOG = LoggerFactory.get
 
     public static void setYearId(Integer pCompanyId, Integer iId) {
         iYearId = iId;
-        DOMParser iParser = new DOMParser();
 
         try {
-            iParser.parse(new InputSource(new FileInputStream(CONFIG_FILE)));
-            iParser.getDocument().getDocumentElement().setAttribute("year",
+            Document iDocument = loadDocument();
+            iDocument.getDocumentElement().setAttribute("year",
                     iYearId == null ? "" : iYearId.toString());
 
             boolean iExists = false;
-            NodeList iCompanyElements = iParser.getDocument().getDocumentElement().getElementsByTagName(
+            NodeList iCompanyElements = iDocument.getDocumentElement().getElementsByTagName(
                     "company");
 
             for (int i = 0; i < iCompanyElements.getLength(); i++) {
@@ -96,21 +94,16 @@ public class SSDBConfig {    private static final Logger LOG = LoggerFactory.get
                 }
             }
             if (!iExists) {
-                Element iCompanyElement = iParser.getDocument().createElement("company");
+                Element iCompanyElement = iDocument.createElement("company");
 
                 iCompanyElement.setAttribute("id", pCompanyId.toString());
                 iCompanyElement.setAttribute("yearid", iId == null ? "" : iId.toString());
-                iParser.getDocument().getDocumentElement().appendChild(iCompanyElement);
+                iDocument.getDocumentElement().appendChild(iCompanyElement);
             }
 
-            // Write back the database path to the config file.
-            OutputFormat iFormat = new OutputFormat(iParser.getDocument());
-            XMLSerializer serializer = new XMLSerializer(new FileOutputStream(CONFIG_FILE),
-                    iFormat);
+            writeDocument(iDocument);
 
-            serializer.serialize(iParser.getDocument());
-
-        } catch (IOException | SAXException ex) {
+        } catch (IOException | ParserConfigurationException | SAXException | TransformerException ex) {
             LOG.error("Unexpected error", ex);
         }
     }
@@ -119,11 +112,10 @@ public class SSDBConfig {    private static final Logger LOG = LoggerFactory.get
         if (pCompanyId == null) {
             return Optional.empty();
         }
-        DOMParser iParser = new DOMParser();
 
         try {
-            iParser.parse(new InputSource(new FileInputStream(CONFIG_FILE)));
-            NodeList iCompanyElements = iParser.getDocument().getDocumentElement().getElementsByTagName(
+            Document iDocument = loadDocument();
+            NodeList iCompanyElements = iDocument.getDocumentElement().getElementsByTagName(
                     "company");
 
             for (int i = 0; i < iCompanyElements.getLength(); i++) {
@@ -137,18 +129,18 @@ public class SSDBConfig {    private static final Logger LOG = LoggerFactory.get
                     if (iCompanyElementId.equals(pCompanyId)) {
                         String iResult = iCompanyElement.getAttribute("yearid");
 
-                        if (iResult == null || iResult.length() == 0) {
+                        if (iResult.isEmpty()) {
                             return Optional.empty();
                         }
                         SSNewAccountingYear iYear = new SSNewAccountingYear();
 
                         iYear.setId(Integer.parseInt(iResult));
-                        return SSDB.getInstance().getAccountingYear(iYear);
+                        return se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.getAccountingYear(iYear);
                     }
                 }
             }
 
-        } catch (IOException | SAXException ex) {
+        } catch (IOException | SAXException | ParserConfigurationException ex) {
             LOG.error("Unexpected error", ex);
         }
         return Optional.empty();
@@ -157,28 +149,27 @@ public class SSDBConfig {    private static final Logger LOG = LoggerFactory.get
     static {
         load();
     }
-    
+
     /*
      * Create a config file if not found
     */
     private static void createIfNotExists() throws IOException {
         File parent = CONFIG_FILE.getParentFile();
         if (parent != null && !parent.exists()) {
-            parent.mkdirs();
+            if (!parent.mkdirs()) {
+                LOG.warn("Failed to create config directory: {}", parent);
+            }
         }
         if (CONFIG_FILE.createNewFile()) {
             LOG.info("Creating database config file.");
-            
-            XMLSerializer serializer = new XMLSerializer(new FileOutputStream(CONFIG_FILE),
-                new OutputFormat("XML", "UTF-8", true));
 
             try {
-                serializer.startDocument();
-                serializer.startElement("database", new AttributeListImpl());
-                serializer.endElement("database");
-                serializer.endDocument();
-//                serializer.serialize(new );
-            } catch (SAXException ex) {
+                DocumentBuilder iBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+                Document iDocument = iBuilder.newDocument();
+                iDocument.appendChild(iDocument.createElement("database"));
+                writeDocument(iDocument);
+            } catch (ParserConfigurationException | TransformerException ex) {
+                throw new IOException(ex);
             }
         }
     }
@@ -187,36 +178,54 @@ public class SSDBConfig {    private static final Logger LOG = LoggerFactory.get
      *
      */
     public static void load() {
-
-        DOMParser iParser = new DOMParser();
-
         try {
             createIfNotExists();
-            
-            // parser.set(false)
-            iParser.parse(new InputSource(new FileInputStream(CONFIG_FILE)));
+            Document iDocument = loadDocument();
 
             String iCompany = null;
 
-            if (iParser.getDocument().getDocumentElement().hasAttribute("company")) {
-                iCompany = iParser.getDocument().getDocumentElement().getAttribute(
+            if (iDocument.getDocumentElement().hasAttribute("company")) {
+                iCompany = iDocument.getDocumentElement().getAttribute(
                         "company");
             }
-            if (iCompany != null && iCompany.length() != 0) {
+            if (iCompany != null && !iCompany.isEmpty()) {
                 iCompanyId = Integer.parseInt(iCompany);
             }
 
             String iYear = null;
 
-            if (iParser.getDocument().getDocumentElement().hasAttribute("year")) {
-                iYear = iParser.getDocument().getDocumentElement().getAttribute("year");
+            if (iDocument.getDocumentElement().hasAttribute("year")) {
+                iYear = iDocument.getDocumentElement().getAttribute("year");
             }
-            if (iYear != null && iYear.length() != 0) {
+            if (iYear != null && !iYear.isEmpty()) {
                 iYearId = Integer.parseInt(iYear);
             }
 
-        } catch (IOException | SAXException ex) {
+        } catch (IOException | ParserConfigurationException | SAXException ex) {
             LOG.error("Unexpected error", ex);
+        }
+    }
+
+    private static Document loadDocument() throws ParserConfigurationException, IOException, SAXException {
+        DocumentBuilderFactory iFactory = DocumentBuilderFactory.newInstance();
+        DocumentBuilder iBuilder = iFactory.newDocumentBuilder();
+
+        try (FileInputStream iInputStream = new FileInputStream(CONFIG_FILE)) {
+            return iBuilder.parse(iInputStream);
+        }
+    }
+
+    private static void writeDocument(Document pDocument) throws ParserConfigurationException, TransformerException, IOException {
+        TransformerFactory iFactory = TransformerFactory.newInstance();
+        Transformer iTransformer = iFactory.newTransformer();
+
+        iTransformer.setOutputProperty(OutputKeys.METHOD, "xml");
+        iTransformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
+        iTransformer.setOutputProperty(OutputKeys.INDENT, "yes");
+        iTransformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "1");
+
+        try (FileOutputStream iOutputStream = new FileOutputStream(CONFIG_FILE)) {
+            iTransformer.transform(new DOMSource(pDocument), new StreamResult(iOutputStream));
         }
     }
 }

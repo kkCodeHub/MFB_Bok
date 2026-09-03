@@ -6,7 +6,8 @@ import se.swedsoft.bookkeeping.data.SSProduct;
 import se.swedsoft.bookkeeping.data.SSPurchaseOrder;
 import se.swedsoft.bookkeeping.data.SSStock;
 import se.swedsoft.bookkeeping.data.SSSupplier;
-import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.data.system.SSProductContext;
+import se.swedsoft.bookkeeping.data.system.SSPurchaseContext;
 import se.swedsoft.bookkeeping.gui.SSMainFrame;
 import se.swedsoft.bookkeeping.gui.purchasesuggestion.util.SSPurchaseSuggestionTableModel;
 import se.swedsoft.bookkeeping.gui.util.SSBundle;
@@ -101,7 +102,7 @@ public class SSPurchaseSuggestionDialog extends SSDialog {
         List<SSProduct> iProducts = new LinkedList<>();
         SSStock iStock = new SSStock(true);
 
-        for (SSProduct iProduct : SSDB.getInstance().getProducts()) {
+        for (SSProduct iProduct : SSProductContext.getProducts()) {
             if (!iProduct.isParcel() && iProduct.isStockProduct()) {
                 Integer iStockQuantity = iStock.getQuantity(iProduct) == null
                         ? 0
@@ -162,7 +163,7 @@ public class SSPurchaseSuggestionDialog extends SSDialog {
         List<SSProduct> iUseForPurchaseOrder = new LinkedList<>();
         String iAddedOrders = "";
 
-        for (SSSupplier iSupplier : SSDB.getInstance().getSuppliers()) {
+        for (SSSupplier iSupplier : SSPurchaseContext.getSuppliers()) {
             iUseForPurchaseOrder.clear();
             for (SSProduct iProduct : iProducts) {
                 if (iProduct.getOrdercount() == null) {

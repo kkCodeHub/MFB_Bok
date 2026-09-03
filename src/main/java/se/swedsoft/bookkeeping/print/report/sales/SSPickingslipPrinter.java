@@ -6,8 +6,10 @@ import se.swedsoft.bookkeeping.data.SSOrder;
 import se.swedsoft.bookkeeping.data.SSProduct;
 import se.swedsoft.bookkeeping.data.base.SSSaleRow;
 import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.data.system.SSSalesContext;
 import se.swedsoft.bookkeeping.gui.util.model.SSDefaultTableModel;
 import se.swedsoft.bookkeeping.print.SSPrinter;
+import se.swedsoft.bookkeeping.print.util.SSQuantityPrintUtil;
 import se.swedsoft.bookkeeping.util.SSDateUtil;
 
 import java.math.BigDecimal;
@@ -68,7 +70,7 @@ public class SSPickingslipPrinter extends SSPrinter {
      *
      */
     private void addParameters() {
-        SSNewCompany iCompany = SSDB.getInstance().getCurrentCompany();
+        SSNewCompany iCompany = se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.getCurrentCompany();
 
         SSSalePrinterUtils.addParametersForCompany(iCompany, this);
 
@@ -178,7 +180,7 @@ public class SSPickingslipPrinter extends SSPrinter {
          */
         @Override
         protected SSDefaultTableModel getModel() {
-            final List<SSProduct> iProducts = SSDB.getInstance().getProducts();
+            final List<SSProduct> iProducts = se.swedsoft.bookkeeping.data.system.SSProductContext.getProducts();
 
             SSDefaultTableModel<SSSaleRow> iModel = new SSDefaultTableModel<>() {
 
@@ -202,7 +204,7 @@ public class SSPickingslipPrinter extends SSPrinter {
                         break;
 
                     case 2:
-                        value = iRow.getQuantity();
+                        value = SSQuantityPrintUtil.toDisplay(iRow.getQuantity());
                         break;
                     }
                     SSProduct iProduct = iRow.getProduct(iProducts);
@@ -252,10 +254,10 @@ public class SSPickingslipPrinter extends SSPrinter {
             Collections.sort(iRows,
                     (iSaleRow1, iSaleRow2) -> {
 
-                            SSProduct iProduct1 = SSDB.getInstance().getProduct(
-                                    iSaleRow1.getProductNr()).orElse(null);
-                            SSProduct iProduct2 = SSDB.getInstance().getProduct(
-                                    iSaleRow2.getProductNr()).orElse(null);
+                            SSProduct iProduct1 = se.swedsoft.bookkeeping.data.system.SSProductContext.getProduct(
+                                    iSaleRow1.getProductNr());
+                            SSProduct iProduct2 = se.swedsoft.bookkeeping.data.system.SSProductContext.getProduct(
+                                    iSaleRow2.getProductNr());
 
                             if (iProduct1 != null && iProduct2 != null) {
                                 if (iProduct1.getWarehouseLocation() == null

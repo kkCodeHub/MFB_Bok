@@ -32,7 +32,7 @@ public class SIEEntryFlagga implements SIEEntry {    private static final Logger
         }
 
         if (iReader.nextInteger().orElse(0) == 1) {
-            LOG.info("(SIEEntryFlagga) The file has already been imported, ignored.");
+            LOG.debug("(SIEEntryFlagga) The file is marked as previously imported.");
         }
         return true;
     }

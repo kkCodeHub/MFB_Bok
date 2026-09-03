@@ -1,137 +1,91 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
-<!DOCTYPE jasperReport PUBLIC "-//JasperReports//DTD Report Design//EN"
-        "http://jasperreports.sourceforge.net/dtds/jasperreport.dtd">
-
-<jasperReport name="Accountplan" resourceBundle="book">
-
-    <parameter name="accountplan"   class="java.lang.String"/>
-
-    <!-- Declared fields in the report. -->
-    <field name="account.number"      class="java.lang.Integer"/>
-    <field name="account.description" class="java.lang.String"/>
-    <field name="account.vat"         class="java.lang.String"/>
-    <field name="account.sru"        class="java.lang.String"/>
-    <field name="account.report"      class="java.lang.String"/>
-
-    <columnHeader>
-        <band height="15">
-            <line>
-                <reportElement x="20" y="12" width="510" height="1"/>
-            </line>
-
-            <!-- Column 1 -->
-            <textField>
-                <reportElement x="20" y="0" width="80" height="12" />
-                <textElement textAlignment="Left">
-                    <font size="8"/>
-                </textElement>
-                <textFieldExpression class="java.lang.String">
-                    <![CDATA[$R{accountplanreport.column.1}]]>
-                </textFieldExpression>
-            </textField>
-
-            <textField>
-                <reportElement x="120" y="0" width="220" height="12" />
-                <textElement textAlignment="Left">
-                    <font size="8"/>
-                </textElement>
-                <textFieldExpression class="java.lang.String">
-                    <![CDATA[$R{accountplanreport.column.2}]]>
-                </textFieldExpression>
-            </textField>
-
-
-
-            <textField>
-                <reportElement x="380" y="0" width="50" height="12" />
-                <textElement textAlignment="Center">
-                    <font size="8"/>
-                </textElement>
-                <textFieldExpression class="java.lang.String">
-                    <![CDATA[$R{accountplanreport.column.3}]]>
-                </textFieldExpression>
-            </textField>
-
-            <textField>
-                <reportElement x="430" y="0" width="50" height="12" />
-                <textElement textAlignment="Center">
-                    <font size="8"/>
-                </textElement>
-                <textFieldExpression class="java.lang.String">
-                    <![CDATA[$R{accountplanreport.column.4}]]>
-                </textFieldExpression>
-            </textField>
-
-            <textField>
-                <reportElement x="480" y="0" width="50" height="12" />
-                <textElement textAlignment="Center">
-                    <font size="8"/>
-                </textElement>
-                <textFieldExpression class="java.lang.String">
-                    <![CDATA[$R{accountplanreport.column.5}]]>
-                </textFieldExpression>
-            </textField>
-
-        </band>
-    </columnHeader>
-
-    <detail>
-        <band height="14">
-            <textField>
-                <reportElement x="20" y="0" width="70" height="14" />
-                <textElement>
-                    <font size="8"/>
-                </textElement>
-                <textFieldExpression class="java.lang.Integer">
-                    <![CDATA[$F{account.number}]]>
-                </textFieldExpression>
-            </textField>
-            <textField isBlankWhenNull="true">
-                <reportElement x="120" y="0" width="220" height="14" />
-                <textElement>
-                    <font size="8"/>
-                </textElement>
-                <textFieldExpression class="java.lang.String">
-                    <![CDATA[$F{account.description}]]>
-                </textFieldExpression>
-            </textField>
-
-
-
-            <textField isBlankWhenNull="true">
-                <reportElement x="380" y="0" width="50" height="14" />
-                <textElement textAlignment="Center">
-                    <font size="8"/>
-                </textElement>
-                <textFieldExpression class="java.lang.String">
-                    <![CDATA[$F{account.vat}]]>
-                </textFieldExpression>
-            </textField>
-
-            <textField isBlankWhenNull="true">
-                <reportElement x="430" y="0" width="50" height="14" />
-                <textElement textAlignment="Center">
-                    <font size="8"/>
-                </textElement>
-                <textFieldExpression class="java.lang.String">
-                    <![CDATA[$F{account.sru}]]>
-                </textFieldExpression>
-            </textField>
-
-            <textField isBlankWhenNull="true">
-                <reportElement x="480" y="0" width="50" height="14" />
-                <textElement textAlignment="Center">
-                    <font size="8" />
-                </textElement>
-                <textFieldExpression class="java.lang.String">
-                    <![CDATA[$F{account.report}]]>
-                </textFieldExpression>
-            </textField>     
-        </band>
-    </detail>
-
-
-
-
+<!-- Created with Jaspersoft Studio version 6.21.1.final using JasperReports Library version 6.21.0-4f56c4f36cd19e17675219a9ac4692d5f0f13b06  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="Accountplan" pageWidth="595" pageHeight="842" whenNoDataType="NoPages" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="30" bottomMargin="30" resourceBundle="book" uuid="20b5a74e-0efe-4b79-a831-a8aa79ca003f">
+	<parameter name="accountplan" class="java.lang.String"/>
+	<field name="account.number" class="java.lang.Integer"/>
+	<field name="account.description" class="java.lang.String"/>
+	<field name="account.vat" class="java.lang.String"/>
+	<field name="account.sru" class="java.lang.String"/>
+	<field name="account.report" class="java.lang.String"/>
+	<columnHeader>
+		<band height="15" splitType="Stretch">
+			<line>
+				<reportElement x="20" y="12" width="510" height="1" uuid="6496d040-31a3-4e5e-8901-42b49ceddf76"/>
+			</line>
+			<textField>
+				<reportElement x="20" y="0" width="80" height="12" uuid="31381748-f11c-426c-9d2e-d8d91fa092fa"/>
+				<textElement textAlignment="Left">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$R{accountplanreport.column.1}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="120" y="0" width="220" height="12" uuid="bf073285-a411-4bba-86bc-34f9aef72612"/>
+				<textElement textAlignment="Left">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$R{accountplanreport.column.2}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="380" y="0" width="50" height="12" uuid="841bdbdc-c3c9-43a8-97da-78a6a6c0030c"/>
+				<textElement textAlignment="Center">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$R{accountplanreport.column.3}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="430" y="0" width="50" height="12" uuid="f437c3da-56d3-4078-a3b4-416f81195a13"/>
+				<textElement textAlignment="Center">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$R{accountplanreport.column.4}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="480" y="0" width="50" height="12" uuid="e9e30a02-ca96-4d1a-a77b-ff6a9bf2cc49"/>
+				<textElement textAlignment="Center">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$R{accountplanreport.column.5}]]></textFieldExpression>
+			</textField>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="14" splitType="Stretch">
+			<textField>
+				<reportElement x="20" y="0" width="70" height="14" uuid="f3a290a2-cf85-4419-abb5-4fb3f611c8c8"/>
+				<textElement>
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{account.number}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="120" y="0" width="220" height="14" uuid="d5485ff5-4d6a-42bb-bba5-8859aef85606"/>
+				<textElement>
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{account.description}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="380" y="0" width="50" height="14" uuid="99e04d2c-0357-45f5-98b4-b703d85c5905"/>
+				<textElement textAlignment="Center">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{account.vat}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="430" y="0" width="50" height="14" uuid="74300f0a-0da1-4166-afe6-989ba7e2bf56"/>
+				<textElement textAlignment="Center">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{account.sru}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="480" y="0" width="50" height="14" uuid="6d98d170-18de-4d78-a22f-42cd786c3a14"/>
+				<textElement textAlignment="Center">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{account.report}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
 </jasperReport>

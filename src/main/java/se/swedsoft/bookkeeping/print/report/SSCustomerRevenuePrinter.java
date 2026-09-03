@@ -123,7 +123,7 @@ public class SSCustomerRevenuePrinter extends SSPrinter {
 
     private void calculate() {
         iCustomerRevenue = new HashMap<>();
-        List<SSInvoice> iInvoices = SSDB.getInstance().getInvoices();
+        List<SSInvoice> iInvoices = se.swedsoft.bookkeeping.data.system.SSSalesContext.getInvoices();
         LocalDate localFrom = SSDateUtil.toLocalDate(iDateFrom);
         LocalDate localTo = SSDateUtil.toLocalDate(iDateTo);
 
@@ -158,7 +158,7 @@ public class SSCustomerRevenuePrinter extends SSPrinter {
             }
         }
 
-        List<SSCreditInvoice> iCreditInvoices = SSDB.getInstance().getCreditInvoices();
+        List<SSCreditInvoice> iCreditInvoices = se.swedsoft.bookkeeping.data.system.SSSalesContext.getCreditInvoices();
 
         for (SSCreditInvoice iCreditInvoice : iCreditInvoices) {
             LocalDate creditLocalDate = iCreditInvoice.getLocalDate();

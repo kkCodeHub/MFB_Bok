@@ -3,6 +3,7 @@ package se.swedsoft.bookkeeping.gui.creditinvoice.panel;
 
 import se.swedsoft.bookkeeping.data.SSCreditInvoice;
 import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.data.system.SSSalesContext;
 import se.swedsoft.bookkeeping.gui.creditinvoice.util.SSCreditInvoiceTableModel;
 
 import javax.swing.*;
@@ -41,7 +42,7 @@ public class SSCreditInvoiceSearchPanel extends JPanel {
     }
 
     public void ApplyFilter() {
-        List<SSCreditInvoice> iCreditInvoices = SSDB.getInstance().getCreditInvoices();
+        List<SSCreditInvoice> iCreditInvoices = SSSalesContext.getCreditInvoices();
         List<SSCreditInvoice> iFiltered = new LinkedList<>();
 
         String iText = iTextField.getText();

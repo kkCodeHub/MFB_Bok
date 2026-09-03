@@ -6,7 +6,6 @@ import se.swedsoft.bookkeeping.data.system.SSDB;
 import se.swedsoft.bookkeeping.persistence.Repositories;
 
 import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.math.BigDecimal;
 import se.swedsoft.bookkeeping.util.SSDateUtil;
 
@@ -78,7 +77,7 @@ public class SSTender extends SSSale {
      */
     @Override
     public void doAutoIncrecement() {
-        SSNewCompany iCompany = SSDB.getInstance().getCurrentCompany();
+        SSNewCompany iCompany = se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.getCurrentCompany();
 
         int iNumber = iCompany.getAutoIncrement().getNumber("tender");
 
@@ -92,24 +91,6 @@ public class SSTender extends SSSale {
     }
 
     // //////////////////////////////////////////////////
-
-    /**
-     *
-     * @return
-     */
-    @Deprecated
-    public Date getExpires() {
-        return SSDateUtil.toDate(iExpires);
-    }
-
-    /**
-     *
-     * @param iExpires
-     */
-    @Deprecated
-    public void setExpires(Date iExpires) {
-        this.iExpires = SSDateUtil.toLocalDate(iExpires);
-    }
 
     /**
      * @return the expiry date as a LocalDate
@@ -158,7 +139,7 @@ public class SSTender extends SSSale {
      * @return
      */
     public SSOrder getOrder() {
-        return getOrder(SSDB.getInstance().getOrders());
+        return getOrder(se.swedsoft.bookkeeping.data.system.SSSalesContext.getOrders());
     }
 
     /**
@@ -226,16 +207,4 @@ public class SSTender extends SSSale {
         return sb.toString();
     }
 
-    /**
-     * Custom deserialization to handle backward compatibility.
-     * Pre-migration serialized streams stored {@code iExpires} as
-     * {@code java.util.Date}.  This method reads it as a raw object and converts
-     * via {@link SSDateUtil#readLocalDate(Object)}.
-     */
-    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
-        ObjectInputStream.GetField fields = in.readFields();
-        iExpires = SSDateUtil.readLocalDate(fields.get("iExpires", null));
-        iOrderNr = (Integer) fields.get("iOrderNr", null);
-        iCurrencyRate = (BigDecimal) fields.get("iCurrencyRate", null);
-    }
 }

@@ -8,7 +8,6 @@ import se.swedsoft.bookkeeping.gui.util.table.SSTableSearchable;
 import se.swedsoft.bookkeeping.persistence.Repositories;
 
 import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import se.swedsoft.bookkeeping.util.SSDateUtil;
@@ -90,7 +89,7 @@ public class SSPurchaseOrder implements SSTableSearchable, Serializable {
         iEstimatedDelivery = SSDateUtil.today();
         iStockInfluencing = true;
 
-        SSNewCompany iCompany = SSDB.getInstance().getCurrentCompany();
+        SSNewCompany iCompany = se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.getCurrentCompany();
 
         if (iCompany != null) {
             setDefaultAccounts(iCompany.getDefaultAccounts());
@@ -146,7 +145,7 @@ public class SSPurchaseOrder implements SSTableSearchable, Serializable {
         iStockInfluencing = true;
         iEstimatedDelivery = SSDateUtil.today();
         iDate = SSDateUtil.today();
-        SSNewCompany iCompany = SSDB.getInstance().getCurrentCompany();
+        SSNewCompany iCompany = se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.getCurrentCompany();
 
         if (iCompany != null) {
             setDefaultAccounts(iCompany.getDefaultAccounts());
@@ -159,7 +158,7 @@ public class SSPurchaseOrder implements SSTableSearchable, Serializable {
         }
 
         for (SSProduct iProduct : iProducts) {
-            SSProduct iOriginal = SSDB.getInstance().getProduct(iProduct).orElse(null);
+            SSProduct iOriginal = se.swedsoft.bookkeeping.data.system.SSProductContext.getProduct(iProduct).orElse(null);
 
             if (iOriginal != null) {
                 SSPurchaseOrderRow iRow = new SSPurchaseOrderRow();
@@ -179,7 +178,11 @@ public class SSPurchaseOrder implements SSTableSearchable, Serializable {
     public void doAutoIncrecement() {
         List<SSPurchaseOrder> iPurchaseOrders = Repositories.purchaseOrders().findAll();
 
-        int iNumber = SSDB.getInstance().getAutoIncrement().orElse(new SSAutoIncrement()).getNumber("purchaseorder");
+        SSNewCompany iCurrentCompany = se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.getCurrentCompany();
+        SSAutoIncrement iAutoIncrement = iCurrentCompany != null && iCurrentCompany.getAutoIncrement() != null
+                ? iCurrentCompany.getAutoIncrement()
+                : new SSAutoIncrement();
+        int iNumber = iAutoIncrement.getNumber("purchaseorder");
 
         for (SSPurchaseOrder iPurchaseOrder : iPurchaseOrders) {
             if (iPurchaseOrder.iNumber > iNumber) {
@@ -204,24 +207,6 @@ public class SSPurchaseOrder implements SSTableSearchable, Serializable {
      */
     public void setNumber(Integer iNumber) {
         this.iNumber = iNumber;
-    }
-
-    /**
-     *
-     * @return
-     */
-    @Deprecated
-    public Date getDate() {
-        return SSDateUtil.toDate(iDate);
-    }
-
-    /**
-     *
-     * @param iDate
-     */
-    @Deprecated
-    public void setDate(Date iDate) {
-        this.iDate = SSDateUtil.toLocalDate(iDate);
     }
 
     /**
@@ -268,24 +253,6 @@ public class SSPurchaseOrder implements SSTableSearchable, Serializable {
      */
     public void setSupplierName(String iSupplierName) {
         this.iSupplierName = iSupplierName;
-    }
-
-    /**
-     *
-     * @return
-     */
-    @Deprecated
-    public Date getEstimatedDelivery() {
-        return SSDateUtil.toDate(iEstimatedDelivery);
-    }
-
-    /**
-     *
-     * @param iEstimatedDelivery
-     */
-    @Deprecated
-    public void setEstimatedDelivery(Date iEstimatedDelivery) {
-        this.iEstimatedDelivery = SSDateUtil.toLocalDate(iEstimatedDelivery);
     }
 
     /**
@@ -522,7 +489,7 @@ public class SSPurchaseOrder implements SSTableSearchable, Serializable {
      * @return
      */
     public SSSupplier getSupplier() {
-        return getSupplier(SSDB.getInstance().getSuppliers());
+        return getSupplier(se.swedsoft.bookkeeping.data.system.SSPurchaseContext.getSuppliers());
     }
 
     /**
@@ -730,37 +697,6 @@ public class SSPurchaseOrder implements SSTableSearchable, Serializable {
      */
     public boolean hasSupplier(SSSupplier iSupplier) {
         return iSupplierNr != null && iSupplierNr.equals(iSupplier.getNumber());
-    }
-
-    /**
-     * Custom deserialization to handle backward compatibility.
-     * Pre-migration serialized streams stored {@code iDate} and {@code iEstimatedDelivery}
-     * as {@code java.util.Date}.  This method reads them as raw objects and converts
-     * via {@link SSDateUtil#readLocalDate(Object)}.
-     */
-    @SuppressWarnings("unchecked")
-    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
-        ObjectInputStream.GetField fields = in.readFields();
-        iNumber = (Integer) fields.get("iNumber", null);
-        iInvoiceNr = (Integer) fields.get("iInvoiceNr", null);
-        iDate = SSDateUtil.readLocalDate(fields.get("iDate", null));
-        iSupplierNr = (String) fields.get("iSupplierNr", null);
-        iSupplierName = (String) fields.get("iSupplierName", null);
-        iEstimatedDelivery = SSDateUtil.readLocalDate(fields.get("iEstimatedDelivery", null));
-        iPaymentTerm = (SSPaymentTerm) fields.get("iPaymentTerm", null);
-        iDeliveryTerm = (SSDeliveryTerm) fields.get("iDeliveryTerm", null);
-        iDeliveryWay = (SSDeliveryWay) fields.get("iDeliveryWay", null);
-        iOurContact = (String) fields.get("iOurContact", null);
-        iYourContact = (String) fields.get("iYourContact", null);
-        iCurrency = (SSCurrency) fields.get("iCurrency", null);
-        iCurrencyRate = (BigDecimal) fields.get("iCurrencyRate", null);
-        iDeliveryAddress = (SSAddress) fields.get("iDeliveryAddress", null);
-        iSupplierAddress = (SSAddress) fields.get("iSupplierAddress", null);
-        iText = (String) fields.get("iText", null);
-        iPrinted = fields.get("iPrinted", false);
-        iStockInfluencing = fields.get("iStockInfluencing", false);
-        iRows = (List<SSPurchaseOrderRow>) fields.get("iRows", null);
-        iDefaultAccounts = (Map<SSDefaultAccount, Integer>) fields.get("iDefaultAccounts", null);
     }
 
 }

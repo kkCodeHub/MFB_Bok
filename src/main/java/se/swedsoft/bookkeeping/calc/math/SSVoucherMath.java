@@ -22,33 +22,31 @@ public class SSVoucherMath {
     private SSVoucherMath() {}
 
     /**
+     * Returns true if the voucher's date falls within [pFrom, pTo] inclusive.
      *
-     * @param iVoucher
-     * @param pFrom
-     * @param pTo
-     * @return
+     * @param iVoucher the voucher to test
+     * @param pFrom    the start of the period
+     * @param pTo      the end of the period
+     * @return true if within the period
      */
-    public static boolean inPeriod(SSVoucher iVoucher, Date pFrom, Date pTo) {
+    public static boolean inPeriod(SSVoucher iVoucher, LocalDate pFrom, LocalDate pTo) {
         LocalDate iDate = iVoucher.getLocalDate();
-        LocalDate iFrom = SSDateUtil.toLocalDate(pFrom);
-        LocalDate iTo = SSDateUtil.toLocalDate(pTo);
 
-        return iDate != null && iFrom != null && iTo != null
-                && !iDate.isBefore(iFrom) && !iDate.isAfter(iTo);
+        return iDate != null && pFrom != null && pTo != null
+                && !iDate.isBefore(pFrom) && !iDate.isAfter(pTo);
     }
 
     /**
-     * Return true if the voucher's date is before the supplied date
+     * Returns true if the voucher's date is on or before pTo.
      *
-     * @param iVoucher
-     * @param pTo
-     * @return
+     * @param iVoucher the voucher to test
+     * @param pTo      the upper bound
+     * @return true if within the period
      */
-    public static boolean inPeriod(SSVoucher iVoucher, Date pTo) {
+    public static boolean inPeriod(SSVoucher iVoucher, LocalDate pTo) {
         LocalDate iDate = iVoucher.getLocalDate();
-        LocalDate iTo = SSDateUtil.toLocalDate(pTo);
 
-        return iDate != null && iTo != null && !iDate.isAfter(iTo);
+        return iDate != null && pTo != null && !iDate.isAfter(pTo);
     }
 
     /**
@@ -78,22 +76,6 @@ public class SSVoucherMath {
                 && pTo.getNumber() >= iVoucher.getNumber();
     }
 
-    /**
-     * Checks if a voucher falls within the same period one year earlier.
-     *
-     * @param iVoucher the voucher to check
-     * @param pFrom the start of the period
-     * @param pTo the end of the period
-     * @return true if the voucher date is in the previous year's equivalent period
-     * @deprecated Use {@link #inPeriodPrevYear(SSVoucher, LocalDate, LocalDate)} instead
-     */
-    @Deprecated
-    public static boolean inPeriodPrevYear(SSVoucher iVoucher, Date pFrom, Date pTo) {
-        LocalDate from = SSDateUtil.toLocalDate(pFrom);
-        LocalDate to = SSDateUtil.toLocalDate(pTo);
-
-        return inPeriodPrevYear(iVoucher, from, to);
-    }
 
     /**
      * Checks if a voucher falls within the same period one year earlier.
@@ -310,7 +292,7 @@ public class SSVoucherMath {
      * @return
      */
     public static int getMaxNumber() {
-        return SSDB.getInstance().getLastVoucherNumber();
+        return se.swedsoft.bookkeeping.data.system.SSAccountingContext.getLastVoucherNumber();
     }
 
     /**
@@ -320,9 +302,7 @@ public class SSVoucherMath {
      * @return {@code true} if a voucher with the specified number exists, {@code false} othervise.
      */
     public static boolean hasVoucher(Integer iNumber) {
-        SSVoucher iVoucher = new SSVoucher(iNumber);
-
-        return SSDB.getInstance().getVoucher(iVoucher) != null;
+        return se.swedsoft.bookkeeping.data.system.SSAccountingContext.hasVoucher(iNumber);
     }
 
     /**
@@ -386,14 +366,14 @@ public class SSVoucherMath {
     }
 
     /**
+     * Returns vouchers whose date falls within [pFrom, pTo] inclusive.
      *
-     * @param pVouchers
-     * @param pFrom
-     * @param pTo
-     * @return
+     * @param pVouchers the vouchers to filter
+     * @param pFrom     the start date
+     * @param pTo       the end date
+     * @return filtered list
      */
-    public static List<SSVoucher> getVouchers(List<SSVoucher> pVouchers, Date pFrom, Date pTo) {
-
+    public static List<SSVoucher> getVouchers(List<SSVoucher> pVouchers, LocalDate pFrom, LocalDate pTo) {
         return pVouchers.stream()
                 .filter(iVoucher -> inPeriod(iVoucher, pFrom, pTo))
                 .collect(Collectors.toList());
@@ -607,7 +587,7 @@ public class SSVoucherMath {
 
     public static LocalDate getNextVoucherLocalDate() {
         List<SSVoucher> iVouchers = new LinkedList<>(
-                SSDB.getInstance().getVouchers());
+                se.swedsoft.bookkeeping.data.system.SSAccountingContext.getVouchers());
 
         Collections.sort(iVouchers, (iVoucher1, iVoucher2) -> {
 
@@ -633,7 +613,7 @@ public class SSVoucherMath {
             }
         }
 
-        SSNewAccountingYear iAccountingYear = SSDB.getInstance().getCurrentYear();
+        SSNewAccountingYear iAccountingYear = se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.getCurrentYear();
 
         if (iAccountingYear != null && iAccountingYear.getLocalFrom() != null) {
             return iAccountingYear.getLocalFrom();

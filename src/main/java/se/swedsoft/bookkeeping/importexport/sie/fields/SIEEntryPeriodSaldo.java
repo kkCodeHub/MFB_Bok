@@ -3,6 +3,7 @@ package se.swedsoft.bookkeeping.importexport.sie.fields;
 
 import se.swedsoft.bookkeeping.calc.SSSaldoCalculator;
 import se.swedsoft.bookkeeping.data.*;
+import se.swedsoft.bookkeeping.data.system.SSCompanyYearContext;
 import se.swedsoft.bookkeeping.data.system.SSDB;
 import se.swedsoft.bookkeeping.importexport.sie.SSSIEExporter;
 import se.swedsoft.bookkeeping.importexport.sie.SSSIEImporter;
@@ -49,10 +50,10 @@ public class SIEEntryPeriodSaldo implements SIEEntry {
      */
     @Override
     public boolean exportEntry(SSSIEExporter iExporter, SIEWriter iWriter, SSNewAccountingYear iCurrentYearData) throws SSExportException {
-        SSNewAccountingYear iPreviousYearData = SSDB.getInstance().getPreviousYear().orElse(null);
+        SSNewAccountingYear iPreviousYearData = SSCompanyYearContext.getPreviousYear().orElse(null);
 
-        List<SSNewResultUnit> iResultUnits = SSDB.getInstance().getResultUnits();
-        List<SSNewProject   > iProjects = SSDB.getInstance().getProjects();
+        List<SSNewResultUnit> iResultUnits = se.swedsoft.bookkeeping.data.system.SSResultUnitContext.getResultUnits();
+        List<SSNewProject   > iProjects = se.swedsoft.bookkeeping.data.system.SSProjectContext.getProjects();
 
         Map<SSMonth, Map<SSAccount, BigDecimal>> iMonths;
 

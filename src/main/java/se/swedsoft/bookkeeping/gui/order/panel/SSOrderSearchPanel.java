@@ -3,6 +3,7 @@ package se.swedsoft.bookkeeping.gui.order.panel;
 
 import se.swedsoft.bookkeeping.data.SSOrder;
 import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.data.system.SSSalesContext;
 import se.swedsoft.bookkeeping.gui.order.SSOrderFrame;
 import se.swedsoft.bookkeeping.gui.order.util.SSOrderTableModel;
 
@@ -36,7 +37,7 @@ public class SSOrderSearchPanel extends JPanel {
         iTextField.addKeyListener(new KeyAdapter() {
             @Override
             public void keyReleased(KeyEvent e) {
-                ApplyFilter(SSDB.getInstance().getOrders());
+                ApplyFilter(SSSalesContext.getOrders());
             }
         });
     }

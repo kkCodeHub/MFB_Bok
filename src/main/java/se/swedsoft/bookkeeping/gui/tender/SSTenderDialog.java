@@ -66,9 +66,8 @@ public class SSTenderDialog {
                     SSTenderMath.addCustomerAndProducts(iTender1);
                 }
 
-                if (pModel != null) {
-                    pModel.fireTableDataChanged();
-                }
+                SSTenderFrame.fireTableDataChanged();
+
                 iPanel.dispose();
                 iDialog.closeDialog();
 
@@ -129,9 +128,8 @@ public class SSTenderDialog {
                 if (iPanel.doSaveCustomerAndProducts()) {
                     SSTenderMath.addCustomerAndProducts(iTender1);
                 }
-                if (pModel != null) {
-                    pModel.fireTableDataChanged();
-                }
+
+                SSTenderFrame.fireTableDataChanged();
 
                 iPanel.dispose();
                 iDialog.closeDialog();
@@ -191,6 +189,8 @@ public class SSTenderDialog {
                 if (iPanel.doSaveCustomerAndProducts()) {
                     SSTenderMath.addCustomerAndProducts(iTender);
                 }
+
+                SSTenderFrame.fireTableDataChanged();
 
                 iPanel.dispose();
                 iDialog.closeDialog();

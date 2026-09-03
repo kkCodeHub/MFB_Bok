@@ -9,9 +9,7 @@ import se.swedsoft.bookkeeping.gui.util.datechooser.panel.SSYearChooser;
 import se.swedsoft.bookkeeping.gui.util.dialogs.SSDialog;
 
 import javax.swing.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.util.Date;
+import java.time.LocalDate;
 
 
 /**
@@ -41,24 +39,17 @@ public class SSQuarterReportDialog extends SSDialog {
 
 	getRootPane().setDefaultButton(iButtonPanel.getOkButton());
 
-        iYearChooser.addChangeListener(e -> iQuarterChooser.setDate(iYearChooser.getDate()));
+        iYearChooser.addChangeListener(e -> iQuarterChooser.setLocalDate(iYearChooser.getLocalDate()));
     }
 
-    /**
-     *
-     * @return
-     */
-    public Date getDate() {
-        return iQuarterChooser.getDate();
+    public LocalDate getLocalDate() {
+        return iQuarterChooser.getLocalDate();
     }
 
-    /**
-     *
-     * @return
-     */
-    public Date getEndDate() {
-        return iQuarterChooser.getEndDate();
+    public LocalDate getLocalEndDate() {
+        return iQuarterChooser.getLocalEndDate();
     }
+
 
     @Override
     public String toString() {

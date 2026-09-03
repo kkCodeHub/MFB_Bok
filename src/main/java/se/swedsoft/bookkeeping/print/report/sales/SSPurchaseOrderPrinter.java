@@ -6,8 +6,10 @@ import se.swedsoft.bookkeeping.data.SSPurchaseOrder;
 import se.swedsoft.bookkeeping.data.SSPurchaseOrderRow;
 import se.swedsoft.bookkeeping.data.SSSupplier;
 import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.data.system.SSSalesContext;
 import se.swedsoft.bookkeeping.gui.util.model.SSDefaultTableModel;
 import se.swedsoft.bookkeeping.print.SSPrinter;
+import se.swedsoft.bookkeeping.print.util.SSQuantityPrintUtil;
 import se.swedsoft.bookkeeping.util.SSDateUtil;
 
 import java.util.Locale;
@@ -69,10 +71,10 @@ public class SSPurchaseOrderPrinter extends SSPrinter {
      *
      */
     private void addParameters() {
-        SSNewCompany iCompany = SSDB.getInstance().getCurrentCompany();
+        SSNewCompany iCompany = se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.getCurrentCompany();
 
         SSSupplier iSupplier = iPurchaseOrder.getSupplier(
-                SSDB.getInstance().getSuppliers());
+                se.swedsoft.bookkeeping.data.system.SSPurchaseContext.getSuppliers());
 
         SSSalePrinterUtils.addParametersForCompany(iCompany, this);
 
@@ -205,7 +207,7 @@ public class SSPurchaseOrderPrinter extends SSPrinter {
                         break;
 
                     case 3:
-                        value = iRow.getQuantity();
+                        value = SSQuantityPrintUtil.toDisplay(iRow.getQuantity());
                         break;
 
                     case 4:

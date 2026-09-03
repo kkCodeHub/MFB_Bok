@@ -1,246 +1,151 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE jasperReport PUBLIC "-//JasperReports//DTD Report Design//EN"
-        "http://jasperreports.sourceforge.net/dtds/jasperreport.dtd">
-
-<jasperReport name="outpaymentJournal" resourceBundle="book">
-
-    <parameter name="Report"     class="net.sf.jasperreports.engine.JasperReport"/>
-    <parameter name="Parameters" class="java.util.HashMap"/>
-
-
-    <!-- Declared fields in the report. -->
-
-    <field name="outpayment.number"            class="java.lang.Integer"/>
-    <field name="outpayment.date"              class="java.util.Date"/>
-    <field name="outpayment.text"              class="java.lang.String"/>
-    <field name="outpayment.sum"               class="java.math.BigDecimal"/>
-    <field name="outpayment.localsum"          class="java.math.BigDecimal"/>
-
-    <field name="journal.rows"     class="net.sf.jasperreports.engine.JRDataSource"/>
-
-
-    <!-- The sum. -->
-    <variable name="sum" class="java.math.BigDecimal"  resetType="Report" calculation="Sum">
-        <variableExpression>
-            <![CDATA[$F{outpayment.sum}]]>
-        </variableExpression>
-        <initialValueExpression>
-            <![CDATA[new BigDecimal(0.0)]]>
-        </initialValueExpression>
-    </variable>
-
-
-    <columnHeader>
-        <band height="30">
-            <line>
-                <reportElement x="20" y="23" width="510" height="1"/>
-            </line>
-
-            <!-- Column 1 -->
-            <textField>
-                <reportElement x="20" y="0" width="80" height="24" />
-                <textElement>
-                    <font size="8"/>
-                </textElement>
-                <textFieldExpression class="java.lang.String">
-                    <![CDATA[$R{outpaymentjournal.column.1}]]>
-                </textFieldExpression>
-            </textField>
-
-            <textField>
-                <reportElement x="80" y="0" width="80" height="24" />
-                <textElement>
-                    <font size="8"/>
-                </textElement>
-                <textFieldExpression class="java.lang.String">
-                    <![CDATA[$R{outpaymentjournal.column.2}]]>
-                </textFieldExpression>
-            </textField>
-
-            <textField>
-                <reportElement x="140" y="0" width="70" height="24" />
-                <textElement>
-                    <font size="8"/>
-                </textElement>
-                <textFieldExpression class="java.lang.String">
-                    <![CDATA[$R{outpaymentjournal.column.3}]]>
-                </textFieldExpression>
-            </textField>
-
-            <textField>
-                <reportElement x="270" y="0" width="50" height="24" />
-                <textElement textAlignment="Left">
-                    <font size="8"/>
-                </textElement>
-                <textFieldExpression class="java.lang.String">
-                    <![CDATA[$R{outpaymentjournal.column.4}]]>
-                </textFieldExpression>
-            </textField>
-
-            <textField>
-                <reportElement x="320" y="0" width="50" height="24" />
-                <textElement textAlignment="Left">
-                    <font size="8"/>
-                </textElement>
-                <textFieldExpression class="java.lang.String">
-                    <![CDATA[$R{outpaymentjournal.column.5}]]>
-                </textFieldExpression>
-            </textField>
-
-
-
-            <textField>
-                <reportElement x="370" y="0" width="80" height="24" />
-                <textElement textAlignment="Right">
-                    <font size="8"/>
-                </textElement>
-                <textFieldExpression class="java.lang.String">
-                    <![CDATA[$R{outpaymentjournal.column.6}]]>
-                </textFieldExpression>
-            </textField>
-
-            <textField>
-                <reportElement x="450" y="0" width="80" height="24" />
-                <textElement textAlignment="Right">
-                    <font size="8"/>
-                </textElement>
-                <textFieldExpression class="java.lang.String">
-                    <![CDATA[$R{outpaymentjournal.column.7}]]>
-                </textFieldExpression>
-            </textField>
-
-
-        </band>
-    </columnHeader>
-
-
-    <detail>
-        <band height="39" isSplitAllowed="true">
-
-
-            <!-- outpayment number -->
-            <textField>
-                <reportElement x="20" y="0" width="30" height="14"/>
-                <textElement>
-                    <font size="8" isBold="true"/>
-                </textElement>
-                <textFieldExpression class="java.lang.Integer">
-                    <![CDATA[$F{outpayment.number}]]>
-                </textFieldExpression>
-            </textField>
-
-            <!-- outpayment text -->
-            <textField  isBlankWhenNull="true">
-                <reportElement x="80" y="0" width="220" height="14"/>
-                <textElement>
-                    <font size="8" isBold="true"/>
-                </textElement>
-                <textFieldExpression class="java.lang.String">
-                    <![CDATA[$F{outpayment.text}]]>
-                </textFieldExpression>
-            </textField>
-
-
-            <!-- outpayment date -->
-            <textField pattern="yyyy-MM-dd">
-                <reportElement x="450" y="0" width="80" height="14"/>
-                <textElement  textAlignment="Right">
-                    <font size="8" isBold="true"/>
-                </textElement>
-                <textFieldExpression class="java.util.Date">
-                    <![CDATA[$F{outpayment.date}]]>
-                </textFieldExpression>
-            </textField>
-
-
-            <!-- Order rows -->
-            <subreport isUsingCache="false">
-                <reportElement x="0" y="12" width="555" height="0" isPrintWhenDetailOverflows="true"/>
-
-                <subreportParameter name="outpayment.number">
-                    <subreportParameterExpression>
-                        <![CDATA[$F{outpayment.number}]]>
-                    </subreportParameterExpression>
-                </subreportParameter>
-
-                <dataSourceExpression>
-                    <![CDATA[$F{journal.rows}]]>
-                </dataSourceExpression>
-
-                <subreportExpression class="net.sf.jasperreports.engine.JasperReport">
-                    <![CDATA[$P{Report}]]>
-                </subreportExpression>
-
-            </subreport>
-
-            <frame>
-                <reportElement x="0" y="12" width="555" height="14" positionType="Float"/>
-                <line>
-                    <reportElement x="80" y="0" width="450" height="1"/>
-                </line>
-
-                <!-- outpayment sum -->
-                <textField>
-                    <reportElement x="350" y="0" width="120" height="12"/>
-                    <textElement  textAlignment="Left">
-                        <font size="8"/>
-                    </textElement>
-                    <textFieldExpression>
-                        <![CDATA[$R{outpaymentjournal.totalsum}]]>
-                    </textFieldExpression>
-                </textField>
-
-                <textField pattern="#,##0.00">
-                    <reportElement x="470" y="0" width="60" height="12"/>
-                    <textElement  textAlignment="Right">
-                        <font size="8"/>
-                    </textElement>
-                    <textFieldExpression class="java.math.BigDecimal">
-                        <![CDATA[$F{outpayment.sum}]]>
-                    </textFieldExpression>
-                </textField>
-
-
-            </frame>
-
-
-
-        </band>
-    </detail>
-
-
-    <summary>
-        <band height="20">
-
-            <rectangle>
-                <reportElement x="20" y="0" width="510" height="2" backcolor="#000000"/>
-                <graphicElement pen="None" fill="Solid"/>
-            </rectangle>
-
-            <textField>
-                <reportElement x="20" y="2" width="250" height="14"/>
-                <textElement>
-                    <font size="8" isBold="false"/>
-                </textElement>
-                <textFieldExpression class="java.lang.String">
-                    <![CDATA[$R{outpaymentjournal.totalsum}]]>
-                </textFieldExpression>
-            </textField>
-
-
-            <!-- Total sum-->
-            <textField pattern="#,##0.00" isBlankWhenNull="true">
-                <reportElement x="450" y="2" width="80" height="14"/>
-
-                <textElement textAlignment="Right">
-                    <font size="8" isBold="false"/>
-                </textElement>
-                <textFieldExpression class="java.math.BigDecimal">
-                    <![CDATA[$V{sum} != null ? $V{sum} : new BigDecimal(0.0)]]>
-                </textFieldExpression>
-            </textField>
-        </band>
-    </summary>
-
-
+<!-- Created with Jaspersoft Studio version 6.21.1.final using JasperReports Library version 6.21.0-4f56c4f36cd19e17675219a9ac4692d5f0f13b06  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="outpaymentJournal" pageWidth="595" pageHeight="842" whenNoDataType="NoPages" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="30" bottomMargin="30" resourceBundle="book" uuid="4de0eef3-f32e-42ca-b1c3-18f347a088a4">
+	<parameter name="Report" class="net.sf.jasperreports.engine.JasperReport"/>
+	<parameter name="Parameters" class="java.util.HashMap"/>
+	<field name="outpayment.number" class="java.lang.Integer"/>
+	<field name="outpayment.date" class="java.util.Date"/>
+	<field name="outpayment.text" class="java.lang.String"/>
+	<field name="outpayment.sum" class="java.math.BigDecimal"/>
+	<field name="outpayment.localsum" class="java.math.BigDecimal"/>
+	<field name="journal.rows" class="net.sf.jasperreports.engine.JRDataSource"/>
+	<variable name="sum" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{outpayment.sum}]]></variableExpression>
+		<initialValueExpression><![CDATA[new BigDecimal(0.0)]]></initialValueExpression>
+	</variable>
+	<columnHeader>
+		<band height="30" splitType="Stretch">
+			<line>
+				<reportElement x="20" y="23" width="510" height="1" uuid="ebd0f314-6d48-4a69-a764-1376f071cf7c"/>
+			</line>
+			<textField>
+				<reportElement x="20" y="0" width="80" height="24" uuid="d58fa78e-98a7-45a3-8050-173931f490cd"/>
+				<textElement>
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$R{outpaymentjournal.column.1}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="80" y="0" width="80" height="24" uuid="b54b0bde-64a2-4962-bf14-f01dbd4e201e"/>
+				<textElement>
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$R{outpaymentjournal.column.2}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="140" y="0" width="70" height="24" uuid="44d9a294-1c53-4d23-b3c4-92d21e3dcb48"/>
+				<textElement>
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$R{outpaymentjournal.column.3}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="270" y="0" width="50" height="24" uuid="d32e49a0-28b3-44d5-b829-308d7492dc29"/>
+				<textElement textAlignment="Left">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$R{outpaymentjournal.column.4}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="320" y="0" width="50" height="24" uuid="6ad1f9ee-a5a9-4bd1-bd13-f56c4581b436"/>
+				<textElement textAlignment="Left">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$R{outpaymentjournal.column.5}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="370" y="0" width="80" height="24" uuid="0471f33e-a542-4dc6-b4cd-a3cb8a66f7f1"/>
+				<textElement textAlignment="Right">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$R{outpaymentjournal.column.6}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="450" y="0" width="80" height="24" uuid="6fa007e4-6307-4e0e-917e-59aeefbfde93"/>
+				<textElement textAlignment="Right">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$R{outpaymentjournal.column.7}]]></textFieldExpression>
+			</textField>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="20" splitType="Stretch">
+			<textField>
+				<reportElement x="20" y="0" width="30" height="14" uuid="d64d1a03-7782-4ac2-b66c-79303116a9f3"/>
+				<textElement>
+					<font size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{outpayment.number}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="80" y="0" width="220" height="14" uuid="df6432a7-cf58-4e0d-89bb-c940edf3b0b4"/>
+				<textElement>
+					<font size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{outpayment.text}]]></textFieldExpression>
+			</textField>
+			<textField pattern="yyyy-MM-dd">
+				<reportElement x="450" y="0" width="80" height="14" uuid="462e0979-2f09-4839-96ee-902b28fd6dfa"/>
+				<textElement textAlignment="Right">
+					<font size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{outpayment.date}]]></textFieldExpression>
+			</textField>
+			<subreport isUsingCache="false">
+				<reportElement x="0" y="12" width="555" height="0" isPrintWhenDetailOverflows="true" uuid="6cfc11b2-0051-43c9-8002-99085f3ec585"/>
+				<subreportParameter name="outpayment.number">
+					<subreportParameterExpression><![CDATA[$F{outpayment.number}]]></subreportParameterExpression>
+				</subreportParameter>
+				<dataSourceExpression><![CDATA[$F{journal.rows}]]></dataSourceExpression>
+				<subreportExpression><![CDATA[$P{Report}]]></subreportExpression>
+			</subreport>
+		</band>
+		<band height="50">
+			<frame>
+				<reportElement positionType="Float" x="0" y="12" width="555" height="14" uuid="b20c6284-abcf-4818-9cbb-220ab3304b05"/>
+				<line>
+					<reportElement x="80" y="0" width="450" height="1" uuid="c59872ec-4a52-43cb-a184-a7bbb180c359"/>
+				</line>
+				<textField>
+					<reportElement x="350" y="0" width="120" height="12" uuid="ee043be0-9bea-4088-a1d3-43a8efa53e9f"/>
+					<textElement textAlignment="Left">
+						<font size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$R{outpaymentjournal.totalsum}]]></textFieldExpression>
+				</textField>
+				<textField pattern="#,##0.00">
+					<reportElement x="470" y="0" width="60" height="12" uuid="421a4875-20c0-4665-873f-ec6c33401a83"/>
+					<textElement textAlignment="Right">
+						<font size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{outpayment.sum}]]></textFieldExpression>
+				</textField>
+			</frame>
+		</band>
+	</detail>
+	<summary>
+		<band height="20" splitType="Stretch">
+			<rectangle>
+				<reportElement x="20" y="0" width="510" height="2" backcolor="#000000" uuid="e0ba4aa8-3b35-4da6-a8d8-46275cbed475"/>
+				<graphicElement fill="Solid">
+					<pen lineWidth="0.0" lineStyle="Solid"/>
+				</graphicElement>
+			</rectangle>
+			<textField>
+				<reportElement x="20" y="2" width="250" height="14" uuid="7d78090e-bccf-49a9-bbdb-5904385793c6"/>
+				<textElement>
+					<font size="8" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$R{outpaymentjournal.totalsum}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00" isBlankWhenNull="true">
+				<reportElement x="450" y="2" width="80" height="14" uuid="e7df9dca-99ce-4c5c-9d8c-f3a800a0a2a8"/>
+				<textElement textAlignment="Right">
+					<font size="8" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{sum} != null ? $V{sum} : new BigDecimal(0.0)]]></textFieldExpression>
+			</textField>
+		</band>
+	</summary>
 </jasperReport>

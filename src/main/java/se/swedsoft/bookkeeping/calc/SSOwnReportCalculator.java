@@ -6,8 +6,10 @@ import se.swedsoft.bookkeeping.calc.util.SSCalculatorException;
 import se.swedsoft.bookkeeping.data.*;
 import se.swedsoft.bookkeeping.data.system.SSDB;
 import se.swedsoft.bookkeeping.gui.ownreport.util.SSOwnReportAccountRow;
+import se.swedsoft.bookkeeping.util.SSDateUtil;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.*;
 
 
@@ -42,8 +44,8 @@ public class SSOwnReportCalculator {
 
     private SSOwnReport iOwnReport;
 
-    private Date         iFrom;
-    private Date         iTo;
+    private LocalDate iFrom;
+    private LocalDate iTo;
     private SSNewProject    iProject;
     private SSNewResultUnit iResultUnit;
 
@@ -51,7 +53,8 @@ public class SSOwnReportCalculator {
 
     private Map<SSAccount, BigDecimal> iChangeBudget;
 
-    public SSOwnReportCalculator(Date pFrom, Date pTo, SSOwnReport pOwnReport, SSNewProject pProject, SSNewResultUnit pResultUnit) {
+    public SSOwnReportCalculator(LocalDate pFrom, LocalDate pTo, SSOwnReport pOwnReport,
+                                 SSNewProject pProject, SSNewResultUnit pResultUnit) {
         iFrom = pFrom;
         iTo = pTo;
         iOwnReport = pOwnReport;
@@ -65,6 +68,16 @@ public class SSOwnReportCalculator {
     }
 
     /**
+     * @deprecated use {@link #SSOwnReportCalculator(LocalDate, LocalDate, SSOwnReport, SSNewProject, SSNewResultUnit)}
+     */
+    @Deprecated
+    public SSOwnReportCalculator(Date pFrom, Date pTo, SSOwnReport pOwnReport,
+                                 SSNewProject pProject, SSNewResultUnit pResultUnit) {
+        this(SSDateUtil.toLocalDate(pFrom), SSDateUtil.toLocalDate(pTo), pOwnReport, pProject,
+                pResultUnit);
+    }
+
+    /**
      *
      *
      * @throws SSCalculatorException
@@ -72,7 +85,7 @@ public class SSOwnReportCalculator {
     public void calculate() throws SSCalculatorException {
 
         // Get all years
-        List<SSNewAccountingYear> iAllYearData = SSDB.getInstance().getYears();
+        List<SSNewAccountingYear> iAllYearData = se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.getYears();
 
         // All vouchers
         List<SSVoucher> iVouchers = new LinkedList<>();
@@ -126,7 +139,8 @@ public class SSOwnReportCalculator {
         // Fill the budget map
         for (SSOwnReportRow iOwnReportRow : iOwnReport.getHeadings()) {
             for (SSOwnReportAccountRow iAccountRow : iOwnReportRow.getAccountRows()) {
-                BigDecimal iSum = iAccountRow.getSumForMonths(iFrom, iTo);
+                BigDecimal iSum = iAccountRow.getSumForMonths(SSDateUtil.toDate(iFrom),
+                        SSDateUtil.toDate(iTo));
 
                 if (iSum != null) {
                     addValueToMap(iChangeBudget, iAccountRow.getAccount(), iSum);

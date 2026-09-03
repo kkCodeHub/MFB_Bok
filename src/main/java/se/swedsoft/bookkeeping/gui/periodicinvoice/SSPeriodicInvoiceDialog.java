@@ -7,6 +7,7 @@ import se.swedsoft.bookkeeping.data.SSInvoice;
 import se.swedsoft.bookkeeping.data.SSOrder;
 import se.swedsoft.bookkeeping.data.SSPeriodicInvoice;
 import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.data.system.SSSalesContext;
 import se.swedsoft.bookkeeping.gui.SSMainFrame;
 import se.swedsoft.bookkeeping.gui.invoice.SSInvoiceFrame;
 import se.swedsoft.bookkeeping.gui.periodicinvoice.dialog.SSPendingPeriodicInvoiceDialog;
@@ -58,15 +59,12 @@ public class SSPeriodicInvoiceDialog {
 
                 SSPeriodicInvoice iPeriodicInvoice1 = iPanel.getPeriodicInvoice();
 
-                SSDB.getInstance().addPeriodicInvoice(iPeriodicInvoice1);
+                SSSalesContext.addPeriodicInvoice(iPeriodicInvoice1);
 
                 if (iPanel.doSaveCustomerAndProducts()) {
                     SSInvoiceMath.addCustomerAndProducts(iPeriodicInvoice1.getTemplate());
                 }
-
-                if (pModel != null) {
-                    pModel.fireTableDataChanged();
-                }
+                SSPeriodicInvoiceFrame.fireTableDataChanged();
 
                 iPanel.dispose();
                 iDialog.closeDialog();
@@ -120,23 +118,20 @@ public class SSPeriodicInvoiceDialog {
 
                 SSPeriodicInvoice iPeriodicInvoice1 = iPanel.getPeriodicInvoice();
 
-                SSDB.getInstance().addPeriodicInvoice(iPeriodicInvoice1);
+                SSSalesContext.addPeriodicInvoice(iPeriodicInvoice1);
 
                 for (SSOrder iOrder : iOrders) {
                     // Set the invoice for the order
-                    if (SSDB.getInstance().getOrders().contains(iOrder)) {
+                    if (SSSalesContext.getOrders().contains(iOrder)) {
                         iOrder.setPeriodicInvoice(iPeriodicInvoice1);
-                        SSDB.getInstance().updateOrder(iOrder);
+                        se.swedsoft.bookkeeping.data.system.SSSalesContext.updateOrder(iOrder);
                     }
                 }
 
                 if (iPanel.doSaveCustomerAndProducts()) {
                     SSInvoiceMath.addCustomerAndProducts(iPeriodicInvoice1.getTemplate());
                 }
-
-                if (pModel != null) {
-                    pModel.fireTableDataChanged();
-                }
+                SSPeriodicInvoiceFrame.fireTableDataChanged();
 
                 iPanel.dispose();
                 iDialog.closeDialog();
@@ -214,15 +209,12 @@ public class SSPeriodicInvoiceDialog {
                     iPeriodicInvoice.setAdded(iPeriodicInvoice.getInvoices().get(i));
                 }
 
-                SSDB.getInstance().updatePeriodicInvoice(iPeriodicInvoice);
+                SSSalesContext.updatePeriodicInvoice(iPeriodicInvoice);
 
                 if (iPanel.doSaveCustomerAndProducts()) {
                     SSInvoiceMath.addCustomerAndProducts(iPeriodicInvoice.getTemplate());
                 }
-
-                if (pModel != null) {
-                    pModel.fireTableDataChanged();
-                }
+                SSPeriodicInvoiceFrame.fireTableDataChanged();
 
                 iPanel.dispose();
                 iDialog.closeDialog();
@@ -284,11 +276,13 @@ public class SSPeriodicInvoiceDialog {
 
                 SSPeriodicInvoice iPeriodicInvoice1 = iPanel.getPeriodicInvoice();
 
-                SSDB.getInstance().addPeriodicInvoice(iPeriodicInvoice1);
+                SSSalesContext.addPeriodicInvoice(iPeriodicInvoice1);
 
                 if (iPanel.doSaveCustomerAndProducts()) {
                     SSInvoiceMath.addCustomerAndProducts(iPeriodicInvoice1.getTemplate());
                 }
+
+                SSPeriodicInvoiceFrame.fireTableDataChanged();
 
                 iPanel.dispose();
                 iDialog.closeDialog();
@@ -344,7 +338,7 @@ public class SSPeriodicInvoiceDialog {
 
         for (SSPeriodicInvoice iPeriodicInvoice : iSelected.keySet()) {
 
-            if (SSDB.getInstance().getPeriodicInvoice(iPeriodicInvoice) == null) {
+            if (!SSSalesContext.getPeriodicInvoice(iPeriodicInvoice).isPresent()) {
                 iTemp.remove(iPeriodicInvoice);
                 new SSErrorDialog(new JFrame(), "periodicinvoiceframe.invoicegone",
                         iPeriodicInvoice.getNumber());
@@ -354,13 +348,13 @@ public class SSPeriodicInvoiceDialog {
             for (SSInvoice iInvoice : iTemp.get(iPeriodicInvoice)) {
 
                 iPeriodicInvoice.setAdded(iInvoice);
-                SSDB.getInstance().updatePeriodicInvoice(iPeriodicInvoice);
+                SSSalesContext.updatePeriodicInvoice(iPeriodicInvoice);
 
                 iInvoice = new SSInvoice(iInvoice);
                 iInvoice.setLocalDate(SSDateUtil.today());
                 iInvoice.setDueDate();
 
-                SSDB.getInstance().addInvoice(iInvoice);
+                se.swedsoft.bookkeeping.data.system.SSSalesContext.addInvoice(iInvoice);
             }
         }
 

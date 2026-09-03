@@ -259,6 +259,15 @@ public class SSInventoryFrame extends SSDefaultTableFrame {
         return Repositories.inventories().findByInventory(iInventory).orElse(null);
     }
 
+    /**
+     * Convenience method that updates the inventory frame if it is currently open.
+     */
+    public static void fireTableDataChanged() {
+        if (cInstance != null) {
+            cInstance.updateFrame();
+        }
+    }
+
     public void updateFrame() {
         iModel.setObjects(Repositories.inventories().findAll());
     }

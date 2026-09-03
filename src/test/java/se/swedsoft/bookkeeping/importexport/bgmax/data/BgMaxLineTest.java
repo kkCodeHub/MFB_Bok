@@ -173,4 +173,13 @@ class BgMaxLineTest {
         assertThatThrownBy(() -> file.parse(lines))
                 .isInstanceOf(se.swedsoft.bookkeeping.importexport.util.SSImportException.class);
     }
+
+    @Test
+    void fixtureSampleHeaderStartsWithExpectedRecordType() throws Exception {
+        String firstLine = BgMaxTestFixture.readSampleFile(1).get(0);
+        BgMaxLine bgLine = new BgMaxLine(firstLine);
+
+        assertThat(firstLine).startsWith("01BGMAX");
+        assertThat(bgLine.getTransaktionsKod()).isEqualTo("01");
+    }
 }

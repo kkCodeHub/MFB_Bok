@@ -1,22 +1,21 @@
 package se.swedsoft.bookkeeping.importexport.excel;
 
 
-import jxl.Sheet;
-import jxl.Workbook;
-import jxl.WorkbookSettings;
-import jxl.read.biff.BiffException;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
 import se.swedsoft.bookkeeping.data.SSVoucher;
 import se.swedsoft.bookkeeping.data.SSVoucherRow;
-import se.swedsoft.bookkeeping.data.system.SSDB;
 import se.swedsoft.bookkeeping.gui.SSMainFrame;
 import se.swedsoft.bookkeeping.gui.util.SSBundle;
 import se.swedsoft.bookkeeping.importexport.dialog.SSImportReportDialog;
 import se.swedsoft.bookkeeping.importexport.excel.util.SSExcelCell;
 import se.swedsoft.bookkeeping.importexport.excel.util.SSExcelRow;
 import se.swedsoft.bookkeeping.importexport.excel.util.SSExcelSheet;
+import se.swedsoft.bookkeeping.importexport.excel.util.SSExcelWorkbookReader;
 import se.swedsoft.bookkeeping.importexport.util.SSImportException;
 import se.swedsoft.bookkeeping.util.SSDateUtil;
 
+import java.awt.GraphicsEnvironment;
 import javax.swing.*;
 import java.io.File;
 import java.io.IOException;
@@ -29,13 +28,14 @@ import java.util.*;
  */
 public class SSVoucherImporter {
 
-    private File iFile;
+    private final File iFile;
 
-    private Map<String, Integer> iColumns;
+    private final Map<String, Integer> iColumns;
 
     /**
+     * Creates a voucher importer.
      *
-     * @param iFile
+     * @param iFile source Excel file
      */
     public SSVoucherImporter(File iFile) {
         this.iFile = iFile;
@@ -43,51 +43,39 @@ public class SSVoucherImporter {
     }
 
     /**
+     * Imports vouchers from the configured file.
      *
-     * @throws SSImportException
-     * @throws IOException
+     * @throws SSImportException if import content is invalid
+     * @throws IOException if reading the file fails
      */
     public void Import()  throws IOException, SSImportException {
-        WorkbookSettings iSettings = new WorkbookSettings();
+        ImportSummary iSummary;
 
-        iSettings.setLocale(new Locale("sv", "SE"));
-        iSettings.setEncoding("windows-1252");
-        iSettings.setExcelDisplayLanguage("SE");
-        iSettings.setExcelRegionalSettings("SE");
-
-        List<SSVoucher> iVouchers = null;
-
-        try {
-            Workbook iWorkbook = Workbook.getWorkbook(iFile, iSettings);
-
+        try (Workbook iWorkbook = SSExcelWorkbookReader.openWorkbook(iFile)) {
             // Empty workbook, ie nothing to import
             if (iWorkbook.getNumberOfSheets() == 0) {
                 throw new SSImportException(SSBundle.getBundle(),
                         "voucherframe.import.nosheets");
             }
 
-            Sheet iSheet = iWorkbook.getSheet(0);
+            Sheet iSheet = iWorkbook.getSheetAt(0);
 
-            iVouchers = importVouchers(new SSExcelSheet(iSheet));
-
-            iWorkbook.close();
-
-        } catch (BiffException e) {
+            iSummary = importVouchers(new SSExcelSheet(iSheet));
+        } catch (IOException e) {
             throw new SSImportException(e.getLocalizedMessage());
         }
-        if (iVouchers != null && showImportReport(iVouchers)) {
-            for (SSVoucher iVoucher : iVouchers) {
-                if (!SSDB.getInstance().getVouchers().contains(iVoucher)) {
-                    SSDB.getInstance().addVoucher(iVoucher, false);
-                }
+        if (showImportReport(iSummary)) {
+            for (SSVoucher iVoucher : iSummary.getImportedVouchers()) {
+                se.swedsoft.bookkeeping.data.system.SSAccountingContext.addVoucher(iVoucher, true);
             }
         }
 
     }
 
     /**
+     * Reads and validates column names from the header row.
      *
-     * @param iColumns
+     * @param iColumns header row
      */
     private void getColumnIndexes(SSExcelRow iColumns) {
 
@@ -97,7 +85,7 @@ public class SSVoucherImporter {
         for (SSExcelCell iColumn : iColumns.getCells()) {
             String iName = iColumn.getString();
 
-            if (iName != null && iName.length() > 0) {
+            if (iName != null && !iName.isEmpty()) {
                 if (iName.equalsIgnoreCase(SSVoucherExporter.NUMMER)) {
                     this.iColumns.put(SSVoucherExporter.NUMMER, iIndex);
                 } else if (iName.equalsIgnoreCase(SSVoucherExporter.BESKRIVNING)) {
@@ -125,11 +113,12 @@ public class SSVoucherImporter {
     }
 
     /**
+     * Imports vouchers and rows from the given worksheet.
      *
-     * @param pSheet
-     * @return
+     * @param pSheet source sheet
+     * @return imported vouchers
      */
-    private List<SSVoucher> importVouchers(SSExcelSheet pSheet) {
+    private ImportSummary importVouchers(SSExcelSheet pSheet) {
 
         List<SSExcelRow> iRows = pSheet.getRows();
 
@@ -137,12 +126,13 @@ public class SSVoucherImporter {
             throw new SSImportException(SSBundle.getBundle(), "voucherframe.import.norows");
         }
 
-        getColumnIndexes(iRows.get(0));
+        getColumnIndexes(iRows.getFirst());
 
-        List<SSVoucher> iVouchers = new LinkedList<>();
+        ImportSummary iSummary = new ImportSummary();
+        Set<Integer> iSeenNumbers = new HashSet<>();
 
         SSVoucher    iVoucher = null;
-        SSVoucherRow iVoucherRow = null;
+        boolean      iDuplicateVoucher = false;
 
         for (int row = 1; row < iRows.size(); row++) {
             SSExcelRow iRow = iRows.get(row);
@@ -152,114 +142,207 @@ public class SSVoucherImporter {
                 continue;
             }
 
-            List<SSExcelCell> iCells = iRow.getCells();
-
-            // Get the cell
-            for (int col = 0; col < iCells.size(); col++) {
-                SSExcelCell iCell = iCells.get(col);
-
-                String iValue = iCell.getString();
-
-                if (iValue == null || iValue.trim().length() == 0) {
-                    continue;
+            Integer iNumber = getInteger(iRow, SSVoucherExporter.NUMMER);
+            if (iNumber != null) {
+                if (iVoucher != null && !iDuplicateVoucher) {
+                    iSummary.addImportedVoucher(iVoucher);
                 }
-
-                if (iColumns.containsKey(SSVoucherExporter.NUMMER)
-                        && iColumns.get(SSVoucherExporter.NUMMER) == col) {
-                    iVoucher = new SSVoucher();
-                    iVoucher.setNumber(iCell.getInteger());
-
-                    iVouchers.add(iVoucher);
-                }
-
-                if (iVoucher == null) {
-                    continue;
-                }
-
-                if (iColumns.containsKey(SSVoucherExporter.BESKRIVNING)
-                        && iColumns.get(SSVoucherExporter.BESKRIVNING) == col) {
-                    iVoucher.setDescription(iValue);
-                }
-                if (iColumns.containsKey(SSVoucherExporter.DATUM)
-                        && iColumns.get(SSVoucherExporter.DATUM) == col) {
-                    iVoucher.setLocalDate(SSDateUtil.toLocalDate(iCell.getDate()));
-                }
-
-                if (iColumns.containsKey(SSVoucherExporter.KONTO)
-                        && iColumns.get(SSVoucherExporter.KONTO) == col) {
-                    iVoucherRow = new SSVoucherRow();
-                    iVoucherRow.setAccountNr(iCell.getInteger());
-
-                    iVoucher.getRows().add(iVoucherRow);
-                }
-
-                if (iVoucherRow == null) {
-                    continue;
-                }
-
-                if (iColumns.containsKey(SSVoucherExporter.DEBET)
-                        && iColumns.get(SSVoucherExporter.DEBET) == col) {
-                    iVoucherRow.setDebet(iCell.getBigDecimal().orElse(null));
-                }
-                if (iColumns.containsKey(SSVoucherExporter.KREDIT)
-                        && iColumns.get(SSVoucherExporter.KREDIT) == col) {
-                    iVoucherRow.setCredit(iCell.getBigDecimal().orElse(null));
-                }
-                if (iColumns.containsKey(SSVoucherExporter.PROJEKT)
-                        && iColumns.get(SSVoucherExporter.PROJEKT) == col) {
-                    iVoucherRow.setProjectNr(iCell.getString());
-                }
-                if (iColumns.containsKey(SSVoucherExporter.RESULTATENHET)
-                        && iColumns.get(SSVoucherExporter.RESULTATENHET) == col) {
-                    iVoucherRow.setResultUnitNr(iCell.getString());
-                }
+                iVoucher = createVoucher(iNumber, iSeenNumbers, iSummary);
+                iDuplicateVoucher = iVoucher == null;
             }
 
+            if (iVoucher == null) {
+                continue;
+            }
+
+            if (iDuplicateVoucher) {
+                continue;
+            }
+
+            applyVoucherHeader(iRow, iVoucher);
+            applyVoucherRow(iRow, iVoucher);
         }
-        return iVouchers;
+
+        if (iVoucher != null && !iDuplicateVoucher) {
+            iSummary.addImportedVoucher(iVoucher);
+        }
+        return iSummary;
+    }
+
+    private SSVoucher createVoucher(Integer iNumber, Set<Integer> iSeenNumbers, ImportSummary iSummary) {
+        if (iNumber == null) {
+            return null;
+        }
+
+        if (iSeenNumbers.contains(iNumber) || se.swedsoft.bookkeeping.data.system.SSAccountingContext.hasVoucher(iNumber)) {
+            iSummary.addDuplicateNumber(iNumber);
+            return null;
+        }
+
+        iSeenNumbers.add(iNumber);
+        return new SSVoucher(iNumber);
+    }
+
+    private void applyVoucherHeader(SSExcelRow iRow, SSVoucher iVoucher) {
+        Integer iDescriptionColumn = iColumns.get(SSVoucherExporter.BESKRIVNING);
+        if (iDescriptionColumn != null) {
+            String iDescription = iRow.getString(iDescriptionColumn);
+            if (iDescription != null && !iDescription.trim().isEmpty()) {
+                iVoucher.setDescription(iDescription);
+            }
+        }
+
+        Integer iDateColumn = iColumns.get(SSVoucherExporter.DATUM);
+        if (iDateColumn != null) {
+            java.util.Date iDate = iRow.getDate(iDateColumn);
+            if (iDate != null) {
+                iVoucher.setLocalDate(SSDateUtil.toLocalDate(iDate));
+            }
+        }
+    }
+
+    private void applyVoucherRow(SSExcelRow iRow, SSVoucher iVoucher) {
+        Integer iAccountColumn = iColumns.get(SSVoucherExporter.KONTO);
+        if (iAccountColumn == null) {
+            return;
+        }
+
+        String iAccountValue = iRow.getString(iAccountColumn);
+        if (iAccountValue == null || iAccountValue.trim().isEmpty()) {
+            return;
+        }
+
+        SSVoucherRow iVoucherRow = new SSVoucherRow();
+        iVoucherRow.setAccountNr(iRow.getInteger(iAccountColumn));
+        iVoucher.getRows().add(iVoucherRow);
+
+        Integer iDebetColumn = iColumns.get(SSVoucherExporter.DEBET);
+        if (iDebetColumn != null) {
+            iVoucherRow.setDebet(iRow.getBigDecimal(iDebetColumn).orElse(null));
+        }
+
+        Integer iCreditColumn = iColumns.get(SSVoucherExporter.KREDIT);
+        if (iCreditColumn != null) {
+            iVoucherRow.setCredit(iRow.getBigDecimal(iCreditColumn).orElse(null));
+        }
+
+        Integer iProjectColumn = iColumns.get(SSVoucherExporter.PROJEKT);
+        if (iProjectColumn != null) {
+            String iProjectValue = iRow.getString(iProjectColumn);
+            if (iProjectValue != null && !iProjectValue.trim().isEmpty()) {
+                iVoucherRow.setProjectNr(iProjectValue);
+            }
+        }
+
+        Integer iResultUnitColumn = iColumns.get(SSVoucherExporter.RESULTATENHET);
+        if (iResultUnitColumn != null) {
+            String iResultUnitValue = iRow.getString(iResultUnitColumn);
+            if (iResultUnitValue != null && !iResultUnitValue.trim().isEmpty()) {
+                iVoucherRow.setResultUnitNr(iResultUnitValue);
+            }
+        }
     }
 
     /**
+     * Shows a summary dialog before import is applied.
      *
-     * @param iVouchers
-     * @return
+     * @param iVouchers vouchers queued for import
+     * @return {@code true} when user confirms import
      */
-    private boolean showImportReport(List<SSVoucher> iVouchers) {
+    boolean showImportReport(ImportSummary iSummary) {
+        String iReport = buildImportReportText(iSummary);
+
+        if (GraphicsEnvironment.isHeadless()) {
+            return true;
+        }
+
         SSImportReportDialog iDialog = new SSImportReportDialog(SSMainFrame.getInstance(),
                 SSBundle.getBundle().getString("voucherframe.import.report"));
-        // Generate the import dialog
-        StringBuilder sb = new StringBuilder();
-
-        sb.append("<html>");
-
-        sb.append("Följande verifikationer kommer att importeras:<br>");
-
-        sb.append("<ul>");
-        for (SSVoucher iVoucher : iVouchers) {
-            sb.append("<li>");
-            sb.append(iVoucher);
-            sb.append("</li>");
-        }
-        sb.append("</ul>");
-
-        sb.append("Fortsätt med importeringen ?");
-        sb.append("</html>");
-
-        iDialog.setText(sb.toString());
+        iDialog.setText(iReport);
         iDialog.setSize(640, 480);
-        iDialog.setLocationRelativeTo(SSMainFrame.getInstance());
+        SSMainFrame iMainFrame = SSMainFrame.getInstance();
+        if (iMainFrame != null) {
+            iDialog.setLocationRelativeTo(iMainFrame);
+        }
 
         return iDialog.showDialog() == JOptionPane.OK_OPTION;
     }
 
+    String buildImportReportText(ImportSummary iSummary) {
+        return buildImportReportText(iSummary.getImportedVouchers(), iSummary.getDuplicateNumbers());
+    }
+
+    String buildImportReportText(List<SSVoucher> iImportedVouchers, List<Integer> iDuplicateNumbers) {
+        StringBuilder sb = new StringBuilder();
+
+        sb.append("<html>");
+        sb.append("Följande verifikationer kommer att importeras:<br>");
+        sb.append("<ul>");
+        for (SSVoucher iVoucher : iImportedVouchers) {
+            sb.append("<li>");
+            sb.append(iVoucher);
+            sb.append("</li>");
+        }
+        if (iImportedVouchers.isEmpty()) {
+            sb.append("<li>Inga</li>");
+        }
+        sb.append("</ul>");
+
+        sb.append("Hoppade dubbletter:<br>");
+        if (iDuplicateNumbers.isEmpty()) {
+            sb.append("Inga");
+        } else {
+            sb.append("<ul>");
+            for (Integer iDuplicateNumber : iDuplicateNumbers) {
+                sb.append("<li>");
+                sb.append(iDuplicateNumber);
+                sb.append("</li>");
+            }
+            sb.append("</ul>");
+        }
+        sb.append("<br>Fortsätt med importeringen ?");
+        sb.append("</html>");
+        return sb.toString();
+    }
+
+    private Integer getInteger(SSExcelRow iRow, String iColumn) {
+        Integer iIndex = iColumns.get(iColumn);
+        if (iIndex == null) {
+            return null;
+        }
+        String iValue = iRow.getString(iIndex);
+        if (iValue == null || iValue.trim().isEmpty()) {
+            return null;
+        }
+        return iRow.getInteger(iIndex);
+    }
+
+    private static final class ImportSummary {
+        private final List<SSVoucher> iImportedVouchers = new LinkedList<>();
+        private final List<Integer> iDuplicateNumbers = new LinkedList<>();
+
+        void addImportedVoucher(SSVoucher iVoucher) {
+            iImportedVouchers.add(iVoucher);
+        }
+
+        void addDuplicateNumber(Integer iNumber) {
+            iDuplicateNumbers.add(iNumber);
+        }
+
+        List<SSVoucher> getImportedVouchers() {
+            return iImportedVouchers;
+        }
+
+        List<Integer> getDuplicateNumbers() {
+            return iDuplicateNumbers;
+        }
+    }
+
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder();
-
-        sb.append("se.swedsoft.bookkeeping.importexport.excel.SSVoucherImporter");
-        sb.append("{iColumns=").append(iColumns);
-        sb.append(", iFile=").append(iFile);
-        sb.append('}');
-        return sb.toString();
+        return "se.swedsoft.bookkeeping.importexport.excel.SSVoucherImporter"
+                + "{iColumns=" + iColumns
+                + ", iFile=" + iFile
+                + '}';
     }
 }

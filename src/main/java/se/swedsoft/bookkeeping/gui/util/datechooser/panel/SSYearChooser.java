@@ -75,28 +75,10 @@ public class SSYearChooser extends JPanel implements ChangeListener, CaretListen
     }
 
     /**
-     * @return the selected date as a legacy Date
-     * @deprecated Use {@link #getLocalDate()} instead.
-     */
-    @Deprecated
-    public Date getDate() {
-        return SSDateUtil.toDate(iLocalDate);
-    }
-
-    /**
      * @return the selected date
      */
     public LocalDate getLocalDate() {
         return iLocalDate;
-    }
-
-    /**
-     * @param iDate the date
-     * @deprecated Use {@link #setLocalDate(LocalDate)} instead.
-     */
-    @Deprecated
-    public void setDate(Date iDate) {
-        setLocalDate(SSDateUtil.toLocalDate(iDate));
     }
 
     /**

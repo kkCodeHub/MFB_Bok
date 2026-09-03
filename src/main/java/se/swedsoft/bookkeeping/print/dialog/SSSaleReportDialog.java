@@ -10,9 +10,7 @@ import se.swedsoft.bookkeeping.gui.util.datechooser.SSDateChooser;
 import se.swedsoft.bookkeeping.gui.util.dialogs.SSDialog;
 
 import javax.swing.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.util.Date;
+import java.time.LocalDate;
 
 import static se.swedsoft.bookkeeping.print.report.SSSaleReportPrinter.SortingMode;
 
@@ -33,7 +31,7 @@ public class SSSaleReportDialog extends SSDialog {
     private JRadioButton iSortAscending;
     private JRadioButton iSortDescending;
 
-    private JComboBox iSort;
+    private JComboBox<SortingMode> iSort;
 
     /**
      *
@@ -42,11 +40,11 @@ public class SSSaleReportDialog extends SSDialog {
     public SSSaleReportDialog(SSMainFrame iMainFrame) {
         super(iMainFrame, SSBundle.getBundle().getString("salereport.dialog.title"));
 
-        SSNewAccountingYear iCurrentYear = SSDB.getInstance().getCurrentYear();
+        SSNewAccountingYear iCurrentYear = se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.getCurrentYear();
 
         if (iCurrentYear != null) {
-            iFromDate.setDate(iCurrentYear.getFrom());
-            iToDate.setDate(iCurrentYear.getTo());
+            iFromDate.setLocalDate(iCurrentYear.getLocalFrom());
+            iToDate.setLocalDate(iCurrentYear.getLocalTo());
         }
 
         setPanel(iPanel);
@@ -56,7 +54,7 @@ public class SSSaleReportDialog extends SSDialog {
 
 	getRootPane().setDefaultButton(iButtonPanel.getOkButton());
 
-        iSort.setModel(new DefaultComboBoxModel(SortingMode.values()));
+        iSort.setModel(new DefaultComboBoxModel<>(SortingMode.values()));
         iSort.setSelectedItem(SortingMode.Product);
 
         ButtonGroup iGroup = new ButtonGroup();
@@ -94,17 +92,18 @@ public class SSSaleReportDialog extends SSDialog {
      *
      * @return
      */
-    public Date getFrom() {
-        return iFromDate.getDate();
+    public LocalDate getLocalFrom() {
+        return iFromDate.getLocalDate();
     }
 
     /**
      *
      * @return
      */
-    public Date getTo() {
-        return iToDate.getDate();
+    public LocalDate getLocalTo() {
+        return iToDate.getLocalDate();
     }
+
 
     @Override
     public String toString() {

@@ -115,8 +115,7 @@ public class SSSupplierCreditInvoiceListDialog extends SSDialog {
             iFactory.applyFilter(
                     new SSFilter<>() {
                 public boolean applyFilter(SSSupplierCreditInvoice iInvoice) {
-                    return SSSupplierCreditInvoiceMath.inPeriod(iInvoice, SSDateUtil.toDate(iDateFrom),
-                            SSDateUtil.toDate(iDateTo));
+                    return SSSupplierCreditInvoiceMath.inPeriod(iInvoice, iDateFrom, iDateTo);
                 }
             });
         }

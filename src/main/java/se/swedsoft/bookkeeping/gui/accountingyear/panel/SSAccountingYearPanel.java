@@ -1,183 +1,203 @@
 package se.swedsoft.bookkeeping.gui.accountingyear.panel;
 
-
 import se.swedsoft.bookkeeping.data.SSAccountPlan;
 import se.swedsoft.bookkeeping.data.SSNewAccountingYear;
-import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.data.system.SSAccountingContext;
+import se.swedsoft.bookkeeping.data.system.SSCompanyYearContext;
 import se.swedsoft.bookkeeping.gui.accountplans.util.SSAccountPlanTableModel;
+import se.swedsoft.bookkeeping.gui.util.SSBundle;
 import se.swedsoft.bookkeeping.gui.util.SSButtonPanel;
 import se.swedsoft.bookkeeping.gui.util.components.SSTableComboBox;
 import se.swedsoft.bookkeeping.gui.util.datechooser.SSDateChooser;
-import se.swedsoft.bookkeeping.util.SSDateUtil;
+import se.swedsoft.bookkeeping.importexport.excel.SSAccountPlanLoader;
 
 import javax.swing.*;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
+import java.awt.Component;
 import java.awt.event.ActionListener;
+import java.io.IOException;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
-import java.util.Date;
-
+import java.util.List;
 
 /**
- * Date: 2006-feb-15
- * Time: 12:20:25
+ * New accounting-year panel.
  */
 public class SSAccountingYearPanel {
 
     private JPanel iPanel;
-
     private SSButtonPanel iButtonPanel;
-
     protected SSDateChooser iFrom;
-
     protected SSDateChooser iTo;
-
     protected JPanel iAccountPlanPanel;
-
     protected SSTableComboBox<SSAccountPlan> iAccountPlan;
-
     protected JRadioButton iRadioUseLast;
-
     protected JRadioButton iRadioAccountPlan;
-
     private SSNewAccountingYear iAccountingYear;
 
-    /**
-     *
-     */
     public SSAccountingYearPanel() {
-        ButtonGroup iGroup = new ButtonGroup();
-
-        iGroup.add(iRadioUseLast);
-        iGroup.add(iRadioAccountPlan);
-
+        ButtonGroup group = new ButtonGroup();
+        group.add(iRadioUseLast);
+        group.add(iRadioAccountPlan);
         iRadioAccountPlan.addChangeListener(e -> iAccountPlan.setEnabled(iRadioAccountPlan.isSelected()));
-
         iAccountPlan.setModel(SSAccountPlanTableModel.getDropDownModel());
         iAccountPlan.setSelected(iAccountPlan.getFirst());
     }
 
-    /**
-     *
-     * @param pAccountingYear
-     */
     public void setAccountingYear(SSNewAccountingYear pAccountingYear) {
         iAccountingYear = pAccountingYear;
-
         iFrom.setLocalDate(iAccountingYear.getLocalFrom());
         iTo.setLocalDate(iAccountingYear.getLocalTo());
         iAccountPlan.setSelected(iAccountingYear.getAccountPlan());
     }
 
-    /**
-     *
-     * @return
-     */
     public SSNewAccountingYear getAccountingYear() {
         iAccountingYear.setLocalFrom(iFrom.getLocalDate());
         iAccountingYear.setLocalTo(iTo.getLocalDate());
 
         if (iAccountPlanPanel.isVisible()) {
-            SSAccountPlan iAccountPlan = getAccountPlan();
+            SSAccountPlan accountPlan = getAccountPlan();
+            if (accountPlan != null) {
+                SSNewAccountingYear lastYear = SSCompanyYearContext.getLastYear().orElse(null);
+                boolean copyFromPreviousYear = lastYear != null
+                        && lastYear.getAccountPlan() != null
+                        && (iRadioUseLast.isSelected() || accountPlan == lastYear.getAccountPlan());
 
-            iAccountingYear.setAccountPlan(new SSAccountPlan(iAccountPlan, true));
+                SSAccountPlan yearPlan = new SSAccountPlan(accountPlan);
+                int startYear = iAccountingYear.getLocalFrom() != null
+                        ? iAccountingYear.getLocalFrom().getYear() : LocalDate.now().getYear();
+                String companyName = getCurrentCompanyName();
+
+                String planName = formatPlanName(companyName, startYear);
+                yearPlan.setName(planName);
+                yearPlan.setExcelPath(null);
+                yearPlan.setDefaultPlan(false);
+                if (copyFromPreviousYear) {
+                    yearPlan.setBaseName(formatPlanName(companyName, startYear - 1));
+                } else {
+                    String templateName = accountPlan.getName();
+                    if (templateName == null || templateName.trim().isEmpty()) {
+                        templateName = planName;
+                    }
+                    yearPlan.setBaseName(templateName);
+                }
+                iAccountingYear.setAccountPlan(yearPlan);
+            }
         }
         return iAccountingYear;
     }
 
-    /**
-     *
-     * @return
-     */
-    public SSAccountPlan getAccountPlan() {
-        SSNewAccountingYear iLast = SSDB.getInstance().getLastYear().orElse(null);
-
-        if (iRadioUseLast.isSelected() && iLast != null && iLast.getAccountPlan() != null) {
-            return iLast.getAccountPlan();
-        } else {
-            return iAccountPlan.getSelected();
+    private String getCurrentCompanyName() {
+        if (SSAccountingContext.getCurrentCompany() != null
+                && SSAccountingContext.getCurrentCompany().getName() != null) {
+            return SSAccountingContext.getCurrentCompany().getName().trim();
         }
-
+        return "";
     }
 
-    /**
-     * Computes the next accounting year's from and to dates based on the last year,
-     * or defaults to the current calendar year if no previous year exists.
-     */
-    public void setYearFromAndTo() {
-        SSNewAccountingYear iLast = SSDB.getInstance().getLastYear().orElse(null);
+    private String formatPlanName(String companyName, int year) {
+        if (companyName == null || companyName.isEmpty()) {
+            return Integer.toString(year);
+        }
+        return companyName + " " + year;
+    }
 
-        iRadioUseLast.setEnabled(iLast != null);
+    public SSAccountPlan getAccountPlan() {
+        SSNewAccountingYear last = SSCompanyYearContext.getLastYear().orElse(null);
+        if (iRadioUseLast.isSelected() && last != null && last.getAccountPlan() != null) {
+            return last.getAccountPlan();
+        }
+
+        SSAccountPlan selected = iAccountPlan.getSelected();
+        if (selected == null) {
+            return null;
+        }
+
+        if (!selected.isTemplatePlan()) {
+            return selected;
+        }
+
+        try {
+            return SSAccountPlanLoader.loadPlan(selected);
+        } catch (IOException e) {
+            throw new IllegalStateException(e.getMessage(), e);
+        }
+    }
+
+    public void setYearFromAndTo() {
+        SSNewAccountingYear last = SSCompanyYearContext.getLastYear().orElse(null);
+
+        iRadioUseLast.setEnabled(last != null);
         iRadioAccountPlan.setEnabled(iAccountPlan.getFirst() != null);
 
-        if (iLast == null && iAccountPlan.getFirst() == null) {
+        if (last == null && iAccountPlan.getFirst() == null) {
             iButtonPanel.getOkButton().setEnabled(false);
             return;
         }
 
-        if (iLast != null) {
+        if (last != null) {
             iRadioUseLast.setSelected(true);
 
-            LocalDate lastFrom = iLast.getLocalFrom();
-            LocalDate lastTo = iLast.getLocalTo();
-
-            // Compute the length of the last accounting year in months
-            // (lastTo + 1 day) - lastFrom gives the exclusive end
+            LocalDate lastFrom = last.getLocalFrom();
+            LocalDate lastTo = last.getLocalTo();
             LocalDate lastExclEnd = lastTo.plusDays(1);
             long diffMonths = ChronoUnit.MONTHS.between(lastFrom, lastExclEnd);
 
-            // New year starts on the day after the last year ended
-            LocalDate newFrom = lastExclEnd;
-            // Set to first day of the month for the start
-            newFrom = newFrom.withDayOfMonth(1);
-
-            // New year ends after the same number of months
+            LocalDate newFrom = lastExclEnd.withDayOfMonth(1);
             LocalDate newTo = newFrom.plusMonths(diffMonths).minusDays(1);
 
-            this.iFrom.setLocalDate(newFrom);
-            this.iTo.setLocalDate(newTo);
+            iFrom.setLocalDate(newFrom);
+            iTo.setLocalDate(newTo);
         } else {
             int year = LocalDate.now().getYear();
-
-            LocalDate yearStart = LocalDate.of(year, 1, 1);
-            LocalDate yearEnd = LocalDate.of(year, 12, 31);
-
-            iFrom.setLocalDate(yearStart);
-            iTo.setLocalDate(yearEnd);
-
+            iFrom.setLocalDate(LocalDate.of(year, 1, 1));
+            iTo.setLocalDate(LocalDate.of(year, 12, 31));
             iAccountPlan.setSelected(iAccountPlan.getFirst());
         }
     }
 
-    /**
-     *
-     * @return  The main panel
-     */
     public JPanel getPanel() {
         return iPanel;
     }
 
-    /**
-     *
-     * @param e
-     */
     public void addOkAction(ActionListener e) {
         iButtonPanel.addOkActionListener(e);
     }
 
-    /**
-     *
-     * @param e
-     */
     public void addCancelAction(ActionListener e) {
         iButtonPanel.addCancelActionListener(e);
     }
 
     /**
+     * Validates that a preceding year exists when "use last year's account plan" is selected.
+     * If no immediately preceding year is found, shows an information dialog, disables the
+     * radio button and selects "account plan" instead.
      *
-     * @param iShow
+     * @param pParent parent component for the message dialog
+     * @return {@code true} if validation passed, {@code false} if the user must correct the selection
      */
+    public boolean validatePreviousYearSelection(Component pParent) {
+        if (!iRadioUseLast.isSelected()) {
+            return true;
+        }
+        LocalDate newFrom = iFrom.getLocalDate();
+        if (newFrom != null) {
+            List<SSNewAccountingYear> years = SSCompanyYearContext.getYears();
+            for (SSNewAccountingYear year : years) {
+                if (newFrom.equals(year.getLocalTo().plusDays(1))) {
+                    return true;
+                }
+            }
+        }
+        JOptionPane.showMessageDialog(
+                pParent,
+                SSBundle.getBundle().getString("accountingyearpanel.nopreviousyear.message"),
+                SSBundle.getBundle().getString("accountingyearpanel.nopreviousyear.title"),
+                JOptionPane.INFORMATION_MESSAGE);
+        iRadioUseLast.setEnabled(false);
+        iRadioAccountPlan.setSelected(true);
+        return false;
+    }
+
     public void setShowAccountPlanPanel(boolean iShow) {
         iAccountPlanPanel.setVisible(iShow);
     }
@@ -185,7 +205,6 @@ public class SSAccountingYearPanel {
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder();
-
         sb.append("se.swedsoft.bookkeeping.gui.accountingyear.panel.SSAccountingYearPanel");
         sb.append("{iAccountingYear=").append(iAccountingYear);
         sb.append(", iAccountPlan=").append(iAccountPlan);

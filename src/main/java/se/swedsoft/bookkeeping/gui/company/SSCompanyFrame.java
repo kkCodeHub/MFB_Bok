@@ -1,6 +1,7 @@
 package se.swedsoft.bookkeeping.gui.company;
 
 
+import org.fribok.bookkeeping.app.SSDBUiInitializer;
 import se.swedsoft.bookkeeping.data.SSNewAccountingYear;
 import se.swedsoft.bookkeeping.data.SSNewCompany;
 import se.swedsoft.bookkeeping.data.system.*;
@@ -17,13 +18,16 @@ import se.swedsoft.bookkeeping.gui.util.frame.SSFrameManager;
 import se.swedsoft.bookkeeping.gui.util.frame.SSInternalFrame;
 import se.swedsoft.bookkeeping.gui.util.model.SSDefaultTableModel;
 import se.swedsoft.bookkeeping.gui.util.table.SSTable;
+import se.swedsoft.bookkeeping.persistence.Repositories;
 
 import javax.swing.*;
 import javax.swing.event.InternalFrameAdapter;
 import javax.swing.event.InternalFrameEvent;
+import javax.swing.table.DefaultTableCellRenderer;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
 import java.util.Optional;
 
 
@@ -154,11 +158,38 @@ public class SSCompanyFrame extends SSDefaultTableFrame {
 
                     });
 
-        iTable = new SSTable();
+        iTable = new SSTable() {
+            @Override
+            public String getToolTipText(MouseEvent event) {
+                int row = rowAtPoint(event.getPoint());
+                if (row >= 0) {
+                    SSNewCompany company = iModel.getObject(convertRowIndexToModel(row));
+                    if (company != null && company.isNeedsAttention()) {
+                        return "Kontrollera företaget";
+                    }
+                }
+                return null;
+            }
+        };
 
         iTable.setSingleSelect();
         iTable.setColumnSortingEnabled(false);
         iTable.setModel(iModel);
+        iTable.setDefaultRenderer(String.class, new DefaultTableCellRenderer() {
+            @Override
+            public Component getTableCellRendererComponent(JTable table, Object value,
+                                                           boolean isSelected, boolean hasFocus,
+                                                           int row, int column) {
+                Component component = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+                SSNewCompany company = iModel.getObject(table.convertRowIndexToModel(row));
+                if (company != null && company.isNeedsAttention()) {
+                    component.setForeground(Color.RED);
+                } else {
+                    component.setForeground(isSelected ? table.getSelectionForeground() : table.getForeground());
+                }
+                return component;
+            }
+        });
 
         iTable.getColumnModel().getColumn(0).setPreferredWidth(70);
         iTable.getColumnModel().getColumn(0).setMaxWidth(70);
@@ -231,14 +262,12 @@ public class SSCompanyFrame extends SSDefaultTableFrame {
             return;
         }
         // Stäng fönstret om företaget redan är öppet.
-        if (iNewCompany.equals(SSDB.getInstance().getCurrentCompany())) {
+        if (iNewCompany.equals(SSCompanyYearContext.getCurrentCompany())) {
             cInstance.dispose();
             return;
         }
-        // Kontrollera att företaget fortfarande finns i databasen
-        iNewCompany = SSDB.getInstance().getCompany(iNewCompany).orElse(null);
+        iNewCompany = resolveSelectedCompany(iNewCompany);
         if (iNewCompany == null) {
-            // Företaget fanns inte kvar i databasen. Visa felmeddelande.
             new SSErrorDialog(getMainFrame(), "companyframe.companygone");
             return;
         }
@@ -251,28 +280,52 @@ public class SSCompanyFrame extends SSDefaultTableFrame {
             // Svarade inte ja. Avbryt funktionen
             return;
         }
-        // Sätt det valda företaget som nuvarande företag
-        SSDB.getInstance().setCurrentCompany(iNewCompany);
-        SSDBConfig.setCompanyId(iNewCompany.getId());
+        SSNewCompany companyToOpen = iNewCompany;
+        try {
+            if (companyToOpen.getId() == null && companyToOpen.getSchemaName() != null) {
+                Repositories.companies().registerOrActivateCompanySchema(companyToOpen.getSchemaName(), companyToOpen.getName());
+                companyToOpen = Repositories.companies().findBySchemaName(companyToOpen.getSchemaName()).orElse(companyToOpen);
+            }
+            SSCompanyYearContext.setCurrentCompany(companyToOpen);
+            if (companyToOpen.getId() != null) {
+                SSDBConfig.setCompanyId(companyToOpen.getId());
+            }
+        } catch (RuntimeException e) {
+            SSErrorDialog.showDialog(getMainFrame(), "Företaget är korrupt",
+                    "Företaget är korrupt och kan inte öppnas. Radera företaget.");
+            updateFrame();
+            return;
+        }
 
-        SSDB.getInstance().setCurrentYear(null);
+        SSCompanyYearContext.setCurrentYear(null);
 
         // Stäng alla fönster
         SSFrameManager.getInstance().close();
 
         // Läs in det förra öppna året för företaget
-        Optional<SSNewAccountingYear> iYear = SSDBConfig.loadCompanySetting(iNewCompany.getId());
+        Optional<SSNewAccountingYear> iYear = SSDBConfig.loadCompanySetting(companyToOpen.getId());
 
         if (iYear.isEmpty()) {
             // Inget år för företaget sparat. Öppna årsfönstret
-            SSDBConfig.setYearId(iNewCompany.getId(), null);
+            if (companyToOpen.getId() != null) {
+                SSDBConfig.setYearId(companyToOpen.getId(), null);
+            }
             SSAccountingYearFrame.showFrame(getMainFrame(), 500, 300, false);
         } else {
             // Hittade ett sparat år. Sätt det som nuvarande
-            SSDB.getInstance().setCurrentYear(iYear.get());
-            SSDBConfig.setYearId(iNewCompany.getId(), iYear.get().getId());
+            if (SSCompanyYearContext.canOpenAccountingYear(iYear.get())) {
+                SSCompanyYearContext.openYear(iYear.get());
+                if (companyToOpen.getId() != null) {
+                    SSDBConfig.setYearId(companyToOpen.getId(), iYear.get().getId());
+                }
+            } else {
+                if (companyToOpen.getId() != null) {
+                    SSDBConfig.setYearId(companyToOpen.getId(), null);
+                }
+                SSAccountingYearFrame.showFrame(getMainFrame(), 500, 300, false);
+            }
         }
-        SSDB.getInstance().init(true);
+        SSDBUiInitializer.init(true);
     }
 
     private void editSelectedCompany() {
@@ -284,20 +337,25 @@ public class SSCompanyFrame extends SSDefaultTableFrame {
             new SSErrorDialog(getMainFrame(), "companyframe.selectonecompany");
             return;
         }
+        if (pCompany.isNeedsAttention()) {
+            SSErrorDialog.showDialog(getMainFrame(), "Kontrollera företaget",
+                    "Företaget måste kontrolleras innan redigering.");
+            return;
+        }
 
         // Kontrollera att företaget fortfarande finns i databasen
-        pCompany = SSDB.getInstance().getCompany(pCompany).orElse(null);
+        pCompany = resolveSelectedCompany(pCompany);
         if (pCompany == null) {
             // Företaget fanns inte kvar i databasen. Visa felmeddelande.
             new SSErrorDialog(getMainFrame(), "companyframe.companygone");
             return;
         }
         // Ask the user if he want's to open the selected company to be able to edit it
-        if (!pCompany.equals(SSDB.getInstance().getCurrentCompany())) {
+        if (!pCompany.equals(SSCompanyYearContext.getCurrentCompany())) {
             // Ask to open the company
-            String iCurrent = SSDB.getInstance().getCurrentCompany() == null
+            String iCurrent = SSCompanyYearContext.getCurrentCompany() == null
                     ? ""
-                    : SSDB.getInstance().getCurrentCompany().getName();
+                    : SSCompanyYearContext.getCurrentCompany().getName();
             String iNew = pCompany.getName();
 
             SSQueryDialog iDialog = new SSQueryDialog(getMainFrame(), SSBundle.getBundle(),
@@ -313,10 +371,12 @@ public class SSCompanyFrame extends SSDefaultTableFrame {
             // Select the company
 
             // Sätt det valda företaget som nuvarande företag
-            SSDB.getInstance().setCurrentCompany(pCompany);
-            SSDBConfig.setCompanyId(pCompany.getId());
+            SSCompanyYearContext.setCurrentCompany(pCompany);
+            if (pCompany.getId() != null) {
+                SSDBConfig.setCompanyId(pCompany.getId());
+            }
 
-            SSDB.getInstance().setCurrentYear(null);
+            SSCompanyYearContext.setCurrentYear(null);
 
             // Stäng alla fönster
             SSFrameManager.getInstance().close();
@@ -326,20 +386,31 @@ public class SSCompanyFrame extends SSDefaultTableFrame {
 
             if (iYear.isEmpty()) {
                 // Inget år för företaget sparat. Öppna årsfönstret
-                SSDBConfig.setYearId(pCompany.getId(), null);
+                if (pCompany.getId() != null) {
+                    SSDBConfig.setYearId(pCompany.getId(), null);
+                }
                 SSAccountingYearFrame.showFrame(getMainFrame(), 500, 300, false);
             } else {
                 // Hittade ett sparat år. Sätt det som nuvarande
-                SSDB.getInstance().setCurrentYear(iYear.get());
-                SSDBConfig.setYearId(pCompany.getId(), iYear.get().getId());
+                if (SSCompanyYearContext.canOpenAccountingYear(iYear.get())) {
+                    SSCompanyYearContext.openYear(iYear.get());
+                    if (pCompany.getId() != null) {
+                        SSDBConfig.setYearId(pCompany.getId(), iYear.get().getId());
+                    }
+                } else {
+                    if (pCompany.getId() != null) {
+                        SSDBConfig.setYearId(pCompany.getId(), null);
+                    }
+                    SSAccountingYearFrame.showFrame(getMainFrame(), 500, 300, false);
+                }
             }
-            SSDB.getInstance().init(true);
+            SSDBUiInitializer.init(true);
         }
         if (cInstance != null) {
             updateFrame();
         }
 
-        SSCompanyDialog.editDialog(getMainFrame(), SSDB.getInstance().getCurrentCompany(),
+        SSCompanyDialog.editDialog(getMainFrame(), SSCompanyYearContext.getCurrentCompany(),
                 iModel);
     }
 
@@ -362,24 +433,48 @@ public class SSCompanyFrame extends SSDefaultTableFrame {
 
         boolean iCurrentRemoved = false;
 
-        if (pCompany.equals(SSDB.getInstance().getCurrentCompany())) {
+        if (pCompany.equals(SSCompanyYearContext.getCurrentCompany())) {
             SSFrameManager.getInstance().close();
             iCurrentRemoved = true;
         }
 
-        SSDB.getInstance().deleteCompany(pCompany);
+        try {
+            SSCompanyYearContext.deleteCompany(pCompany);
+        } catch (RuntimeException e) {
+            if (e.getMessage() != null && e.getMessage().contains("co_0")) {
+                SSErrorDialog.showDialog(getMainFrame(), "Kan inte radera företag",
+                        "Demoföretaget (co_0) kan inte raderas.");
+            } else {
+                SSErrorDialog.showDialog(getMainFrame(), "Kan inte radera företag",
+                        "Företaget kunde inte raderas.");
+            }
+            return;
+        }
 
         if (iCurrentRemoved) {
-            SSDB.getInstance().setCurrentCompany(null);
-            SSDB.getInstance().setCurrentYear(null);
+            SSCompanyYearContext.setCurrentCompany(null);
+            SSCompanyYearContext.setCurrentYear(null);
         }
         updateFrame();
     }
 
     public void updateFrame() {
-        iModel.setObjects(SSDB.getInstance().getCompanies());
-        SSDB.getInstance().notifyListeners("COMPANY",
-                SSDB.getInstance().getCurrentCompany(), null);
+        iModel.setObjects(SSCompanyYearContext.getCompanies());
+        SSCompanyYearContext.notifyListeners("COMPANY",
+                SSCompanyYearContext.getCurrentCompany(), null);
+    }
+
+    private SSNewCompany resolveSelectedCompany(SSNewCompany selected) {
+        if (selected == null) {
+            return null;
+        }
+        if (selected.getId() != null) {
+            return SSCompanyYearContext.getCompany(selected).orElse(null);
+        }
+        if (selected.getSchemaName() != null) {
+            return Repositories.companies().findBySchemaName(selected.getSchemaName()).orElse(selected);
+        }
+        return null;
     }
 
     public void actionPerformed(ActionEvent e) {

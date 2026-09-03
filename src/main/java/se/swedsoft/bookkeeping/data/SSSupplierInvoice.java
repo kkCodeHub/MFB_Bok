@@ -14,7 +14,6 @@ import se.swedsoft.bookkeeping.persistence.Repositories;
 import se.swedsoft.bookkeeping.util.SSDateUtil;
 
 import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -90,8 +89,8 @@ public class SSSupplierInvoice implements SSTableSearchable, Serializable {
         iStockInfluencing = true;
         iDefaultAccounts = new HashMap<>();
         iDefaultAccounts.putAll(
-                SSDB.getInstance().getCurrentCompany().getDefaultAccounts());
-        SSNewCompany iCompany = SSDB.getInstance().getCurrentCompany();
+                se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.getCurrentCompany().getDefaultAccounts());
+        SSNewCompany iCompany = se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.getCurrentCompany();
 
         if (iCompany != null) {
             iCurrency = iCompany.getCurrency();
@@ -183,7 +182,11 @@ public class SSSupplierInvoice implements SSTableSearchable, Serializable {
     public void doAutoIncrecement() {
         List<SSSupplierInvoice> iInvoices = Repositories.supplierInvoices().findAll();
 
-        int iMax = SSDB.getInstance().getAutoIncrement().orElse(new SSAutoIncrement()).getNumber("supplierinvoice");
+        SSNewCompany iCurrentCompany = se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.getCurrentCompany();
+        SSAutoIncrement iAutoIncrement = iCurrentCompany != null && iCurrentCompany.getAutoIncrement() != null
+                ? iCurrentCompany.getAutoIncrement()
+                : new SSAutoIncrement();
+        int iMax = iAutoIncrement.getNumber("supplierinvoice");
 
         for (SSSupplierInvoice iSupplierInvoice : iInvoices) {
             if (iSupplierInvoice.iNumber > iMax) {
@@ -192,14 +195,6 @@ public class SSSupplierInvoice implements SSTableSearchable, Serializable {
         }
 
         iNumber = iMax + 1;
-    }
-
-    /**
-     * @deprecated Use {@link #getLastLocalDate()} instead.
-     */
-    @Deprecated
-    public Date getLastDate() {
-        return SSDateUtil.toDate(getLastLocalDate());
     }
 
     /**
@@ -243,24 +238,6 @@ public class SSSupplierInvoice implements SSTableSearchable, Serializable {
     // //////////////////////////////////////////////////
 
     /**
-     *
-     * @return
-     */
-    @Deprecated
-    public Date getDate() {
-        return SSDateUtil.toDate(iDate);
-    }
-
-    /**
-     *
-     * @param iDate
-     */
-    @Deprecated
-    public void setDate(Date iDate) {
-        this.iDate = SSDateUtil.toLocalDate(iDate);
-    }
-
-    /**
      * @return the date as a LocalDate
      */
     public LocalDate getLocalDate() {
@@ -275,24 +252,6 @@ public class SSSupplierInvoice implements SSTableSearchable, Serializable {
     }
 
     // //////////////////////////////////////////////////
-
-    /**
-     *
-     * @return
-     */
-    @Deprecated
-    public Date getDueDate() {
-        return SSDateUtil.toDate(iDueDate);
-    }
-
-    /**
-     *
-     * @param iDueDate
-     */
-    @Deprecated
-    public void setDueDate(Date iDueDate) {
-        this.iDueDate = SSDateUtil.toLocalDate(iDueDate);
-    }
 
     /**
      * @return the due date as a LocalDate
@@ -552,7 +511,7 @@ public class SSSupplierInvoice implements SSTableSearchable, Serializable {
      */
     public Map<SSDefaultAccount, Integer> getDefaultAccounts() {
         if (iDefaultAccounts == null) {
-            SSNewCompany iCompany = SSDB.getInstance().getCurrentCompany();
+            SSNewCompany iCompany = se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.getCurrentCompany();
 
             if (iCompany != null) {
                 iDefaultAccounts = iCompany.getDefaultAccounts();
@@ -770,9 +729,9 @@ public class SSSupplierInvoice implements SSTableSearchable, Serializable {
         String iDescription = SSBundle.getBundle().getString(
                 "supplierinvoiceframe.voucherdescription");
 
-        SSNewCompany     iCompany = SSDB.getInstance().getCurrentCompany();
+        SSNewCompany     iCompany = se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.getCurrentCompany();
 
-        SSAccountPlan iAccountPlan = SSDB.getInstance().getCurrentAccountPlan();
+        SSAccountPlan iAccountPlan = se.swedsoft.bookkeeping.data.system.SSAccountingContext.getCurrentAccountPlan();
 
         iVoucher = new SSVoucher();
         iVoucher.setLocalDate(SSDateUtil.today());
@@ -810,9 +769,9 @@ public class SSSupplierInvoice implements SSTableSearchable, Serializable {
 
             iVoucherRow.setDebet(iRow.getSum().orElse(null));
             iVoucherRow.setAccount(iRow.getAccount(iAccountPlan.getAccounts()));
-            iVoucherRow.setProject(iRow.getProject(SSDB.getInstance().getProjects()));
+            iVoucherRow.setProject(iRow.getProject(se.swedsoft.bookkeeping.data.system.SSProjectContext.getProjects()));
             iVoucherRow.setResultUnit(
-                    iRow.getResultUnit(SSDB.getInstance().getResultUnits()));
+                    iRow.getResultUnit(se.swedsoft.bookkeeping.data.system.SSResultUnitContext.getResultUnits()));
 
             if (iVoucherRow.getAccountNr() != null) {
                 iVoucher.addVoucherRow(iVoucherRow);
@@ -839,35 +798,6 @@ public class SSSupplierInvoice implements SSTableSearchable, Serializable {
         iVoucher = SSVoucherMath.compress(iVoucher);
 
         return iVoucher;
-    }
-
-    /**
-     * Custom deserialization to handle backward compatibility.
-     * Pre-migration serialized streams stored {@code iDate} and {@code iDueDate} as
-     * {@code java.util.Date}.  This method reads them as raw objects and converts
-     * via {@link SSDateUtil#readLocalDate(Object)}.
-     */
-    @SuppressWarnings("unchecked")
-    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
-        ObjectInputStream.GetField fields = in.readFields();
-        iNumber = (Integer) fields.get("iNumber", null);
-        iDate = SSDateUtil.readLocalDate(fields.get("iDate", null));
-        iDueDate = SSDateUtil.readLocalDate(fields.get("iDueDate", null));
-        iPaymentTerm = (SSPaymentTerm) fields.get("iPaymentTerm", null);
-        iSupplierNr = (String) fields.get("iSupplierNr", null);
-        iSupplierName = (String) fields.get("iSupplierName", null);
-        iReferencenumber = (String) fields.get("iReferencenumber", null);
-        iCurrency = (SSCurrency) fields.get("iCurrency", null);
-        iCurrencyRate = (BigDecimal) fields.get("iCurrencyRate", null);
-        iTaxSum = (BigDecimal) fields.get("iTaxSum", null);
-        iRoundingSum = (BigDecimal) fields.get("iRoundingSum", null);
-        iVoucher = (SSVoucher) fields.get("iVoucher", null);
-        iCorrection = (SSVoucher) fields.get("iCorrection", null);
-        iEntered = fields.get("iEntered", false);
-        iStockInfluencing = fields.get("iStockInfluencing", false);
-        iBGCEntered = fields.get("iBGCEntered", false);
-        iRows = (List<SSSupplierInvoiceRow>) fields.get("iRows", null);
-        iDefaultAccounts = (Map<SSDefaultAccount, Integer>) fields.get("iDefaultAccounts", null);
     }
 
 }

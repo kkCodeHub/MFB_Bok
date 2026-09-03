@@ -86,7 +86,7 @@ public class SSAccountMath {
      * @return the account or empty
      */
     public static Optional<SSAccount> getAccount(Integer pAccountNr) {
-        SSAccountPlan iAccountPlan = SSDB.getInstance().getCurrentAccountPlan();
+        SSAccountPlan iAccountPlan = se.swedsoft.bookkeeping.data.system.SSAccountingContext.getCurrentAccountPlan();
 
         if (iAccountPlan == null) {
             return Optional.empty();

@@ -26,32 +26,31 @@ import java.util.Optional;
 public class SSSaleMath {
 
     /**
+     * Returns true if the sale's date falls within [pFrom, pTo] inclusive.
      *
-     * @param iSale
-     * @param pFrom
-     * @param pTo
-     * @return
+     * @param iSale  the sale to test
+     * @param pFrom  the start of the period
+     * @param pTo    the end of the period
+     * @return true if the sale is within the period
      */
-    public static boolean inPeriod(SSSale iSale, Date pFrom, Date pTo) {
+    public static boolean inPeriod(SSSale iSale, LocalDate pFrom, LocalDate pTo) {
         LocalDate iDate = iSale.getLocalDate();
-        LocalDate iFrom = se.swedsoft.bookkeeping.util.SSDateUtil.toLocalDate(pFrom);
-        LocalDate iTo = se.swedsoft.bookkeeping.util.SSDateUtil.toLocalDate(pTo);
 
-        return iDate != null && iFrom != null && iTo != null
-                && !iDate.isBefore(iFrom) && !iDate.isAfter(iTo);
+        return iDate != null && pFrom != null && pTo != null
+                && !iDate.isBefore(pFrom) && !iDate.isAfter(pTo);
     }
 
     /**
+     * Returns true if the sale's date is on or before pTo.
      *
-     * @param iSale
-     * @param pTo
-     * @return
+     * @param iSale  the sale to test
+     * @param pTo    the upper bound
+     * @return true if the sale is within the period
      */
-    public static boolean inPeriod(SSSale iSale, Date pTo) {
+    public static boolean inPeriod(SSSale iSale, LocalDate pTo) {
         LocalDate iDate = iSale.getLocalDate();
-        LocalDate iTo = se.swedsoft.bookkeeping.util.SSDateUtil.toLocalDate(pTo);
 
-        return iDate != null && iTo != null && !iDate.isAfter(iTo);
+        return iDate != null && pTo != null && !iDate.isAfter(pTo);
     }
 
     /**
@@ -176,7 +175,7 @@ public class SSSaleMath {
         } else {
             iSum = iNetSum.add(iTaxSum1).add(iTaxSum2).add(iTaxSum3);
         }
-        if (!SSDB.getInstance().getCurrentCompany().isRoundingOff()) {
+        if (!se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.getCurrentCompany().isRoundingOff()) {
             return iSum.setScale(0, RoundingMode.HALF_UP);
         } else {
             return iSum;
@@ -207,7 +206,7 @@ public class SSSaleMath {
         } else {
             iSum = iNetSum.add(iTaxSum1).add(iTaxSum2).add(iTaxSum3);
         }
-        if (!SSDB.getInstance().getCurrentCompany().isRoundingOff()) {
+        if (!se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.getCurrentCompany().isRoundingOff()) {
             return iSum.setScale(0, RoundingMode.HALF_UP).subtract(iSum);
         } else {
             return new BigDecimal(0);
@@ -221,7 +220,7 @@ public class SSSaleMath {
      * @return the new customer
      */
     public static Optional<SSCustomer> getNewCustomer(SSSale iSale) {
-        if (iSale.getCustomer(SSDB.getInstance().getCustomers()) == null) {
+        if (iSale.getCustomer(se.swedsoft.bookkeeping.data.system.SSSalesContext.getCustomers()) == null) {
             SSCustomer iCustomer = new SSCustomer();
 
             iCustomer.setNumber(iSale.getCustomerNr());
@@ -253,7 +252,7 @@ public class SSSaleMath {
 
         for (SSSaleRow iTenderRow: iSale.getRows()) {
 
-            SSProduct iProduct = iTenderRow.getProduct(SSDB.getInstance().getProducts());
+            SSProduct iProduct = iTenderRow.getProduct(se.swedsoft.bookkeeping.data.system.SSProductContext.getProducts());
 
             // Get the product nr, trim any spaces
             String iProductNr = iTenderRow.getProductNr() == null
@@ -319,13 +318,13 @@ public class SSSaleMath {
         Optional<SSCustomer> iCustomer = getNewCustomer(iSale);
 
         if (iCustomer.isPresent()) {
-            SSDB.getInstance().addCustomer(iCustomer.get());
+            se.swedsoft.bookkeeping.data.system.SSSalesContext.addCustomer(iCustomer.get());
         }
 
         List<SSProduct> iProducts = getNewProducts(iSale);
 
         for (SSProduct iProduct : iProducts) {
-            SSDB.getInstance().addProduct(iProduct);
+            se.swedsoft.bookkeeping.data.system.SSProductContext.addProduct(iProduct);
 
         }
 

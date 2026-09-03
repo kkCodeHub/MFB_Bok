@@ -34,12 +34,23 @@ public class SSInventory implements Serializable {
      *
      */
     public SSInventory() {
+        this(true);
+    }
+
+    /**
+     * Creates an inventory and optionally performs automatic numbering.
+     *
+     * @param autoIncrement true to call {@link #doAutoIncrement()}, false for data-mapping scenarios
+     */
+    public SSInventory(boolean autoIncrement) {
         iNumber = 0;
         iDate = SSDateUtil.today();
         iText = "";
         iRows = new LinkedList<>();
 
-        doAutoIncrement();
+        if (autoIncrement) {
+            doAutoIncrement();
+        }
     }
 
     /**
@@ -102,24 +113,6 @@ public class SSInventory implements Serializable {
     }
 
     // /////////////////////////////////////////////////////////////////////////////////////
-
-    /**
-     *
-     * @return
-     */
-    @Deprecated
-    public Date getDate() {
-        return SSDateUtil.toDate(iDate);
-    }
-
-    /**
-     *
-     * @param iDate
-     */
-    @Deprecated
-    public void setDate(Date iDate) {
-        this.iDate = SSDateUtil.toLocalDate(iDate);
-    }
 
     /**
      * @return the date as a LocalDate
@@ -225,8 +218,16 @@ public class SSInventory implements Serializable {
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
         ObjectInputStream.GetField fields = in.readFields();
         iNumber = (Integer) fields.get("iNumber", null);
-        iDate = SSDateUtil.readLocalDate(fields.get("iDate", null));
+        Object rawDate = fields.get("iDate", null);
+        if (rawDate instanceof LocalDate) {
+            iDate = (LocalDate) rawDate;
+        } else if (rawDate instanceof Date) {
+            iDate = SSDateUtil.toLocalDate((Date) rawDate);
+        } else {
+            iDate = null;
+        }
         iText = (String) fields.get("iText", null);
         iRows = (List<SSInventoryRow>) fields.get("iRows", null);
     }
+
 }

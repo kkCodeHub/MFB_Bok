@@ -6,12 +6,13 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.DefaultHandler;
-import org.xml.sax.helpers.XMLReaderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.parsers.SAXParser;
+import javax.xml.parsers.SAXParserFactory;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
@@ -26,15 +27,13 @@ import org.slf4j.LoggerFactory;
 public class SSMenuLoader {    private static final Logger LOG = LoggerFactory.getLogger(SSMenuLoader.class);
 
 
-    private static String cParserClass = "org.apache.xerces.parsers.SAXParser";
+    private final Map<String, JMenuBar > iMenuBars;
+    private final Map<String, JMenu    > iMenus;
+    private final Map<String, JMenuItem> iMenuItems;
 
-    private Map<String, JMenuBar > iMenuBars;
-    private Map<String, JMenu    > iMenus;
-    private Map<String, JMenuItem> iMenuItems;
+    private final Map<String, List<ActionListener>> iActions;
 
-    private Map<String, List<ActionListener>> iActions;
-
-    private Map<String, List<JComponent>> iDependancies;
+    private final Map<String, List<JComponent>> iDependancies;
 
     /**
      * Default constructor.
@@ -49,8 +48,9 @@ public class SSMenuLoader {    private static final Logger LOG = LoggerFactory.g
     }
 
     /**
+     * Loads menus from an XML stream.
      *
-     * @param iFile
+     * @param stream the menu XML stream
      */
     public void loadMenus(InputStream stream) {
         iMenuBars.clear();
@@ -60,8 +60,10 @@ public class SSMenuLoader {    private static final Logger LOG = LoggerFactory.g
         XMLReader iReader;
 
         try {
-            iReader = XMLReaderFactory.createXMLReader(cParserClass);
-        } catch (SAXException e) {
+            SAXParserFactory iFactory = SAXParserFactory.newInstance();
+            SAXParser iParser = iFactory.newSAXParser();
+            iReader = iParser.getXMLReader();
+        } catch (ParserConfigurationException | SAXException e) {
             LOG.error("Unexpected error", e);
             return;
         }
@@ -70,71 +72,57 @@ public class SSMenuLoader {    private static final Logger LOG = LoggerFactory.g
 
         try {
             iReader.parse(new InputSource(stream));
-        } catch (SAXException ex) {
-            LOG.error("Unexpected error", ex);
-        } catch (IOException ex) {
+        } catch (SAXException | IOException ex) {
             LOG.error("Unexpected error", ex);
         }
     }
 
     /**
-     * Returns a menubar
+     * Returns a menubar by name.
      *
-     * @param pName
-     * @return
+     * @param pName the menubar name
+     * @return the menubar, or {@code null} if not found
      */
     public JMenuBar getMenuBar(String pName) {
         return iMenuBars.get(pName);
     }
 
     /**
-     * Returns a menu or menu item
+     * Returns a menu by name.
      *
-     * @param pName
-     * @return
+     * @param pName the menu name
+     * @return the menu, or {@code null} if not found
      */
     public JMenu getMenu(String pName) {
         return iMenus.get(pName);
     }
 
-    /**
-     *
-     * @param pName
-     * @param pAction
-     */
+        /**
+         * Registers a named action listener.
+         *
+         * @param pName the action name
+         * @param pAction the listener to register
+         */
     public void addActionListener(String pName, ActionListener pAction) {
-        List<ActionListener> iListeners = iActions.get(pName);
-
-        if (iListeners == null) {
-            iListeners = new LinkedList<>();
-
-            iActions.put(pName, iListeners);
-        }
-
-        iListeners.add(pAction);
+        iActions.computeIfAbsent(pName, key -> new LinkedList<>()).add(pAction);
     }
 
-    /**
-     *
-     * @param pGroup
-     * @param iComponent
-     */
+        /**
+         * Registers a dependent component.
+         *
+         * @param pGroup the dependency group
+         * @param iComponent the component to toggle
+         */
     public void addDependancy(String pGroup, JComponent iComponent) {
-        List<JComponent> iComponents = iDependancies.get(pGroup);
-
-        if (iComponents == null) {
-            iComponents = new LinkedList<>();
-
-            iDependancies.put(pGroup, iComponents);
-        }
-        iComponents.add(iComponent);
+        iDependancies.computeIfAbsent(pGroup, key -> new LinkedList<>()).add(iComponent);
     }
 
-    /**
-     *
-     * @param pGroup
-     * @param pEnabled
-     */
+        /**
+         * Enables or disables a dependency group.
+         *
+         * @param pGroup the dependency group
+         * @param pEnabled {@code true} to enable, {@code false} to disable
+         */
     public void setEnabled(String pGroup, boolean pEnabled) {
         List<JComponent> iComponents = iDependancies.get(pGroup);
 
@@ -145,11 +133,12 @@ public class SSMenuLoader {    private static final Logger LOG = LoggerFactory.g
         }
     }
 
-    /**
-     *
-     * @param pName
-     * @param pAction
-     */
+        /**
+         * Notifies registered listeners.
+         *
+         * @param pName the action name
+         * @param pAction the action event
+         */
     private void notifyActionListeners(String pName, ActionEvent pAction) {
         List<ActionListener> iListeners = iActions.get(pName);
 
@@ -163,11 +152,12 @@ public class SSMenuLoader {    private static final Logger LOG = LoggerFactory.g
 
     }
 
-    /**
-     *
-     * @param pName
-     * @return
-     */
+        /**
+         * Creates an action listener for a named action.
+         *
+         * @param pName the action name
+         * @return the listener
+         */
     private ActionListener createActionListener(final String pName) {
         return e -> notifyActionListeners(pName, e);
     }
@@ -179,7 +169,7 @@ public class SSMenuLoader {    private static final Logger LOG = LoggerFactory.g
 
         private JMenuBar iMenuBar;
 
-        private Stack<JMenu> iMenuStack;
+        private final Stack<JMenu> iMenuStack;
 
         /**
          *
@@ -190,7 +180,9 @@ public class SSMenuLoader {    private static final Logger LOG = LoggerFactory.g
         }
 
         /**
-         * @param iAttributes
+         * Creates and registers a menubar.
+         *
+         * @param iAttributes SAX attributes for the current element
          */
         private void createMenuBar(Attributes iAttributes) {
             String iName = iAttributes.getValue("Name");
@@ -202,8 +194,10 @@ public class SSMenuLoader {    private static final Logger LOG = LoggerFactory.g
         }
 
         /**
-         * @param iAttributes
-         * @return
+         * Creates and registers a menu.
+         *
+         * @param iAttributes SAX attributes for the current element
+         * @return the created menu
          */
         private JMenu createMenu(Attributes iAttributes) {
             String iName = iAttributes.getValue("Name");
@@ -233,7 +227,9 @@ public class SSMenuLoader {    private static final Logger LOG = LoggerFactory.g
         }
 
         /**
-         * @param iAttributes
+         * Creates and registers a menu item.
+         *
+         * @param iAttributes SAX attributes for the current element
          */
         private void createMenuItem(Attributes iAttributes) {
             String iName = iAttributes.getValue("Name");
@@ -262,11 +258,7 @@ public class SSMenuLoader {    private static final Logger LOG = LoggerFactory.g
             iMenuItems.put(iName, iMenuItem);
         }
 
-        /**
-         *
-         * @param iAttributes
-         */
-        private void createSeparator(Attributes iAttributes) {
+        private void createSeparator() {
             if (!iMenuStack.isEmpty()) {
                 JMenu iParent = iMenuStack.peek();
 
@@ -275,8 +267,9 @@ public class SSMenuLoader {    private static final Logger LOG = LoggerFactory.g
         }
 
         /**
+         * Adds a menu component either to the current menu or to the menubar root.
          *
-         * @param iComponent
+         * @param iComponent the component to add
          */
         private void add(JComponent iComponent) {
             if (!iMenuStack.isEmpty()) {
@@ -290,52 +283,59 @@ public class SSMenuLoader {    private static final Logger LOG = LoggerFactory.g
             }
         }
 
+        private String getElementName(String localName, String qName) {
+            return (localName != null && !localName.isEmpty()) ? localName : qName;
+        }
+
         /**
+         * Handles the start of an element while building menu structures.
          *
-         * @param uri
-         * @param localName
-         * @param qName
-         * @param iAttributes
-         * @throws SAXException
+         * @param uri the namespace URI
+         * @param localName the local element name
+         * @param qName the qualified element name
+         * @param iAttributes SAX attributes for the current element
          */
         @Override
-        public void startElement(String uri, String localName, String qName, Attributes iAttributes) throws SAXException {
+        public void startElement(String uri, String localName, String qName, Attributes iAttributes) {
+            String iElementName = getElementName(localName, qName);
 
-            if (localName.equalsIgnoreCase("MenuBar")) {
+            if ("MenuBar".equalsIgnoreCase(iElementName)) {
                 createMenuBar(iAttributes);
             }
 
-            if (localName.equalsIgnoreCase("Menu")) {
+            if ("Menu".equalsIgnoreCase(iElementName)) {
                 JMenu iMenu = createMenu(iAttributes);
 
                 iMenuStack.push(iMenu);
             }
 
-            if (localName.equalsIgnoreCase("MenuItem")) {
+            if ("MenuItem".equalsIgnoreCase(iElementName)) {
                 createMenuItem(iAttributes);
             }
 
-            if (localName.equalsIgnoreCase("Separator")) {
-                createSeparator(iAttributes);
+            if ("Separator".equalsIgnoreCase(iElementName)) {
+                createSeparator();
 
             }
 
         }
 
         /**
+         * Handles the end of an element while building menu structures.
          *
-         * @param uri
-         * @param localName
-         * @param qName
-         * @throws SAXException
+         * @param uri the namespace URI
+         * @param localName the local element name
+         * @param qName the qualified element name
          */
         @Override
-        public void endElement(String uri, String localName, String qName) throws SAXException {
-            if (localName.equalsIgnoreCase("MenuBar")) {
+        public void endElement(String uri, String localName, String qName) {
+            String iElementName = getElementName(localName, qName);
+
+            if ("MenuBar".equalsIgnoreCase(iElementName)) {
                 iMenuBar = null;
             }
 
-            if (localName.equalsIgnoreCase("Menu")) {
+            if ("Menu".equalsIgnoreCase(iElementName)) {
                 iMenuStack.pop();
             }
 
@@ -343,27 +343,21 @@ public class SSMenuLoader {    private static final Logger LOG = LoggerFactory.g
 
         @Override
         public String toString() {
-            final StringBuilder sb = new StringBuilder();
-
-            sb.append("se.swedsoft.bookkeeping.gui.util.menu.SSMenuLoader.MenuBuilder");
-            sb.append("{iMenuBar=").append(iMenuBar);
-            sb.append(", iMenuStack=").append(iMenuStack);
-            sb.append('}');
-            return sb.toString();
+            return "se.swedsoft.bookkeeping.gui.util.menu.SSMenuLoader.MenuBuilder"
+                    + "{iMenuBar=" + iMenuBar
+                    + ", iMenuStack=" + iMenuStack
+                    + '}';
         }
     }
 
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder();
-
-        sb.append("se.swedsoft.bookkeeping.gui.util.menu.SSMenuLoader");
-        sb.append("{iActions=").append(iActions);
-        sb.append(", iDependancies=").append(iDependancies);
-        sb.append(", iMenuBars=").append(iMenuBars);
-        sb.append(", iMenuItems=").append(iMenuItems);
-        sb.append(", iMenus=").append(iMenus);
-        sb.append('}');
-        return sb.toString();
+        return "se.swedsoft.bookkeeping.gui.util.menu.SSMenuLoader"
+                + "{iActions=" + iActions
+                + ", iDependancies=" + iDependancies
+                + ", iMenuBars=" + iMenuBars
+                + ", iMenuItems=" + iMenuItems
+                + ", iMenus=" + iMenus
+                + '}';
     }
 }

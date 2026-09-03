@@ -124,7 +124,7 @@ public class SSUnit implements Serializable, SSTableSearchable {
      * @return
      */
     public static Optional<SSUnit> decode(String iValue) {
-        List<SSUnit> iUnits = SSDB.getInstance().getUnits();
+        List<SSUnit> iUnits = se.swedsoft.bookkeeping.data.system.SSMasterdataContext.getUnits();
 
         for (SSUnit iUnit : iUnits) {
             if (iValue.equals(iUnit.iName) || iValue.equals(iUnit.iDescription)) {

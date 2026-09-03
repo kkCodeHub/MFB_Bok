@@ -15,6 +15,7 @@ import javax.swing.event.ListSelectionListener;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -35,7 +36,7 @@ public class SSCompanySettingsDialog extends SSDialog implements ListSelectionLi
 
     private JPanel iContainer;
 
-    private JList iNavigator;
+    private JList<SSCompanyPage> iNavigator;
 
     /**
      *
@@ -56,7 +57,18 @@ public class SSCompanySettingsDialog extends SSDialog implements ListSelectionLi
 
         setPanel(iPanel);
 
-        iButtonPanel.addOkActionListener(e -> closeDialog(JOptionPane.OK_OPTION));
+        iButtonPanel.addOkActionListener(e -> {
+            List<String> iErrors = validateAllPages();
+            if (!iErrors.isEmpty()) {
+                JOptionPane.showMessageDialog(
+                        this,
+                        String.join("\n", iErrors),
+                        "Validation error",
+                        JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            closeDialog(JOptionPane.OK_OPTION);
+        });
 
         iButtonPanel.addCancelActionListener(e -> closeDialog(JOptionPane.CANCEL_OPTION));
 
@@ -64,7 +76,7 @@ public class SSCompanySettingsDialog extends SSDialog implements ListSelectionLi
 
         iContainer.setLayout(new BorderLayout());
 
-        iNavigator.setModel(new DefaultComboBoxModel(iPages.toArray()));
+        iNavigator.setListData(iPages.toArray(new SSCompanyPage[0]));
         iNavigator.addListSelectionListener(this);
         iNavigator.setFixedCellHeight(24);
 
@@ -117,14 +129,35 @@ public class SSCompanySettingsDialog extends SSDialog implements ListSelectionLi
         return iCompany;
     }
 
+    private List<String> validateAllPages() {
+        List<String> iErrors = new ArrayList<>();
+        for (int i = 0; i < iPages.size(); i++) {
+            SSCompanyPage iPage = iPages.get(i);
+            List<String> iPageErrors = iPage.validatePage();
+            if (iPageErrors.isEmpty()) {
+                continue;
+            }
+
+            iErrors.addAll(iPageErrors);
+            iNavigator.setSelectedIndex(i);
+
+            JComponent iComponent = iPage.getFirstInvalidComponent();
+            if (iComponent != null) {
+                SwingUtilities.invokeLater(iComponent::requestFocusInWindow);
+            }
+            break;
+        }
+        return iErrors;
+    }
+
     /**
      *
      */
-    private class NavigatorCellRenderer extends JLabel implements ListCellRenderer {
+    private class NavigatorCellRenderer extends JLabel implements ListCellRenderer<SSCompanyPage> {
 
-        public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+        public Component getListCellRendererComponent(JList<? extends SSCompanyPage> list, SSCompanyPage value, int index, boolean isSelected, boolean cellHasFocus) {
             String s = Integer.toString(index + 1) + ". "
-                    + ((SSCompanyPage) value).getName();
+                    + value.getName();
 
             setText(s);
 

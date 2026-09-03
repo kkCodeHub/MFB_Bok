@@ -4,7 +4,7 @@ package se.swedsoft.bookkeeping.gui.ownreport.util;
 import se.swedsoft.bookkeeping.data.SSAccount;
 import se.swedsoft.bookkeeping.data.SSMonth;
 import se.swedsoft.bookkeeping.data.SSNewAccountingYear;
-import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.data.system.SSCompanyYearContext;
 import se.swedsoft.bookkeeping.util.SSDateUtil;
 
 import java.io.Serializable;
@@ -34,7 +34,7 @@ public class SSOwnReportAccountRow implements Serializable {
         iAccount = new SSAccount();
         iBudget = new HashMap<>();
 
-        SSNewAccountingYear iYear = SSDB.getInstance().getCurrentYear();
+        SSNewAccountingYear iYear = SSCompanyYearContext.getCurrentYear();
         List<SSMonth> iMonths = SSMonth.splitYearIntoMonths(iYear);
 
         for (SSMonth iMonth : iMonths) {
@@ -53,7 +53,12 @@ public class SSOwnReportAccountRow implements Serializable {
     public void setAccount(String iAccountNr) {
         Integer iNumber = Integer.parseInt(iAccountNr);
 
-        for (SSAccount pAccount : SSDB.getInstance().getCurrentYear().getAccounts()) {
+        SSNewAccountingYear iCurrentYear = SSCompanyYearContext.getCurrentYear();
+        if (iCurrentYear == null) {
+            return;
+        }
+
+        for (SSAccount pAccount : iCurrentYear.getAccounts()) {
             if (pAccount.getNumber().equals(iNumber)) {
                 iAccount = pAccount;
             }
@@ -69,7 +74,7 @@ public class SSOwnReportAccountRow implements Serializable {
     }
 
     public void setYearBudget(BigDecimal iValue) {
-        SSNewAccountingYear iYear = SSDB.getInstance().getCurrentYear();
+        SSNewAccountingYear iYear = SSCompanyYearContext.getCurrentYear();
 
         if (iYear == null) {
             return;

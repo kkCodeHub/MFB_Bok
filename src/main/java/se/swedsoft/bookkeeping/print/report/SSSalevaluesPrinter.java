@@ -10,6 +10,7 @@ import se.swedsoft.bookkeeping.gui.util.model.SSDefaultTableModel;
 import se.swedsoft.bookkeeping.print.SSPrinter;
 import se.swedsoft.bookkeeping.util.SSDateUtil;
 
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
 
@@ -31,12 +32,11 @@ public class SSSalevaluesPrinter extends SSPrinter {
      * @param iTo
 
      */
-    public SSSalevaluesPrinter(Date iFrom, Date iTo) {
-        this.iFrom = iFrom;
-        this.iTo = iTo;
+    public SSSalevaluesPrinter(LocalDate iFrom, LocalDate iTo) {
+        this.iFrom = SSDateUtil.toDate(iFrom);
+        this.iTo = SSDateUtil.toDate(iTo);
 
-        iMonths = SSMonth.splitYearIntoMonths(
-                SSDateUtil.toLocalDate(iFrom), SSDateUtil.toLocalDate(iTo));
+        iMonths = SSMonth.splitYearIntoMonths(iFrom, iTo);
 
         setPageHeader("header_period.jrxml");
         setColumnHeader("salevalues.jrxml");
@@ -73,7 +73,7 @@ public class SSSalevaluesPrinter extends SSPrinter {
                 Object value = null;
 
                 SSMonth iMonth = getObject(rowIndex);
-                SSNewCompany iCurrentCompany = SSDB.getInstance().getCurrentCompany();
+                SSNewCompany iCurrentCompany = se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.getCurrentCompany();
 
                 switch (columnIndex) {
                 case 0:

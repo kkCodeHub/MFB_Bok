@@ -92,7 +92,7 @@ public class SSCustomer implements Serializable, SSTableSearchable {
         iInvoiceAddress = new SSAddress();
         iDeliveryAddress = new SSAddress();
 
-        SSNewCompany iCompany = SSDB.getInstance().getCurrentCompany();
+        SSNewCompany iCompany = se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.getCurrentCompany();
 
         if (iCompany != null) {
             iOurContactPerson = iCompany.getContactPerson();
@@ -449,7 +449,7 @@ public class SSCustomer implements Serializable, SSTableSearchable {
      * @return
      */
     public SSCurrency getInvoiceCurrency() {
-        return SSDB.getInstance().getCurrency(iInvoiceCurrency).orElse(null);
+        return se.swedsoft.bookkeeping.data.system.SSMasterdataContext.getCurrency(iInvoiceCurrency).orElse(null);
     }
 
     /**
@@ -634,7 +634,7 @@ public class SSCustomer implements Serializable, SSTableSearchable {
     public BigDecimal getCustomerRevenueForMonth(SSMonth iMonth) {
         Double iInvoiceSum = 0.0;
 
-        for (SSInvoice iInvoice : SSDB.getInstance().getInvoices()) {
+        for (SSInvoice iInvoice : se.swedsoft.bookkeeping.data.system.SSSalesContext.getInvoices()) {
             if (iMonth.isDateInMonth(iInvoice.getLocalDate())) {
                 if (iInvoice.getCustomerNr() != null) {
                     if (iInvoice.getCustomerNr().equals(iCustomerNr)) {
@@ -648,7 +648,7 @@ public class SSCustomer implements Serializable, SSTableSearchable {
 
         Double iCreditInvoiceSum = 0.0;
 
-        for (SSCreditInvoice iCreditInvoice : SSDB.getInstance().getCreditInvoices()) {
+        for (SSCreditInvoice iCreditInvoice : se.swedsoft.bookkeeping.data.system.SSSalesContext.getCreditInvoices()) {
             if (iMonth.isDateInMonth(iCreditInvoice.getLocalDate())) {
                 if (iCreditInvoice.getCustomerNr() != null) {
                     if (iCreditInvoice.getCustomerNr().equals(iCustomerNr)) {

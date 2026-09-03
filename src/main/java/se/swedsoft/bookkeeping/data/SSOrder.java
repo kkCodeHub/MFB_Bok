@@ -2,6 +2,7 @@ package se.swedsoft.bookkeeping.data;
 
 
 import se.swedsoft.bookkeeping.data.base.SSSale;
+import se.swedsoft.bookkeeping.data.common.SSCurrency;
 import se.swedsoft.bookkeeping.data.system.SSDB;
 import se.swedsoft.bookkeeping.persistence.Repositories;
 
@@ -51,7 +52,7 @@ public class SSOrder extends SSSale {
      * Default constructor
      */
     public SSOrder() {
-        SSNewCompany iCompany = SSDB.getInstance().getCurrentCompany();
+        SSNewCompany iCompany = se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.getCurrentCompany();
 
         if (iCompany != null) {
             setDelayInterest(iCompany.getDelayInterest());
@@ -66,7 +67,7 @@ public class SSOrder extends SSSale {
             setDeliveryTerm(iCompany.getDeliveryTerm());
             setDeliveryWay(iCompany.getDeliveryWay());
             setCurrency(iCompany.getCurrency());
-            iCurrencyRate = iCurrency.getExchangeRate();
+            iCurrencyRate = iCurrency == null ? null : iCurrency.getExchangeRate();
 
         }
     }
@@ -74,7 +75,7 @@ public class SSOrder extends SSSale {
     @Override
     public void setCustomer(SSCustomer iCustomer) {
         super.setCustomer(iCustomer);
-        iCurrencyRate = iCurrency.getExchangeRate();
+        iCurrencyRate = iCurrency == null ? null : iCurrency.getExchangeRate();
     }
 
     /**
@@ -97,9 +98,9 @@ public class SSOrder extends SSSale {
         iDate = SSDateUtil.today();
         iCurrencyRate = iTender.getCurrencyRate();
 
-        SSNewCompany iCompany = SSDB.getInstance().getCurrentCompany();
+        SSNewCompany iCompany = se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.getCurrentCompany();
 
-        for (SSCustomer pCustomer : SSDB.getInstance().getCustomers()) {
+        for (SSCustomer pCustomer : se.swedsoft.bookkeeping.data.system.SSSalesContext.getCustomers()) {
             if (pCustomer.getNumber().equals(iCustomerNr)) {
                 iHideUnitprice = pCustomer.getHideUnitprice();
             }
@@ -138,11 +139,11 @@ public class SSOrder extends SSSale {
      */
     @Override
     public void doAutoIncrecement() {
-        SSNewCompany iCompany = SSDB.getInstance().getCurrentCompany();
+        SSNewCompany iCompany = se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.getCurrentCompany();
 
         int iNumber = iCompany.getAutoIncrement().getNumber("order");
 
-        List<SSOrder> iOrders = SSDB.getInstance().getOrders();
+        List<SSOrder> iOrders = se.swedsoft.bookkeeping.data.system.SSSalesContext.getOrders();
 
         for (SSOrder iOrder: iOrders) {
 
@@ -246,7 +247,8 @@ public class SSOrder extends SSSale {
             return iCurrencyRate;
         } else {
             if (iCustomer != null) {
-                return iCustomer.getInvoiceCurrency().getExchangeRate();
+                SSCurrency iInvoiceCurrency = iCustomer.getInvoiceCurrency();
+                return iInvoiceCurrency == null ? new BigDecimal(1) : iInvoiceCurrency.getExchangeRate();
             } else {
                 return new BigDecimal(1);
             }
@@ -267,7 +269,7 @@ public class SSOrder extends SSSale {
      * @return
      */
     public SSInvoice getInvoice() {
-        return getInvoice(SSDB.getInstance().getInvoices());
+        return getInvoice(se.swedsoft.bookkeeping.data.system.SSSalesContext.getInvoices());
     }
 
     /**
@@ -296,7 +298,7 @@ public class SSOrder extends SSSale {
     }
 
     public SSPeriodicInvoice getPeriodicInvoice() {
-        return getPeriodicInvoice(SSDB.getInstance().getPeriodicInvoices());
+        return getPeriodicInvoice(se.swedsoft.bookkeeping.data.system.SSSalesContext.getPeriodicInvoices());
     }
 
     /**

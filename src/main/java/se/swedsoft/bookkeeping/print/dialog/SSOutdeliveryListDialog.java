@@ -115,7 +115,7 @@ public class SSOutdeliveryListDialog extends SSDialog {
             iOutdeliveries = SSFilterFactory.doFilter(iOutdeliveries,
                     new SSFilter<>() {
                 public boolean applyFilter(SSOutdelivery iIndelivery) {
-                    return SSOutdeliveryMath.inPeriod(iIndelivery, SSDateUtil.toDate(iDateFrom), SSDateUtil.toDate(iDateTo));
+                    return SSOutdeliveryMath.inPeriod(iIndelivery, iDateFrom, iDateTo);
                 }
             });
         }

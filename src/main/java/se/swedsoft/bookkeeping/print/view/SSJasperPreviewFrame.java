@@ -5,7 +5,9 @@ import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JasperExportManager;
 import net.sf.jasperreports.engine.JasperPrint;
 import net.sf.jasperreports.engine.JasperPrintManager;
-import net.sf.jasperreports.view.save.JRMultipleSheetsXlsSaveContributor;
+import net.sf.jasperreports.engine.export.ooxml.JRXlsxExporter;
+import net.sf.jasperreports.export.SimpleExporterInput;
+import net.sf.jasperreports.export.SimpleOutputStreamExporterOutput;
 import net.sf.jasperreports.view.save.JRRtfSaveContributor;
 import se.swedsoft.bookkeeping.gui.SSMainFrame;
 import se.swedsoft.bookkeeping.gui.status.SSStatusBar;
@@ -15,15 +17,13 @@ import se.swedsoft.bookkeeping.gui.util.filechooser.SSJasperFileChooser;
 import se.swedsoft.bookkeeping.gui.util.filechooser.util.SSFilterHTM;
 import se.swedsoft.bookkeeping.gui.util.filechooser.util.SSFilterPDF;
 import se.swedsoft.bookkeeping.gui.util.filechooser.util.SSFilterRTF;
-import se.swedsoft.bookkeeping.gui.util.filechooser.util.SSFilterXLS;
+import se.swedsoft.bookkeeping.gui.util.filechooser.util.SSFilterXLSX;
 import se.swedsoft.bookkeeping.gui.util.frame.SSDefaultTableFrame;
 import se.swedsoft.bookkeeping.print.SSReport;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileFilter;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
@@ -48,9 +48,14 @@ public class SSJasperPreviewFrame extends SSDefaultTableFrame implements Propert
 
     private JLabel iPageLabel;
 
-    private JComboBox iZoomLevels;
+    private JComboBox<SSZoomLevel> iZoomLevels;
 
     private SSReport iReport;
+    private Runnable iOnOutputAction;
+    private Runnable iOnEmailAction;
+    private boolean iShowEmailButton;
+    private boolean iOutputActionHandled;
+    private SSButton iEmailButton;
 
     SSButton iFirst;
     SSButton iBack;
@@ -59,9 +64,9 @@ public class SSJasperPreviewFrame extends SSDefaultTableFrame implements Propert
 
     /**
      * Default constructor.
-     * @param frame
-     * @param width
-     * @param height
+     * @param frame owning main frame
+     * @param width frame width
+     * @param height frame height
      */
     public SSJasperPreviewFrame(SSMainFrame frame, int width, int height) {
         super(frame, SSBundle.getBundle().getString("printpreviewframe.title"), width,
@@ -83,7 +88,7 @@ public class SSJasperPreviewFrame extends SSDefaultTableFrame implements Propert
     public JToolBar getToolBar() {
         JToolBar toolbar = new JToolBar();
 
-        iZoomLevels = new JComboBox(SSZoomLevel.values());
+        iZoomLevels = new JComboBox<>(SSZoomLevel.values());
         iZoomLevels.setEditable(true);
         iZoomLevels.setMaximumSize(new Dimension(75, 20));
         iZoomLevels.setSelectedItem(SSZoomLevel.ZOOM_100);
@@ -106,6 +111,7 @@ public class SSJasperPreviewFrame extends SSDefaultTableFrame implements Propert
 
                         if (iFileChooser.showSaveDialog(SSJasperPreviewFrame.this)
                                 == JFileChooser.APPROVE_OPTION) {
+                            fireOutputAction();
                             saveDocument(iFileChooser.getFileFilter(),
                                     iFileChooser.getSelectedFile());
                         }
@@ -116,10 +122,25 @@ public class SSJasperPreviewFrame extends SSDefaultTableFrame implements Propert
         iButton.setDefaultSize();
         toolbar.add(iButton);
 
+        // Email
+        // ***************************
+        iEmailButton = new SSButton("ICON_Email", "printpreviewframe.emailbutton",
+                e -> {
+                        if (iOnEmailAction == null) {
+                            return;
+                        }
+                        iOnEmailAction.run();
+                   });
+        iEmailButton.setDefaultSize();
+        iEmailButton.setVisible(iShowEmailButton);
+        iEmailButton.setEnabled(iOnEmailAction != null);
+        toolbar.add(iEmailButton);
+
         // Print
         // ***************************
         iButton = new SSButton("ICON_PRINT", "printpreviewframe.printbutton",
                 e -> {
+                        fireOutputAction();
 
                         try {
                             JasperPrintManager.printReport(iPrinter, true);
@@ -202,11 +223,17 @@ public class SSJasperPreviewFrame extends SSDefaultTableFrame implements Propert
 
                         try {
                             if (iZoomLevels.getSelectedIndex() >= 0) {
-                                SSZoomLevel iSelected = (SSZoomLevel) iZoomLevels.getSelectedItem();
-
-                                iZoom = iSelected.getZoom();
+                                Object iSelected = iZoomLevels.getSelectedItem();
+                                if (!(iSelected instanceof SSZoomLevel)) {
+                                    return;
+                                }
+                                iZoom = ((SSZoomLevel) iSelected).getZoom();
                             } else {
-                                iZoom = Integer.parseInt((String) iZoomLevels.getSelectedItem());
+                                Object iSelected = iZoomLevels.getSelectedItem();
+                                if (iSelected == null) {
+                                    return;
+                                }
+                                iZoom = Integer.parseInt(iSelected.toString());
                             }
 
                         } catch (NumberFormatException e1) {
@@ -298,8 +325,9 @@ public class SSJasperPreviewFrame extends SSDefaultTableFrame implements Propert
     }
 
     /**
+     * Sets the rendered Jasper print in the viewer.
      *
-     * @param iPrinter
+     * @param iPrinter print object to display
      */
     public void setPrinter(JasperPrint iPrinter) {
         this.iPrinter = iPrinter;
@@ -308,11 +336,48 @@ public class SSJasperPreviewFrame extends SSDefaultTableFrame implements Propert
     }
 
     /**
+     * Stores the source report metadata used during save.
      *
-     * @param iReport
+     * @param iReport report descriptor
      */
     public void setReport(SSReport iReport) {
         this.iReport = iReport;
+    }
+
+    /**
+     * Sets an action callback that is executed on first save/print action.
+     *
+     * @param iOnOutputAction callback to invoke when output action is performed
+     */
+    public void setOnOutputAction(Runnable iOnOutputAction) {
+        this.iOnOutputAction = iOnOutputAction;
+        iOutputActionHandled = false;
+    }
+
+    /**
+     * Sets the action callback for e-mail action in preview toolbar.
+     *
+     * @param iOnEmailAction callback to invoke for e-mail action
+     */
+    public void setOnEmailAction(Runnable iOnEmailAction) {
+        this.iOnEmailAction = iOnEmailAction;
+        if (iEmailButton != null) {
+            iEmailButton.setVisible(iShowEmailButton);
+            iEmailButton.setEnabled(iOnEmailAction != null);
+        }
+    }
+
+    /**
+     * Controls whether the e-mail button should be visible in the preview toolbar.
+     *
+     * @param iShowEmailButton true if the button should be visible
+     */
+    public void setShowEmailButton(boolean iShowEmailButton) {
+        this.iShowEmailButton = iShowEmailButton;
+        if (iEmailButton != null) {
+            iEmailButton.setVisible(iShowEmailButton);
+            iEmailButton.setEnabled(iOnEmailAction != null);
+        }
     }
 
     /**
@@ -329,9 +394,10 @@ public class SSJasperPreviewFrame extends SSDefaultTableFrame implements Propert
     }
 
     /**
+     * Saves the current report using the selected format.
      *
-     * @param pFileFilter
-     * @param pSelectedFile
+     * @param pFileFilter active file filter that decides output format
+     * @param pSelectedFile destination file selected by user
      */
     private void saveDocument(FileFilter pFileFilter, File pSelectedFile) {
         String iFileName = pSelectedFile.getAbsolutePath();
@@ -339,9 +405,9 @@ public class SSJasperPreviewFrame extends SSDefaultTableFrame implements Propert
 
         // Pdf
         if (iFileExt.equals("pdf")
-                || (iFileExt.length() == 0 && pFileFilter instanceof SSFilterPDF)) {
+                || (iFileExt.isEmpty() && pFileFilter instanceof SSFilterPDF)) {
             try {
-                if (iFileExt.length() == 0) {
+                if (iFileExt.isEmpty()) {
                     iFileName = iFileName + ".pdf";
                 }
 
@@ -352,9 +418,9 @@ public class SSJasperPreviewFrame extends SSDefaultTableFrame implements Propert
         }
         // html
         if (iFileExt.equals("htm") || iFileExt.equals("html")
-                || (iFileExt.length() == 0 && pFileFilter instanceof SSFilterHTM)) {
+                || (iFileExt.isEmpty() && pFileFilter instanceof SSFilterHTM)) {
             try {
-                if (iFileExt.length() == 0) {
+                if (iFileExt.isEmpty()) {
                     iFileName = iFileName + ".htm";
                 }
 
@@ -366,9 +432,9 @@ public class SSJasperPreviewFrame extends SSDefaultTableFrame implements Propert
 
         // RTF
         if (iFileExt.equals(".rtf")
-                || (iFileExt.length() == 0 && pFileFilter instanceof SSFilterRTF)) {
+                || (iFileExt.isEmpty() && pFileFilter instanceof SSFilterRTF)) {
             try {
-                JRRtfSaveContributor iSaver = new JRRtfSaveContributor(new Locale("sv", "SE"), bundle);
+                JRRtfSaveContributor iSaver = new JRRtfSaveContributor(Locale.forLanguageTag("sv-SE"), bundle);
 
                 iSaver.save(iPrinter, pSelectedFile);
             } catch (JRException ex) {
@@ -377,18 +443,31 @@ public class SSJasperPreviewFrame extends SSDefaultTableFrame implements Propert
         }
 
         // Excel
-        if (iFileExt.equals(".xls")
-                || (iFileExt.length() == 0 && pFileFilter instanceof SSFilterXLS)) {
+        if (iFileExt.equals("xlsx")
+                || (iFileExt.isEmpty() && pFileFilter instanceof SSFilterXLSX)) {
 
             try {
-                JRMultipleSheetsXlsSaveContributor iSaver = new JRMultipleSheetsXlsSaveContributor(new Locale("sv", "SE"), bundle);
+                if (iFileExt.isEmpty()) {
+                    iFileName = iFileName + ".xlsx";
+                }
 
-                iSaver.save(iPrinter, pSelectedFile);
+                JRXlsxExporter iExporter = new JRXlsxExporter();
+                iExporter.setExporterInput(new SimpleExporterInput(iPrinter));
+                iExporter.setExporterOutput(new SimpleOutputStreamExporterOutput(iFileName));
+                iExporter.exportReport();
             } catch (JRException ex) {
                 LOG.error("Unexpected error", ex);
             }
         }
 
+    }
+
+    private void fireOutputAction() {
+        if (iOutputActionHandled || iOnOutputAction == null) {
+            return;
+        }
+        iOutputActionHandled = true;
+        iOnOutputAction.run();
     }
 
     /*
@@ -407,34 +486,18 @@ public class SSJasperPreviewFrame extends SSDefaultTableFrame implements Propert
         return ext == null ? "" : ext.toLowerCase();
     }
 
-    public void actionPerformed(ActionEvent e) {
-        iPrinter = null;
-        iViewer = null;
-        iPageLabel = null;
-        iZoomLevels = null;
-        iReport = null;
-        iFirst = null;
-        iBack = null;
-        iForward = null;
-        iLast = null;
-    }
-
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder();
-
-        sb.append("se.swedsoft.bookkeeping.print.view.SSJasperPreviewFrame");
-        sb.append("{iBack=").append(iBack);
-        sb.append(", iFirst=").append(iFirst);
-        sb.append(", iForward=").append(iForward);
-        sb.append(", iLast=").append(iLast);
-        sb.append(", iPageLabel=").append(iPageLabel);
-        sb.append(", iPrinter=").append(iPrinter);
-        sb.append(", iReport=").append(iReport);
-        sb.append(", iViewer=").append(iViewer);
-        sb.append(", iZoomLevels=").append(iZoomLevels);
-        sb.append('}');
-        return sb.toString();
+        return "se.swedsoft.bookkeeping.print.view.SSJasperPreviewFrame"
+                + "{iBack=" + iBack
+                + ", iFirst=" + iFirst
+                + ", iForward=" + iForward
+                + ", iLast=" + iLast
+                + ", iPageLabel=" + iPageLabel
+                + ", iPrinter=" + iPrinter
+                + ", iReport=" + iReport
+                + ", iViewer=" + iViewer
+                + ", iZoomLevels=" + iZoomLevels
+                + '}';
     }
 }
-

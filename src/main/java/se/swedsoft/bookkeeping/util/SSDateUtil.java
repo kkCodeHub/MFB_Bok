@@ -95,36 +95,6 @@ public final class SSDateUtil {
     }
 
     // -------------------------------------------------------------------------
-    // Serialization backward-compatibility helpers
-    // -------------------------------------------------------------------------
-
-    /**
-     * Converts an object read from a serialized stream to {@link LocalDate}.
-     *
-     * <p>During deserialization, a date field may arrive as either a {@link LocalDate}
-     * (new format) or a {@link Date} (old format, before the Step 16 migration).
-     * This method handles both cases transparently.
-     *
-     * @param raw the value read via {@code ObjectInputStream.GetField.get()}, may be {@code null}
-     * @return the equivalent {@link LocalDate}, or {@code null} if {@code raw} is {@code null}
-     * @throws IllegalArgumentException if {@code raw} is neither {@code null},
-     *         {@code LocalDate}, nor {@code Date}
-     */
-    public static LocalDate readLocalDate(Object raw) {
-        if (raw == null) {
-            return null;
-        }
-        if (raw instanceof LocalDate) {
-            return (LocalDate) raw;
-        }
-        if (raw instanceof Date) {
-            return toLocalDate((Date) raw);
-        }
-        throw new IllegalArgumentException(
-                "Cannot convert " + raw.getClass().getName() + " to LocalDate");
-    }
-
-    // -------------------------------------------------------------------------
     // Convenience factories
     // -------------------------------------------------------------------------
 

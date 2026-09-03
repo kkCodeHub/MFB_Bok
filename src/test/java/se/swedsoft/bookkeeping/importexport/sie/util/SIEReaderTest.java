@@ -1,9 +1,11 @@
 package se.swedsoft.bookkeeping.importexport.sie.util;
 
 import org.junit.jupiter.api.Test;
+import se.swedsoft.bookkeeping.util.SSDateUtil;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -183,11 +185,46 @@ class SIEReaderTest {
     // ---- Date parsing ----
 
     @Test
-    void nextDateParsesEightDigitDateString() {
+    void hasNextDateReturnsTrueForEightDigitDateToken() {
         SIEReader reader = new SIEReader("20060101");
 
-        // Should return a non-null Date without throwing
-        assertThat(reader.nextDate()).isNotNull();
+        assertThat(reader.hasNextDate()).isTrue();
+    }
+
+    @Test
+    void nextDateParsesEightDigitDateStringToExpectedDay() {
+        SIEReader reader = new SIEReader("20060101");
+
+        LocalDate parsed = SSDateUtil.toLocalDate(reader.nextDate());
+
+        assertThat(parsed).isEqualTo(LocalDate.of(2006, 1, 1));
+    }
+
+    @Test
+    void nextDateNormalizesInvalidDayInMonthUsingJavaDateRules() {
+        SIEReader reader = new SIEReader("20060230");
+
+        LocalDate parsed = SSDateUtil.toLocalDate(reader.nextDate());
+
+        assertThat(parsed).isEqualTo(LocalDate.of(2006, 2, 28));
+    }
+
+    @Test
+    void nextDateFallsBackToTodayForInvalidMonth() {
+        SIEReader reader = new SIEReader("20061301");
+
+        LocalDate parsed = SSDateUtil.toLocalDate(reader.nextDate());
+
+        assertThat(parsed).isEqualTo(SSDateUtil.today());
+    }
+
+    @Test
+    void nextDateFallsBackToTodayWhenTokenLengthIsNotEight() {
+        SIEReader reader = new SIEReader("200601");
+
+        LocalDate parsed = SSDateUtil.toLocalDate(reader.nextDate());
+
+        assertThat(parsed).isEqualTo(SSDateUtil.today());
     }
 
     // ---- Multi-line navigation ----

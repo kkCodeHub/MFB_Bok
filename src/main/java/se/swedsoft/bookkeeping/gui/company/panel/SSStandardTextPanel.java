@@ -6,8 +6,6 @@ import se.swedsoft.bookkeeping.gui.util.SSBundle;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.ResourceBundle;
@@ -23,7 +21,7 @@ public class SSStandardTextPanel extends JPanel {
 
     private JPanel iPanel;
 
-    private JComboBox iComboBox;
+    private JComboBox<StandardText> iComboBox;
 
     private JTextPane iTextPane;
 
@@ -38,7 +36,7 @@ public class SSStandardTextPanel extends JPanel {
         setLayout(new BorderLayout());
         add(iPanel, BorderLayout.CENTER);
 
-        DefaultComboBoxModel iModel = new DefaultComboBoxModel();
+        DefaultComboBoxModel<StandardText> iModel = new DefaultComboBoxModel<>();
 
         iModel.addElement(
                 new StandardText(bundle.getString("companypanel.standardtext.1"),

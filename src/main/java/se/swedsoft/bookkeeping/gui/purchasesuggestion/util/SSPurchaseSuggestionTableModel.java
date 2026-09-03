@@ -6,10 +6,15 @@ import se.swedsoft.bookkeeping.data.SSProduct;
 import se.swedsoft.bookkeeping.data.SSStock;
 import se.swedsoft.bookkeeping.data.SSSupplier;
 import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.data.system.SSPurchaseContext;
 import se.swedsoft.bookkeeping.gui.util.SSBundle;
+import se.swedsoft.bookkeeping.gui.util.SSQuantityPresentationUtil;
+import se.swedsoft.bookkeeping.gui.util.table.editors.SSBigDecimalCellEditor;
+import se.swedsoft.bookkeeping.gui.util.table.editors.SSBigDecimalCellRenderer;
 import se.swedsoft.bookkeeping.gui.util.table.model.SSTableColumn;
 import se.swedsoft.bookkeeping.gui.util.table.model.SSTableModel;
 
+import java.math.BigDecimal;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -60,7 +65,7 @@ public class SSPurchaseSuggestionTableModel extends SSTableModel<SSPurchaseSugge
             iEntry.iProduct = iProduct;
             iEntry.iSelected = false;
             iEntry.iOrderVolume = iProduct.getOrdercount();
-            iEntry.iSupplier = iProduct.getSupplier(SSDB.getInstance().getSuppliers());
+            iEntry.iSupplier = iProduct.getSupplier(SSPurchaseContext.getSuppliers());
             iItems.add(iEntry);
         }
         setObjects(iItems);
@@ -196,9 +201,8 @@ public class SSPurchaseSuggestionTableModel extends SSTableModel<SSPurchaseSugge
             SSBundle.getBundle().getString("purchasesuggestiontable.column.4")) {
         @Override
         public Object getValue(Entry iEntry) {
-            return iEntry.iProduct.getOrderpoint() == null
-                    ? 0
-                    : iEntry.iProduct.getOrderpoint();
+            return SSQuantityPresentationUtil.toDisplayQuantity(
+                    iEntry.iProduct.getOrderpoint() == null ? 0 : iEntry.iProduct.getOrderpoint());
         }
 
         @Override
@@ -206,7 +210,12 @@ public class SSPurchaseSuggestionTableModel extends SSTableModel<SSPurchaseSugge
 
         @Override
         public Class getColumnClass() {
-            return Integer.class;
+            return BigDecimal.class;
+        }
+
+        @Override
+        public SSBigDecimalCellRenderer getCellRenderer() {
+            return new SSBigDecimalCellRenderer(1);
         }
 
         @Override
@@ -222,10 +231,8 @@ public class SSPurchaseSuggestionTableModel extends SSTableModel<SSPurchaseSugge
             SSBundle.getBundle().getString("purchasesuggestiontable.column.5")) {
         @Override
         public Object getValue(Entry iEntry) {
-
-            return iStock.getQuantity(iEntry.iProduct) == null
-                    ? 0
-                    : iStock.getQuantity(iEntry.iProduct);
+            return SSQuantityPresentationUtil.toDisplayQuantity(
+                    iStock.getQuantity(iEntry.iProduct) == null ? 0 : iStock.getQuantity(iEntry.iProduct));
         }
 
         @Override
@@ -233,7 +240,12 @@ public class SSPurchaseSuggestionTableModel extends SSTableModel<SSPurchaseSugge
 
         @Override
         public Class getColumnClass() {
-            return Integer.class;
+            return BigDecimal.class;
+        }
+
+        @Override
+        public SSBigDecimalCellRenderer getCellRenderer() {
+            return new SSBigDecimalCellRenderer(1);
         }
 
         @Override
@@ -249,7 +261,8 @@ public class SSPurchaseSuggestionTableModel extends SSTableModel<SSPurchaseSugge
             SSBundle.getBundle().getString("purchasesuggestiontable.column.6")) {
         @Override
         public Object getValue(Entry iEntry) {
-            return SSPurchaseOrderMath.getNumberOfIncommingProducts(iEntry.iProduct);
+            return SSQuantityPresentationUtil.toDisplayQuantity(
+                    SSPurchaseOrderMath.getNumberOfIncommingProducts(iEntry.iProduct));
         }
 
         @Override
@@ -257,7 +270,12 @@ public class SSPurchaseSuggestionTableModel extends SSTableModel<SSPurchaseSugge
 
         @Override
         public Class getColumnClass() {
-            return Integer.class;
+            return BigDecimal.class;
+        }
+
+        @Override
+        public SSBigDecimalCellRenderer getCellRenderer() {
+            return new SSBigDecimalCellRenderer(1);
         }
 
         @Override
@@ -273,17 +291,28 @@ public class SSPurchaseSuggestionTableModel extends SSTableModel<SSPurchaseSugge
             SSBundle.getBundle().getString("purchasesuggestiontable.column.7")) {
         @Override
         public Object getValue(Entry iEntry) {
-            return iEntry.iOrderVolume == null ? 0 : iEntry.iOrderVolume;
+            return SSQuantityPresentationUtil.toDisplayQuantity(
+                    iEntry.iOrderVolume == null ? 0 : iEntry.iOrderVolume);
         }
 
         @Override
         public void setValue(Entry iEntry, Object iValue) {
-            iEntry.iOrderVolume = (Integer) iValue;
+            iEntry.iOrderVolume = SSQuantityPresentationUtil.toStoredTenths(iValue);
         }
 
         @Override
         public Class getColumnClass() {
-            return Integer.class;
+            return BigDecimal.class;
+        }
+
+        @Override
+        public SSBigDecimalCellRenderer getCellRenderer() {
+            return new SSBigDecimalCellRenderer(1);
+        }
+
+        @Override
+        public SSBigDecimalCellEditor getCellEditor() {
+            return new SSBigDecimalCellEditor(1);
         }
 
         @Override

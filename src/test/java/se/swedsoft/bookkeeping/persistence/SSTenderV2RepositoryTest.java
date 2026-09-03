@@ -45,7 +45,7 @@ class SSTenderV2RepositoryTest {
         Class.forName("org.hsqldb.jdbcDriver");
         connection = DriverManager.getConnection(JDBC_URL, "sa", "");
 
-        SSDB.getInstance().startupLocal(connection);
+        se.swedsoft.bookkeeping.data.system.SSSystemConfigContext.startupLocal(connection);
 
         Integer companyId = createCompany("V2 Tender Repo Test AB");
         SSNewCompany company = new SSNewCompany();
@@ -54,10 +54,10 @@ class SSTenderV2RepositoryTest {
         company.setCurrency(new SSCurrency("SEK", "SEK"));
         SSDB.getInstance().setCurrentCompany(company);
 
-        SSNewAccountingYear year = new SSNewAccountingYear(
-                se.swedsoft.bookkeeping.util.SSDateUtil.toDate(LocalDate.of(2025, 1, 1)),
-                se.swedsoft.bookkeeping.util.SSDateUtil.toDate(LocalDate.of(2025, 12, 31)));
-        SSDB.getInstance().addAccountingYear(year);
+        SSNewAccountingYear year = new SSNewAccountingYear();
+        year.setLocalFrom(LocalDate.of(2025, 1, 1));
+        year.setLocalTo(LocalDate.of(2025, 12, 31));
+        se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.addAccountingYear(year);
         SSDB.getInstance().setCurrentYear(year);
 
         Repositories.init(SSDB.getInstance());
@@ -76,7 +76,7 @@ class SSTenderV2RepositoryTest {
 
     @BeforeEach
     void clearCaches() {
-        SSDB.getInstance().clearLists();
+        se.swedsoft.bookkeeping.data.system.SSEventTriggerSyncContext.clearCachedLists();
         SSDB.getInstance().getCurrentYear();
     }
 
@@ -94,7 +94,7 @@ class SSTenderV2RepositoryTest {
         Repositories.tenders().add(tender);
         assertThat(tender.getNumber()).isGreaterThan(0);
 
-        SSDB.getInstance().clearLists();
+        se.swedsoft.bookkeeping.data.system.SSEventTriggerSyncContext.clearCachedLists();
         Optional<SSTender> fetched = Repositories.tenders().findByTender(tender);
         assertThat(fetched).isPresent();
         assertThat(fetched.get().getCustomerName()).isEqualTo("Repo Tender Customer AB");
@@ -110,7 +110,7 @@ class SSTenderV2RepositoryTest {
         tender.getRows().add(tenderRow("P-TEN-REPO-002", "Before update row", new BigDecimal("100.00"), 1, 3010));
         Repositories.tenders().add(tender);
 
-        SSDB.getInstance().clearLists();
+        se.swedsoft.bookkeeping.data.system.SSEventTriggerSyncContext.clearCachedLists();
         Optional<SSTender> fetched = Repositories.tenders().findByTender(tender);
         assertThat(fetched).isPresent();
 
@@ -124,7 +124,7 @@ class SSTenderV2RepositoryTest {
         updatedTender.getRows().add(tenderRow("P-TEN-REPO-003", "After update row", new BigDecimal("750.00"), 3, 3041));
         Repositories.tenders().update(updatedTender);
 
-        SSDB.getInstance().clearLists();
+        se.swedsoft.bookkeeping.data.system.SSEventTriggerSyncContext.clearCachedLists();
         Optional<SSTender> updated = Repositories.tenders().findByTender(tender);
         assertThat(updated).isPresent();
         assertThat(updated.get().getCustomerName()).isEqualTo("After Tender Repo Update");
@@ -136,7 +136,7 @@ class SSTenderV2RepositoryTest {
 
         Integer number = updated.get().getNumber();
         Repositories.tenders().delete(updated.get());
-        SSDB.getInstance().clearLists();
+        se.swedsoft.bookkeeping.data.system.SSEventTriggerSyncContext.clearCachedLists();
         List<SSTender> all = Repositories.tenders().findAll();
         assertThat(all).extracting(SSTender::getNumber).doesNotContain(number);
     }
@@ -172,19 +172,10 @@ class SSTenderV2RepositoryTest {
     }
 
     private static Integer createCompany(String name) throws Exception {
-        try (PreparedStatement statement = connection.prepareStatement(
-                "INSERT INTO tbl_company(name) VALUES (?)", Statement.RETURN_GENERATED_KEYS)) {
-            statement.setString(1, name);
-            statement.executeUpdate();
-            connection.commit();
-
-            try (ResultSet keys = statement.getGeneratedKeys()) {
-                if (keys.next()) {
-                    return keys.getInt(1);
-                }
-            }
-        }
-        throw new IllegalStateException("Could not create test company for tender repository V2 integration test");
+        se.swedsoft.bookkeeping.data.SSNewCompany company = new se.swedsoft.bookkeeping.data.SSNewCompany();
+        company.setName(name);
+        se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.addCompany(company);
+        return company.getId();
     }
 }
 

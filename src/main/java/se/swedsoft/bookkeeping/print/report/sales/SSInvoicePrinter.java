@@ -8,8 +8,12 @@ import se.swedsoft.bookkeeping.data.base.SSSaleRow;
 import se.swedsoft.bookkeeping.data.common.SSInvoiceType;
 import se.swedsoft.bookkeeping.data.common.SSTaxCode;
 import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.data.system.SSSalesContext;
 import se.swedsoft.bookkeeping.gui.util.model.SSDefaultTableModel;
 import se.swedsoft.bookkeeping.print.SSPrinter;
+import se.swedsoft.bookkeeping.print.util.SSQuantityPrintUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -24,6 +28,7 @@ import se.swedsoft.bookkeeping.util.SSDateUtil;
  * $Id$
  */
 public class SSInvoicePrinter extends SSPrinter {
+    private static final Logger LOG = LoggerFactory.getLogger(SSInvoicePrinter.class);
 
     protected SSInvoice iInvoice;
 
@@ -86,9 +91,9 @@ public class SSInvoicePrinter extends SSPrinter {
      *
      */
     protected void addParameters() {
-        SSNewCompany iCompany = SSDB.getInstance().getCurrentCompany();
+        SSNewCompany iCompany = se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.getCurrentCompany();
 
-        SSCustomer iCustomer = iInvoice.getCustomer(SSDB.getInstance().getCustomers());
+        SSCustomer iCustomer = iInvoice.getCustomer(SSSalesContext.getCustomers());
 
         SSSalePrinterUtils.addParametersForCompany(iCompany, this);
 
@@ -96,6 +101,16 @@ public class SSInvoicePrinter extends SSPrinter {
         addParameter("number", iInvoice.getNumber());
         addParameter("date", SSDateUtil.toDate(iInvoice.getLocalDate()));
         addParameter("text", iInvoice.getText());
+        if (getClass().equals(SSInvoicePrinter.class)) {
+            int iCustomerInvoiceTextbox = iCompany == null ? 0 : iCompany.getCustomerInvoiceTextbox();
+            boolean iLiten = iCustomerInvoiceTextbox == 0;
+            boolean iMellan = iCustomerInvoiceTextbox == 1;
+            boolean iStor = iCustomerInvoiceTextbox == 2;
+            addParameter("Liten", iLiten);
+            addParameter("Mellan", iMellan);
+            addParameter("Stor", iStor);
+          //  LOG.info("Invoice textbox params: Lite={}, Mellan={}, Stor={}", iLiten, iMellan, iStor);
+        }
 
         addParameter("invoice.hasdiscount", SSInvoiceMath.hasDiscount(iInvoice));
 
@@ -158,7 +173,7 @@ public class SSInvoicePrinter extends SSPrinter {
         addParameter("invoice.totalsum", iTotalSum);
 
 
-        // QR-code 
+        // QR-code
         DateTimeFormatter iFormat = DateTimeFormatter.ofPattern("yyyyMMdd");
         final StringBuilder uqrData = new StringBuilder();
 
@@ -166,15 +181,15 @@ public class SSInvoicePrinter extends SSPrinter {
         uqrData.append("\"nme\": \"");
         uqrData.append(iCompany.getName());
         // fixme! - cc: iCompany.getAddress().getCountry() -> CountyCode
-        uqrData.append("\", \"cc\": \"SE\""); 
+        uqrData.append("\", \"cc\": \"SE\"");
         uqrData.append(", \"cid\": \"");
         uqrData.append(iCompany.getCorporateID());
         uqrData.append("\", \"iref\": \"");
         uqrData.append(iInvoice.hasOCRNumber() ? iInvoice.getOCRNumber() : iInvoice.getNumber());
         uqrData.append("\", \"idt\": \"");
-        uqrData.append(iInvoice.getLocalDate().format(iFormat));
+        uqrData.append(iInvoice.getLocalDate() != null ? iInvoice.getLocalDate().format(iFormat) : "");
         uqrData.append("\", \"ddt\": \"");
-        uqrData.append(iInvoice.getLocalDueDate().format(iFormat));
+        uqrData.append(iInvoice.getLocalDueDate() != null ? iInvoice.getLocalDueDate().format(iFormat) : "");
         uqrData.append("\", \"due\": ");
         uqrData.append(iTotalSum);
         uqrData.append(", \"vat\": ");
@@ -186,14 +201,14 @@ public class SSInvoicePrinter extends SSPrinter {
         uqrData.append(", \"vl\": ");
         uqrData.append(iTaxSum.get(SSTaxCode.TAXRATE_3).setScale(2, RoundingMode.HALF_UP));
         uqrData.append(", \"cur\": \"");
-        uqrData.append(iInvoice.getCurrency()); 
+        uqrData.append(iInvoice.getCurrency());
         uqrData.append("\", \"pt\": \"");
         uqrData.append(SSSalePrinterUtils.getPrimaryPaymentMethod(iCompany));
         uqrData.append("\", \"acc\": \"");
         uqrData.append(SSSalePrinterUtils.getPrimaryPaymentAccount(iCompany));
         uqrData.append("\"");
         if (SSSalePrinterUtils.getPrimaryPaymentMethod(iCompany).equals("IBAN") || SSSalePrinterUtils.getPrimaryPaymentMethod(iCompany).equals("BBAN")) {
-            if (iCompany.getBIC() != "") {
+            if (iCompany.getBIC() != null && !iCompany.getBIC().isEmpty()) {
                 uqrData.append("\", \"bc\": \"");
                 uqrData.append(iCompany.getBIC());
                 uqrData.append("\",");
@@ -206,7 +221,7 @@ public class SSInvoicePrinter extends SSPrinter {
         }
         uqrData.append("}");
 
-        SSSalePrinterUtils.addParameterForQRCode(uqrData.toString(), this);
+        SSSalePrinterUtils.addParameterForSwishImage(iCompany, this);
 
     }
 
@@ -294,7 +309,7 @@ public class SSInvoicePrinter extends SSPrinter {
                         break;
 
                     case 2:
-                        value = iRow.getQuantity();
+                        value = SSQuantityPrintUtil.toDisplay(iRow.getQuantity());
                         break;
 
                     case 3:

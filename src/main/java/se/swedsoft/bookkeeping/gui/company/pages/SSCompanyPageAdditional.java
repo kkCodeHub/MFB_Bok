@@ -2,16 +2,19 @@ package se.swedsoft.bookkeeping.gui.company.pages;
 
 
 import se.swedsoft.bookkeeping.data.SSNewCompany;
+import se.swedsoft.bookkeeping.data.system.SSCompanyValidationRules;
 import se.swedsoft.bookkeeping.data.util.SSMailServer;
 import se.swedsoft.bookkeeping.gui.company.panel.SSMailServerDialog;
+import se.swedsoft.bookkeeping.gui.company.util.SSCompanyValidationUtils;
 import se.swedsoft.bookkeeping.gui.util.SSBundle;
 import se.swedsoft.bookkeeping.gui.util.components.SSIntegerTextField;
+import se.swedsoft.bookkeeping.gui.util.filechooser.SSImageFileChooser;
 
 import javax.swing.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.util.ArrayList;
+import java.util.List;
 
 
 /**
@@ -43,10 +46,15 @@ public class SSCompanyPageAdditional extends SSCompanyPage {
     private SSIntegerTextField iVatPeriod;
     private JButton iEditMailServerButton;
     private JTextField severField;
+    private JTextField iSwishImage;
+    private JButton iBrowseForSwishButton;
+    private JButton iClearSwishButton;
+    private JTextField iTextSwish;
 
     private SSMailServer iMailServer;
 
     private SSMailServerDialog iMailDialog;
+    private JComponent iFirstInvalidComponent;
 
     /**
      * @param iDialog
@@ -55,8 +63,39 @@ public class SSCompanyPageAdditional extends SSCompanyPage {
         super(iDialog);
 
         iMailDialog = new SSMailServerDialog(iDialog);
+        iBrowseForSwishButton.addActionListener(
+            e -> {
+
+                SSImageFileChooser iFileChooser = SSImageFileChooser.getInstance();
+
+                if (iFileChooser.showDialog(iBrowseForSwishButton)
+                    != JFileChooser.APPROVE_OPTION) {
+                    return;
+                }
+
+                iSwishImage.setText(iFileChooser.getSelectedFile().getAbsolutePath());
+
+            });
+        iClearSwishButton.addActionListener(e -> iSwishImage.setText(""));
+
+        setupDirectValidation();
 
         addKeyListeners();
+    }
+
+    private void setupDirectValidation() {
+        SSCompanyValidationUtils.installMaxLengthFilter(iContactPerson, SSCompanyValidationRules.CONTACT_PERSON_MAX_LENGTH);
+        SSCompanyValidationUtils.installMaxLengthFilter(iPhone, SSCompanyValidationRules.PHONE_MAX_LENGTH);
+        SSCompanyValidationUtils.installMaxLengthFilter(iPhone2, SSCompanyValidationRules.PHONE2_MAX_LENGTH);
+        SSCompanyValidationUtils.installMaxLengthFilter(iTelefax, SSCompanyValidationRules.TELEFAX_MAX_LENGTH);
+        SSCompanyValidationUtils.installMaxLengthFilter(iEMail, SSCompanyValidationRules.EMAIL_MAX_LENGTH);
+        SSCompanyValidationUtils.installMaxLengthFilter(iWebAddress, SSCompanyValidationRules.WEB_ADDRESS_MAX_LENGTH);
+        SSCompanyValidationUtils.installMaxLengthFilter(iBank, SSCompanyValidationRules.BANK_MAX_LENGTH);
+        SSCompanyValidationUtils.installMaxLengthFilter(iBankGiroNumber, SSCompanyValidationRules.BANK_ACCOUNT_MAX_LENGTH);
+        SSCompanyValidationUtils.installMaxLengthFilter(iPlusGiroNumber, SSCompanyValidationRules.PLUSGIRO_MAX_LENGTH);
+        SSCompanyValidationUtils.installMaxLengthFilter(iIBAN, SSCompanyValidationRules.IBAN_MAX_LENGTH);
+        SSCompanyValidationUtils.installSwiftFilter(iSwiftCode, SSCompanyValidationRules.SWIFT_MAX_LENGTH);
+        SSCompanyValidationUtils.installMaxLengthFilter(iSwishImage, SSCompanyValidationRules.SWISH_IMAGE_MAX_LENGTH);
     }
 
     /**
@@ -98,7 +137,8 @@ public class SSCompanyPageAdditional extends SSCompanyPage {
         // iSMTPAddress.setText(iCompany.getSMTP());
         iRoundingOff.setSelected(iCompany.isRoundingOff());
         iVatPeriod.setValue(iCompany.getVatPeriod());
-
+        iSwishImage.setText(iCompany.getSwishImagePath());
+        iTextSwish.setText(iCompany.getSwishText() != null ? iCompany.getSwishText() : "");
         setMailServer(iCompany.getMailServer());
     }
 
@@ -132,6 +172,8 @@ public class SSCompanyPageAdditional extends SSCompanyPage {
         // iCompany.setSMTP(iSMTPAddress.getText());
         iCompany.setRoundingOff(iRoundingOff.isSelected());
         iCompany.setVatPeriod(iVatPeriod.getValue());
+        iCompany.setSwishImagePath(iSwishImage.getText());
+        iCompany.setSwishText(iTextSwish.getText());
 
         iCompany.setMailServer(iMailServer);
 
@@ -145,7 +187,7 @@ public class SSCompanyPageAdditional extends SSCompanyPage {
 
         SwingUtilities.invokeLater(() -> iContactPerson.requestFocusInWindow());
 
-        iEditMailServerButton.addActionListener(e -> setMailServer(new SSMailServerDialog(null).showServerQuery(iMailServer)));
+        iEditMailServerButton.addActionListener(e -> setMailServer(iMailDialog.showServerQuery(iMailServer)));
 
         iContactPerson.addKeyListener(new KeyAdapter() {
             @Override
@@ -266,6 +308,84 @@ public class SSCompanyPageAdditional extends SSCompanyPage {
     }
 
     @Override
+    public List<String> validatePage() {
+        List<String> iErrors = new ArrayList<>();
+        iFirstInvalidComponent = null;
+
+        validateLength(iErrors, iContactPerson, "Additional: Contact person", SSCompanyValidationRules.CONTACT_PERSON_MAX_LENGTH);
+        validateLength(iErrors, iPhone, "Additional: Phone", SSCompanyValidationRules.PHONE_MAX_LENGTH);
+        validateLength(iErrors, iPhone2, "Additional: Phone 2", SSCompanyValidationRules.PHONE2_MAX_LENGTH);
+        validateLength(iErrors, iTelefax, "Additional: Telefax", SSCompanyValidationRules.TELEFAX_MAX_LENGTH);
+        validateLength(iErrors, iEMail, "Additional: Email", SSCompanyValidationRules.EMAIL_MAX_LENGTH);
+        if (!SSCompanyValidationRules.isValidEmail(iEMail.getText())) {
+            iErrors.add("Additional: E-postadressen har ogiltigt format. Förväntat format: namn@domän.tld");
+            if (iFirstInvalidComponent == null) {
+                iFirstInvalidComponent = iEMail;
+            }
+        }
+
+        validateLength(iErrors, iWebAddress, "Additional: Web address", SSCompanyValidationRules.WEB_ADDRESS_MAX_LENGTH);
+        if (!SSCompanyValidationRules.isValidWebAddress(iWebAddress.getText())) {
+            iErrors.add("Additional: Webbadress ska börja med http://, https:// eller www., t.ex. https://www.foretaget.se");
+            if (iFirstInvalidComponent == null) {
+                iFirstInvalidComponent = iWebAddress;
+            }
+        }
+
+        validateLength(iErrors, iBank, "Additional: Bank", SSCompanyValidationRules.BANK_MAX_LENGTH);
+        validateLength(iErrors, iBankGiroNumber, "Additional: Bank account", SSCompanyValidationRules.BANK_ACCOUNT_MAX_LENGTH);
+        if (!SSCompanyValidationRules.isValidBankgiro(iBankGiroNumber.getText())) {
+            iErrors.add("Additional: Bankgiro ska ha formatet NNN-NNNN eller NNNN-NNNN (7-8 siffror), med eller utan bindestreck.");
+            if (iFirstInvalidComponent == null) {
+                iFirstInvalidComponent = iBankGiroNumber;
+            }
+        }
+
+        validateLength(iErrors, iPlusGiroNumber, "Additional: Plusgiro", SSCompanyValidationRules.PLUSGIRO_MAX_LENGTH);
+        if (!SSCompanyValidationRules.isValidPlusgiro(iPlusGiroNumber.getText())) {
+            iErrors.add("Additional: Postgiro/Plusgiro ska vara 2-8 siffror, med eller utan bindestreck.");
+            if (iFirstInvalidComponent == null) {
+                iFirstInvalidComponent = iPlusGiroNumber;
+            }
+        }
+
+        validateLength(iErrors, iIBAN, "Additional: IBAN", SSCompanyValidationRules.IBAN_MAX_LENGTH);
+        validateLength(iErrors, iSwiftCode, "Additional: SWIFT", SSCompanyValidationRules.SWIFT_MAX_LENGTH);
+        validateLength(iErrors, iSwishImage, "Additional: Swish image", SSCompanyValidationRules.SWISH_IMAGE_MAX_LENGTH);
+        SSCompanyValidationRules.validateSwishImageFileName(iCompany.getName(), iCompany.getCorporateID(), iSwishImage.getText())
+                .ifPresent(iMessage -> {
+                    iErrors.add(iMessage);
+                    if (iFirstInvalidComponent == null) {
+                        iFirstInvalidComponent = iSwishImage;
+                    }
+                });
+
+        if (!SSCompanyValidationRules.isSwiftCharactersValid(iSwiftCode.getText())) {
+            iErrors.add("Additional: SWIFT may only contain letters A-Z and digits 0-9.");
+            if (iFirstInvalidComponent == null) {
+                iFirstInvalidComponent = iSwiftCode;
+            }
+        }
+
+        return iErrors;
+    }
+
+    @Override
+    public JComponent getFirstInvalidComponent() {
+        return iFirstInvalidComponent;
+    }
+
+    private void validateLength(List<String> iErrors, JTextField iField, String iLabel, int iMaxLength) {
+        String iValue = iField.getText();
+        if (iValue != null && iValue.length() > iMaxLength) {
+            iErrors.add(iLabel + " must be at most " + iMaxLength + " characters.");
+            if (iFirstInvalidComponent == null) {
+                iFirstInvalidComponent = iField;
+            }
+        }
+    }
+
+    @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder();
 
@@ -290,6 +410,7 @@ public class SSCompanyPageAdditional extends SSCompanyPage {
         sb.append(", iVatPeriod=").append(iVatPeriod);
         sb.append(", iWebAddress=").append(iWebAddress);
         sb.append(", severField=").append(severField);
+        sb.append(", iSwishImage=").append(iSwishImage);
         sb.append('}');
         return sb.toString();
     }

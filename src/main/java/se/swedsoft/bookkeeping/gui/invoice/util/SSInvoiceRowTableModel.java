@@ -6,7 +6,11 @@ import se.swedsoft.bookkeeping.data.base.SSSaleRow;
 import se.swedsoft.bookkeeping.data.common.SSTaxCode;
 import se.swedsoft.bookkeeping.data.common.SSUnit;
 import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.calc.math.SSProductQuantityValidator;
 import se.swedsoft.bookkeeping.gui.util.SSBundle;
+import se.swedsoft.bookkeeping.gui.util.SSQuantityPresentationUtil;
+import se.swedsoft.bookkeeping.gui.util.table.editors.SSBigDecimalCellEditor;
+import se.swedsoft.bookkeeping.gui.util.table.editors.SSBigDecimalCellRenderer;
 import se.swedsoft.bookkeeping.gui.util.table.model.SSEditableTableModel;
 import se.swedsoft.bookkeeping.gui.util.table.model.SSTableColumn;
 
@@ -52,7 +56,7 @@ public class SSInvoiceRowTableModel extends SSEditableTableModel<SSSaleRow> {
             SSBundle.getBundle().getString("salerowtable.column.1")) {
         @Override
         public Object getValue(SSSaleRow iObject) {
-            SSProduct iProduct = iObject.getProduct(SSDB.getInstance().getProducts());
+            SSProduct iProduct = iObject.getProduct(se.swedsoft.bookkeeping.data.system.SSProductContext.getProducts());
 
             return iProduct != null ? iProduct : iObject.getProductNr();
         }
@@ -83,7 +87,7 @@ public class SSInvoiceRowTableModel extends SSEditableTableModel<SSSaleRow> {
             } else {
                 iObject.setProductNr((String) iValue);
 
-                SSNewCompany iCompany = SSDB.getInstance().getCurrentCompany();
+                SSNewCompany iCompany = se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.getCurrentCompany();
 
                 if (iObject.getTaxCode() == null) {
                     iObject.setTaxCode(SSTaxCode.TAXRATE_1);
@@ -136,7 +140,7 @@ public class SSInvoiceRowTableModel extends SSEditableTableModel<SSSaleRow> {
         public void setValue(SSSaleRow iObject, Object iValue) {
             iObject.setDescription((String) iValue);
 
-            SSNewCompany iCompany = SSDB.getInstance().getCurrentCompany();
+            SSNewCompany iCompany = se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.getCurrentCompany();
 
             if (iObject.getTaxCode() == null) {
                 iObject.setTaxCode(SSTaxCode.TAXRATE_1);
@@ -190,17 +194,34 @@ public class SSInvoiceRowTableModel extends SSEditableTableModel<SSSaleRow> {
             SSBundle.getBundle().getString("salerowtable.column.4")) {
         @Override
         public Object getValue(SSSaleRow iObject) {
-            return iObject.getQuantity();
+            return SSQuantityPresentationUtil.toDisplayQuantity(iObject.getQuantity());
         }
 
         @Override
         public void setValue(SSSaleRow iObject, Object iValue) {
-            iObject.setQuantity((Integer) iValue);
+            Integer iQuantityTenths = SSQuantityPresentationUtil.toStoredTenths(iValue);
+            SSProduct iProduct = iObject.getProduct(se.swedsoft.bookkeeping.data.system.SSProductContext.getProducts());
+
+            if (!SSProductQuantityValidator.isValidQuantity(iProduct, iQuantityTenths)) {
+                return;
+            }
+
+            iObject.setQuantity(iQuantityTenths);
         }
 
         @Override
         public Class getColumnClass() {
-            return Integer.class;
+            return BigDecimal.class;
+        }
+
+        @Override
+        public SSBigDecimalCellRenderer getCellRenderer() {
+            return new SSBigDecimalCellRenderer(1);
+        }
+
+        @Override
+        public SSBigDecimalCellEditor getCellEditor() {
+            return new SSBigDecimalCellEditor(1);
         }
 
         @Override
@@ -318,7 +339,7 @@ public class SSInvoiceRowTableModel extends SSEditableTableModel<SSSaleRow> {
             SSBundle.getBundle().getString("salerowtable.column.9")) {
         @Override
         public Object getValue(SSSaleRow iObject) {
-            return iObject.getAccount(SSDB.getInstance().getAccounts());
+            return iObject.getAccount(se.swedsoft.bookkeeping.data.system.SSAccountingContext.getAccounts());
         }
 
         @Override
@@ -347,7 +368,7 @@ public class SSInvoiceRowTableModel extends SSEditableTableModel<SSSaleRow> {
             SSBundle.getBundle().getString("salerowtable.column.10")) {
         @Override
         public Object getValue(SSSaleRow iObject) {
-            return iObject.getResultUnit(SSDB.getInstance().getResultUnits());
+            return iObject.getResultUnit(se.swedsoft.bookkeeping.data.system.SSResultUnitContext.getResultUnits());
         }
 
         @Override
@@ -373,7 +394,7 @@ public class SSInvoiceRowTableModel extends SSEditableTableModel<SSSaleRow> {
             SSBundle.getBundle().getString("salerowtable.column.11")) {
         @Override
         public Object getValue(SSSaleRow iObject) {
-            return iObject.getProject(SSDB.getInstance().getProjects());
+            return iObject.getProject(se.swedsoft.bookkeeping.data.system.SSProjectContext.getProjects());
         }
 
         @Override

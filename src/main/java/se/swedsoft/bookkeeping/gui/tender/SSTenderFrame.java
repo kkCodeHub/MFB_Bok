@@ -67,6 +67,8 @@ public class SSTenderFrame extends SSDefaultTableFrame {
 
     private SSTable iTable;
 
+    private JScrollPane iTableScrollPane;
+
     private SSTenderTableModel iModel;
 
     private JTabbedPane iTabbedPane;
@@ -295,10 +297,12 @@ public class SSTenderFrame extends SSDefaultTableFrame {
             });
         // setFilterIndex(0);
 
+        iTableScrollPane = new JScrollPane(iTable);
+
         iSearchPanel = new SSTenderSearchPanel(iModel);
         JPanel iPanel = new JPanel();
 
-        // iSearchPanel.ApplyFilter(SSDB.getInstance().getTenders());
+        // iSearchPanel.ApplyFilter(tenders);
         iPanel.setLayout(new BorderLayout());
         iPanel.add(iSearchPanel, BorderLayout.NORTH);
         iPanel.add(iTabbedPane, BorderLayout.CENTER);
@@ -315,8 +319,21 @@ public class SSTenderFrame extends SSDefaultTableFrame {
     public void setFilterIndex(int index, List<SSTender> iList) {
         JPanel iPanel = (JPanel) iTabbedPane.getComponentAt(index);
 
-        iPanel.removeAll();
-        iPanel.add(new JScrollPane(iTable), BorderLayout.CENTER);
+        // Move the shared scroll pane to the selected tab panel, if needed.
+        if (iTableScrollPane.getParent() != iPanel) {
+            Container iOldParent = iTableScrollPane.getParent();
+
+            if (iOldParent != null) {
+                iOldParent.remove(iTableScrollPane);
+                if (iOldParent instanceof JComponent) {
+                    ((JComponent) iOldParent).revalidate();
+                }
+            }
+            iPanel.removeAll();
+            iPanel.add(iTableScrollPane, BorderLayout.CENTER);
+            iPanel.revalidate();
+            iPanel.repaint();
+        }
 
         List<SSTender> iFiltered = Collections.emptyList();
 
@@ -338,6 +355,7 @@ public class SSTenderFrame extends SSDefaultTableFrame {
         }
 
         iModel.setObjects(iFiltered);
+        iTabbedPane.revalidate();
         iTabbedPane.repaint();
     }
 
@@ -399,6 +417,15 @@ public class SSTenderFrame extends SSDefaultTableFrame {
 
     private List<SSTender> getTenders(List<SSTender> iTenders) {
         return Repositories.tenders().findAll(iTenders);
+    }
+
+    /**
+     * Convenience method that updates the tender frame if it is currently open.
+     */
+    public static void fireTableDataChanged() {
+        if (cInstance != null) {
+            cInstance.updateFrame();
+        }
     }
 
     public void updateFrame() {

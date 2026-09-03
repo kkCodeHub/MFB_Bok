@@ -31,11 +31,12 @@
 
 	    <Separator/>
 
-            <Menu Name="Networksettings" Bundle="filemenu.network.settings">
+        <!--    <Menu Name="Networksettings" Bundle="filemenu.network.settings">
                 <MenuItem Action="filemenu.network.settings.db"       Bundle="filemenu.network.settings.db"         />
             </Menu>
 
             <Separator/>
+          -->
             <MenuItem Action="filemenu.exit"             Bundle="filemenu.exit"/>
         </Menu>
 
@@ -109,7 +110,7 @@
         <Menu Name="stockmenu" Bundle="stockmenu">
             <MenuItem Action="stockmenu.indelivery"    Bundle="stockmenu.indelivery"  Dependent="Year"/>
             <MenuItem Action="stockmenu.outdelivery"   Bundle="stockmenu.outdelivery"  Dependent="Year"/>
-	    
+
 	    <Separator/>
 
             <MenuItem Action="stockmenu.purchasesuggestion"     Bundle="stockmenu.purchasesuggestion"  Dependent="Year"/>
@@ -170,8 +171,9 @@
             <MenuItem Action="helpmenu.support"          Bundle="helpmenu.support"   />
             <MenuItem Action="helpmenu.updates"          Bundle="helpmenu.updates"   />
             <Separator/>
-            <MenuItem Action="helpmenu.clearlocks"       Bundle="helpmenu.clearlocks"   />
+       <!--     <MenuItem Action="helpmenu.clearlocks"       Bundle="helpmenu.clearlocks"   />
 	      <Separator/>
+	      -->
 		<MenuItem Action="helpmenu.compress"       Bundle="helpmenu.compress"   />
 		<MenuItem Action="helpmenu.cleartransactions"       Bundle="helpmenu.cleartransactions"   Dependent="Year"/>
 	      <Separator/>

@@ -3,6 +3,7 @@ package se.swedsoft.bookkeeping.gui.periodicinvoice.panel;
 
 import se.swedsoft.bookkeeping.data.SSPeriodicInvoice;
 import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.data.system.SSSalesContext;
 import se.swedsoft.bookkeeping.gui.periodicinvoice.util.SSPeriodicInvoiceTableModel;
 
 import javax.swing.*;
@@ -41,7 +42,7 @@ public class SSPeriodicInvoiceSearchPanel extends JPanel {
     }
 
     public void ApplyFilter() {
-        List<SSPeriodicInvoice> iPeriodicInvoices = SSDB.getInstance().getPeriodicInvoices();
+        List<SSPeriodicInvoice> iPeriodicInvoices = SSSalesContext.getPeriodicInvoices();
         List<SSPeriodicInvoice> iFiltered = new LinkedList<>();
 
         String iText = iTextField.getText();

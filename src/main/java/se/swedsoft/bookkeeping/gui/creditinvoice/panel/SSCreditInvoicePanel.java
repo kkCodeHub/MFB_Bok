@@ -8,6 +8,7 @@ import se.swedsoft.bookkeeping.data.SSVoucher;
 import se.swedsoft.bookkeeping.data.base.SSSaleRow;
 import se.swedsoft.bookkeeping.data.common.*;
 import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.data.system.SSSalesContext;
 import se.swedsoft.bookkeeping.gui.SSMainFrame;
 import se.swedsoft.bookkeeping.gui.company.panel.SSAdressPanel;
 import se.swedsoft.bookkeeping.gui.company.panel.SSDefaultAccountPanel;
@@ -32,7 +33,7 @@ import se.swedsoft.bookkeeping.gui.util.table.actions.SSDeleteAction;
 import se.swedsoft.bookkeeping.gui.util.table.actions.SSTraversalAction;
 import se.swedsoft.bookkeeping.gui.util.table.editors.SSTaxCodeCellEditor;
 import se.swedsoft.bookkeeping.gui.util.table.editors.SSTaxCodeCellRenderer;
-import se.swedsoft.bookkeeping.gui.voucher.util.SSVoucherRowTableModelOld;
+import se.swedsoft.bookkeeping.gui.voucher.util.SSVoucherRowTableModel;
 
 import javax.swing.*;
 import javax.swing.event.TableModelEvent;
@@ -129,7 +130,7 @@ public class SSCreditInvoicePanel {
 
     private SSTable iVoucherTable;
 
-    private SSVoucherRowTableModelOld iVoucherTableModel;
+    private SSVoucherRowTableModel iVoucherTableModel;
 
     private JButton iRefreshVoucher;
 
@@ -148,6 +149,7 @@ public class SSCreditInvoicePanel {
         iTable.setColorReadOnly(true);
         iTable.setColumnSortingEnabled(false);
         iTable.setSingleSelect();
+        iTable.setSelectionForeground(Color.BLACK);
 
         iModel = new SSInvoiceRowTableModel();
         iModel.addColumn(SSInvoiceRowTableModel.COLUMN_PRODUCT, true);
@@ -164,11 +166,15 @@ public class SSCreditInvoicePanel {
         iModel.setupTable(iTable);
 
         iModel.addTableModelListener(e -> updateSumFields());
-        iVoucherTableModel = new SSVoucherRowTableModelOld(false, true);
-
-        iVoucherTable.setModel(iVoucherTableModel);
-
-        SSVoucherRowTableModelOld.setupTable(iVoucherTable, iVoucherTableModel);
+        iVoucherTableModel = new SSVoucherRowTableModel();
+        iVoucherTableModel.addColumn(SSVoucherRowTableModel.COLUMN_ACCOUNT, true);
+        iVoucherTableModel.addColumn(SSVoucherRowTableModel.COLUMN_DESCRIPTION, true);
+        iVoucherTableModel.addColumn(SSVoucherRowTableModel.COLUMN_DEBET, true);
+        iVoucherTableModel.addColumn(SSVoucherRowTableModel.COLUMN_CREDIT, true);
+        iVoucherTableModel.addColumn(SSVoucherRowTableModel.COLUMN_PROJECT, true);
+        iVoucherTableModel.addColumn(SSVoucherRowTableModel.COLUMN_RESULTUNIT, true);
+        iVoucherTableModel.setReadOnlyMode(true);
+        iVoucherTableModel.setupTable(iVoucherTable, true);
 
         iCustomer.setModel(SSCustomerTableModel.getDropDownModel());
         iCustomer.setSearchColumns(0, 1);
@@ -292,7 +298,7 @@ public class SSCreditInvoicePanel {
 
                 SSVoucher iVoucher = iCreditInvoice.generateVoucher();
 
-                iVoucherTableModel.setVoucher(iVoucher);
+                iVoucherTableModel.setVoucher(iVoucher, false);
 
             });
 
@@ -458,7 +464,7 @@ public class SSCreditInvoicePanel {
     public void setCreditInvoice(SSCreditInvoice pOrder) {
         iCreditInvoice = pOrder;
 
-        iVoucherTableModel.setVoucher(iCreditInvoice.getVoucher());
+        iVoucherTableModel.setVoucher(iCreditInvoice.getVoucher(), false);
 
         iModel.setObjects(iCreditInvoice.getRows());
 
@@ -466,12 +472,12 @@ public class SSCreditInvoicePanel {
         iNumber.setValue(iCreditInvoice.getNumber());
         // Ordernummer
         iCrediting.setValue(iCreditInvoice.getCreditingNr());
-        // iCrediting.setSelected(iCreditInvoice.getCrediting( SSDB.getInstance().getInvoices() ) );
+        // iCrediting.setSelected(iCreditInvoice.getCrediting( se.swedsoft.bookkeeping.data.system.SSSalesContext.getInvoices() ) );
         // Offertdatum
         iDate.setLocalDate(iCreditInvoice.getLocalDate());
         // Kund nummer
         iCustomer.setText(iCreditInvoice.getCustomerNr());
-        for (SSCustomer pCustomer : SSDB.getInstance().getCustomers()) {
+        for (SSCustomer pCustomer : SSSalesContext.getCustomers()) {
             if (pCustomer.getNumber().equals(iCustomer.getText())) {
                 iModel.setCustomer(pCustomer);
             }
@@ -536,6 +542,24 @@ public class SSCreditInvoicePanel {
      * @return
      */
     public SSCreditInvoice getCreditInvoice() {
+        Integer iCreditingNr = null;
+        Object iCreditingValue = iCrediting.getValue();
+
+        if (iCreditingValue instanceof Number) {
+            iCreditingNr = ((Number) iCreditingValue).intValue();
+        } else {
+            String iCreditingText = iCrediting.getText();
+
+            if (iCreditingText != null && iCreditingText.trim().length() > 0) {
+                try {
+                    iCreditingNr = Integer.parseInt(iCreditingText.trim());
+                } catch (NumberFormatException ignored) {
+                    iCreditingNr = null;
+                }
+            }
+        }
+        iCreditInvoice.setCreditingNr(iCreditingNr);
+
         // Offertdatum
         iCreditInvoice.setLocalDate(iDate.getLocalDate());
         // Kund nummer
@@ -755,7 +779,7 @@ public class SSCreditInvoicePanel {
         iTaxSum1.setValue(iTaxSum.get(SSTaxCode.TAXRATE_1));
         iTaxSum2.setValue(iTaxSum.get(SSTaxCode.TAXRATE_2));
         iTaxSum3.setValue(iTaxSum.get(SSTaxCode.TAXRATE_3));
-        if (!SSDB.getInstance().getCurrentCompany().isRoundingOff()) {
+        if (!se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.getCurrentCompany().isRoundingOff()) {
             iRoundingSum.setValue(iRounding);
         }
         this.iTotalSum.setValue(iTotalSum);

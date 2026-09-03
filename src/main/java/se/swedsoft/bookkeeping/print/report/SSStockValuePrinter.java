@@ -6,12 +6,16 @@ import se.swedsoft.bookkeeping.data.SSAccount;
 import se.swedsoft.bookkeeping.data.SSProduct;
 import se.swedsoft.bookkeeping.data.SSStock;
 import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.data.system.SSProductContext;
 import se.swedsoft.bookkeeping.gui.util.SSBundle;
 import se.swedsoft.bookkeeping.gui.util.graphics.SSImage;
 import se.swedsoft.bookkeeping.gui.util.model.SSDefaultTableModel;
 import se.swedsoft.bookkeeping.print.SSPrinter;
+import se.swedsoft.bookkeeping.print.util.SSQuantityPrintUtil;
+import se.swedsoft.bookkeeping.util.SSDateUtil;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.text.DateFormat;
 import java.util.*;
 
@@ -35,7 +39,7 @@ public class SSStockValuePrinter extends SSPrinter {
      */
     public SSStockValuePrinter() {
         // Get all orders
-        iProducts = SSProductMath.getStockProducts(SSDB.getInstance().getProducts());
+        iProducts = SSProductMath.getStockProducts(SSProductContext.getProducts());
         iStock = new SSStock();
         iDate = null;
         iInprices = SSProductMath.getInprices(iProducts);
@@ -52,18 +56,18 @@ public class SSStockValuePrinter extends SSPrinter {
      *
      * @param iDate
      */
-    public SSStockValuePrinter(Date iDate) {
+    public SSStockValuePrinter(LocalDate iDate) {
         // Get all orders
-        iProducts = SSProductMath.getStockProducts(SSDB.getInstance().getProducts());
+        iProducts = SSProductMath.getStockProducts(SSProductContext.getProducts());
         iStock = new SSStock();
-        this.iDate = iDate;
-        iInprices = SSProductMath.getInprices(iProducts, iDate);
+        this.iDate = SSDateUtil.toDate(iDate);
+        iInprices = SSProductMath.getInprices(iProducts, this.iDate);
 
-        iStock.update(iDate);
+        iStock.update(this.iDate);
 
         addParameter("periodTitle",
                 SSBundle.getBundle().getString("stockvaluereport.periodtitle"));
-        addParameter("periodText", iDate);
+        addParameter("periodText", this.iDate);
 
         setPageHeader("header_period.jrxml");
         setColumnHeader("stockvalue.jrxml");
@@ -116,7 +120,7 @@ public class SSStockValuePrinter extends SSPrinter {
                     break;
 
                 case 3:
-                    value = iStock.getQuantity(iProduct);
+                    value = SSQuantityPrintUtil.toDisplay(iStock.getQuantity(iProduct));
                     break;
 
                 case 4:

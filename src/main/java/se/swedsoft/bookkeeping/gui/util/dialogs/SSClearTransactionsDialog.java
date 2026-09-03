@@ -1,7 +1,7 @@
 package se.swedsoft.bookkeeping.gui.util.dialogs;
 
 
-import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.data.system.SSCompanyYearContext;
 import se.swedsoft.bookkeeping.gui.SSMainFrame;
 import se.swedsoft.bookkeeping.gui.util.SSButtonPanel;
 import se.swedsoft.bookkeeping.gui.util.datechooser.SSDateChooser;
@@ -34,7 +34,7 @@ public class SSClearTransactionsDialog extends SSDialog {
 
         setPanel(iPanel);
 
-        LocalDate firstDay = SSDB.getInstance().getCurrentYear().getLocalFrom();
+        LocalDate firstDay = SSCompanyYearContext.getCurrentYear().getLocalFrom();
         iDate.setLocalDate(firstDay.minusDays(1));
         iButtonPanel.addCancelActionListener(e -> setModalResult(JOptionPane.CANCEL_OPTION, true));
         iButtonPanel.addOkActionListener(e -> setModalResult(JOptionPane.OK_OPTION, true));
@@ -46,9 +46,9 @@ public class SSClearTransactionsDialog extends SSDialog {
      *
      * @return
      */
-    public Date getDate() {
-        return SSDateUtil.toDate(getLocalDate());
-    }
+ //   public Date getDate() {
+ //       return SSDateUtil.toDate(getLocalDate());
+ //   }
 
     public LocalDate getLocalDate() {
         return iDate.getLocalDate();

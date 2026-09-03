@@ -158,7 +158,7 @@ public class SSInventoryRow implements Serializable {
      * @return
      */
     public SSProduct getProduct() {
-        return getProduct(SSDB.getInstance().getProducts());
+        return getProduct(se.swedsoft.bookkeeping.data.system.SSProductContext.getProducts());
     }
 
     /**

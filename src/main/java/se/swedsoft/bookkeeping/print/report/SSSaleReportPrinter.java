@@ -1,7 +1,6 @@
 package se.swedsoft.bookkeeping.print.report;
 
 
-import se.swedsoft.bookkeeping.calc.math.SSDateMath;
 import se.swedsoft.bookkeeping.calc.math.SSInvoiceMath;
 import se.swedsoft.bookkeeping.calc.math.SSProductMath;
 import se.swedsoft.bookkeeping.calc.math.SSSupplierInvoiceMath;
@@ -12,13 +11,20 @@ import se.swedsoft.bookkeeping.persistence.Repositories;
 import se.swedsoft.bookkeeping.gui.util.SSBundle;
 import se.swedsoft.bookkeeping.gui.util.model.SSDefaultTableModel;
 import se.swedsoft.bookkeeping.print.SSPrinter;
+import se.swedsoft.bookkeeping.print.util.SSQuantityPrintUtil;
 import se.swedsoft.bookkeeping.util.SSDateUtil;
 
 import java.math.BigDecimal;
 import java.math.MathContext;
 import java.math.RoundingMode;
 import java.time.LocalDate;
-import java.util.*;
+import java.time.temporal.ChronoUnit;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -41,8 +47,8 @@ public class SSSaleReportPrinter extends SSPrinter {
         }
     }
 
-    private Date        iFrom;
-    private Date        iTo;
+    private LocalDate   iFrom;
+    private LocalDate   iTo;
     private SortingMode iSortingMode;
     private boolean     iAscending;
 
@@ -59,18 +65,17 @@ public class SSSaleReportPrinter extends SSPrinter {
     private Map<String, BigDecimal> iInprices;
 
     /**
-     *
-     * @param iFrom
-     * @param iTo
-     * @param iSortingMode
-     * @param iAscending
+     * @param iFrom        the start of the report period (inclusive)
+     * @param iTo          the end of the report period (inclusive)
+     * @param iSortingMode how to sort the result rows
+     * @param iAscending   {@code true} for ascending sort order
      */
-    public SSSaleReportPrinter(Date iFrom, Date iTo, SortingMode iSortingMode, boolean iAscending) {
+    public SSSaleReportPrinter(LocalDate iFrom, LocalDate iTo, SortingMode iSortingMode, boolean iAscending) {
         this.iFrom = iFrom;
         this.iTo = iTo;
         this.iSortingMode = iSortingMode;
         this.iAscending = iAscending;
-        iProducts = SSDB.getInstance().getProducts();
+        iProducts = se.swedsoft.bookkeeping.data.system.SSProductContext.getProducts();
 
         setPageHeader("header_period.jrxml");
         setColumnHeader("salereport.jrxml");
@@ -92,8 +97,8 @@ public class SSSaleReportPrinter extends SSPrinter {
      */
     @Override
     protected SSDefaultTableModel getModel() {
-        addParameter("dateFrom", iFrom);
-        addParameter("dateTo", iTo);
+        addParameter("dateFrom", SSDateUtil.toDate(iFrom));
+        addParameter("dateTo", SSDateUtil.toDate(iTo));
 
         calculate();
 
@@ -124,7 +129,7 @@ public class SSSaleReportPrinter extends SSPrinter {
                     break;
 
                 case 2:
-                    value = iProductCount;
+                    value = SSQuantityPrintUtil.toDisplay(iProductCount);
                     break;
 
                 case 3:
@@ -132,7 +137,10 @@ public class SSSaleReportPrinter extends SSPrinter {
                         return null;
                     }
 
-                    value = new BigDecimal(iProductCount * 30.436875 / iDays);
+                    value = SSQuantityPrintUtil.toDisplay(iProductCount)
+                            .multiply(BigDecimal.valueOf(30.436875))
+                            .divide(BigDecimal.valueOf(iDays), MathContext.DECIMAL64)
+                            .setScale(2, RoundingMode.HALF_UP);
                     break;
 
                 case 4:
@@ -140,7 +148,10 @@ public class SSSaleReportPrinter extends SSPrinter {
                         return null;
                     }
 
-                    value = new BigDecimal(iProductCount * 7.00 / iDays);
+                    value = SSQuantityPrintUtil.toDisplay(iProductCount)
+                            .multiply(BigDecimal.valueOf(7.00))
+                            .divide(BigDecimal.valueOf(iDays), MathContext.DECIMAL64)
+                            .setScale(2, RoundingMode.HALF_UP);
                     break;
 
                 case 5:
@@ -164,7 +175,7 @@ public class SSSaleReportPrinter extends SSPrinter {
                         return null;
                     }
 
-                    value = iProductContribution.multiply(new BigDecimal(iProductCount));
+                    value = iProductContribution.multiply(SSQuantityPrintUtil.toDisplay(iProductCount));
                     break;
 
                 case 10:
@@ -291,7 +302,7 @@ public class SSSaleReportPrinter extends SSPrinter {
      *
      */
     private void calculate() {
-        iDays = SSDateMath.getDaysBetween(iFrom, iTo);
+        iDays = iTo.isBefore(iFrom) ? 0 : (int) ChronoUnit.DAYS.between(iFrom, iTo);
         iCount = new HashMap<>();
         iContribution = new HashMap<>();
         iContributionRate = new HashMap<>();
@@ -300,20 +311,20 @@ public class SSSaleReportPrinter extends SSPrinter {
 
         List<SSSupplierInvoice> iSupplierInvoices = new LinkedList<>(
                 Repositories.supplierInvoices().findAll());
-        LocalDate toDate = SSDateUtil.toLocalDate(iTo);
+        LocalDate reportToDate = iTo;
 
         Collections.sort(iSupplierInvoices,
                 Comparator.comparing(SSSupplierInvoice::getLocalDate,
                         Comparator.nullsLast(Comparator.reverseOrder())));
 
         for (SSSupplierInvoice iSupplierInvoice : iSupplierInvoices) {
-            if (SSSupplierInvoiceMath.inPeriod(iSupplierInvoice, toDate)) {
+            if (SSSupplierInvoiceMath.inPeriod(iSupplierInvoice, reportToDate)) {
                 for (SSSupplierInvoiceRow iRow : iSupplierInvoice.getRows()) {
                     if (iRow.getProductNr() != null) {
                         SSProduct iProduct = new SSProduct();
 
                         iProduct.setNumber(iRow.getProductNr());
-                        iProduct = SSDB.getInstance().getProduct(iProduct).orElse(null);
+                        iProduct = se.swedsoft.bookkeeping.data.system.SSProductContext.getProduct(iProduct).orElse(null);
 
                         if (iProduct == null || iProduct.isParcel()) {
                             continue;
@@ -336,14 +347,14 @@ public class SSSaleReportPrinter extends SSPrinter {
             }
         }
 
-        List<SSInvoice> iInvoices = SSDB.getInstance().getInvoices();
+        List<SSInvoice> iInvoices = se.swedsoft.bookkeeping.data.system.SSSalesContext.getInvoices();
 
         for (SSInvoice iInvoice : iInvoices) {
             if (SSInvoiceMath.inPeriod(iInvoice, iFrom, iTo)) {
                 for (SSSaleRow iRow : iInvoice.getRows()) {
                     if (iRow.getProductNr() != null) {
-                        SSProduct iProduct = SSDB.getInstance().getProduct(
-                                iRow.getProductNr()).orElse(null);
+                        SSProduct iProduct = se.swedsoft.bookkeeping.data.system.SSProductContext.getProduct(
+                                iRow.getProductNr());
 
                         if (iProduct == null || iRow.getQuantity() == null) {
                             continue;
@@ -372,14 +383,14 @@ public class SSSaleReportPrinter extends SSPrinter {
             }
         }
 
-        List<SSCreditInvoice> iCreditInvoices = SSDB.getInstance().getCreditInvoices();
+        List<SSCreditInvoice> iCreditInvoices = se.swedsoft.bookkeeping.data.system.SSSalesContext.getCreditInvoices();
 
         for (SSCreditInvoice iCreditInvoice : iCreditInvoices) {
             if (SSInvoiceMath.inPeriod(iCreditInvoice, iFrom, iTo)) {
                 for (SSSaleRow iRow : iCreditInvoice.getRows()) {
                     if (iRow.getProductNr() != null) {
-                        SSProduct iProduct = SSDB.getInstance().getProduct(
-                                iRow.getProductNr()).orElse(null);
+                        SSProduct iProduct = se.swedsoft.bookkeeping.data.system.SSProductContext.getProduct(
+                                iRow.getProductNr());
 
                         if (iProduct == null || iRow.getQuantity() == null) {
                             continue;
@@ -414,8 +425,8 @@ public class SSSaleReportPrinter extends SSPrinter {
                 BigDecimal iInpriceSum = new BigDecimal(0);
 
                 for (SSProductRow iRow : iProduct.getParcelRows()) {
-                    SSProduct iRowProduct = SSDB.getInstance().getProduct(
-                            iRow.getProductNr()).orElse(null);
+                    SSProduct iRowProduct = se.swedsoft.bookkeeping.data.system.SSProductContext.getProduct(
+                            iRow.getProductNr());
 
                     // Undvik inf loop
                     if (iRowProduct == null || iProduct.equals(iRowProduct)) {
@@ -434,8 +445,9 @@ public class SSSaleReportPrinter extends SSPrinter {
                     if (iInprice == null) {
                         break;
                     }
+                    BigDecimal iDecimalQuantity = SSQuantityPrintUtil.toDisplay(iQuantity);
                     iInpriceSum = iInpriceSum.add(
-                            iInprice.multiply(new BigDecimal(iQuantity)));
+                            iInprice.multiply(iDecimalQuantity));
                 }
                 if (!iInprices.containsKey(iProduct.getNumber())) {
                     iInprices.put(iProduct.getNumber(), iInpriceSum);
@@ -459,7 +471,7 @@ public class SSSaleReportPrinter extends SSPrinter {
                     iAverageSellingPrice.put(iProduct.getNumber(),
                             iProduct.getSellingPrice());
                 } else {
-                    BigDecimal bSoldCount = new BigDecimal(iSoldCount);
+                    BigDecimal bSoldCount = SSQuantityPrintUtil.toDisplay(iSoldCount);
                     BigDecimal iAverage = iTotalSellingPrice.divide(bSoldCount, new MathContext(10)).setScale(
                             2, RoundingMode.HALF_UP);
 

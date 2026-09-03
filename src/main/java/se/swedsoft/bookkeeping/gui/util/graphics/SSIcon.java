@@ -130,6 +130,11 @@ public class SSIcon {    private static final Logger LOG = LoggerFactory.getLogg
         loadIcon("ICON_REDO", IconState.DISABLED, "Redo_24_DISABLED.png");
         loadIcon("ICON_REDO", IconState.HIGHLIGHTED, "Redo_24_HIGHLIGHTED.png");
 
+        // Mail
+        loadIcon("ICON_Email", IconState.NORMAL, "Email_24_NORMAL.png");
+        loadIcon("ICON_Email", IconState.DISABLED, "Email_24_DISABLED.png");
+        loadIcon("ICON_Email", IconState.HIGHLIGHTED, "Email_24_HIGHLIGHTED.png");
+
         // New document
         loadIcon("ICON_CREATECHANGE", IconState.NORMAL, "New_Text_Document_24_NORMAL.png");
         loadIcon("ICON_CREATECHANGE", IconState.DISABLED,
@@ -221,6 +226,8 @@ public class SSIcon {    private static final Logger LOG = LoggerFactory.getLogg
         loadIcon("ICON_PROPERTIES16", IconState.DISABLED, "Properties_16_DISABLED.png");
         loadIcon("ICON_PROPERTIES16", IconState.HIGHLIGHTED,
                 "Properties_16_HIGHLIGHTED.png");
+        loadIcon("ICON_PRINTED16", IconState.NORMAL, "Printed_16_NORMAL.png");
+        loadIcon("ICON_ENTERED16", IconState.NORMAL, "Entered_16_NORMAL.png");
 
         loadIcon("ICON_TASKLIST16", IconState.NORMAL, "Task_List_16_NORMAL.png");
         loadIcon("ICON_TASKLIST16", IconState.DISABLED, "Task_List_16_DISABLED.png");

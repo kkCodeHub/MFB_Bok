@@ -25,7 +25,7 @@ public class SSCustomerTableModel extends SSTableModel<SSCustomer> {
      * Default constructor.
      */
     public SSCustomerTableModel() {
-        super(SSDB.getInstance().getCustomers());
+        super(se.swedsoft.bookkeeping.data.system.SSSalesContext.getCustomers());
     }
 
     /**

@@ -1,11 +1,17 @@
 package se.swedsoft.bookkeeping.gui.purchaseorder.util;
 
 
+import se.swedsoft.bookkeeping.calc.math.SSProductQuantityValidator;
 import se.swedsoft.bookkeeping.data.SSNewCompany;
 import se.swedsoft.bookkeeping.data.SSProduct;
 import se.swedsoft.bookkeeping.data.SSPurchaseOrderRow;
 import se.swedsoft.bookkeeping.data.common.SSUnit;
-import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.data.system.SSCompanyYearContext;
+import se.swedsoft.bookkeeping.data.system.SSProductContext;
+import se.swedsoft.bookkeeping.data.system.SSPurchaseContext;
+import se.swedsoft.bookkeeping.gui.util.SSQuantityPresentationUtil;
+import se.swedsoft.bookkeeping.gui.util.table.editors.SSBigDecimalCellEditor;
+import se.swedsoft.bookkeeping.gui.util.table.editors.SSBigDecimalCellRenderer;
 import se.swedsoft.bookkeeping.gui.util.table.model.SSTableColumn;
 import se.swedsoft.bookkeeping.gui.util.table.model.SSTableModel;
 
@@ -66,7 +72,7 @@ public class SSPurchaseOrderRowTableModel extends SSTableModel<SSPurchaseOrderRo
             "Produkt nr") {
         @Override
         public Object getValue(SSPurchaseOrderRow iObject) {
-            SSProduct iProduct = iObject.getProduct(SSDB.getInstance().getProducts());
+            SSProduct iProduct = iObject.getProduct(SSProductContext.getProducts());
 
             return iProduct != null ? iProduct : iObject.getProductNr();
 
@@ -79,7 +85,7 @@ public class SSPurchaseOrderRowTableModel extends SSTableModel<SSPurchaseOrderRo
             } else {
                 iObject.setProductNr((String) iValue);
 
-                SSNewCompany iCompany = SSDB.getInstance().getCurrentCompany();
+                SSNewCompany iCompany = SSCompanyYearContext.getCurrentCompany();
 
                 if (iObject.getUnit() == null) {
                     iObject.setUnit(iCompany.getStandardUnit());
@@ -113,7 +119,7 @@ public class SSPurchaseOrderRowTableModel extends SSTableModel<SSPurchaseOrderRo
         public void setValue(SSPurchaseOrderRow iObject, Object iValue) {
             iObject.setDescription((String) iValue);
 
-            SSNewCompany iCompany = SSDB.getInstance().getCurrentCompany();
+            SSNewCompany iCompany = SSCompanyYearContext.getCurrentCompany();
 
             if (iObject.getUnit() == null) {
                 iObject.setUnit(iCompany.getStandardUnit());
@@ -190,17 +196,34 @@ public class SSPurchaseOrderRowTableModel extends SSTableModel<SSPurchaseOrderRo
             "Antal") {
         @Override
         public Object getValue(SSPurchaseOrderRow iObject) {
-            return iObject.getQuantity();
+            return SSQuantityPresentationUtil.toDisplayQuantity(iObject.getQuantity());
         }
 
         @Override
         public void setValue(SSPurchaseOrderRow iObject, Object iValue) {
-            iObject.setQuantity((Integer) iValue);
+            Integer iQuantityTenths = SSQuantityPresentationUtil.toStoredTenths(iValue);
+            SSProduct iProduct = iObject.getProduct(SSProductContext.getProducts());
+
+            if (!SSProductQuantityValidator.isValidQuantity(iProduct, iQuantityTenths)) {
+                return;
+            }
+
+            iObject.setQuantity(iQuantityTenths);
         }
 
         @Override
         public Class getColumnClass() {
-            return Integer.class;
+            return BigDecimal.class;
+        }
+
+        @Override
+        public SSBigDecimalCellRenderer getCellRenderer() {
+            return new SSBigDecimalCellRenderer(1);
+        }
+
+        @Override
+        public SSBigDecimalCellEditor getCellEditor() {
+            return new SSBigDecimalCellEditor(1);
         }
 
         @Override

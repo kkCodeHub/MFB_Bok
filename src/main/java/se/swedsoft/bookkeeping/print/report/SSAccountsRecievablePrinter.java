@@ -43,8 +43,8 @@ public class SSAccountsRecievablePrinter extends SSPrinter {
      *
      * @param iDate
      */
-    public SSAccountsRecievablePrinter(Date iDate) {
-        this(iDate, SSDB.getInstance().getCustomers());
+    public SSAccountsRecievablePrinter(LocalDate iDate) {
+        this(iDate, se.swedsoft.bookkeeping.data.system.SSSalesContext.getCustomers());
     }
 
     /**
@@ -52,12 +52,12 @@ public class SSAccountsRecievablePrinter extends SSPrinter {
      * @param iDate
      * @param iCustomers
      */
-    public SSAccountsRecievablePrinter(Date iDate, List<SSCustomer> iCustomers) {
+    public SSAccountsRecievablePrinter(LocalDate iDate, List<SSCustomer> iCustomers) {
         // Get all customers
         this.iCustomers = iCustomers;
-        this.iDate = iDate;
+        this.iDate = SSDateUtil.toDate(iDate);
 
-        LocalDate iCeiledDate = SSDateUtil.toLocalDate(this.iDate);
+        LocalDate iCeiledDate = iDate;
 
         iInpaymentSum = SSInpaymentMath.getSumsForInvoices(SSDateUtil.toDate(iCeiledDate));
 
@@ -80,7 +80,7 @@ public class SSAccountsRecievablePrinter extends SSPrinter {
 
         addParameter("periodTitle",
                 iBundle.getString("accountsrecievablereport.periodtitle"));
-        addParameter("periodText", iDate);
+        addParameter("periodText", this.iDate);
 
         setPageHeader("header_period.jrxml");
         setColumnHeader("accountsrecievable.jrxml");

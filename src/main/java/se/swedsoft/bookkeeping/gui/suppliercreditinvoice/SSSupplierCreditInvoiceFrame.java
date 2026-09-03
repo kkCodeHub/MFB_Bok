@@ -59,6 +59,10 @@ public class SSSupplierCreditInvoiceFrame extends SSDefaultTableFrame {
 
     private SSTable iTable;
 
+    private JScrollPane iTableScrollPane;
+
+    private JPanel iMainPanel;
+
     private SSTableModel<SSSupplierCreditInvoice> iModel;
 
     SSSupplierCreditInvoiceSearchPanel iSearchPanel;
@@ -193,6 +197,8 @@ public class SSSupplierCreditInvoiceFrame extends SSDefaultTableFrame {
 
         iModel.setupTable(iTable);
 
+        iTableScrollPane = new JScrollPane(iTable);
+
         iTable.addDblClickListener(
                 e -> {
 
@@ -217,14 +223,14 @@ public class SSSupplierCreditInvoiceFrame extends SSDefaultTableFrame {
                     });
 
         iSearchPanel = new SSSupplierCreditInvoiceSearchPanel(iModel);
-        JPanel iPanel = new JPanel();
+        iMainPanel = new JPanel();
 
-        iPanel.setLayout(new BorderLayout());
-        iPanel.add(iSearchPanel, BorderLayout.NORTH);
-        iPanel.add(new JScrollPane(iTable), BorderLayout.CENTER);
-        iPanel.setBorder(BorderFactory.createEmptyBorder(2, 2, 4, 2));
+        iMainPanel.setLayout(new BorderLayout());
+        iMainPanel.add(iSearchPanel, BorderLayout.NORTH);
+        iMainPanel.add(iTableScrollPane, BorderLayout.CENTER);
+        iMainPanel.setBorder(BorderFactory.createEmptyBorder(2, 2, 4, 2));
 
-        return iPanel;
+        return iMainPanel;
     }
 
     /**
@@ -281,16 +287,9 @@ public class SSSupplierCreditInvoiceFrame extends SSDefaultTableFrame {
 
         if (iResponce == JOptionPane.YES_OPTION) {
             for (SSSupplierCreditInvoice iSupplierCreditInvoice : delete) {
-                if (SSSupplierInvoiceMath.iSaldoMap.containsKey(
-                        iSupplierCreditInvoice.getCreditingNr())) {
-                    SSSupplierInvoiceMath.iSaldoMap.put(
-                            iSupplierCreditInvoice.getCreditingNr(),
-                            SSSupplierInvoiceMath.iSaldoMap.get(iSupplierCreditInvoice.getCreditingNr()).add(
-                                    SSSupplierInvoiceMath.getTotalSum(
-                                            iSupplierCreditInvoice)));
-                }
                 Repositories.supplierCreditInvoices().delete(iSupplierCreditInvoice);
             }
+            updateFrame();
         }
     }
 
@@ -299,8 +298,18 @@ public class SSSupplierCreditInvoiceFrame extends SSDefaultTableFrame {
                 .orElse(null);
     }
 
+    public static void fireTableDataChanged() {
+        if (cInstance != null) {
+            cInstance.updateFrame();
+        }
+    }
+
     public void updateFrame() {
         iSearchPanel.ApplyFilter();
+        if (iMainPanel != null) {
+            iMainPanel.revalidate();
+            iMainPanel.repaint();
+        }
     }
 
     public void actionPerformed(ActionEvent e) {

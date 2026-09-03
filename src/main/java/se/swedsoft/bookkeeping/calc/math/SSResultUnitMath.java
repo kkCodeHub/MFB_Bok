@@ -24,7 +24,7 @@ public class SSResultUnitMath {
      */
     public static Optional<SSNewResultUnit> getResultUnit(String pNumber) {
 
-        List<SSNewResultUnit> iResultUnits = SSDB.getInstance().getResultUnits();
+        List<SSNewResultUnit> iResultUnits = se.swedsoft.bookkeeping.data.system.SSResultUnitContext.getResultUnits();
 
         for (SSNewResultUnit iResultUnit: iResultUnits) {
             if (iResultUnit.getNumber().equals(pNumber)) {

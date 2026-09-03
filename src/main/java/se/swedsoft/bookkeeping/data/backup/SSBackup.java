@@ -2,11 +2,14 @@ package se.swedsoft.bookkeeping.data.backup;
 
 
 import se.swedsoft.bookkeeping.data.backup.util.SSBackupType;
-import se.swedsoft.bookkeeping.util.SSDateUtil;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.Serializable;
 import java.time.LocalDateTime;
-import java.util.Date;
+import java.util.Properties;
 
 
 /**
@@ -16,6 +19,9 @@ import java.util.Date;
 public class SSBackup implements Serializable {
 
     static final long serialVersionUID = 1L;
+    private static final String KEY_FILENAME = "filename";
+    private static final String KEY_CREATED_AT = "createdAt";
+    private static final String KEY_TYPE = "type";
 
     // The filename of the backup
     private String      iFilename;
@@ -51,22 +57,6 @@ public class SSBackup implements Serializable {
     }
 
     // ///////////////////////////////////////////////////////////////////
-
-    /**
-     *
-     * @return the backupdate
-     */
-    public Date getDate() {
-        return SSDateUtil.toDate(iDate);
-    }
-
-    /**
-     *
-     * @param iDate
-     */
-    public void setDate(Date iDate) {
-        this.iDate = SSDateUtil.toLocalDateTime(iDate);
-    }
 
     public LocalDateTime getLocalDateTime() {
         return iDate;
@@ -119,30 +109,51 @@ public class SSBackup implements Serializable {
         return iFile.exists();
     }
 
-    /**
-     *
-     * @param iFile
-     * @return the backup
-     * @throws IOException
-     * @throws ClassNotFoundException
-     */
-    public static SSBackup loadBackup(File iFile) throws IOException, ClassNotFoundException {
-        try (ObjectInputStream iObjectInputStream = new ObjectInputStream(
-                new BufferedInputStream(new FileInputStream(iFile)))) {
-            return (SSBackup) iObjectInputStream.readObject();
+    public static SSBackup loadBackup(File iFile) throws IOException {
+        Properties properties = new Properties();
+        try (FileInputStream iStream = new FileInputStream(iFile)) {
+            properties.load(iStream);
         }
+
+        String typeValue = properties.getProperty(KEY_TYPE);
+        if (typeValue == null) {
+            throw new IOException("Invalid backup metadata: missing type");
+        }
+
+        SSBackupType type;
+        try {
+            type = SSBackupType.valueOf(typeValue);
+        } catch (IllegalArgumentException e) {
+            throw new IOException("Invalid backup metadata: unknown type " + typeValue, e);
+        }
+
+        SSBackup backup = new SSBackup(type);
+        backup.setFilename(properties.getProperty(KEY_FILENAME));
+
+        String createdAt = properties.getProperty(KEY_CREATED_AT);
+        if (createdAt != null && !createdAt.isEmpty()) {
+            try {
+                backup.setLocalDateTime(LocalDateTime.parse(createdAt));
+            } catch (RuntimeException e) {
+                throw new IOException("Invalid backup metadata: invalid createdAt " + createdAt, e);
+            }
+        }
+
+        return backup;
     }
 
-    /**
-     *
-     * @param iFile
-     * @param iBackup
-     * @throws IOException
-     */
     public static void storeBackup(File iFile, SSBackup iBackup) throws IOException {
-        try (ObjectOutputStream iObjectOutputStream = new ObjectOutputStream(
-                new BufferedOutputStream(new FileOutputStream(iFile)))) {
-            iObjectOutputStream.writeObject(iBackup);
+        Properties properties = new Properties();
+        properties.setProperty(KEY_TYPE, iBackup.getType().name());
+        if (iBackup.getFilename() != null) {
+            properties.setProperty(KEY_FILENAME, iBackup.getFilename());
+        }
+        if (iBackup.getLocalDateTime() != null) {
+            properties.setProperty(KEY_CREATED_AT, iBackup.getLocalDateTime().toString());
+        }
+
+        try (FileOutputStream iStream = new FileOutputStream(iFile)) {
+            properties.store(iStream, "V2 backup metadata");
         }
     }
 

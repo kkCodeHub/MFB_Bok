@@ -2,7 +2,7 @@ package se.swedsoft.bookkeeping.gui.util.model;
 
 
 import se.swedsoft.bookkeeping.data.common.SSDeliveryWay;
-import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.data.system.SSMasterdataContext;
 import se.swedsoft.bookkeeping.gui.util.SSBundle;
 import se.swedsoft.bookkeeping.gui.util.components.SSEditableTableComboBox;
 import se.swedsoft.bookkeeping.gui.util.dialogs.SSNameDescriptionDialog;
@@ -24,7 +24,7 @@ public class SSDeliveryWayTableModel extends SSTableModel<SSDeliveryWay> {
      * Default constructor.
      */
     public SSDeliveryWayTableModel() {
-        super(SSDB.getInstance().getDeliveryWays());
+        super(SSMasterdataContext.getDeliveryWays());
     }
 
     /**
@@ -129,7 +129,7 @@ public class SSDeliveryWayTableModel extends SSTableModel<SSDeliveryWay> {
                     iDeliveryWay.setName(iDialog.getName());
                     iDeliveryWay.setDescription(iDialog.getDescription());
 
-                    SSDB.getInstance().addDeliveryWay(iDeliveryWay);
+                    SSMasterdataContext.addDeliveryWay(iDeliveryWay);
                     return iDeliveryWay;
                 }
                 return null;
@@ -145,12 +145,12 @@ public class SSDeliveryWayTableModel extends SSTableModel<SSDeliveryWay> {
                 if (iDialog.showDialog() == JOptionPane.OK_OPTION) {
                     iSelected.setName(iDialog.getName());
                     iSelected.setDescription(iDialog.getDescription());
-                    SSDB.getInstance().updateDeliveryWay(iSelected);
+                    SSMasterdataContext.updateDeliveryWay(iSelected);
                 }
             }
 
             public void deleteAction(SSDeliveryWay iSelected) {
-                SSDB.getInstance().deleteDeliveryWay(iSelected);
+                SSMasterdataContext.deleteDeliveryWay(iSelected);
             }
         };
 

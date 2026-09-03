@@ -1,16 +1,22 @@
 package se.swedsoft.bookkeeping.importexport.excel;
 
 
-import jxl.Workbook;
-import jxl.WorkbookSettings;
-import jxl.format.Colour;
-import jxl.write.WritableCellFormat;
-import jxl.write.WritableSheet;
-import jxl.write.WritableWorkbook;
-import jxl.write.WriteException;
-import org.apache.xerces.dom.DocumentImpl;
-import org.apache.xml.serialize.OutputFormat;
-import org.apache.xml.serialize.XMLSerializer;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.FillPatternType;
+import org.apache.poi.ss.usermodel.IndexedColors;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -20,15 +26,13 @@ import se.swedsoft.bookkeeping.data.SSStock;
 import se.swedsoft.bookkeeping.data.SSSupplier;
 import se.swedsoft.bookkeeping.data.common.SSDefaultAccount;
 import se.swedsoft.bookkeeping.data.system.SSDB;
-import se.swedsoft.bookkeeping.importexport.excel.util.SSWritableExcelRow;
-import se.swedsoft.bookkeeping.importexport.excel.util.SSWritableExcelSheet;
+import se.swedsoft.bookkeeping.data.system.SSProductContext;
 import se.swedsoft.bookkeeping.importexport.util.SSExportException;
-import se.swedsoft.bookkeeping.importexport.util.SSImportException;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStreamWriter;
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Locale;
 import org.slf4j.Logger;
@@ -41,7 +45,9 @@ import org.slf4j.LoggerFactory;
  * Time: 11:32:25
  * $Id$
  */
-public class SSProductExporter {    private static final Logger LOG = LoggerFactory.getLogger(SSProductExporter.class);
+public class SSProductExporter {
+
+    private static final Logger LOG = LoggerFactory.getLogger(SSProductExporter.class);
 
     public static final String PRODUKTNUMMER = "Produkt-id";
     public static final String BESKRIVNING = "Beskrivning";
@@ -60,22 +66,24 @@ public class SSProductExporter {    private static final Logger LOG = LoggerFact
     public static final String DISPONIBELT = "Disponibelt";
     public static final String LAGERPRIS = "Lagerpris";
 
-    private File iFile;
-    private List<SSProduct> iProducts;
+    private final File iFile;
+    private final List<SSProduct> iProducts;
 
     /**
+     * Creates an exporter that uses all products from the database.
      *
-     * @param iFile
+     * @param iFile destination Excel/XML file
      */
     public SSProductExporter(File iFile) {
         this.iFile = iFile;
-        iProducts = SSDB.getInstance().getProducts();
+        iProducts = SSProductContext.getProducts();
     }
 
     /**
+     * Creates an exporter with an explicit product list.
      *
-     * @param iFile
-     * @param iProducts
+     * @param iFile destination Excel/XML file
+     * @param iProducts products to export
      */
     public SSProductExporter(File iFile, List<SSProduct> iProducts) {
         this.iFile = iFile;
@@ -83,65 +91,52 @@ public class SSProductExporter {    private static final Logger LOG = LoggerFact
     }
 
     /**
+     * Exports products to Excel format.
      *
-     * @throws IOException
-     * @throws SSImportException
+     * @throws IOException if writing to disk fails
      */
-    public void doExport()  throws IOException, SSImportException {
-        WorkbookSettings iSettings = new WorkbookSettings();
+    public void doExport() throws IOException {
+        try (Workbook iWorkbook = new XSSFWorkbook();
+             FileOutputStream iOut = new FileOutputStream(iFile)) {
+            Sheet iSheet = iWorkbook.createSheet("Produkter");
 
-        iSettings.setLocale(new Locale("sv", "SE"));
-        iSettings.setEncoding("windows-1252");
-        iSettings.setExcelDisplayLanguage("SE");
-        iSettings.setExcelRegionalSettings("SE");
+            writeSheet(iSheet, iWorkbook);
 
-        try {
-            WritableWorkbook iWorkbook = Workbook.createWorkbook(iFile, iSettings);
-
-            WritableSheet iSheet = iWorkbook.createSheet("Produkter", 0);
-
-            writeSheet(new SSWritableExcelSheet(iSheet));
-
-            iWorkbook.write();
-            iWorkbook.close();
-
-        } catch (WriteException e) {
+            iWorkbook.write(iOut);
+        } catch (RuntimeException e) {
             throw new SSExportException(e.getLocalizedMessage());
         }
 
     }
 
     /**
+     * Writes all products to the provided worksheet.
      *
-     * @param pSheet
-     * @throws WriteException
+     * @param pSheet writable destination sheet
      */
-    private void writeSheet(SSWritableExcelSheet pSheet) throws WriteException {
-        List<SSWritableExcelRow> iRows = pSheet.getRows(iProducts.size() + 1);
+    private void writeSheet(Sheet pSheet, Workbook pWorkbook) {
+        Row iColumns = pSheet.createRow(0);
+        CellStyle iHeaderStyle = pWorkbook.createCellStyle();
 
-        // Write the column names
-        SSWritableExcelRow iColumns = iRows.get(0);
+        iHeaderStyle.setFillForegroundColor(IndexedColors.GREY_25_PERCENT.getIndex());
+        iHeaderStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
 
-        WritableCellFormat iCellFormat = new WritableCellFormat();
-
-        iCellFormat.setBackground(Colour.GRAY_25);
-
-        iColumns.setString(0, PRODUKTNUMMER, iCellFormat);
-        iColumns.setString(1, BESKRIVNING, iCellFormat);
-        iColumns.setString(2, FORSALJNINGSPRIS, iCellFormat);
-        iColumns.setString(3, INKOPSPRIS, iCellFormat);
-        iColumns.setString(4, ENHETSFRAKT, iCellFormat);
-        iColumns.setString(5, MOMS, iCellFormat);
-        iColumns.setString(6, ENHET, iCellFormat);
-        iColumns.setString(7, VIKT, iCellFormat);
-        iColumns.setString(8, VOLYM, iCellFormat);
-        iColumns.setString(9, LEVERANTOR, iCellFormat);
-        iColumns.setString(10, LEVERANTORENS_ARTIKEL_NUMMER, iCellFormat);
-        iColumns.setString(11, BESTALLNINGSPUNKT, iCellFormat);
-        iColumns.setString(12, LAGERPLATS, iCellFormat);
-        iColumns.setString(13, LAGERANTAL, iCellFormat);
-        iColumns.setString(14, DISPONIBELT, iCellFormat);
-        iColumns.setString(15, LAGERPRIS, iCellFormat);
+        setHeaderCell(iColumns, 0, PRODUKTNUMMER, iHeaderStyle);
+        setHeaderCell(iColumns, 1, BESKRIVNING, iHeaderStyle);
+        setHeaderCell(iColumns, 2, FORSALJNINGSPRIS, iHeaderStyle);
+        setHeaderCell(iColumns, 3, INKOPSPRIS, iHeaderStyle);
+        setHeaderCell(iColumns, 4, ENHETSFRAKT, iHeaderStyle);
+        setHeaderCell(iColumns, 5, MOMS, iHeaderStyle);
+        setHeaderCell(iColumns, 6, ENHET, iHeaderStyle);
+        setHeaderCell(iColumns, 7, VIKT, iHeaderStyle);
+        setHeaderCell(iColumns, 8, VOLYM, iHeaderStyle);
+        setHeaderCell(iColumns, 9, LEVERANTOR, iHeaderStyle);
+        setHeaderCell(iColumns, 10, LEVERANTORENS_ARTIKEL_NUMMER, iHeaderStyle);
+        setHeaderCell(iColumns, 11, BESTALLNINGSPUNKT, iHeaderStyle);
+        setHeaderCell(iColumns, 12, LAGERPLATS, iHeaderStyle);
+        setHeaderCell(iColumns, 13, LAGERANTAL, iHeaderStyle);
+        setHeaderCell(iColumns, 14, DISPONIBELT, iHeaderStyle);
+        setHeaderCell(iColumns, 15, LAGERPRIS, iHeaderStyle);
 
         SSStock iStock = new SSStock(true);
 
@@ -149,39 +144,62 @@ public class SSProductExporter {    private static final Logger LOG = LoggerFact
 
         for (SSProduct iProduct: iProducts) {
             SSSupplier iMainsupplier = iProduct.getSupplier(
-                    SSDB.getInstance().getSuppliers());
+                    se.swedsoft.bookkeeping.data.system.SSPurchaseContext.getSuppliers());
 
-            SSWritableExcelRow iRow = iRows.get(iRowIndex);
+            Row iRow = pSheet.createRow(iRowIndex);
 
-            iRow.setString(0, iProduct.getNumber());
-            iRow.setString(1, iProduct.getDescription());
-            iRow.setNumber(2, iProduct.getSellingPrice());
-            iRow.setNumber(3, iProduct.getPurchasePrice());
-            iRow.setNumber(4, iProduct.getUnitFreight());
-            iRow.setNumber(5, iProduct.getTaxRate().orElse(null));
-            iRow.setString(6,
+            setStringCell(iRow, 0, iProduct.getNumber());
+            setStringCell(iRow, 1, iProduct.getDescription());
+            setNumberCell(iRow, 2, iProduct.getSellingPrice());
+            setNumberCell(iRow, 3, iProduct.getPurchasePrice());
+            setNumberCell(iRow, 4, iProduct.getUnitFreight());
+            setNumberCell(iRow, 5, iProduct.getTaxRate().orElse(null));
+            setStringCell(iRow, 6,
                     iProduct.getUnit() == null ? "" : iProduct.getUnit().getName());
-            iRow.setNumber(7, iProduct.getWeight());
-            iRow.setNumber(8, iProduct.getVolume());
+            setNumberCell(iRow, 7, iProduct.getWeight());
+            setNumberCell(iRow, 8, iProduct.getVolume());
 
-            iRow.setString(9, iMainsupplier == null ? "" : iMainsupplier.getNumber());
-            iRow.setString(10, iProduct.getSupplierProductNr());
-            iRow.setNumber(11,
+            setStringCell(iRow, 9, iMainsupplier == null ? "" : iMainsupplier.getNumber());
+            setStringCell(iRow, 10, iProduct.getSupplierProductNr());
+            setNumberCell(iRow, 11,
                     iProduct.getOrderpoint() == null ? 0 : iProduct.getOrderpoint());
 
-            iRow.setString(12, iProduct.getWarehouseLocation());
-            iRow.setNumber(13, iStock.getQuantity(iProduct));
-            iRow.setNumber(14, iStock.getAvaiable(iProduct));
-            iRow.setNumber(15,
+            setStringCell(iRow, 12, iProduct.getWarehouseLocation());
+            setNumberCell(iRow, 13, BigDecimal.valueOf(iStock.getQuantity(iProduct), 1));
+            setNumberCell(iRow, 14, BigDecimal.valueOf(iStock.getAvaiable(iProduct), 1));
+            setNumberCell(iRow, 15,
                     iProduct.getStockPrice() == null ? 0 : iProduct.getStockPrice());
             iRowIndex++;
         }
 
+        for (int i = 0; i <= 15; i++) {
+            pSheet.autoSizeColumn(i);
+        }
+
+    }
+
+    private void setHeaderCell(Row pRow, int pColumn, String pValue, CellStyle pStyle) {
+        Cell iCell = pRow.createCell(pColumn);
+
+        iCell.setCellValue(pValue == null ? "" : pValue);
+        iCell.setCellStyle(pStyle);
+    }
+
+    private void setStringCell(Row pRow, int pColumn, String pValue) {
+        pRow.createCell(pColumn).setCellValue(pValue == null ? "" : pValue);
+    }
+
+    private void setNumberCell(Row pRow, int pColumn, Number pValue) {
+        if (pValue == null) {
+            pRow.createCell(pColumn).setCellValue("");
+            return;
+        }
+        pRow.createCell(pColumn).setCellValue(pValue.doubleValue());
     }
 
     public void doXMLExport() {
 
-        Document iXmlDoc = new DocumentImpl();
+        Document iXmlDoc = createDocument();
         Element iRoot = iXmlDoc.createElement("Products");
 
         for (SSProduct iProduct : iProducts) {
@@ -190,67 +208,61 @@ public class SSProductExporter {    private static final Logger LOG = LoggerFact
             Element iSubElement = iXmlDoc.createElementNS(null, "ProductNo");
 
             iElement.appendChild(iSubElement);
-            Node iNode = iXmlDoc.createTextNode(
+            Node iNode = createTextNode(iXmlDoc,
                     iProduct.getNumber() == null ? "" : iProduct.getNumber());
 
             iSubElement.appendChild(iNode);
 
             iSubElement = iXmlDoc.createElementNS(null, "ProductDescription");
             iElement.appendChild(iSubElement);
-            iNode = iXmlDoc.createTextNode(iProduct.getDescription());
+            iNode = createTextNode(iXmlDoc, iProduct.getDescription());
             iSubElement.appendChild(iNode);
 
             iSubElement = iXmlDoc.createElementNS(null, "UnitPrice");
             iElement.appendChild(iSubElement);
-            iNode = iXmlDoc.createTextNode(
-                    iProduct.getSellingPrice() == null
-                            ? ""
-                            : iProduct.getSellingPrice().toString());
+            iNode = createTextNode(iXmlDoc,
+                    iProduct.getSellingPrice() == null ? "" : iProduct.getSellingPrice().toString());
             iSubElement.appendChild(iNode);
 
             iSubElement = iXmlDoc.createElementNS(null, "TaxRate");
             iElement.appendChild(iSubElement);
-            iNode = iXmlDoc.createTextNode(
+            iNode = createTextNode(iXmlDoc,
                     iProduct.getTaxRate().map(Object::toString).orElse(""));
             iSubElement.appendChild(iNode);
 
             iSubElement = iXmlDoc.createElementNS(null, "PurchasePrice");
             iElement.appendChild(iSubElement);
-            iNode = iXmlDoc.createTextNode(
-                    iProduct.getPurchasePrice() == null
-                            ? ""
-                            : iProduct.getPurchasePrice().toString());
+            iNode = createTextNode(iXmlDoc,
+                    iProduct.getPurchasePrice() == null ? "" : iProduct.getPurchasePrice().toString());
             iSubElement.appendChild(iNode);
 
             iSubElement = iXmlDoc.createElementNS(null, "UnitFreight");
             iElement.appendChild(iSubElement);
-            iNode = iXmlDoc.createTextNode(
-                    iProduct.getUnitFreight() == null
-                            ? ""
-                            : iProduct.getUnitFreight().toString());
+            iNode = createTextNode(iXmlDoc,
+                    iProduct.getUnitFreight() == null ? "" : iProduct.getUnitFreight().toString());
             iSubElement.appendChild(iNode);
 
             iSubElement = iXmlDoc.createElementNS(null, "Unit");
             iElement.appendChild(iSubElement);
-            iNode = iXmlDoc.createTextNode(
-                    iProduct.getUnit() == null ? "" : iProduct.getUnit().toString());
+            iNode = createTextNode(iXmlDoc,
+                    iProduct.getUnit() == null ? "" : iProduct.getUnit().getName());
             iSubElement.appendChild(iNode);
 
             iSubElement = iXmlDoc.createElementNS(null, "Weight");
             iElement.appendChild(iSubElement);
-            iNode = iXmlDoc.createTextNode(
+            iNode = createTextNode(iXmlDoc,
                     iProduct.getWeight() == null ? "" : iProduct.getWeight().toString());
             iSubElement.appendChild(iNode);
 
             iSubElement = iXmlDoc.createElementNS(null, "Volume");
             iElement.appendChild(iSubElement);
-            iNode = iXmlDoc.createTextNode(
+            iNode = createTextNode(iXmlDoc,
                     iProduct.getVolume() == null ? "" : iProduct.getVolume().toString());
             iSubElement.appendChild(iNode);
 
             iSubElement = iXmlDoc.createElementNS(null, "SaleAccount");
             iElement.appendChild(iSubElement);
-            iNode = iXmlDoc.createTextNode(
+            iNode = createTextNode(iXmlDoc,
                     iProduct.getDefaultAccount(SSDefaultAccount.Sales) == null
                             ? ""
                             : iProduct.getDefaultAccount(SSDefaultAccount.Sales).toString());
@@ -258,7 +270,7 @@ public class SSProductExporter {    private static final Logger LOG = LoggerFact
 
             iSubElement = iXmlDoc.createElementNS(null, "PurchaseAccount");
             iElement.appendChild(iSubElement);
-            iNode = iXmlDoc.createTextNode(
+            iNode = createTextNode(iXmlDoc,
                     iProduct.getDefaultAccount(SSDefaultAccount.Purchases) == null
                             ? ""
                             : iProduct.getDefaultAccount(SSDefaultAccount.Purchases).toString());
@@ -266,48 +278,43 @@ public class SSProductExporter {    private static final Logger LOG = LoggerFact
 
             iSubElement = iXmlDoc.createElementNS(null, "Expired");
             iElement.appendChild(iSubElement);
-            iNode = iXmlDoc.createTextNode(Boolean.toString(iProduct.isExpired()));
+            iNode = createTextNode(iXmlDoc, Boolean.toString(iProduct.isExpired()));
             iSubElement.appendChild(iNode);
 
             iSubElement = iXmlDoc.createElementNS(null, "StockProduct");
             iElement.appendChild(iSubElement);
-            iNode = iXmlDoc.createTextNode(Boolean.toString(iProduct.isStockProduct()));
+            iNode = createTextNode(iXmlDoc, Boolean.toString(iProduct.isStockProduct()));
             iSubElement.appendChild(iNode);
 
             iSubElement = iXmlDoc.createElementNS(null, "WarehouseLocation");
             iElement.appendChild(iSubElement);
-            iNode = iXmlDoc.createTextNode(iProduct.getWarehouseLocation());
+            iNode = createTextNode(iXmlDoc, iProduct.getWarehouseLocation());
             iSubElement.appendChild(iNode);
 
             iSubElement = iXmlDoc.createElementNS(null, "OrderPoint");
             iElement.appendChild(iSubElement);
-            iNode = iXmlDoc.createTextNode(
-                    iProduct.getOrderpoint() == null
-                            ? ""
-                            : iProduct.getOrderpoint().toString());
+            iNode = createTextNode(iXmlDoc,
+                    iProduct.getOrderpoint() == null ? "" : iProduct.getOrderpoint().toString());
             iSubElement.appendChild(iNode);
 
             iSubElement = iXmlDoc.createElementNS(null, "OrderCount");
             iElement.appendChild(iSubElement);
-            iNode = iXmlDoc.createTextNode(
-                    iProduct.getOrdercount() == null
-                            ? ""
-                            : iProduct.getOrdercount().toString());
+            iNode = createTextNode(iXmlDoc, tenthsToDecimalString(iProduct.getOrdercount()));
             iSubElement.appendChild(iNode);
 
             iSubElement = iXmlDoc.createElementNS(null, "Supplier");
             iElement.appendChild(iSubElement);
-            iNode = iXmlDoc.createTextNode(iProduct.getSupplierNr());
+            iNode = createTextNode(iXmlDoc, iProduct.getSupplierNr());
             iSubElement.appendChild(iNode);
 
             iSubElement = iXmlDoc.createElementNS(null, "SupplierProductNo");
             iElement.appendChild(iSubElement);
-            iNode = iXmlDoc.createTextNode(iProduct.getSupplierProductNr());
+            iNode = createTextNode(iXmlDoc, iProduct.getSupplierProductNr());
             iSubElement.appendChild(iNode);
 
             iSubElement = iXmlDoc.createElementNS(null, "EnProductDescription");
             iElement.appendChild(iSubElement);
-            iNode = iXmlDoc.createTextNode(iProduct.getDescription(new Locale("en")).orElse(null));
+            iNode = createTextNode(iXmlDoc, iProduct.getDescription(Locale.forLanguageTag("en")).orElse(null));
             iSubElement.appendChild(iNode);
 
             Element iRoot2 = iXmlDoc.createElement("Detail");
@@ -317,13 +324,12 @@ public class SSProductExporter {    private static final Logger LOG = LoggerFact
 
                 Element iSubElement2 = iXmlDoc.createElementNS(null, "IncludedProductNo");
 
-                iNode = iXmlDoc.createTextNode(iRow.getProductNr());
+                iNode = createTextNode(iXmlDoc, iRow.getProductNr());
                 iSubElement2.appendChild(iNode);
                 iSubElement.appendChild(iSubElement2);
 
                 iSubElement2 = iXmlDoc.createElementNS(null, "RowQuantity");
-                iNode = iXmlDoc.createTextNode(
-                        iRow.getQuantity() == null ? "" : iRow.getQuantity().toString());
+                iNode = createTextNode(iXmlDoc, tenthsToDecimalString(iRow.getQuantity()));
                 iSubElement2.appendChild(iNode);
                 iSubElement.appendChild(iSubElement2);
 
@@ -334,33 +340,50 @@ public class SSProductExporter {    private static final Logger LOG = LoggerFact
             iRoot.appendChild(iElement);
         }
         iXmlDoc.appendChild(iRoot);
-        try {
-            FileOutputStream fos = new FileOutputStream(iFile.getAbsolutePath());
-            OutputStreamWriter osw = new OutputStreamWriter(fos, "UTF-8");
-            OutputFormat of = new OutputFormat("XML", "UTF-8", true);
+        try (FileOutputStream fos = new FileOutputStream(iFile.getAbsolutePath())) {
+            Transformer transformer = TransformerFactory.newInstance().newTransformer();
 
-            of.setIndent(1);
-            of.setIndenting(true);
-            XMLSerializer serializer = new XMLSerializer(osw, of);
-
-            serializer.asDOMSerializer();
-            serializer.serialize(iXmlDoc.getDocumentElement());
-
-            fos.close();
-            osw.close();
-        } catch (IOException e) {
+            transformer.setOutputProperty(OutputKeys.METHOD, "xml");
+            transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
+            transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+            transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "1");
+            transformer.transform(new DOMSource(iXmlDoc), new StreamResult(fos));
+        } catch (IOException | TransformerException e) {
             LOG.error("Unexpected error", e);
+        }
+    }
+
+    private Node createTextNode(Document pDocument, String pValue) {
+        return pDocument.createTextNode(pValue == null ? "" : pValue);
+    }
+
+    /**
+     * Converts a stored tenths quantity to a plain decimal string suitable for export.
+     * E.g. {@code 25} (internal tenths) → {@code "2.5"} (UI decimal).
+     *
+     * @param tenths quantity stored as tenths, or {@code null}
+     * @return plain decimal string, or empty string if input is null
+     */
+    static String tenthsToDecimalString(Integer tenths) {
+        if (tenths == null) {
+            return "";
+        }
+        return BigDecimal.valueOf(tenths, 1).toPlainString();
+    }
+
+    private Document createDocument() {
+        try {
+            return DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
+        } catch (ParserConfigurationException e) {
+            throw new IllegalStateException("Could not create XML document", e);
         }
     }
 
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder();
-
-        sb.append("se.swedsoft.bookkeeping.importexport.excel.SSProductExporter");
-        sb.append("{iFile=").append(iFile);
-        sb.append(", iProducts=").append(iProducts);
-        sb.append('}');
-        return sb.toString();
+        return "se.swedsoft.bookkeeping.importexport.excel.SSProductExporter"
+                + "{iFile=" + iFile
+                + ", iProducts=" + iProducts
+                + '}';
     }
 }

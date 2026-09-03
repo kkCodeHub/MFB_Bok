@@ -20,19 +20,18 @@ public class SSSupplierCreditInvoiceMath {
     private SSSupplierCreditInvoiceMath() {}
 
     /**
+     * Returns true if the supplier credit invoice's date falls within [pFrom, pTo] inclusive.
      *
-     * @param iSupplierInvoice
-     * @param pFrom
-     * @param pTo
-     * @return
+     * @param iSupplierInvoice the invoice to test
+     * @param pFrom            the start of the period
+     * @param pTo              the end of the period
+     * @return true if within the period
      */
-    public static boolean inPeriod(SSSupplierCreditInvoice iSupplierInvoice, Date pFrom, Date pTo) {
+    public static boolean inPeriod(SSSupplierCreditInvoice iSupplierInvoice, LocalDate pFrom, LocalDate pTo) {
         LocalDate iDate = iSupplierInvoice.getLocalDate();
-        LocalDate iFrom = SSDateUtil.toLocalDate(pFrom);
-        LocalDate iTo = SSDateUtil.toLocalDate(pTo);
 
-        return iDate != null && iFrom != null && iTo != null
-                && !iDate.isBefore(iFrom) && !iDate.isAfter(iTo);
+        return iDate != null && pFrom != null && pTo != null
+                && !iDate.isBefore(pFrom) && !iDate.isAfter(pTo);
     }
 
     /**
@@ -134,7 +133,7 @@ public class SSSupplierCreditInvoiceMath {
         Map<String, Integer> iSupplierCreditInvoiceCount = new HashMap<>();
         List<String> iParcelProducts = new LinkedList<>();
         List<SSProduct> iProducts = new LinkedList<>(
-                SSDB.getInstance().getProducts());
+                se.swedsoft.bookkeeping.data.system.SSProductContext.getProducts());
 
         for (SSProduct iProduct : iProducts) {
             if (iProduct.isParcel() && iProduct.getNumber() != null) {

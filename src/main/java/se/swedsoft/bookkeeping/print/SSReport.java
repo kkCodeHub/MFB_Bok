@@ -67,9 +67,6 @@ public class SSReport {    private static final Logger LOG = LoggerFactory.getLo
     protected Map<ReportField, String> iFields;
 
     public SSReport() {
-        // Set the default SAX parser for the system.
-        System.setProperty("javax.xml.parsers.SAXParserFactory",
-                "org.apache.xerces.jaxp.SAXParserFactoryImpl");
 
         iDesign = null;
         iPrinter = null;
@@ -183,6 +180,7 @@ public class SSReport {    private static final Logger LOG = LoggerFactory.getLo
 
         } catch (JRException e) {
             LOG.error("Unexpected error", e);
+            throw new SSException(e.getLocalizedMessage());
         }
 
     }
@@ -651,7 +649,8 @@ public class SSReport {    private static final Logger LOG = LoggerFactory.getLo
             LOG.error("Unexpected error", ex);
         }
 
-        JasperViewer.viewReport(iPrinter, false);
+        final JasperPrint printer = iPrinter;
+        SwingUtilities.invokeLater(() -> JasperViewer.viewReport(printer, false));
     }
 
     /**
@@ -659,19 +658,83 @@ public class SSReport {    private static final Logger LOG = LoggerFactory.getLo
      * @param iMainFrame
      */
     public void viewReport(SSMainFrame iMainFrame) {
+        SSException reportError = null;
         try {
             generateReport();
         } catch (SSException ex) {
-            new SSErrorDialog(iMainFrame, "exceptiondialog", ex.getLocalizedMessage());
+            reportError = ex;
         }
 
-        SSJasperPreviewFrame iJasperPreviewFrame = new SSJasperPreviewFrame(iMainFrame,
-                800, 600);
+        final JasperPrint printer = iPrinter;
+        final SSException error = reportError;
+        SwingUtilities.invokeLater(() -> {
+            if (error != null) {
+                new SSErrorDialog(iMainFrame, "exceptiondialog", error.getLocalizedMessage());
+            }
+            SSJasperPreviewFrame iJasperPreviewFrame = new SSJasperPreviewFrame(iMainFrame,
+                    800, 600);
 
-        iJasperPreviewFrame.setInCenter(iMainFrame);
-        iJasperPreviewFrame.setReport(this);
-        iJasperPreviewFrame.setPrinter(iPrinter);
-        iJasperPreviewFrame.setVisible(true);
+            iJasperPreviewFrame.setInCenter(iMainFrame);
+            iJasperPreviewFrame.setReport(this);
+            iJasperPreviewFrame.setPrinter(printer);
+            iJasperPreviewFrame.setVisible(true);
+        });
+    }
+
+    /**
+     * Shows report preview and invokes callback on first save/print action.
+     *
+     * @param iMainFrame main frame owner
+     * @param iOnOutputAction callback run once on first output action
+     */
+    public void viewReport(SSMainFrame iMainFrame, Runnable iOnOutputAction) {
+        viewReport(iMainFrame, iOnOutputAction, null);
+    }
+
+    /**
+     * Shows report preview and invokes callbacks for output actions.
+     *
+     * @param iMainFrame main frame owner
+     * @param iOnOutputAction callback run once on first output action
+     * @param iOnEmailAction callback run when e-mail action is chosen
+     */
+    public void viewReport(SSMainFrame iMainFrame, Runnable iOnOutputAction, Runnable iOnEmailAction) {
+        viewReport(iMainFrame, iOnOutputAction, iOnEmailAction, iOnEmailAction != null);
+    }
+
+    /**
+     * Shows report preview and invokes callbacks for output actions.
+     *
+     * @param iMainFrame main frame owner
+     * @param iOnOutputAction callback run once on first output action
+     * @param iOnEmailAction callback run when e-mail action is chosen
+     * @param iShowEmailButton true if the e-mail button should be visible
+     */
+    public void viewReport(SSMainFrame iMainFrame, Runnable iOnOutputAction, Runnable iOnEmailAction,
+                           boolean iShowEmailButton) {
+        SSException reportError = null;
+        try {
+            generateReport();
+        } catch (SSException ex) {
+            reportError = ex;
+        }
+
+        final JasperPrint printer = iPrinter;
+        final SSException error = reportError;
+        SwingUtilities.invokeLater(() -> {
+            if (error != null) {
+                new SSErrorDialog(iMainFrame, "exceptiondialog", error.getLocalizedMessage());
+            }
+            SSJasperPreviewFrame iJasperPreviewFrame = new SSJasperPreviewFrame(iMainFrame, 800, 600);
+
+            iJasperPreviewFrame.setInCenter(iMainFrame);
+            iJasperPreviewFrame.setReport(this);
+            iJasperPreviewFrame.setOnOutputAction(iOnOutputAction);
+            iJasperPreviewFrame.setShowEmailButton(iShowEmailButton);
+            iJasperPreviewFrame.setOnEmailAction(iOnEmailAction);
+            iJasperPreviewFrame.setPrinter(printer);
+            iJasperPreviewFrame.setVisible(true);
+        });
     }
 
     /**
@@ -679,20 +742,28 @@ public class SSReport {    private static final Logger LOG = LoggerFactory.getLo
      * @param iDialog
      */
     public void viewReport(JDialog iDialog) {
+        SSException reportError = null;
         try {
             generateReport();
         } catch (SSException ex) {
-            new SSErrorDialog(SSMainFrame.getInstance(), "exceptiondialog",
-                    ex.getLocalizedMessage());
+            reportError = ex;
         }
 
-        SSJasperPreviewFrame iJasperPreviewFrame = new SSJasperPreviewFrame(
-                SSMainFrame.getInstance(), 800, 600);
+        final JasperPrint printer = iPrinter;
+        final SSException error = reportError;
+        SwingUtilities.invokeLater(() -> {
+            if (error != null) {
+                new SSErrorDialog(SSMainFrame.getInstance(), "exceptiondialog",
+                        error.getLocalizedMessage());
+            }
+            SSJasperPreviewFrame iJasperPreviewFrame = new SSJasperPreviewFrame(
+                    SSMainFrame.getInstance(), 800, 600);
 
-        iJasperPreviewFrame.setInCenter(iDialog);
-        iJasperPreviewFrame.setReport(this);
-        iJasperPreviewFrame.setPrinter(iPrinter);
-        iJasperPreviewFrame.setVisible(true);
+            iJasperPreviewFrame.setInCenter(iDialog);
+            iJasperPreviewFrame.setReport(this);
+            iJasperPreviewFrame.setPrinter(printer);
+            iJasperPreviewFrame.setVisible(true);
+        });
     }
 
     /**
@@ -701,20 +772,28 @@ public class SSReport {    private static final Logger LOG = LoggerFactory.getLo
      * @param listener
      */
     public void viewReport(SSMainFrame iMainFrame, InternalFrameListener listener) {
+        SSException reportError = null;
         try {
             generateReport();
         } catch (SSException ex) {
-            new SSErrorDialog(iMainFrame, "exceptiondialog", ex.getLocalizedMessage());
+            reportError = ex;
         }
 
-        SSJasperPreviewFrame iJasperPreviewFrame = new SSJasperPreviewFrame(iMainFrame,
-                800, 600);
+        final JasperPrint printer = iPrinter;
+        final SSException error = reportError;
+        SwingUtilities.invokeLater(() -> {
+            if (error != null) {
+                new SSErrorDialog(iMainFrame, "exceptiondialog", error.getLocalizedMessage());
+            }
+            SSJasperPreviewFrame iJasperPreviewFrame = new SSJasperPreviewFrame(iMainFrame,
+                    800, 600);
 
-        iJasperPreviewFrame.addInternalFrameListener(listener);
-        iJasperPreviewFrame.setReport(this);
-        iJasperPreviewFrame.setPrinter(iPrinter);
-        iJasperPreviewFrame.setInCenter(iMainFrame);
-        iJasperPreviewFrame.setVisible(true);
+            iJasperPreviewFrame.addInternalFrameListener(listener);
+            iJasperPreviewFrame.setReport(this);
+            iJasperPreviewFrame.setPrinter(printer);
+            iJasperPreviewFrame.setInCenter(iMainFrame);
+            iJasperPreviewFrame.setVisible(true);
+        });
     }
 
     @Override

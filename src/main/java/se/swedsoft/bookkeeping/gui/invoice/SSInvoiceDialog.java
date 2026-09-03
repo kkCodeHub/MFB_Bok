@@ -4,20 +4,24 @@ package se.swedsoft.bookkeeping.gui.invoice;
 import se.swedsoft.bookkeeping.calc.math.SSInvoiceMath;
 import se.swedsoft.bookkeeping.data.SSInvoice;
 import se.swedsoft.bookkeeping.data.SSOrder;
+import se.swedsoft.bookkeeping.data.SSVoucher;
 import se.swedsoft.bookkeeping.data.common.SSInvoiceType;
+import se.swedsoft.bookkeeping.data.system.SSInvoiceActionPolicy;
 import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.data.system.SSAccountingContext;
+import se.swedsoft.bookkeeping.data.system.SSSalesContext;
 import se.swedsoft.bookkeeping.gui.SSMainFrame;
 import se.swedsoft.bookkeeping.gui.invoice.dialog.SSInvoiceTypeDialog;
 import se.swedsoft.bookkeeping.gui.invoice.panel.SSInvoicePanel;
-import se.swedsoft.bookkeeping.gui.invoice.util.SSInvoiceTableModel;
 import se.swedsoft.bookkeeping.gui.util.SSBundle;
 import se.swedsoft.bookkeeping.gui.util.dialogs.SSDialog;
-import se.swedsoft.bookkeeping.gui.util.dialogs.SSErrorDialog;
+import se.swedsoft.bookkeeping.gui.util.dialogs.SSInformationDialog;
 import se.swedsoft.bookkeeping.gui.util.dialogs.SSQueryDialog;
 import se.swedsoft.bookkeeping.util.SSDateUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
-import javax.swing.table.AbstractTableModel;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -32,14 +36,16 @@ import java.util.List;
  * Time: 15:01:54
  */
 public class SSInvoiceDialog {
+    private static final Logger LOG = LoggerFactory.getLogger(SSInvoiceDialog.class);
+
     private SSInvoiceDialog() {}
 
     /**
+     * Opens a dialog to create a new invoice.
      *
-     * @param iMainFrame
-     * @param pModel
+     * @param iMainFrame the owning frame
      */
-    public static void newDialog(final SSMainFrame iMainFrame, final SSInvoiceTableModel pModel) {
+    public static void newDialog(final SSMainFrame iMainFrame) {
         final SSDialog       iDialog = new SSDialog(iMainFrame,
                 SSBundle.getBundle().getString("invoiceframe.new.title"));
         SSInvoiceType iInvoiceType = SSInvoiceTypeDialog.showDialog(iMainFrame);
@@ -57,16 +63,33 @@ public class SSInvoiceDialog {
         final ActionListener iSaveAction = e -> {
 
                 SSInvoice iInvoice = iPanel.getInvoice();
-
-                SSDB.getInstance().addInvoice(iInvoice);
+                boolean iSaveVoucher = false;
 
                 if (iPanel.doSaveCustomerAndProducts()) {
                     SSInvoiceMath.addCustomerAndProducts(iInvoice);
                 }
 
-                if (pModel != null) {
-                    pModel.fireTableDataChanged();
+                if (iPanel.isVoucherGenerated() && !iInvoice.isEntered() && !iInvoice.isCancelled()) {
+                    iInvoice.setNumber(SSSalesContext.getMaxInvoiceId() + 1);
+                    iInvoice.generateVoucher();
+                    int iResponse = SSQueryDialog.showDialog(iMainFrame, SSBundle.getBundle(),
+                            "invoiceframe.voucher.saveonclose");
+
+                    iSaveVoucher = iResponse == JOptionPane.OK_OPTION;
+                } else if (iInvoice.isEntered()) {
+                    new SSInformationDialog(iMainFrame, "invoiceframe.entered");
                 }
+
+                if (iSaveVoucher) {
+                    SSAccountingContext.addVoucher(iInvoice.getVoucher(), false);
+                    iInvoice.setEntered();
+                } else if (!iInvoice.isEntered()) {
+                    iInvoice.setVoucher(new SSVoucher());
+                }
+
+                SSSalesContext.addInvoice(iInvoice);
+
+                SSInvoiceFrame.fireTableDataChanged();
 
                 iPanel.dispose();
                 iDialog.closeDialog();
@@ -104,33 +127,60 @@ public class SSInvoiceDialog {
     }
 
     /**
+     * Opens a dialog to edit an existing invoice.
      *
-     * @param iMainFrame
-     * @param iInvoice
-     * @param pModel
+     * @param iMainFrame the owning frame
+     * @param iInvoice   the invoice to edit
      */
-    public static void editDialog(final SSMainFrame iMainFrame, SSInvoice iInvoice, final SSInvoiceTableModel pModel) {
+    public static void editDialog(final SSMainFrame iMainFrame, SSInvoice iInvoice) {
         final SSDialog       iDialog = new SSDialog(iMainFrame,
                 SSBundle.getBundle().getString("invoiceframe.edit.title"));
         final SSInvoicePanel iPanel = new SSInvoicePanel(iDialog);
+        final boolean iReadOnly = shouldOpenReadOnly(iInvoice);
+        final boolean iKonteringPossibleMode = shouldOpenKonteringPossibleMode(iInvoice);
+
+        if (shouldShowEditLockedInfo(iInvoice)) {
+            SSInformationDialog.showDialog(iMainFrame, "invoiceframe.editlocked");
+        }
 
         iPanel.setInvoice(new SSInvoice(iInvoice));
         iPanel.setSavecustomerandproductsSelected(false);
+        if (iKonteringPossibleMode) {
+            iPanel.setKonteringPossibleMode();
+        } else {
+            iPanel.setReadOnlyMode(iReadOnly);
+        }
 
         iDialog.add(iPanel.getPanel(), BorderLayout.CENTER);
 
         final ActionListener iSaveAction = e -> {
 
                 SSInvoice iInvoice1 = iPanel.getInvoice();
+                boolean iSaveVoucher = false;
 
-                SSDB.getInstance().updateInvoice(iInvoice1);
                 if (iPanel.doSaveCustomerAndProducts()) {
                     SSInvoiceMath.addCustomerAndProducts(iInvoice1);
                 }
 
-                if (pModel != null) {
-                    pModel.fireTableDataChanged();
+                if (iPanel.isVoucherGenerated() && !iInvoice1.isEntered() && !iInvoice1.isCancelled()) {
+                    int iResponse = SSQueryDialog.showDialog(iMainFrame, SSBundle.getBundle(),
+                            "invoiceframe.voucher.saveonclose");
+
+                    iSaveVoucher = iResponse == JOptionPane.OK_OPTION;
+                } else if (iInvoice1.isEntered()) {
+                    new SSInformationDialog(iMainFrame, "invoiceframe.entered");
                 }
+
+                if (iSaveVoucher) {
+                    SSAccountingContext.addVoucher(iInvoice1.getVoucher(), false);
+                    iInvoice1.setEntered();
+                } else if (!iInvoice1.isEntered()) {
+                    iInvoice1.setVoucher(new SSVoucher());
+                }
+
+                SSSalesContext.updateInvoice(iInvoice1);
+
+                SSInvoiceFrame.fireTableDataChanged();
 
                 iPanel.dispose();
                 iDialog.closeDialog();
@@ -149,6 +199,9 @@ public class SSInvoiceDialog {
                 new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e) {
+                if (iPanel.isReadOnlyMode()) {
+                    return;
+                }
                 if (!iPanel.isValid()) {
                     return;
                 }
@@ -166,13 +219,28 @@ public class SSInvoiceDialog {
         iDialog.setVisible();
     }
 
+    static boolean shouldShowEditLockedInfo(SSInvoice pInvoice) {
+        return !SSInvoiceActionPolicy.canEdit(pInvoice);
+    }
+
+    static boolean shouldOpenReadOnly(SSInvoice pInvoice) {
+        return !SSInvoiceActionPolicy.canEdit(pInvoice);
+    }
+
+    static boolean shouldOpenKonteringPossibleMode(SSInvoice pInvoice) {
+        return pInvoice != null
+                && !pInvoice.isEntered()
+                && !pInvoice.isCancelled()
+                && !SSInvoiceActionPolicy.canEdit(pInvoice);
+    }
+
     /**
+     * Opens a dialog to copy an existing invoice.
      *
-     * @param iMainFrame
-     * @param iInvoice
-     * @param pModel
+     * @param iMainFrame the owning frame
+     * @param iInvoice   the invoice to copy
      */
-    public static void copyDialog(final SSMainFrame iMainFrame, SSInvoice iInvoice, final SSInvoiceTableModel pModel) {
+    public static void copyDialog(final SSMainFrame iMainFrame, SSInvoice iInvoice) {
         final SSDialog       iDialog = new SSDialog(iMainFrame,
                 SSBundle.getBundle().getString("invoiceframe.copy.title"));
         final SSInvoicePanel iPanel = new SSInvoicePanel(iDialog);
@@ -194,16 +262,32 @@ public class SSInvoiceDialog {
         final ActionListener iSaveAction = e -> {
 
                 SSInvoice iInvoice1 = iPanel.getInvoice();
-
-                SSDB.getInstance().addInvoice(iInvoice1);
+                boolean iSaveVoucher = false;
 
                 if (iPanel.doSaveCustomerAndProducts()) {
                     SSInvoiceMath.addCustomerAndProducts(iInvoice1);
                 }
 
-                if (pModel != null) {
-                    pModel.fireTableDataChanged();
+                if (iPanel.isVoucherGenerated() && !iInvoice1.isEntered() && !iInvoice1.isCancelled()) {
+                    iInvoice1.setNumber(SSSalesContext.getMaxInvoiceId() + 1);
+                    iInvoice1.generateVoucher();
+                    int iResponse = SSQueryDialog.showDialog(iMainFrame, SSBundle.getBundle(),
+                            "invoiceframe.voucher.saveonclose");
+
+                    iSaveVoucher = iResponse == JOptionPane.OK_OPTION;
+                } else if (iInvoice1.isEntered()) {
+                    new SSInformationDialog(iMainFrame, "invoiceframe.entered");
                 }
+
+                if (iSaveVoucher) {
+                    SSAccountingContext.addVoucher(iInvoice1.getVoucher(), false);
+                    iInvoice1.setEntered();
+                } else if (!iInvoice1.isEntered()) {
+                    iInvoice1.setVoucher(new SSVoucher());
+                }
+
+                SSSalesContext.addInvoice(iInvoice1);
+                SSInvoiceFrame.fireTableDataChanged();
 
                 iPanel.dispose();
                 iDialog.closeDialog();
@@ -245,13 +329,13 @@ public class SSInvoiceDialog {
     }
 
     /**
+     * Opens a dialog to create a new invoice from a list of orders.
      *
-     * @param iMainFrame
-     * @param iInvoice
-     * @param iOrders
-     * @param pModel
+     * @param iMainFrame the owning frame
+     * @param iInvoice   the pre-built invoice template
+     * @param iOrders    the source orders
      */
-    public static void newDialog(final SSMainFrame iMainFrame, SSInvoice iInvoice, final List<SSOrder> iOrders, final AbstractTableModel pModel) {
+    public static void newDialog(final SSMainFrame iMainFrame, SSInvoice iInvoice, final List<SSOrder> iOrders) {
         final SSDialog       iDialog = new SSDialog(iMainFrame,
                 SSBundle.getBundle().getString("invoiceframe.new.title"));
         final SSInvoicePanel iPanel = new SSInvoicePanel(iDialog);
@@ -271,22 +355,41 @@ public class SSInvoiceDialog {
         final ActionListener iSaveAction = e -> {
 
                 SSInvoice iInvoice1 = iPanel.getInvoice();
-
-                SSDB.getInstance().addInvoice(iInvoice1);
-
-                for (SSOrder iOrder : iOrders) {
-                    // Set the invoice for the order
-                    if (SSDB.getInstance().getOrders().contains(iOrder)) {
-                        iOrder.setInvoice(iInvoice1);
-                        SSDB.getInstance().updateOrder(iOrder);
-                    }
-                }
+                boolean iSaveVoucher = false;
 
                 if (iPanel.doSaveCustomerAndProducts()) {
                     SSInvoiceMath.addCustomerAndProducts(iInvoice1);
                 }
 
-                // if (pModel != null) pModel.fireTableDataChanged();
+                if (iPanel.isVoucherGenerated() && !iInvoice1.isEntered() && !iInvoice1.isCancelled()) {
+                    iInvoice1.setNumber(SSSalesContext.getMaxInvoiceId() + 1);
+                    iInvoice1.generateVoucher();
+                    int iResponse = SSQueryDialog.showDialog(iMainFrame, SSBundle.getBundle(),
+                            "invoiceframe.voucher.saveonclose");
+
+                    iSaveVoucher = iResponse == JOptionPane.OK_OPTION;
+                } else if (iInvoice1.isEntered()) {
+                    new SSInformationDialog(iMainFrame, "invoiceframe.entered");
+                }
+
+                if (iSaveVoucher) {
+                    SSAccountingContext.addVoucher(iInvoice1.getVoucher(), false);
+                    iInvoice1.setEntered();
+                } else if (!iInvoice1.isEntered()) {
+                    iInvoice1.setVoucher(new SSVoucher());
+                }
+
+                SSSalesContext.addInvoice(iInvoice1);
+
+                for (SSOrder iOrder : iOrders) {
+                    // Set the invoice for the order
+                    if (SSSalesContext.getOrders().contains(iOrder)) {
+                        iOrder.setInvoice(iInvoice1);
+                        SSSalesContext.updateOrder(iOrder);
+                    }
+                }
+
+                SSInvoiceFrame.fireTableDataChanged();
 
                 iPanel.dispose();
                 iDialog.closeDialog();

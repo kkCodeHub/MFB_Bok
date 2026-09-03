@@ -1,45 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE jasperReport PUBLIC "-//JasperReports//DTD Report Design//EN"
-        "http://jasperreports.sourceforge.net/dtds/jasperreport.dtd">
-
-<jasperReport name="MultiReport" resourceBundle="book" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0">
-
-    <field name="report.name"       class="java.lang.String"/>
-
-    <field name="report.report"     class="net.sf.jasperreports.engine.JasperReport"/>
-    <field name="report.datasource" class="net.sf.jasperreports.engine.JRDataSource"/>
-    <field name="report.parameters" class="java.util.Map"/>
-    <field name="report.bundle"     class="java.util.ResourceBundle"/>
-
-    <!-- 595  842 -->
-    <detail >
-        <band height="842" isSplitAllowed="true">
-            <subreport>
-                <reportElement x="0" y="0" width="595" height="842" isPrintWhenDetailOverflows="true" backcolor="#FF0000" stretchType="RelativeToBandHeight"/>
-
-
-
-                <parametersMapExpression>
-                    <![CDATA[$F{report.parameters}]]>
-                </parametersMapExpression>
-
-                <subreportParameter name="REPORT_RESOURCE_BUNDLE">
-                    <subreportParameterExpression>
-                        <![CDATA[$F{report.bundle}]]>
-                    </subreportParameterExpression>
-                </subreportParameter>
-
-                <dataSourceExpression>
-                    <![CDATA[$F{report.datasource}]]>
-                </dataSourceExpression>
-                
-                <subreportExpression class="net.sf.jasperreports.engine.JasperReport">
-                    <![CDATA[$F{report.report}]]>
-                </subreportExpression>
-            </subreport>
-
-        </band>
-    </detail>
-
-
+<!-- Created with Jaspersoft Studio version 6.21.1.final using JasperReports Library version 6.21.0-4f56c4f36cd19e17675219a9ac4692d5f0f13b06  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="MultiReport" pageWidth="595" pageHeight="842" whenNoDataType="NoPages" columnWidth="555" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" resourceBundle="book" uuid="57d4e8e1-7299-4ca0-b4d5-0e54a464d993">
+	<field name="report.name" class="java.lang.String"/>
+	<field name="report.report" class="net.sf.jasperreports.engine.JasperReport"/>
+	<field name="report.datasource" class="net.sf.jasperreports.engine.JRDataSource"/>
+	<field name="report.parameters" class="java.util.Map"/>
+	<field name="report.bundle" class="java.util.ResourceBundle"/>
+	<detail>
+		<band height="842" splitType="Stretch">
+			<subreport>
+				<reportElement stretchType="RelativeToBandHeight" x="0" y="0" width="595" height="842" isPrintWhenDetailOverflows="true" backcolor="#FF0000" uuid="ae46e755-100b-40e0-9217-d2f2c917780e"/>
+				<parametersMapExpression><![CDATA[$F{report.parameters}]]></parametersMapExpression>
+				<subreportParameter name="REPORT_RESOURCE_BUNDLE">
+					<subreportParameterExpression><![CDATA[$F{report.bundle}]]></subreportParameterExpression>
+				</subreportParameter>
+				<dataSourceExpression><![CDATA[$F{report.datasource}]]></dataSourceExpression>
+				<subreportExpression><![CDATA[$F{report.report}]]></subreportExpression>
+			</subreport>
+		</band>
+	</detail>
 </jasperReport>

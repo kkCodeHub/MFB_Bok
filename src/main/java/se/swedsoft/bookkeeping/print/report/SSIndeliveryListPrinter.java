@@ -11,6 +11,7 @@ import se.swedsoft.bookkeeping.gui.util.model.SSDefaultTableModel;
 import se.swedsoft.bookkeeping.persistence.Repositories;
 import se.swedsoft.bookkeeping.print.SSPrinter;
 import se.swedsoft.bookkeeping.print.util.SSDefaultJasperDataSource;
+import se.swedsoft.bookkeeping.print.util.SSQuantityPrintUtil;
 
 import java.text.DateFormat;
 import java.util.Collections;
@@ -165,7 +166,7 @@ public class SSIndeliveryListPrinter extends SSPrinter {
                         break;
 
                     case 2:
-                        value = iRow.getChange();
+                        value = SSQuantityPrintUtil.toDisplay(iRow.getChange());
                         break;
 
                     }

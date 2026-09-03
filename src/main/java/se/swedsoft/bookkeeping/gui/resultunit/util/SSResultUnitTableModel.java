@@ -2,7 +2,7 @@ package se.swedsoft.bookkeeping.gui.resultunit.util;
 
 
 import se.swedsoft.bookkeeping.data.SSNewResultUnit;
-import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.data.system.SSResultUnitContext;
 import se.swedsoft.bookkeeping.gui.util.SSBundle;
 import se.swedsoft.bookkeeping.gui.util.table.model.SSTableColumn;
 import se.swedsoft.bookkeeping.gui.util.table.model.SSTableModel;
@@ -16,7 +16,7 @@ public class SSResultUnitTableModel extends SSTableModel<SSNewResultUnit> {
      * Default constructor.
      */
     public SSResultUnitTableModel() {
-        super(SSDB.getInstance().getResultUnits());
+        super(SSResultUnitContext.getResultUnits());
     }
 
     /**
@@ -147,4 +147,3 @@ public class SSResultUnitTableModel extends SSTableModel<SSNewResultUnit> {
     };
 
 }
-

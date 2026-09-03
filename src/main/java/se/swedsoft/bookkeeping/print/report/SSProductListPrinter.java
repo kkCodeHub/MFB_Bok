@@ -6,9 +6,11 @@ import se.swedsoft.bookkeeping.data.SSProduct;
 import se.swedsoft.bookkeeping.data.SSProductRow;
 import se.swedsoft.bookkeeping.data.SSStock;
 import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.data.system.SSProductContext;
 import se.swedsoft.bookkeeping.gui.util.SSBundle;
 import se.swedsoft.bookkeeping.gui.util.model.SSDefaultTableModel;
 import se.swedsoft.bookkeeping.print.SSPrinter;
+import se.swedsoft.bookkeeping.print.util.SSQuantityPrintUtil;
 import se.swedsoft.bookkeeping.print.util.SSDefaultJasperDataSource;
 
 import java.text.DateFormat;
@@ -35,7 +37,7 @@ public class SSProductListPrinter extends SSPrinter {
      *
      */
     public SSProductListPrinter() {
-        this(SSDB.getInstance().getProducts());
+        this(SSProductContext.getProducts());
     }
 
     /**
@@ -127,7 +129,7 @@ public class SSProductListPrinter extends SSPrinter {
 
                 case 6:
                     // if (!SSVersion.app_title.contains("JFS Fakturering")) {
-                    value = iStock.getQuantity(iProduct);
+                    value = SSQuantityPrintUtil.toDisplay(iStock.getQuantity(iProduct));
                     // } else {
                     // iPrinter.setProduct(iProduct);
                     // iDataSource.reset();
@@ -193,7 +195,7 @@ public class SSProductListPrinter extends SSPrinter {
                     SSProductRow iProductRow = getObject(rowIndex);
 
                     SSProduct iProduct = iProductRow.getProduct(
-                            SSDB.getInstance().getProducts());
+                            SSProductContext.getProducts());
 
                     switch (columnIndex) {
                     case 0:
@@ -205,7 +207,7 @@ public class SSProductListPrinter extends SSPrinter {
                         break;
 
                     case 2:
-                        value = iProductRow.getQuantity();
+                        value = SSQuantityPrintUtil.toDisplay(iProductRow.getQuantity());
                         break;
 
                     case 3:

@@ -8,6 +8,7 @@ import se.swedsoft.bookkeeping.data.SSNewCompany;
 import se.swedsoft.bookkeeping.data.SSStandardText;
 import se.swedsoft.bookkeeping.data.base.SSSaleRow;
 import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.data.system.SSSalesContext;
 import se.swedsoft.bookkeeping.gui.util.model.SSDefaultTableModel;
 import se.swedsoft.bookkeeping.print.SSPrinter;
 import se.swedsoft.bookkeeping.util.SSDateUtil;
@@ -75,13 +76,13 @@ public class SSReminderPrinter extends SSPrinter {
      *
      */
     private void addParameters() {
-        SSNewCompany iCompany = SSDB.getInstance().getCurrentCompany();
+        SSNewCompany iCompany = se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.getCurrentCompany();
 
         SSSalePrinterUtils.addParametersForCompany(iCompany, this);
 
         // Sale parameters
         addParameter("date", SSDateUtil.toDate(SSDateUtil.today()));
-        addParameter("text", iCompany.getStandardText(SSStandardText.Reminder));
+        addParameter("text", iCompany.getStandardText(SSStandardText.Reminder).orElse(null));
 
         if (iCustomer != null) {
 

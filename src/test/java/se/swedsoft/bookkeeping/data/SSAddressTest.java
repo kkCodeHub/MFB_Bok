@@ -3,6 +3,7 @@ package se.swedsoft.bookkeeping.data;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 
 /**
  * Tests for {@link SSAddress}.
@@ -168,5 +169,17 @@ class SSAddressTest {
         assertThat(addr.getZipCode()).isNull();
         assertThat(addr.getCity()).isNull();
         assertThat(addr.getCountry()).isNull();
+    }
+
+    @Test
+    void equalsHandlesDisposedAddressesWithoutThrowing() {
+        SSAddress a = new SSAddress("Name", "Addr", "Street", "12345", "City", "Country");
+        SSAddress b = new SSAddress("Name", "Addr", "Street", "12345", "City", "Country");
+
+        a.dispose();
+        b.dispose();
+
+        assertThatCode(() -> a.equals(b)).doesNotThrowAnyException();
+        assertThat(a.equals(b)).isTrue();
     }
 }

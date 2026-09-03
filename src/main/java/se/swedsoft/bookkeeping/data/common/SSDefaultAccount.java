@@ -15,7 +15,7 @@ import java.util.Optional;
  */
 public enum SSDefaultAccount implements Serializable {
     // Kundfodran
-    CustomerClaim(1510), 
+    CustomerClaim(1510),
     // Inbetalning
     InPayment(1930),
     // Utbetalning
@@ -37,7 +37,7 @@ public enum SSDefaultAccount implements Serializable {
     // Importmoms 3
     //ImportTax3(2636),
     // Försäljning
-    Sales(3051),
+    Sales(3001),
     // Inköp
     Purchases(4010),
     // Valutakursvinst
@@ -47,9 +47,9 @@ public enum SSDefaultAccount implements Serializable {
     // Öresavrundning
     Rounding(3740),
     // Ränteintäkt
-    InterestProfit(8300),
+    InterestProfit(8311),
     // Ingående moms
-    IncommingTax(2640);
+    IncommingTax(2641);
     private static final long serialVersionUID = 6209981489711135940L;
 
     private int iDefaultAccountNumber;

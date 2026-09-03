@@ -144,6 +144,7 @@ public class SSTenderPanel {
         iTable.setColorReadOnly(true);
         iTable.setColumnSortingEnabled(false);
         iTable.setSingleSelect();
+        iTable.setSelectionForeground(Color.BLACK);
 
         iModel = new SSInvoiceRowTableModel();
         iModel.addColumn(SSInvoiceRowTableModel.COLUMN_PRODUCT, true);
@@ -307,7 +308,7 @@ public class SSTenderPanel {
                 e -> {
 
 
-                        SSCurrency iCompanyCurrency = SSDB.getInstance().getCurrentCompany().getCurrency();
+                        SSCurrency iCompanyCurrency = se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.getCurrentCompany().getCurrency();
                         SSCurrency iCurrentCurrency = iCurrency.getSelected();
 
                         if (iCompanyCurrency == null || iCurrentCurrency == null) {
@@ -410,7 +411,7 @@ public class SSTenderPanel {
         // Leveranssätt
         iDeliveryWay.setSelected(iTender.getDeliveryWay());
 
-        for (SSCustomer pCustomer : SSDB.getInstance().getCustomers()) {
+        for (SSCustomer pCustomer : se.swedsoft.bookkeeping.data.system.SSSalesContext.getCustomers()) {
             if (pCustomer.getNumber().equals(iCustomer.getText())) {
                 iModel.setCustomer(pCustomer);
             }
@@ -576,7 +577,7 @@ public class SSTenderPanel {
         iTaxSum1.setValue(iTaxSum.get(SSTaxCode.TAXRATE_1));
         iTaxSum2.setValue(iTaxSum.get(SSTaxCode.TAXRATE_2));
         iTaxSum3.setValue(iTaxSum.get(SSTaxCode.TAXRATE_3));
-        if (!SSDB.getInstance().getCurrentCompany().isRoundingOff()) {
+        if (!se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.getCurrentCompany().isRoundingOff()) {
             iRoundingSum.setValue(iRounding);
         }
         this.iTotalSum.setValue(iTotalSum);

@@ -1,12 +1,8 @@
 package se.swedsoft.bookkeeping.importexport.excel.util;
 
-
-import jxl.format.CellFormat;
-import jxl.write.Label;
-import jxl.write.Number;
-import jxl.write.WritableSheet;
-import jxl.write.WriteException;
-import jxl.write.biff.RowsExceededException;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.Row;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -18,28 +14,27 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
 /**
  * Date: 2006-feb-14
  * Time: 11:36:34
  */
-public class SSWritableExcelRow {    private static final Logger LOG = LoggerFactory.getLogger(SSWritableExcelRow.class);
-
+public class SSWritableExcelRow {
+    private static final Logger LOG = LoggerFactory.getLogger(SSWritableExcelRow.class);
 
     private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
     private int iRow;
 
-    private WritableSheet iSheet;
+    private Row iRow_POI;
 
     /**
      *
-     * @param pSheet
      * @param pRow
+     * @param pRowNum
      */
-    public SSWritableExcelRow(WritableSheet pSheet, int pRow) {
-        iSheet = pSheet;
-        iRow = pRow;
+    public SSWritableExcelRow(Row pRow, int pRowNum) {
+        iRow_POI = pRow;
+        iRow = pRowNum;
     }
 
     /**
@@ -51,7 +46,7 @@ public class SSWritableExcelRow {    private static final Logger LOG = LoggerFac
         List<SSWritableExcelCell> iList = new LinkedList<>();
 
         for (int iColumn = 0; iColumn < pCount; iColumn++) {
-            iList.add(new SSWritableExcelCell(iSheet, iRow, iColumn));
+            iList.add(new SSWritableExcelCell(iRow_POI, iRow, iColumn));
         }
         return iList;
     }
@@ -68,12 +63,12 @@ public class SSWritableExcelRow {    private static final Logger LOG = LoggerFac
      *
      * @param iColumn
      * @param pValue
-     * @throws WriteException
      */
-    public void setString(int iColumn, String pValue) throws WriteException {
+    public void setString(int iColumn, String pValue) {
         try {
-            iSheet.addCell(new Label(iColumn, iRow, pValue == null ? "" : pValue));
-        } catch (RowsExceededException e) {
+            Cell iCell = iRow_POI.createCell(iColumn);
+            iCell.setCellValue(pValue == null ? "" : pValue);
+        } catch (RuntimeException e) {
             LOG.error("Unexpected error", e);
         }
     }
@@ -82,53 +77,34 @@ public class SSWritableExcelRow {    private static final Logger LOG = LoggerFac
      *
      * @param iColumn
      * @param pValue
-     * @param iCellFormat
-     * @throws WriteException
+     * @param iCellStyle
      */
-    public void setString(int iColumn, String pValue, CellFormat iCellFormat) throws WriteException {
+    public void setString(int iColumn, String pValue, CellStyle iCellStyle) {
         try {
-            iSheet.addCell(
-                    new Label(iColumn, iRow, pValue == null ? "" : pValue, iCellFormat));
-        } catch (RowsExceededException e) {
-            LOG.error("Unexpected error", e);
-        }
-    }
-
-    /**
-     *
-     * @param iColumn
-     * @param pValue
-     * @throws WriteException
-     */
-    public void setNumber(int iColumn, java.lang.Number pValue) throws WriteException {
-        try {
-            if (pValue == null) {
-                iSheet.addCell(new Label(iColumn, iRow, ""));
-            } else {
-                iSheet.addCell(new Number(iColumn, iRow, pValue.doubleValue()));
+            Cell iCell = iRow_POI.createCell(iColumn);
+            iCell.setCellValue(pValue == null ? "" : pValue);
+            if (iCellStyle != null) {
+                iCell.setCellStyle(iCellStyle);
             }
-        } catch (RowsExceededException e) {
+        } catch (RuntimeException e) {
             LOG.error("Unexpected error", e);
         }
-
     }
 
     /**
      *
      * @param iColumn
      * @param pValue
-     * @param iCellFormat
-     * @throws WriteException
      */
-    public void setNumber(int iColumn, java.lang.Number pValue, CellFormat iCellFormat) throws WriteException {
+    public void setNumber(int iColumn, java.lang.Number pValue) {
         try {
+            Cell iCell = iRow_POI.createCell(iColumn);
             if (pValue == null) {
-                iSheet.addCell(new Label(iColumn, iRow, "", iCellFormat));
+                iCell.setCellValue("");
             } else {
-                iSheet.addCell(
-                        new Number(iColumn, iRow, pValue.doubleValue(), iCellFormat));
+                iCell.setCellValue(pValue.doubleValue());
             }
-        } catch (RowsExceededException e) {
+        } catch (RuntimeException e) {
             LOG.error("Unexpected error", e);
         }
     }
@@ -137,21 +113,42 @@ public class SSWritableExcelRow {    private static final Logger LOG = LoggerFac
      *
      * @param iColumn
      * @param pValue
-     * @throws WriteException
+     * @param iCellStyle
      */
-    public void setDate(int iColumn, Date pValue) throws WriteException {
+    public void setNumber(int iColumn, java.lang.Number pValue, CellStyle iCellStyle) {
+        try {
+            Cell iCell = iRow_POI.createCell(iColumn);
+            if (pValue == null) {
+                iCell.setCellValue("");
+            } else {
+                iCell.setCellValue(pValue.doubleValue());
+            }
+            if (iCellStyle != null) {
+                iCell.setCellStyle(iCellStyle);
+            }
+        } catch (RuntimeException e) {
+            LOG.error("Unexpected error", e);
+        }
+    }
+
+    /**
+     *
+     * @param iColumn
+     * @param pValue
+     */
+    public void setDate(int iColumn, Date pValue) {
         setDate(iColumn, SSDateUtil.toLocalDate(pValue));
     }
 
-    public void setDate(int iColumn, LocalDate pValue) throws WriteException {
+    public void setDate(int iColumn, LocalDate pValue) {
         try {
+            Cell iCell = iRow_POI.createCell(iColumn);
             if (pValue == null) {
-                iSheet.addCell(new Label(iColumn, iRow, ""));
+                iCell.setCellValue("");
             } else {
-                iSheet.addCell(new Label(iColumn, iRow, pValue.format(DATE_FORMAT)));
+                iCell.setCellValue(pValue.format(DATE_FORMAT));
             }
-
-        } catch (RowsExceededException e) {
+        } catch (RuntimeException e) {
             LOG.error("Unexpected error", e);
         }
     }
@@ -160,21 +157,24 @@ public class SSWritableExcelRow {    private static final Logger LOG = LoggerFac
      *
      * @param iColumn
      * @param pValue
-     * @param iCellFormat
-     * @throws WriteException
+     * @param iCellStyle
      */
-    public void setDate(int iColumn, Date pValue, CellFormat iCellFormat) throws WriteException {
-        setDate(iColumn, SSDateUtil.toLocalDate(pValue), iCellFormat);
+    public void setDate(int iColumn, Date pValue, CellStyle iCellStyle) {
+        setDate(iColumn, SSDateUtil.toLocalDate(pValue), iCellStyle);
     }
 
-    public void setDate(int iColumn, LocalDate pValue, CellFormat iCellFormat) throws WriteException {
+    public void setDate(int iColumn, LocalDate pValue, CellStyle iCellStyle) {
         try {
+            Cell iCell = iRow_POI.createCell(iColumn);
             if (pValue == null) {
-                iSheet.addCell(new Label(iColumn, iRow, "", iCellFormat));
+                iCell.setCellValue("");
             } else {
-                iSheet.addCell(new Label(iColumn, iRow, pValue.format(DATE_FORMAT), iCellFormat));
+                iCell.setCellValue(pValue.format(DATE_FORMAT));
             }
-        } catch (RowsExceededException e) {
+            if (iCellStyle != null) {
+                iCell.setCellStyle(iCellStyle);
+            }
+        } catch (RuntimeException e) {
             LOG.error("Unexpected error", e);
         }
     }
@@ -185,7 +185,7 @@ public class SSWritableExcelRow {    private static final Logger LOG = LoggerFac
 
         sb.append("se.swedsoft.bookkeeping.importexport.excel.util.SSWritableExcelRow");
         sb.append("{iRow=").append(iRow);
-        sb.append(", iSheet=").append(iSheet);
+        sb.append(", iRow_POI=").append(iRow_POI);
         sb.append('}');
         return sb.toString();
     }

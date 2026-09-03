@@ -2,6 +2,7 @@ package se.swedsoft.bookkeeping.importexport.sie.fields;
 
 
 import se.swedsoft.bookkeeping.data.SSNewAccountingYear;
+import se.swedsoft.bookkeeping.data.system.SSCompanyYearContext;
 import se.swedsoft.bookkeeping.data.system.SSDB;
 import se.swedsoft.bookkeeping.gui.util.SSBundleString;
 import se.swedsoft.bookkeeping.importexport.sie.SSSIEExporter;
@@ -11,6 +12,7 @@ import se.swedsoft.bookkeeping.importexport.sie.util.SIEReader;
 import se.swedsoft.bookkeeping.importexport.sie.util.SIEWriter;
 import se.swedsoft.bookkeeping.importexport.util.SSExportException;
 import se.swedsoft.bookkeeping.importexport.util.SSImportException;
+import se.swedsoft.bookkeeping.util.SSDateUtil;
 
 import java.util.Date;
 
@@ -47,9 +49,9 @@ public class SIEEntryRAR implements SIEEntry {
         Date       iTo = iReader.nextDate();
 
         if (iYear == 0 && iCurrentYearData != null) {
-            iCurrentYearData.setFrom(iFrom);
-            iCurrentYearData.setTo(iTo);
-            SSDB.getInstance().updateAccountingYear(iCurrentYearData);
+            iCurrentYearData.setLocalFrom(SSDateUtil.toLocalDate(iFrom));
+            iCurrentYearData.setLocalTo(SSDateUtil.toLocalDate(iTo));
+            se.swedsoft.bookkeeping.data.system.SSAccountingContext.updateAccountingYear(iCurrentYearData);
         }
 
         return true;
@@ -66,21 +68,21 @@ public class SIEEntryRAR implements SIEEntry {
      */
     @Override
     public boolean exportEntry(SSSIEExporter iExporter, SIEWriter iWriter, SSNewAccountingYear iCurrentYearData) throws SSExportException {
-        SSNewAccountingYear iPreviousYearData = SSDB.getInstance().getPreviousYear().orElse(null);
+        SSNewAccountingYear iPreviousYearData = SSCompanyYearContext.getPreviousYear().orElse(null);
 
         if (iPreviousYearData != null) {
             iWriter.append(SIELabel.SIE_RAR);
             iWriter.append("-1");
-            iWriter.append(iPreviousYearData.getFrom());
-            iWriter.append(iPreviousYearData.getTo());
+            iWriter.append(iPreviousYearData.getLocalFrom());
+            iWriter.append(iPreviousYearData.getLocalTo());
             iWriter.newLine();
         }
 
         if (iCurrentYearData != null) {
             iWriter.append(SIELabel.SIE_RAR);
             iWriter.append("0");
-            iWriter.append(iCurrentYearData.getFrom());
-            iWriter.append(iCurrentYearData.getTo());
+            iWriter.append(iCurrentYearData.getLocalFrom());
+            iWriter.append(iCurrentYearData.getLocalTo());
             iWriter.newLine();
         }
 

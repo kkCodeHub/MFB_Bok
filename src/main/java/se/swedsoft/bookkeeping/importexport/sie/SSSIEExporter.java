@@ -59,14 +59,14 @@ public class SSSIEExporter {    private static final Logger LOG = LoggerFactory.
      * @throws SSExportException
      */
     public void exportSIE(File pFile) throws SSExportException {
-        SSNewAccountingYear iYearData = SSDB.getInstance().getCurrentYear();
+        SSNewAccountingYear iYearData = se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.getCurrentYear();
 
         // Test so we have an active year
         if (iYearData == null) {
             throw new SSExportException(SSBundleString.getString("sieexport.noyear"));
         }
 
-        SSNewCompany iCompany = SSDB.getInstance().getCurrentCompany();
+        SSNewCompany iCompany = se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.getCurrentCompany();
 
         // Test so we have an active company
         if (iCompany == null) {

@@ -32,8 +32,8 @@ public class SSVATUtil {
      */
     public static BigDecimal getVatToPayOrRetrieve(Map<SSAccount, BigDecimal> creditMinusDebetSum) {
 	// Lagt till momskoder för importmoms: UI1 UI2 UI3
-        return SSAccountMath.getSumByVATCodeForAccounts(creditMinusDebetSum, "10U1", "10UVL",
-                "11U2", "12U3", "30UEU", "30UTFU", "48I", "48IVL", "60UI1", "61UI2", "62UI3");
+        return SSAccountMath.getSumByVATCodeForAccounts(creditMinusDebetSum, "10", "11",
+                "12", "30", "31", "32", "48", "60", "61", "62");
     }
 
     /**
@@ -82,8 +82,8 @@ public class SSVATUtil {
                 iFormat.format(SSDateUtil.toDate(iDateFrom)), iFormat.format(SSDateUtil.toDate(iDateTo)));
 	// Lagt till momskoder för importmoms: UI1 UI2 UI3
         List<SSAccount> iAccounts = SSAccountMath.getAccountsByVATCode(
-                se.swedsoft.bookkeeping.data.system.SSAccountingContext.getAccounts(), "10U1", "11U2", "12U3", "10UVL", "30UEU", "30UTFU",
-                "48I", "48IVL", "60UI1", "61UI2", "62UI3");
+                se.swedsoft.bookkeeping.data.system.SSAccountingContext.getAccounts(), "10", "11", "12", "30", "31", "32",
+                "48", "60", "61", "62");
         List<SSVoucher> iVouchers = SSVoucherMath.getVouchers(
                 se.swedsoft.bookkeeping.data.system.SSAccountingContext.getVouchers(), iDateFrom, iDateTo);
 

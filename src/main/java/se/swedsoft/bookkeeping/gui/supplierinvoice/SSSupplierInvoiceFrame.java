@@ -10,6 +10,7 @@ import se.swedsoft.bookkeeping.data.common.SSCurrency;
 import se.swedsoft.bookkeeping.data.system.SSDB;
 
 import se.swedsoft.bookkeeping.gui.SSMainFrame;
+import se.swedsoft.bookkeeping.gui.product.SSProductFrame;
 import se.swedsoft.bookkeeping.gui.outpayment.SSOutpaymentDialog;
 import se.swedsoft.bookkeeping.gui.outpayment.SSOutpaymentFrame;
 import se.swedsoft.bookkeeping.gui.suppliercreditinvoice.SSSupplierCreditInvoiceDialog;
@@ -73,6 +74,8 @@ public class SSSupplierInvoiceFrame extends SSDefaultTableFrame {
     }
 
     private SSTable iTable;
+
+    private JScrollPane iTableScrollPane;
 
     private SSSupplierInvoiceTableModel iModel;
 
@@ -309,6 +312,8 @@ public class SSSupplierInvoiceFrame extends SSDefaultTableFrame {
 
         iModel.setupTable(iTable);
 
+        iTableScrollPane = new JScrollPane(iTable);
+
         iTable.addDblClickListener(
                 e -> {
 
@@ -361,8 +366,21 @@ public class SSSupplierInvoiceFrame extends SSDefaultTableFrame {
     public void setFilterIndex(int index, List<SSSupplierInvoice> iInvoices) {
         JPanel iPanel = (JPanel) iTabbedPane.getComponentAt(index);
 
-        iPanel.removeAll();
-        iPanel.add(new JScrollPane(iTable), BorderLayout.CENTER);
+        // Move the shared scroll pane to the selected tab panel, if needed.
+        if (iTableScrollPane.getParent() != iPanel) {
+            Container iOldParent = iTableScrollPane.getParent();
+
+            if (iOldParent != null) {
+                iOldParent.remove(iTableScrollPane);
+                if (iOldParent instanceof JComponent) {
+                    ((JComponent) iOldParent).revalidate();
+                }
+            }
+            iPanel.removeAll();
+            iPanel.add(iTableScrollPane, BorderLayout.CENTER);
+            iPanel.revalidate();
+            iPanel.repaint();
+        }
 
         List<SSSupplierInvoice> iFiltered = Collections.emptyList();
 
@@ -397,6 +415,7 @@ public class SSSupplierInvoiceFrame extends SSDefaultTableFrame {
             break;
         }
         iModel.setObjects(iFiltered);
+        iTabbedPane.revalidate();
         iTabbedPane.repaint();
     }
 
@@ -473,6 +492,7 @@ public class SSSupplierInvoiceFrame extends SSDefaultTableFrame {
                 }
                 Repositories.supplierInvoices().delete(iSupplierInvoice);
             }
+            updateFrame();
         }
     }
 
@@ -484,8 +504,20 @@ public class SSSupplierInvoiceFrame extends SSDefaultTableFrame {
         return Repositories.supplierInvoices().findAll(iSupplierInvoices);
     }
 
+    /**
+     * Convenience method that updates the supplier invoice frame if it is currently open.
+     * Mirrors {@code SSInvoiceFrame.fireTableDataChanged()}.
+     */
+    public static void fireTableDataChanged() {
+        if (cInstance != null) {
+            cInstance.updateFrame();
+        }
+    }
+
     public void updateFrame() {
+        SSSupplierInvoiceMath.calculateSaldos();
         iSearchPanel.ApplyFilter(Repositories.supplierInvoices().findAll());
+        SSProductFrame.fireTableDataChanged();
     }
 
     public void actionPerformed(ActionEvent e) {

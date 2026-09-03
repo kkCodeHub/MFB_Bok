@@ -21,6 +21,11 @@ import java.util.Optional;
  */
 public class SSProductMath {
     private SSProductMath() {}
+    private static final int TENTHS_SCALE = 1;
+
+    static BigDecimal quantityToDecimal(Integer iQuantity) {
+        return BigDecimal.valueOf(iQuantity, TENTHS_SCALE);
+    }
 
     /**
      * Gets the product with the specific nr from the list, if any
@@ -46,7 +51,7 @@ public class SSProductMath {
      * @return
      */
     public static List<SSProduct> getNormalProducts() {
-        List<SSProduct> iProducts = SSDB.getInstance().getProducts();
+        List<SSProduct> iProducts = se.swedsoft.bookkeeping.data.system.SSProductContext.getProducts();
         List<SSProduct> iFiltered = new LinkedList<>();
 
         for (SSProduct iProduct : iProducts) {
@@ -218,7 +223,8 @@ public class SSProductMath {
                     return Optional.empty();
                 }
 
-                iInpriceSum = iInpriceSum.add(iInprice.get().multiply(new BigDecimal(iQuantity)));
+                BigDecimal iDecimalQuantity = quantityToDecimal(iQuantity);
+                iInpriceSum = iInpriceSum.add(iInprice.get().multiply(iDecimalQuantity));
 
             }
             return Optional.of(iInpriceSum);
@@ -366,6 +372,32 @@ public class SSProductMath {
         // TB / Enhetspris
         return Optional.of(iContribution.divide(iSellingPrice, 20, RoundingMode.HALF_UP).scaleByPowerOfTen(
                 2));
+
+    }
+
+    /**
+     * Returns the contribution rate for the specified product on the given date.
+     *
+     * @param iProduct      the product
+     * @param iDate         the reference date (not used in the calculation, kept for API symmetry)
+     * @param iContribution the pre-calculated contribution
+     * @return the contribution rate, or empty if it cannot be calculated
+     */
+    public static Optional<BigDecimal> getContributionRate(SSProduct iProduct, LocalDate iDate,
+            BigDecimal iContribution) {
+        BigDecimal iSellingPrice = iProduct.getSellingPrice();
+
+        if (iContribution == null || iSellingPrice == null) {
+            return Optional.empty();
+        }
+
+        if (iSellingPrice.signum() == 0) {
+            return Optional.empty();
+        }
+
+        // TB / Enhetspris
+        return Optional.of(iContribution.divide(iSellingPrice, 20, RoundingMode.HALF_UP).scaleByPowerOfTen(
+                2));
     }
 
     /**
@@ -385,14 +417,16 @@ public class SSProductMath {
      * @return
      */
     public static Integer getSaleCount(SSProduct iProduct, Date iFrom, Date iTo) {
-        List<SSInvoice>       iInvoices = SSDB.getInstance().getInvoices();
-        List<SSCreditInvoice> iCreditInvoices = SSDB.getInstance().getCreditInvoices();
+        LocalDate iLocalFrom = SSDateUtil.toLocalDate(iFrom);
+        LocalDate iLocalTo = SSDateUtil.toLocalDate(iTo);
+        List<SSInvoice>       iInvoices = se.swedsoft.bookkeeping.data.system.SSSalesContext.getInvoices();
+        List<SSCreditInvoice> iCreditInvoices = se.swedsoft.bookkeeping.data.system.SSSalesContext.getCreditInvoices();
 
         Integer iSaleCount = 0;
 
         for (SSInvoice iInvoice : iInvoices) {
 
-            if (SSInvoiceMath.inPeriod(iInvoice, iFrom, iTo)) {
+            if (SSInvoiceMath.inPeriod(iInvoice, iLocalFrom, iLocalTo)) {
                 Integer iCount = SSInvoiceMath.getProductCount(iInvoice, iProduct);
 
                 if (iCount != null) {
@@ -402,7 +436,7 @@ public class SSProductMath {
         }
 
         for (SSCreditInvoice iCreditInvoice : iCreditInvoices) {
-            if (SSCreditInvoiceMath.inPeriod(iCreditInvoice, iFrom, iTo)) {
+            if (SSCreditInvoiceMath.inPeriod(iCreditInvoice, iLocalFrom, iLocalTo)) {
                 Integer iCount = SSCreditInvoiceMath.getProductCount(iCreditInvoice,
                         iProduct);
 
@@ -431,15 +465,17 @@ public class SSProductMath {
      * @return
      */
     public static BigDecimal getAverageSellingPrice(SSProduct iProduct, Date iFrom, Date iTo) {
-        List<SSInvoice>       iInvoices = SSDB.getInstance().getInvoices();
-        List<SSCreditInvoice> iCreditInvoices = SSDB.getInstance().getCreditInvoices();
+        LocalDate iLocalFrom = SSDateUtil.toLocalDate(iFrom);
+        LocalDate iLocalTo = SSDateUtil.toLocalDate(iTo);
+        List<SSInvoice>       iInvoices = se.swedsoft.bookkeeping.data.system.SSSalesContext.getInvoices();
+        List<SSCreditInvoice> iCreditInvoices = se.swedsoft.bookkeeping.data.system.SSSalesContext.getCreditInvoices();
 
         BigDecimal iSum = new BigDecimal(0);
         Integer    iCount = 0;
 
         for (SSInvoice iInvoice : iInvoices) {
-            if (iFrom == null || iTo == null
-                    || SSInvoiceMath.inPeriod(iInvoice, iFrom, iTo)) {
+            if (iLocalFrom == null || iLocalTo == null
+                    || SSInvoiceMath.inPeriod(iInvoice, iLocalFrom, iLocalTo)) {
 
                 List<SSSaleRow> iRows = SSInvoiceMath.getRowsForProduct(iInvoice, iProduct);
 
@@ -452,7 +488,8 @@ public class SSProductMath {
                         continue;
                     }
 
-                    BigDecimal iValue = iUnitprice.multiply(new BigDecimal(iQuantity));
+                    BigDecimal iDecimalQuantity = quantityToDecimal(iQuantity);
+                    BigDecimal iValue = iUnitprice.multiply(iDecimalQuantity);
 
                     if (iDiscount != null) {
                         iValue = iValue.subtract(iValue.multiply(iDiscount));
@@ -468,8 +505,8 @@ public class SSProductMath {
             }
         }
         for (SSCreditInvoice iCreditInvoice : iCreditInvoices) {
-            if (iFrom == null || iTo == null
-                    || SSCreditInvoiceMath.inPeriod(iCreditInvoice, iFrom, iTo)) {
+            if (iLocalFrom == null || iLocalTo == null
+                    || SSCreditInvoiceMath.inPeriod(iCreditInvoice, iLocalFrom, iLocalTo)) {
 
                 List<SSSaleRow> iRows = SSCreditInvoiceMath.getRowsForProduct(
                         iCreditInvoice, iProduct);
@@ -483,7 +520,8 @@ public class SSProductMath {
                         continue;
                     }
 
-                    BigDecimal iValue = iUnitprice.multiply(new BigDecimal(iQuantity));
+                    BigDecimal iDecimalQuantity = quantityToDecimal(iQuantity);
+                    BigDecimal iValue = iUnitprice.multiply(iDecimalQuantity);
 
                     if (iDiscount != null) {
                         iValue = iValue.subtract(iValue.multiply(iDiscount));

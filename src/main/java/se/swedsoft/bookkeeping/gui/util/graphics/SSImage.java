@@ -37,7 +37,7 @@ public class SSImage {    private static final Logger LOG = LoggerFactory.getLog
         loadImage("OCRBackground", "OCRBackground.png");
         loadImage("CHECK", "Check.png");
         loadImage("SERVER", "Server.png");
-        loadImage("ICON_LOGO", "Logo_Icon16.png");
+        loadImage("ICON_LOGO", "Logo_Icon24.png");
     }
 
     /**

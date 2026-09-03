@@ -20,7 +20,7 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.Date;
+import java.time.LocalDate;
 import java.util.List;
 
 
@@ -91,10 +91,10 @@ public class SSCreditInvoiceListDialog extends SSDialog {
      */
     public List<SSCreditInvoice> getInvoicesToPrint() {
 
-        // final List<SSInvoice>  iInvoices  = SSDB.getInstance().getInvoices();
-        final List<SSCustomer> iCustomers = SSDB.getInstance().getCustomers();
+        // final List<SSInvoice>  iInvoices  = se.swedsoft.bookkeeping.data.system.SSSalesContext.getInvoices();
+        final List<SSCustomer> iCustomers = se.swedsoft.bookkeeping.data.system.SSSalesContext.getCustomers();
 
-        List<SSCreditInvoice> iInvoices = SSDB.getInstance().getCreditInvoices();
+        List<SSCreditInvoice> iInvoices = se.swedsoft.bookkeeping.data.system.SSSalesContext.getCreditInvoices();
 
         SSFilterFactory<SSCreditInvoice> iFactory = new SSFilterFactory<>(
                 iInvoices);
@@ -112,8 +112,8 @@ public class SSCreditInvoiceListDialog extends SSDialog {
         }
         // Filter by date
         if (iCheckDate.isSelected()) {
-            final Date iDateFrom = iFromDate.getDate();
-            final Date iDateTo = iToDate.getDate();
+            final LocalDate iDateFrom = iFromDate.getLocalDate();
+            final LocalDate iDateTo = iToDate.getLocalDate();
 
             iFactory.applyFilter(new SSFilter<>() {
                 public boolean applyFilter(SSCreditInvoice iInvoice) {

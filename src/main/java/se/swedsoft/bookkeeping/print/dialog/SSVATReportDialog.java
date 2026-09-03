@@ -13,6 +13,7 @@ import se.swedsoft.bookkeeping.gui.util.components.SSTableComboBox;
 import se.swedsoft.bookkeeping.gui.util.datechooser.SSDateChooser;
 import se.swedsoft.bookkeeping.gui.util.dialogs.SSDialog;
 import se.swedsoft.bookkeeping.gui.util.model.SSAccountTableModel;
+import se.swedsoft.bookkeeping.util.SSDateUtil;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
@@ -89,15 +90,15 @@ public class SSVATReportDialog extends SSDialog {    private static final Logger
         });
 
         iAccountR1.setSelected(
-                SSAccountMath.getAccountWithVATCode(SSDB.getInstance().getAccounts(), "R1",
+                SSAccountMath.getAccountWithVATCode(se.swedsoft.bookkeeping.data.system.SSAccountingContext.getAccounts(), "R1",
                 new SSAccount(1650)).orElse(null),
                 true);
         iAccountR2.setSelected(
-                SSAccountMath.getAccountWithVATCode(SSDB.getInstance().getAccounts(), "R2",
+                SSAccountMath.getAccountWithVATCode(se.swedsoft.bookkeeping.data.system.SSAccountingContext.getAccounts(), "R2",
                 new SSAccount(2650)).orElse(null),
                 true);
         iAccountA.setSelected(
-                SSAccountMath.getAccountWithVATCode(SSDB.getInstance().getAccounts(), "A",
+                SSAccountMath.getAccountWithVATCode(se.swedsoft.bookkeeping.data.system.SSAccountingContext.getAccounts(), "A",
                 new SSAccount(3740)).orElse(null),
                 true);
 
@@ -106,7 +107,7 @@ public class SSVATReportDialog extends SSDialog {    private static final Logger
 
 	getRootPane().setDefaultButton(iButtonPanel.getOkButton());
 
-        SSNewCompany iCurrentCompany = SSDB.getInstance().getCurrentCompany();
+        SSNewCompany iCurrentCompany = se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.getCurrentCompany();
 
         LocalDate now = LocalDate.now();
         int vatMonths = (iCurrentCompany.getVatPeriod() != null
@@ -115,45 +116,43 @@ public class SSVATReportDialog extends SSDialog {    private static final Logger
                 : 1;
         LocalDate fromDate = now.minusMonths(vatMonths)
                 .with(TemporalAdjusters.firstDayOfMonth());
-        iFrom.setDate(se.swedsoft.bookkeeping.util.SSDateUtil.toDate(fromDate));
+        iFrom.setLocalDate(fromDate);
 
         LocalDate toDate = now.minusMonths(1)
                 .with(TemporalAdjusters.lastDayOfMonth());
-        iTo.setDate(se.swedsoft.bookkeeping.util.SSDateUtil.toDate(toDate));
+        iTo.setLocalDate(toDate);
 
     }
 
     /**
-     *
-     * @return
+     * @return the end date as a {@link LocalDate}
      */
-    public Date getTo() {
-        return iTo.getDate();
+    public LocalDate getLocalTo() {
+        return iTo.getLocalDate();
     }
 
     /**
-     *
-     * @param to
+     * @param to the end date
      */
-    public void setTo(Date to) {
-        iTo.setDate(to);
+    public void setLocalTo(LocalDate to) {
+        iTo.setLocalDate(to);
     }
 
     /**
-     *
-     * @return
+     * @return the start date as a {@link LocalDate}
      */
-    public Date getFrom() {
-        return iFrom.getDate();
+    public LocalDate getLocalFrom() {
+        return iFrom.getLocalDate();
     }
 
     /**
-     *
-     * @param from
+     * @param from the start date
      */
-    public void setFrom(Date from) {
-        iFrom.setDate(from);
+    public void setLocalFrom(LocalDate from) {
+        iFrom.setLocalDate(from);
     }
+
+
 
     /**
      *

@@ -54,6 +54,7 @@ public class SSIndeliveryPanel {
         iTable.setColorReadOnly(true);
         iTable.setColumnSortingEnabled(false);
         iTable.setSingleSelect();
+        iTable.setSelectionForeground(Color.BLACK);
 
         iModel = new SSIndeliveryRowTableModel();
         iModel.addColumn(SSIndeliveryRowTableModel.COLUMN_PRODUCT, true);

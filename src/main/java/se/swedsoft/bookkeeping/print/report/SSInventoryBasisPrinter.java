@@ -6,15 +6,18 @@ import se.swedsoft.bookkeeping.data.SSAccount;
 import se.swedsoft.bookkeeping.data.SSProduct;
 import se.swedsoft.bookkeeping.data.SSStock;
 import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.data.system.SSProductContext;
 import se.swedsoft.bookkeeping.gui.util.SSBundle;
 import se.swedsoft.bookkeeping.gui.util.graphics.SSImage;
 import se.swedsoft.bookkeeping.gui.util.model.SSDefaultTableModel;
 import se.swedsoft.bookkeeping.print.SSPrinter;
+import se.swedsoft.bookkeeping.print.util.SSQuantityPrintUtil;
+import se.swedsoft.bookkeeping.util.SSDateUtil;
 
 import java.text.DateFormat;
+import java.time.LocalDate;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.List;
 
 
@@ -33,7 +36,7 @@ public class SSInventoryBasisPrinter extends SSPrinter {
      */
     public SSInventoryBasisPrinter() {
         // Get all stock products
-        iProducts = SSProductMath.getStockProducts(SSDB.getInstance().getProducts());
+        iProducts = SSProductMath.getStockProducts(SSProductContext.getProducts());
         iStock = new SSStock();
 
         iStock.update();
@@ -44,19 +47,18 @@ public class SSInventoryBasisPrinter extends SSPrinter {
     }
 
     /**
-     *
-     * @param iDate
+     * @param iDate the cutoff date for inventory calculation
      */
-    public SSInventoryBasisPrinter(Date iDate) {
+    public SSInventoryBasisPrinter(LocalDate iDate) {
         // Get all stock products
-        iProducts = SSProductMath.getStockProducts(SSDB.getInstance().getProducts());
+        iProducts = SSProductMath.getStockProducts(SSProductContext.getProducts());
         iStock = new SSStock();
 
         iStock.update(iDate);
 
         addParameter("periodTitle",
                 SSBundle.getBundle().getString("inventorybasisreport.periodtitle"));
-        addParameter("periodText", iDate);
+        addParameter("periodText", SSDateUtil.toDate(iDate));
 
         setPageHeader("header_period.jrxml");
         setColumnHeader("inventorybasis.jrxml");
@@ -114,7 +116,7 @@ public class SSInventoryBasisPrinter extends SSPrinter {
                     break;
 
                 case 4:
-                    value = iStock.getQuantity(iProduct);
+                    value = SSQuantityPrintUtil.toDisplay(iStock.getQuantity(iProduct));
                     break;
 
                 case 5:

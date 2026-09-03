@@ -4,11 +4,14 @@ package se.swedsoft.bookkeeping.gui.indelivery.util;
 import se.swedsoft.bookkeeping.calc.math.SSIndeliveryMath;
 import se.swedsoft.bookkeeping.data.SSIndelivery;
 import se.swedsoft.bookkeeping.gui.util.SSBundle;
+import se.swedsoft.bookkeeping.gui.util.SSQuantityPresentationUtil;
+import se.swedsoft.bookkeeping.gui.util.table.editors.SSBigDecimalCellRenderer;
 import se.swedsoft.bookkeeping.gui.util.table.model.SSTableColumn;
 import se.swedsoft.bookkeeping.gui.util.table.model.SSTableModel;
 import se.swedsoft.bookkeeping.persistence.Repositories;
 import se.swedsoft.bookkeeping.util.SSDateUtil;
 
+import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
 
@@ -130,17 +133,20 @@ public class SSIndeliveryTableModel extends SSTableModel<SSIndelivery> {
             SSBundle.getBundle().getString("indeliverytable.column.4")) {
         @Override
         public Object getValue(SSIndelivery iIndelivery) {
-            return SSIndeliveryMath.getTotalCount(iIndelivery);
+            return SSQuantityPresentationUtil.toDisplayQuantity(SSIndeliveryMath.getTotalCount(iIndelivery));
         }
 
         @Override
-        public void setValue(SSIndelivery iIndelivery, Object iValue) {
-            iIndelivery.setText((String) iValue);
-        }
+        public void setValue(SSIndelivery iIndelivery, Object iValue) {}
 
         @Override
         public Class getColumnClass() {
-            return String.class;
+            return BigDecimal.class;
+        }
+
+        @Override
+        public SSBigDecimalCellRenderer getCellRenderer() {
+            return new SSBigDecimalCellRenderer(1);
         }
 
         @Override

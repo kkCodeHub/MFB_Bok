@@ -8,6 +8,9 @@ import se.swedsoft.bookkeeping.gui.util.components.SSBigDecimalTextField;
 import javax.swing.*;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 
 
 /**
@@ -24,6 +27,7 @@ public class SSCompanyPageTax extends SSCompanyPage {
     private SSBigDecimalTextField iTaxRate1;
     private SSBigDecimalTextField iTaxRate2;
     private SSBigDecimalTextField iTaxRate3;
+    private JComponent iFirstInvalidComponent;
 
     /**
      * @param iDialog
@@ -99,6 +103,34 @@ public class SSCompanyPageTax extends SSCompanyPage {
                 }
             }
         });
+    }
+
+    @Override
+    public List<String> validatePage() {
+        List<String> iErrors = new ArrayList<>();
+        iFirstInvalidComponent = null;
+
+        validateTaxRate(iErrors, iTaxRate1, "Tax page: Tax rate 1", iTaxRate1.getValue());
+        validateTaxRate(iErrors, iTaxRate2, "Tax page: Tax rate 2", iTaxRate2.getValue());
+        validateTaxRate(iErrors, iTaxRate3, "Tax page: Tax rate 3", iTaxRate3.getValue());
+        return iErrors;
+    }
+
+    @Override
+    public JComponent getFirstInvalidComponent() {
+        return iFirstInvalidComponent;
+    }
+
+    private void validateTaxRate(List<String> iErrors, JComponent iField, String iLabel, BigDecimal iRate) {
+        if (iRate == null) {
+            return;
+        }
+        if (iRate.compareTo(BigDecimal.ZERO) < 0 || iRate.compareTo(new BigDecimal("100")) > 0) {
+            iErrors.add(iLabel + " must be between 0 and 100.");
+            if (iFirstInvalidComponent == null) {
+                iFirstInvalidComponent = iField;
+            }
+        }
     }
 
     @Override

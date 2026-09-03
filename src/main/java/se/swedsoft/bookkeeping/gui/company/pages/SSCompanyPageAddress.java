@@ -2,10 +2,13 @@ package se.swedsoft.bookkeeping.gui.company.pages;
 
 
 import se.swedsoft.bookkeeping.data.SSNewCompany;
+import se.swedsoft.bookkeeping.data.system.SSCompanyValidationRules;
 import se.swedsoft.bookkeeping.gui.company.panel.SSAdressPanel;
 import se.swedsoft.bookkeeping.gui.util.SSBundle;
 
 import javax.swing.*;
+import java.util.ArrayList;
+import java.util.List;
 
 
 /**
@@ -88,6 +91,24 @@ public class SSCompanyPageAddress extends SSCompanyPage {
         }
 
         return iCompany;
+    }
+
+    @Override
+    public List<String> validatePage() {
+        List<String> iErrors = new ArrayList<>();
+        validatePostalCode(iErrors, iAdress, "Postadress");
+        validatePostalCode(iErrors, iDelivery, "Leveransadress");
+        return iErrors;
+    }
+
+    private void validatePostalCode(List<String> iErrors, SSAdressPanel iPanel, String iLabel) {
+        if (iPanel == null) {
+            return;
+        }
+        String iZip = iPanel.getZipCode();
+        if (!SSCompanyValidationRules.isValidSwedishPostalCode(iZip)) {
+            iErrors.add(iLabel + ": Postnummer ska bestå av 5 siffror, t.ex. 11122 eller 111 22.");
+        }
     }
 
     @Override

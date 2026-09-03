@@ -32,7 +32,7 @@ public enum SSTaxCode implements SSTableSearchable {
      * @return The searchable string
      */
     public String toRenderString() {
-        SSNewCompany iCompany = SSDB.getInstance().getCurrentCompany();
+        SSNewCompany iCompany = se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.getCurrentCompany();
 
         if (iCompany != null) {
             NumberFormat iFormat = NumberFormat.getNumberInstance();

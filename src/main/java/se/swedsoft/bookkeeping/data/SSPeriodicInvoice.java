@@ -10,7 +10,6 @@ import se.swedsoft.bookkeeping.gui.util.SSBundle;
 import se.swedsoft.bookkeeping.util.SSDateUtil;
 
 import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.io.Serializable;
 import java.text.DateFormat;
 import java.time.LocalDate;
@@ -52,7 +51,7 @@ public class SSPeriodicInvoice implements Serializable {
 
     // Fakturor
     private List<SSInvoice> iInvoices;
-    // Tillagta fakturor
+    // Tillagda fakturor
     private Map<Integer, Boolean> iAdded;
 
     // ////////////////////////////////////////////////////////////////////////////////
@@ -117,7 +116,7 @@ public class SSPeriodicInvoice implements Serializable {
      * Auto increment the sales number
      */
     public void doAutoIncrecement() {
-        List<SSPeriodicInvoice> iPeriodicInvoices = SSDB.getInstance().getPeriodicInvoices();
+        List<SSPeriodicInvoice> iPeriodicInvoices = se.swedsoft.bookkeeping.data.system.SSSalesContext.getPeriodicInvoices();
 
         int iMax = 0;
 
@@ -173,26 +172,6 @@ public class SSPeriodicInvoice implements Serializable {
     }
 
     // //////////////////////////////////////////////////
-
-    /**
-     *
-     * @return
-     */
-    @Deprecated
-    public Date getDate() {
-        return SSDateUtil.toDate(iDate);
-    }
-
-    /**
-     *
-     * @param iValue
-     */
-    @Deprecated
-    public void setDate(Date iValue) {
-        iDate = SSDateUtil.toLocalDate(iValue);
-
-        // createInvoices();
-    }
 
     /**
      * @return the date as a LocalDate
@@ -268,26 +247,6 @@ public class SSPeriodicInvoice implements Serializable {
     // //////////////////////////////////////////////////
 
     /**
-     *
-     * @return
-     */
-    @Deprecated
-    public Date getPeriodStart() {
-        return SSDateUtil.toDate(iPeriodStart);
-    }
-
-    /**
-     *
-     * @param iPeriodStart
-     */
-    @Deprecated
-    public void setPeriodStart(Date iPeriodStart) {
-        this.iPeriodStart = SSDateUtil.toLocalDate(iPeriodStart);
-
-        // createInvoices();
-    }
-
-    /**
      * @return the period start date as a LocalDate
      */
     public LocalDate getLocalPeriodStart() {
@@ -302,26 +261,6 @@ public class SSPeriodicInvoice implements Serializable {
     }
 
     // //////////////////////////////////////////////////
-
-    /**
-     *
-     * @return
-     */
-    @Deprecated
-    public Date getPeriodEnd() {
-        return SSDateUtil.toDate(iPeriodEnd);
-    }
-
-    /**
-     *
-     * @param iPeriodEnd
-     */
-    @Deprecated
-    public void setPeriodEnd(Date iPeriodEnd) {
-        this.iPeriodEnd = SSDateUtil.toLocalDate(iPeriodEnd);
-
-        // createInvoices();
-    }
 
     /**
      * @return the period end date as a LocalDate
@@ -389,7 +328,8 @@ public class SSPeriodicInvoice implements Serializable {
         Integer iNumber = iInvoice.getNumber();
 
         if (iNumber != null) {
-            return iAdded.get(iNumber);
+            Boolean added = iAdded.get(iNumber);
+            return added != null && added;
         } else {
             return true;
         }
@@ -458,10 +398,6 @@ public class SSPeriodicInvoice implements Serializable {
      * @param iDate
      * @return
      */
-    public List<SSInvoice> getInvoices(Date iDate) {
-        return getInvoices(SSDateUtil.toLocalDate(iDate));
-    }
-
     public List<SSInvoice> getInvoices(LocalDate iDate) {
         List<SSInvoice> iFiltered = new LinkedList<>();
 
@@ -473,7 +409,7 @@ public class SSPeriodicInvoice implements Serializable {
             }
 
             // The invoice date is before the date
-            if (SSInvoiceMath.inPeriod(iInvoice, SSDateUtil.toDate(iDate))) {
+            if (SSInvoiceMath.inPeriod(iInvoice, iDate)) {
                 iFiltered.add(iInvoice);
             }
         }
@@ -485,10 +421,6 @@ public class SSPeriodicInvoice implements Serializable {
      *
      * @return the date
      */
-    public Optional<Date> getNextDate() {
-        return getNextLocalDate().map(SSDateUtil::toDate);
-    }
-
     public Optional<LocalDate> getNextLocalDate() {
 
         for (SSInvoice iInvoice : getInvoices()) {
@@ -508,9 +440,25 @@ public class SSPeriodicInvoice implements Serializable {
     public void createInvoices() {
         iInvoices = new LinkedList<>();
 
-        if (iPeriod == null || iPeriodStart == null || iPeriodEnd == null
-                || iTemplate == null) {
+        if (iTemplate == null) {
             return;
+        }
+
+        // Normalize legacy/null values so generated invoices can still be built.
+        if (iCount == null || iCount <= 0) {
+            iCount = 1;
+        }
+        if (iPeriod == null || iPeriod <= 0) {
+            iPeriod = 1;
+        }
+        if (iDate == null) {
+            iDate = SSDateUtil.today();
+        }
+        if (iPeriodStart == null) {
+            iPeriodStart = SSDateMath.getFirstDayInMonth(iDate);
+        }
+        if (iPeriodEnd == null) {
+            iPeriodEnd = SSDateMath.addMonths(iPeriodStart, iPeriod).minusDays(1);
         }
 
         LocalDate iDate = this.iDate;
@@ -612,29 +560,4 @@ public class SSPeriodicInvoice implements Serializable {
         return sb.toString();
     }
 
-    /**
-     * Custom deserialization to handle backward compatibility.
-     * Pre-migration serialized streams stored {@code iDate}, {@code iPeriodStart}, and
-     * {@code iPeriodEnd} as {@code java.util.Date}.  This method reads them as raw
-     * objects and converts via {@link SSDateUtil#readLocalDate(Object)}.
-     * Fields {@code iAppendInformation} and {@code iInformation} may not exist in
-     * older serialized blobs, so they use safe defaults.
-     */
-    @SuppressWarnings("unchecked")
-    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
-        ObjectInputStream.GetField fields = in.readFields();
-        iNumber = (Integer) fields.get("iNumber", null);
-        iTemplate = (SSInvoice) fields.get("iTemplate", null);
-        iDate = SSDateUtil.readLocalDate(fields.get("iDate", null));
-        iCount = (Integer) fields.get("iCount", null);
-        iPeriod = (Integer) fields.get("iPeriod", null);
-        iDescription = (String) fields.get("iDescription", null);
-        iPeriodStart = SSDateUtil.readLocalDate(fields.get("iPeriodStart", null));
-        iPeriodEnd = SSDateUtil.readLocalDate(fields.get("iPeriodEnd", null));
-        iAppendPeriod = fields.get("iAppendPeriod", false);
-        iAppendInformation = fields.get("iAppendInformation", false);
-        iInformation = (String) fields.get("iInformation", null);
-        iInvoices = (List<SSInvoice>) fields.get("iInvoices", null);
-        iAdded = (Map<Integer, Boolean>) fields.get("iAdded", null);
-    }
 }

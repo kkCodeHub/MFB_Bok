@@ -1,294 +1,253 @@
 package se.swedsoft.bookkeeping.gui.accountplans;
 
-
+import org.fribok.bookkeeping.app.Path;
 import se.swedsoft.bookkeeping.data.SSAccountPlan;
 import se.swedsoft.bookkeeping.data.SSNewAccountingYear;
-import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.data.system.SSAccountingContext;
 import se.swedsoft.bookkeeping.gui.SSMainFrame;
 import se.swedsoft.bookkeeping.gui.accountplans.panel.SSAccountPlanPanel;
+import se.swedsoft.bookkeeping.gui.accountplans.util.SSAccountPlanTableModel;
 import se.swedsoft.bookkeeping.gui.util.SSBundle;
 import se.swedsoft.bookkeeping.gui.util.dialogs.SSDialog;
 import se.swedsoft.bookkeeping.gui.util.dialogs.SSErrorDialog;
 import se.swedsoft.bookkeeping.gui.util.dialogs.SSQueryDialog;
+import se.swedsoft.bookkeeping.gui.util.filechooser.SSExcelFileChooser;
+import se.swedsoft.bookkeeping.importexport.excel.SSAccountPlanImporter;
+import se.swedsoft.bookkeeping.importexport.util.SSImportException;
 
 import javax.swing.*;
-import javax.swing.table.AbstractTableModel;
 import java.awt.*;
-import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
+import java.io.UncheckedIOException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.ResourceBundle;
 
-
-/**
- * User: Andreas Lago
- * Date: 2006-okt-13
- * Time: 11:18:45
- */
 public class SSAccountPlanDialog {
 
-    private static ResourceBundle bundle = SSBundle.getBundle();
+    private static final ResourceBundle BUNDLE = SSBundle.getBundle();
 
-    private SSAccountPlanDialog() {}
-
-    /**
-     *
-     * @param iMainFrame
-     * @param iModel
-     */
-    public static void newDialog(final SSMainFrame iMainFrame, final AbstractTableModel iModel) {
-        final SSDialog           iDialog = new SSDialog(iMainFrame,
-                bundle.getString("accountplanframe.new.title"));
-        final SSAccountPlanPanel iPanel = new SSAccountPlanPanel(iMainFrame);
-
-        iPanel.setAccountPlan(new SSAccountPlan());
-        iPanel.setShowBase(false);
-        // iPanel.setShowImport(false);
-
-        final ActionListener iSaveAction = e -> {
-
-                SSAccountPlan iAccountPlan = iPanel.getAccountPlan();
-
-                List<SSAccountPlan> iPlans = SSDB.getInstance().getAccountPlans();
-
-                for (SSAccountPlan pAccountPlan : iPlans) {
-                    if (iAccountPlan.getName().equals(pAccountPlan.getName())) {
-                        new SSErrorDialog(iMainFrame, "accountplanframe.duplicate",
-                                iAccountPlan.getName());
-                        return;
-                    }
-                }
-
-                SSDB.getInstance().addAccountPlan(iAccountPlan);
-
-                if (iModel != null) {
-                    iModel.fireTableDataChanged();
-                }
-
-                iDialog.closeDialog();
-
-            };
-
-        iPanel.addOkAction(iSaveAction);
-
-        iPanel.addCancelAction(e -> iDialog.closeDialog());
-        iDialog.addWindowListener(
-                new WindowAdapter() {
-            @Override
-            public void windowClosing(WindowEvent e) {
-                if (!iPanel.isValid()) {
-                    return;
-                }
-                if (SSQueryDialog.showDialog(iMainFrame, SSBundle.getBundle(),
-                        "accountplanframe.saveonclose")
-                        != JOptionPane.OK_OPTION) {
-                    return;
-                }
-
-                iSaveAction.actionPerformed(null);
-            }
-        });
-
-        iDialog.add(iPanel.getPanel(), BorderLayout.CENTER);
-        iDialog.setSize(600, 450);
-        iDialog.setLocationRelativeTo(iMainFrame);
-        iDialog.setVisible();
+    private SSAccountPlanDialog() {
     }
 
-    /**
-     *
-     * @param iMainFrame
-     * @param iAccountPlan
-     * @param iModel
-     */
-    public static void editDialog(final SSMainFrame iMainFrame, SSAccountPlan iAccountPlan, final AbstractTableModel iModel) {
-        final String iName = iAccountPlan.getName();
-        final SSDialog           iDialog = new SSDialog(iMainFrame,
-                bundle.getString("accountplanframe.edit.title"));
-        final SSAccountPlanPanel iPanel = new SSAccountPlanPanel(iMainFrame);
+    public static void newDialog(final SSMainFrame iMainFrame) {
+        File dataDir = Path.get(Path.USER_DATA);
+        if (!dataDir.exists()) {
+            dataDir.mkdirs();
+        }
 
-        final SSAccountPlan iOriginal = iAccountPlan;
+        SSExcelFileChooser chooser = SSExcelFileChooser.getInstance();
+        chooser.setCurrentDirectory(dataDir);
+        if (chooser.showOpenDialog(iMainFrame) != JFileChooser.APPROVE_OPTION) {
+            return;
+        }
 
-        iPanel.setAccountPlan(new SSAccountPlan(iAccountPlan));
-        iPanel.setShowBase(false);
-        // iPanel.setShowImport(false);
-
-        final ActionListener iSaveAction = e -> {
-
-                SSAccountPlan iAccountPlan1 = iPanel.getAccountPlan();
-
-                List<SSAccountPlan> iPlans = SSDB.getInstance().getAccountPlans();
-
-                for (SSAccountPlan pAccountPlan : iPlans) {
-                    if (iAccountPlan1.getName().equals(pAccountPlan.getName())
-                            && !iAccountPlan1.getName().equals(iName)) {
-                        new SSErrorDialog(iMainFrame, "accountplanframe.duplicate",
-                                iAccountPlan1.getName());
-                        return;
-                    }
-                }
-
-                iOriginal.copyFrom(iAccountPlan1);
-                SSDB.getInstance().updateAccountPlan(iOriginal);
-
-                if (iModel != null) {
-                    iModel.fireTableDataChanged();
-                }
-                iDialog.closeDialog();
-
-            };
-
-        iPanel.addOkAction(iSaveAction);
-
-        iPanel.addCancelAction(e -> iDialog.closeDialog());
-        iDialog.addWindowListener(
-                new WindowAdapter() {
-            @Override
-            public void windowClosing(WindowEvent e) {
-                if (!iPanel.isValid()) {
-                    return;
-                }
-
-                if (SSQueryDialog.showDialog(iMainFrame, SSBundle.getBundle(),
-                        "accountplanframe.saveonclose")
-                        != JOptionPane.OK_OPTION) {
-                    return;
-                }
-
-                iSaveAction.actionPerformed(null);
-            }
-        });
-
-        iDialog.add(iPanel.getPanel(), BorderLayout.CENTER);
-        iDialog.setSize(600, 450);
-        iDialog.setLocationRelativeTo(iMainFrame);
-        iDialog.setVisible();
+        try {
+            SSAccountPlanImporter.doImport(chooser.getSelectedFile());
+            SSAccountPlanFrame.fireTableDataChanged();
+        } catch (IOException ex) {
+            SSErrorDialog.showDialog(iMainFrame, "", ex.getLocalizedMessage());
+        } catch (SSImportException ex) {
+            SSErrorDialog.showDialog(iMainFrame, "", ex.getLocalizedMessage());
+        }
     }
 
-    /**
-     *
-     * @param iMainFrame
-     * @param iAccountPlan
-     * @param iModel
-     */
-    public static void copyDialog(final SSMainFrame iMainFrame, SSAccountPlan iAccountPlan, final AbstractTableModel iModel) {
-        final SSDialog           iDialog = new SSDialog(iMainFrame,
-                bundle.getString("accountplanframe.copy.title"));
-        final SSAccountPlanPanel iPanel = new SSAccountPlanPanel(iMainFrame);
+    public static void editDialog(final SSMainFrame iMainFrame, SSAccountPlan iAccountPlan) {
+        if (iAccountPlan != null && iAccountPlan.isTemplatePlan()) {
+            SSErrorDialog.showDialog(iMainFrame, "", "Template account plans cannot be changed.");
+            return;
+        }
 
-        iPanel.setAccountPlan(new SSAccountPlan(iAccountPlan));
-        iPanel.setShowBase(false);
-        // iPanel.setShowImport(false);
+        final SSDialog dialog = new SSDialog(iMainFrame, BUNDLE.getString("accountplanframe.edit.title"));
+        final SSAccountPlanPanel panel = new SSAccountPlanPanel(iMainFrame);
+        final SSAccountPlan original = iAccountPlan;
 
-        final ActionListener iSaveAction = e -> {
+        panel.setAccountPlan(new SSAccountPlan(iAccountPlan));
+        panel.setShowBase(false);
+        final byte[] initialState = serializeAccountPlan(panel.getAccountPlan());
 
-                SSAccountPlan iAccountPlan1 = iPanel.getAccountPlan();
-
-                List<SSAccountPlan> iPlans = SSDB.getInstance().getAccountPlans();
-
-                for (SSAccountPlan pAccountPlan : iPlans) {
-                    if (iAccountPlan1.getName().equals(pAccountPlan.getName())) {
-                        new SSErrorDialog(iMainFrame, "accountplanframe.duplicate",
-                                iAccountPlan1.getName());
-                        return;
-                    }
-                }
-
-                SSDB.getInstance().addAccountPlan(iAccountPlan1);
-
-                if (iModel != null) {
-                    iModel.fireTableDataChanged();
-                }
-
-                iDialog.closeDialog();
-
-            };
-
-        iPanel.addOkAction(iSaveAction);
-
-        iPanel.addCancelAction(e -> iDialog.closeDialog());
-        iDialog.addWindowListener(
-                new WindowAdapter() {
-            @Override
-            public void windowClosing(WindowEvent e) {
-                if (!iPanel.isValid()) {
+        ActionListener saveAction = e -> {
+            SSAccountPlan workingCopy = panel.getAccountPlan();
+            List<SSAccountPlan> plans = SSAccountingContext.getAccountPlans();
+            for (SSAccountPlan plan : plans) {
+                if (workingCopy.getName().equals(plan.getName()) && !workingCopy.getName().equals(iAccountPlan.getName())) {
+                    new SSErrorDialog(iMainFrame, "accountplanframe.duplicate", workingCopy.getName());
                     return;
                 }
+            }
 
-                if (SSQueryDialog.showDialog(iMainFrame, SSBundle.getBundle(),
-                        "accountplanframe.saveonclose")
+            original.copyFrom(workingCopy);
+            SSAccountingContext.updateAccountPlan(original);
+            SSAccountPlanFrame.fireTableDataChanged();
+            dialog.closeDialog();
+        };
+
+        panel.addOkAction(saveAction);
+        panel.addCancelAction(e -> dialog.closeDialog());
+        dialog.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                if (!hasUnsavedChanges(panel.getAccountPlan(), initialState)) {
+                    dialog.closeDialog();
+                    return;
+                }
+                if (!panel.isValid()) {
+                    return;
+                }
+                if (SSQueryDialog.showDialog(iMainFrame, SSBundle.getBundle(), "accountplanframe.saveonclose")
                         != JOptionPane.OK_OPTION) {
                     return;
                 }
-
-                iSaveAction.actionPerformed(null);
+                saveAction.actionPerformed(null);
             }
         });
 
-        iDialog.add(iPanel.getPanel(), BorderLayout.CENTER);
-        iDialog.setSize(600, 450);
-        iDialog.setLocationRelativeTo(iMainFrame);
-        iDialog.setVisible();
+        dialog.add(panel.getPanel(), BorderLayout.CENTER);
+        dialog.setSize(600, 450);
+        dialog.setLocationRelativeTo(iMainFrame);
+        dialog.setVisible();
     }
 
-    /**
-     *
-     * @param iMainFrame
-     * @param iAccountPlan
-     * @param iModel
-     */
-    public static void editCurrentDialog(final SSMainFrame iMainFrame, SSAccountPlan iAccountPlan, final AbstractTableModel iModel) {
-        final SSDialog           iDialog = new SSDialog(iMainFrame,
-                bundle.getString("accountplanframe.editcurrent.title"));
-        final SSAccountPlanPanel iPanel = new SSAccountPlanPanel(iMainFrame);
+    public static void editDialog(final SSMainFrame iMainFrame, SSAccountPlan iAccountPlan,
+                                  final SSAccountPlanTableModel pModel) {
+        editDialog(iMainFrame, iAccountPlan);
+    }
 
-        iPanel.setAccountPlan(new SSAccountPlan(iAccountPlan));
-        iPanel.setShowBase(true);
-        // iPanel.setShowImport(true);
+    public static void editCurrentDialog(final SSMainFrame iMainFrame, SSAccountPlan iAccountPlan,
+                                         boolean pSuggestedName) {
+        final SSDialog dialog = new SSDialog(iMainFrame, BUNDLE.getString("accountplanframe.editcurrent.title"));
+        final SSAccountPlanPanel panel = new SSAccountPlanPanel(iMainFrame);
 
-        final ActionListener iSaveAction = e -> {
+        panel.setSuggestedName(pSuggestedName);
+        SSAccountPlan workingCopy = new SSAccountPlan(iAccountPlan);
+        workingCopy.setId(null);
+        workingCopy.setExcelPath(null);
+        workingCopy.setDefaultPlan(false);
+        panel.setAccountPlan(workingCopy);
+        panel.setShowBase(true);
+        final byte[] initialState = serializeAccountPlan(panel.getAccountPlan());
 
-                SSAccountPlan iAccountPlan1 = iPanel.getAccountPlan();
+        ActionListener saveAction = e -> {
+            SSAccountPlan accountPlan = panel.getAccountPlan();
+            SSNewAccountingYear currentYear = SSAccountingContext.getCurrentYear();
+            currentYear.setAccountPlan(accountPlan);
+            SSAccountingContext.updateAccountingYear(currentYear);
+            SSAccountPlanFrame.fireTableDataChanged();
+            dialog.closeDialog();
+        };
 
-                SSNewAccountingYear iCurrentYear = SSDB.getInstance().getCurrentYear();
-
-                iCurrentYear.setAccountPlan(iAccountPlan1);
-                SSDB.getInstance().updateAccountingYear(iCurrentYear);
-
-                if (iModel != null) {
-                    iModel.fireTableDataChanged();
-                }
-                iDialog.closeDialog();
-
-            };
-
-        iPanel.addOkAction(iSaveAction);
-
-        iPanel.addCancelAction(e -> iDialog.closeDialog());
-
-        iDialog.addWindowListener(
-                new WindowAdapter() {
+        panel.addOkAction(saveAction);
+        panel.addCancelAction(e -> dialog.closeDialog());
+        dialog.addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e) {
-                if (!iPanel.isValid()) {
+                if (!hasUnsavedChanges(panel.getAccountPlan(), initialState)) {
+                    dialog.closeDialog();
                     return;
                 }
-
-                if (SSQueryDialog.showDialog(iMainFrame, SSBundle.getBundle(),
-                        "accountplanframe.saveonclose")
+                if (!panel.isValid()) {
+                    return;
+                }
+                if (SSQueryDialog.showDialog(iMainFrame, SSBundle.getBundle(), "accountplanframe.saveonclose")
                         != JOptionPane.OK_OPTION) {
                     return;
                 }
-
-                iSaveAction.actionPerformed(null);
+                saveAction.actionPerformed(null);
             }
         });
 
-        iDialog.add(iPanel.getPanel(), BorderLayout.CENTER);
-        iDialog.setSize(600, 450);
-        iDialog.setLocationRelativeTo(iMainFrame);
-        iDialog.setVisible();
+        dialog.add(panel.getPanel(), BorderLayout.CENTER);
+        dialog.setSize(600, 450);
+        dialog.setLocationRelativeTo(iMainFrame);
+        dialog.setVisible();
+    }
+
+    public static void editCurrentDialog(final SSMainFrame iMainFrame, SSAccountPlan iAccountPlan,
+                                         SSAccountPlanPanel pPanel) {
+        editCurrentDialog(iMainFrame, iAccountPlan, false);
+    }
+
+    public static void editCurrentDialog(final SSMainFrame iMainFrame, SSAccountPlan iAccountPlan,
+                                         SSAccountPlanPanel pPanel, boolean pSuggestedName) {
+        editCurrentDialog(iMainFrame, iAccountPlan, pSuggestedName);
+    }
+
+    public static void copyDialog(final SSMainFrame iMainFrame, SSAccountPlan iAccountPlan) {
+        if (iAccountPlan != null && iAccountPlan.isTemplatePlan()) {
+            SSErrorDialog.showDialog(iMainFrame, "", "Template account plans cannot be copied.");
+            return;
+        }
+
+        final SSDialog dialog = new SSDialog(iMainFrame, BUNDLE.getString("accountplanframe.copy.title"));
+        final SSAccountPlanPanel panel = new SSAccountPlanPanel(iMainFrame);
+
+        panel.setAccountPlan(new SSAccountPlan(iAccountPlan));
+        panel.setShowBase(false);
+        final byte[] initialState = serializeAccountPlan(panel.getAccountPlan());
+
+        ActionListener saveAction = e -> {
+            SSAccountPlan copy = panel.getAccountPlan();
+            List<SSAccountPlan> plans = SSAccountingContext.getAccountPlans();
+            for (SSAccountPlan plan : plans) {
+                if (copy.getName().equals(plan.getName())) {
+                    new SSErrorDialog(iMainFrame, "accountplanframe.duplicate", copy.getName());
+                    return;
+                }
+            }
+
+            SSAccountingContext.addAccountPlan(copy);
+            SSAccountPlanFrame.fireTableDataChanged();
+            dialog.closeDialog();
+        };
+
+        panel.addOkAction(saveAction);
+        panel.addCancelAction(e -> dialog.closeDialog());
+        dialog.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                if (!hasUnsavedChanges(panel.getAccountPlan(), initialState)) {
+                    dialog.closeDialog();
+                    return;
+                }
+                if (!panel.isValid()) {
+                    return;
+                }
+                if (SSQueryDialog.showDialog(iMainFrame, SSBundle.getBundle(), "accountplanframe.saveonclose")
+                        != JOptionPane.OK_OPTION) {
+                    return;
+                }
+                saveAction.actionPerformed(null);
+            }
+        });
+
+        dialog.add(panel.getPanel(), BorderLayout.CENTER);
+        dialog.setSize(600, 450);
+        dialog.setLocationRelativeTo(iMainFrame);
+        dialog.setVisible();
+    }
+
+    public static void editCurrentDialog(final SSMainFrame iMainFrame, SSAccountPlan iAccountPlan) {
+        editCurrentDialog(iMainFrame, iAccountPlan, false);
+    }
+
+    private static boolean hasUnsavedChanges(SSAccountPlan accountPlan, byte[] initialState) {
+        return !Arrays.equals(initialState, serializeAccountPlan(accountPlan));
+    }
+
+    private static byte[] serializeAccountPlan(SSAccountPlan accountPlan) {
+        try (ByteArrayOutputStream output = new ByteArrayOutputStream();
+             ObjectOutputStream serializer = new ObjectOutputStream(output)) {
+            serializer.writeObject(accountPlan);
+            serializer.flush();
+            return output.toByteArray();
+        } catch (IOException e) {
+            throw new UncheckedIOException("Failed to serialize account plan state", e);
+        }
     }
 }

@@ -40,7 +40,7 @@ public class SSCustomerSearchPanel extends JPanel {
     }
 
     public void ApplyFilter() {
-        List<SSCustomer> iCustomers = SSDB.getInstance().getCustomers();
+        List<SSCustomer> iCustomers = se.swedsoft.bookkeeping.data.system.SSSalesContext.getCustomers();
         List<SSCustomer> iFiltered = new LinkedList<>();
 
         String iText = iTextField.getText();

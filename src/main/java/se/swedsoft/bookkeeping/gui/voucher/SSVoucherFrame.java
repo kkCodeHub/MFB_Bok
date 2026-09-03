@@ -3,7 +3,7 @@ package se.swedsoft.bookkeeping.gui.voucher;
 
 import org.fribok.bookkeeping.app.Version;
 import se.swedsoft.bookkeeping.data.SSVoucher;
-import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.data.system.SSAccountingContext;
 
 import se.swedsoft.bookkeeping.gui.SSMainFrame;
 import se.swedsoft.bookkeeping.gui.util.SSBundle;
@@ -194,7 +194,7 @@ public class SSVoucherFrame extends SSDefaultTableFrame {
                                 SSErrorDialog.showDialog(getMainFrame(), "",
                                         ex.getLocalizedMessage());
                             }
-                            iModel.fireTableDataChanged();
+                            SSVoucherFrame.fireTableDataChanged();
                         }
 
                     });
@@ -222,16 +222,16 @@ public class SSVoucherFrame extends SSDefaultTableFrame {
                                 break;
 
                             case JOptionPane.NO_OPTION:
-                                iItems = SSDB.getInstance().getVouchers();
+                                iItems = SSAccountingContext.getVouchers();
                                 break;
 
                             default:
                                 return;
                             }
                         } else {
-                            iItems = SSDB.getInstance().getVouchers();
+                            iItems = SSAccountingContext.getVouchers();
                         }
-                        iFilechooser.setSelectedFile(new File("Verifikationer.xls"));
+                        iFilechooser.setSelectedFile(new File("Verifikationer.xlsx"));
 
                         if (iFilechooser.showSaveDialog(getMainFrame())
                                 == JFileChooser.APPROVE_OPTION) {
@@ -274,7 +274,7 @@ public class SSVoucherFrame extends SSDefaultTableFrame {
                                 SSErrorDialog.showDialog(getMainFrame(), "",
                                         ex.getLocalizedMessage());
                             }
-                            iModel.fireTableDataChanged();
+                            SSVoucherFrame.fireTableDataChanged();
                         }
 
                     });
@@ -343,7 +343,13 @@ public class SSVoucherFrame extends SSDefaultTableFrame {
     }
 
     public void updateFrame() {
-        iModel.setObjects(SSDB.getInstance().getVouchers());
+        iModel.setObjects(SSAccountingContext.getVouchers());
+    }
+
+    public static void fireTableDataChanged() {
+        if (cInstance != null) {
+            cInstance.updateFrame();
+        }
     }
 
     /**
@@ -397,17 +403,18 @@ public class SSVoucherFrame extends SSDefaultTableFrame {
 
         if (iResponce == JOptionPane.YES_OPTION) {
             for (SSVoucher iVoucher : delete) {
-                SSDB.getInstance().deleteVoucher(iVoucher);
+                SSAccountingContext.deleteVoucher(iVoucher);
             }
+            SSVoucherFrame.fireTableDataChanged();
         }
     }
 
     private SSVoucher getVoucher(SSVoucher iVoucher) {
-        return SSDB.getInstance().getVoucher(iVoucher).orElse(null);
+        return SSAccountingContext.getVoucher(iVoucher).orElse(null);
     }
 
     private List<SSVoucher> getVouchers(List<SSVoucher> iVouchers) {
-        return SSDB.getInstance().getVouchers(iVouchers);
+        return SSAccountingContext.getVouchers(iVouchers);
     }
 
     /**
@@ -430,14 +437,14 @@ public class SSVoucherFrame extends SSDefaultTableFrame {
                 break;
 
             case JOptionPane.NO_OPTION:
-                iPrinter = new SSVoucherListPrinter(SSDB.getInstance().getVouchers());
+                iPrinter = new SSVoucherListPrinter(SSAccountingContext.getVouchers());
                 break;
 
             default:
                 return;
             }
         } else {
-            iPrinter = new SSVoucherListPrinter(SSDB.getInstance().getVouchers());
+            iPrinter = new SSVoucherListPrinter(SSAccountingContext.getVouchers());
             // iPrinter = new SSVoucherListPrinter(iModel.getObjects(iTable.getSelectedRows()));
         }
 
@@ -546,4 +553,5 @@ public class SSVoucherFrame extends SSDefaultTableFrame {
         return sb.toString();
     }
 }
+
 

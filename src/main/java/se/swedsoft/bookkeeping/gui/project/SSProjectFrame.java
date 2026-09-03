@@ -6,7 +6,8 @@ package se.swedsoft.bookkeeping.gui.project;
 
 
 import se.swedsoft.bookkeeping.data.SSNewProject;
-import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.data.system.SSCompanyYearContext;
+import se.swedsoft.bookkeeping.data.system.SSProjectContext;
 import se.swedsoft.bookkeeping.gui.SSMainFrame;
 import se.swedsoft.bookkeeping.gui.project.util.SSProjectTableModel;
 import se.swedsoft.bookkeeping.gui.util.SSBundle;
@@ -24,8 +25,7 @@ import se.swedsoft.bookkeeping.print.report.SSProjectsPrinter;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.util.Date;
+import java.time.LocalDate;
 import java.util.List;
 
 
@@ -250,17 +250,18 @@ public class SSProjectFrame extends SSDefaultTableFrame {
 
         if (iResponce == JOptionPane.YES_OPTION) {
             for (SSNewProject iProject : delete) {
-                SSDB.getInstance().deleteProject(iProject);
+                SSProjectContext.deleteProject(iProject);
             }
+            iModel.setObjects(SSProjectContext.getProjects());
         }
     }
 
     private SSNewProject getProject(SSNewProject iProject) {
-        return SSDB.getInstance().getProject(iProject).orElse(null);
+        return SSProjectContext.getProject(iProject).orElse(null);
     }
 
     private List<SSNewProject> getProjects(List<SSNewProject> iProjects) {
-        return SSDB.getInstance().getProjects(iProjects);
+        return SSProjectContext.getProjects(iProjects);
     }
 
     /**
@@ -282,28 +283,26 @@ public class SSProjectFrame extends SSDefaultTableFrame {
                 break;
 
             case JOptionPane.NO_OPTION:
-                iProjects = SSDB.getInstance().getProjects();
+                iProjects = SSProjectContext.getProjects();
                 break;
 
             default:
                 return;
             }
         } else {
-            iProjects = SSDB.getInstance().getProjects();
+            iProjects = SSProjectContext.getProjects();
         }
 
         SSPeriodSelectionDialog iDialog = new SSPeriodSelectionDialog(getMainFrame(),
                 SSBundle.getBundle().getString("projectrevenue.perioddialog.title"));
 
-        if (SSDB.getInstance().getCurrentYear() != null) {
-            iDialog.setFrom(se.swedsoft.bookkeeping.util.SSDateUtil.toDate(
-                    SSDB.getInstance().getCurrentYear().getLocalFrom()));
-            iDialog.setTo(se.swedsoft.bookkeeping.util.SSDateUtil.toDate(
-                    SSDB.getInstance().getCurrentYear().getLocalTo()));
+        if (SSCompanyYearContext.getCurrentYear() != null) {
+            iDialog.setLocalFrom(SSCompanyYearContext.getCurrentYear().getLocalFrom());
+            iDialog.setLocalTo(SSCompanyYearContext.getCurrentYear().getLocalTo());
         } else {
-            java.time.LocalDate now = java.time.LocalDate.now();
-            iDialog.setFrom(se.swedsoft.bookkeeping.util.SSDateUtil.toDate(now));
-            iDialog.setTo(se.swedsoft.bookkeeping.util.SSDateUtil.toDate(now.plusMonths(1)));
+            LocalDate now = LocalDate.now();
+            iDialog.setLocalFrom(now);
+            iDialog.setLocalTo(now.plusMonths(1));
         }
         iDialog.setLocationRelativeTo(getMainFrame());
 
@@ -311,11 +310,12 @@ public class SSProjectFrame extends SSDefaultTableFrame {
             return;
         }
 
-        final Date iFrom = iDialog.getFrom();
-        final Date iTo = iDialog.getTo();
+        final LocalDate iFrom = iDialog.getLocalFrom();
+        final LocalDate iTo = iDialog.getLocalTo();
 
         final SSProjectRevenuePrinter iPrinter = new SSProjectRevenuePrinter(iProjects,
-                iFrom, iTo);
+                se.swedsoft.bookkeeping.util.SSDateUtil.toDate(iFrom),
+                se.swedsoft.bookkeeping.util.SSDateUtil.toDate(iTo));
 
         SSProgressDialog.runProgress(getMainFrame(), () -> iPrinter.preview(getMainFrame()));
     }
@@ -353,7 +353,7 @@ public class SSProjectFrame extends SSDefaultTableFrame {
     }
 
     public void updateFrame() {
-        iModel.setObjects(SSDB.getInstance().getProjects());
+        iModel.setObjects(SSProjectContext.getProjects());
     }
 
     public void actionPerformed(ActionEvent e) {

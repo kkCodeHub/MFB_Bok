@@ -1,0 +1,12 @@
+{
+  "Företag": {
+    "Företagsnamn": "Demoföretaget AB",
+    "Logotyp": "src/main/resources/seed/Demologo.png",
+    "Kontaktperson": "Demo Demosson",
+    "Bokföringsår": {
+      "Från": "2026-01-01",
+      "Till": "2026-12-31"
+    },
+    "Kontoplan": "Bas 2026 K2-AB&EF Full"
+  }
+}

@@ -1,151 +1,93 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE jasperReport PUBLIC "-//JasperReports//DTD Report Design//EN"
-        "http://jasperreports.sourceforge.net/dtds/jasperreport.dtd">
-
-<jasperReport name="CreditInvoiceJournalRows" resourceBundle="book">
-
-    <parameter name="invoice.number" class="java.lang.Integer"/>
-
-    <field name="row.account"          class="java.lang.Integer"/>
-    <field name="row.description"      class="java.lang.String"/>
-    <field name="row.debet"            class="java.math.BigDecimal"/>
-    <field name="row.credet"           class="java.math.BigDecimal"/>
-    <field name="row.project"          class="java.lang.String"/>
-    <field name="row.resultunit"       class="java.lang.String"/>
-
-
-    <!-- The sum. -->
-    <variable name="debet.sum" class="java.math.BigDecimal"  resetType="Report" calculation="Sum">
-        <variableExpression>$F{row.debet}</variableExpression>
-        <initialValueExpression>new BigDecimal(0.0) </initialValueExpression>
-    </variable>
-
-    <variable name="credet.sum" class="java.math.BigDecimal"  resetType="Report" calculation="Sum">
-        <variableExpression>$F{row.credet}</variableExpression>
-        <initialValueExpression>new BigDecimal(0.0) </initialValueExpression>
-    </variable>
-
-
-    <detail>
-        <band height="12" isSplitAllowed="true">
-
-            <!-- Account number -->
-            <textField  isBlankWhenNull="true">
-                <reportElement x="80" y="0" width="40" height="12"/>
-                <textElement>
-                    <font size="8" isBold="false"/>
-                </textElement>
-                <textFieldExpression class="java.lang.Integer">
-                    <![CDATA[$F{row.account}]]>
-                </textFieldExpression>
-            </textField>
-
-            <!-- Description -->
-            <textField  isBlankWhenNull="true">
-                <reportElement x="140" y="0" width="150" height="12"/>
-                <textElement>
-                    <font size="8" isBold="false"/>
-                </textElement>
-                <textFieldExpression>
-                    <![CDATA[$F{row.description}]]>
-                </textFieldExpression>
-            </textField>
-
-
-
-            <!-- Project -->
-            <textField isBlankWhenNull="true">
-                <reportElement x="270" y="0" width="50" height="12"/>
-                <textElement textAlignment="Left">
-                    <font size="8" isBold="false"/>
-                </textElement>
-                <textFieldExpression class="java.lang.String">
-                    <![CDATA[$F{row.project}]]>
-                </textFieldExpression>
-            </textField>
-
-
-            <!-- Result unit -->
-            <textField  isBlankWhenNull="true">
-                <reportElement x="320" y="0" width="50" height="12"/>
-                <textElement textAlignment="Left">
-                    <font size="8" isBold="false"/>
-                </textElement>
-                <textFieldExpression class="java.lang.String">
-                    <![CDATA[$F{row.resultunit}]]>
-                </textFieldExpression>
-            </textField>
-
-            <!-- Debet -->
-            <textField pattern="#,##0.00"  isBlankWhenNull="true">
-                <reportElement x="370" y="0" width="80" height="12"/>
-                <textElement textAlignment="Right">
-                    <font size="8" isBold="false"/>
-                </textElement>
-                <textFieldExpression class="java.math.BigDecimal">
-                    <![CDATA[$F{row.debet}]]>
-                </textFieldExpression>
-            </textField>
-
-            <!-- Credet -->
-            <textField pattern="#,##0.00"  isBlankWhenNull="true">
-                <reportElement x="450" y="0" width="80" height="12"/>
-                <textElement textAlignment="Right">
-                    <font size="8" isBold="false"/>
-                </textElement>
-                <textFieldExpression class="java.math.BigDecimal">
-                    <![CDATA[$F{row.credet}]]>
-                </textFieldExpression>
-           </textField>
-
-
-        </band>
-    </detail>
-
-    <summary>
-        <band height="12" isSplitAllowed="false">
-            <line>
-                <reportElement x="80" y="0" width="450" height="1"/>
-            </line>
-
-            <textField>
-                <reportElement x="80" y="0" width="250" height="12"/>
-                <textElement>
-                    <font size="8" isBold="false"/>
-                </textElement>
-                <textFieldExpression>
-                    <![CDATA[$R{creditinvoicejournal.sum}]]>
-                </textFieldExpression>
-            </textField>
-
-
-
-            <!-- Debet -->
-            <textField pattern="#,##0.00">
-                <reportElement x="370" y="0" width="80" height="12"/>
-                <textElement textAlignment="Right">
-                    <font size="8" isBold="false"/>
-                </textElement>
-                <textFieldExpression class="java.math.BigDecimal">
-                    <![CDATA[$V{debet.sum}]]>
-                </textFieldExpression>
-            </textField>
-
-
-            <!-- Credet -->
-            <textField pattern="#,##0.00">
-                <reportElement x="450" y="0" width="80" height="12"/>
-                <textElement textAlignment="Right">
-                    <font size="8" isBold="false"/>
-                </textElement>
-                <textFieldExpression class="java.math.BigDecimal">
-                    <![CDATA[$V{credet.sum}]]>
-                </textFieldExpression>
-            </textField>
-
-
-        </band>
-    </summary>
-
-
+<!-- Created with Jaspersoft Studio version 6.21.1.final using JasperReports Library version 6.21.0-4f56c4f36cd19e17675219a9ac4692d5f0f13b06  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="CreditInvoiceJournalRows" pageWidth="595" pageHeight="842" whenNoDataType="NoPages" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="30" bottomMargin="30" resourceBundle="book" uuid="988f73f2-70c5-4f28-aea9-2db9e2b0f9bc">
+	<parameter name="invoice.number" class="java.lang.Integer"/>
+	<field name="row.account" class="java.lang.Integer"/>
+	<field name="row.description" class="java.lang.String"/>
+	<field name="row.debet" class="java.math.BigDecimal"/>
+	<field name="row.credet" class="java.math.BigDecimal"/>
+	<field name="row.project" class="java.lang.String"/>
+	<field name="row.resultunit" class="java.lang.String"/>
+	<variable name="debet.sum" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{row.debet}]]></variableExpression>
+		<initialValueExpression><![CDATA[new BigDecimal(0.0)]]></initialValueExpression>
+	</variable>
+	<variable name="credet.sum" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{row.credet}]]></variableExpression>
+		<initialValueExpression><![CDATA[new BigDecimal(0.0)]]></initialValueExpression>
+	</variable>
+	<detail>
+		<band height="12" splitType="Stretch">
+			<textField isBlankWhenNull="true">
+				<reportElement x="65" y="0" width="40" height="12" uuid="5223c549-4081-4d72-92e3-454046cdbbe8"/>
+				<textElement>
+					<font size="8" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{row.account}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="110" y="0" width="190" height="12" uuid="c017feec-4916-4f3d-8806-195318088f65"/>
+				<textElement>
+					<font size="8" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{row.description}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="300" y="0" width="50" height="12" uuid="85ff3f49-903e-43d2-81c1-25ead6f7e74e"/>
+				<textElement textAlignment="Left">
+					<font size="8" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{row.project}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="360" y="0" width="50" height="12" uuid="c7b9e201-8467-456e-97d6-0f5980b9ddb7"/>
+				<textElement textAlignment="Left">
+					<font size="8" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{row.resultunit}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00" isBlankWhenNull="true">
+				<reportElement x="390" y="0" width="80" height="12" uuid="9407083b-fdb7-4ecb-992b-b54fba7c1990"/>
+				<textElement textAlignment="Right">
+					<font size="8" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{row.debet}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00" isBlankWhenNull="true">
+				<reportElement x="450" y="0" width="80" height="12" uuid="76172e29-e6be-4628-bebd-2b782b736c00"/>
+				<textElement textAlignment="Right">
+					<font size="8" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{row.credet}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<summary>
+		<band height="12" splitType="Prevent">
+			<line>
+				<reportElement x="80" y="0" width="450" height="1" uuid="b9b6ae71-084a-43c9-b3bb-c8aad1f0db22"/>
+			</line>
+			<textField>
+				<reportElement x="80" y="0" width="250" height="12" uuid="652be7cf-0702-44d2-970b-464ca8cf5edb"/>
+				<textElement>
+					<font size="8" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$R{creditinvoicejournal.sum}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00">
+				<reportElement x="370" y="0" width="80" height="12" uuid="6a3ea9a3-e5d2-429f-85e7-5b72fc01c8a4"/>
+				<textElement textAlignment="Right">
+					<font size="8" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{debet.sum}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00">
+				<reportElement x="450" y="0" width="80" height="12" uuid="a1a5e342-3f2e-4cda-96ad-d43b2f20ca21"/>
+				<textElement textAlignment="Right">
+					<font size="8" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{credet.sum}]]></textFieldExpression>
+			</textField>
+		</band>
+	</summary>
 </jasperReport>

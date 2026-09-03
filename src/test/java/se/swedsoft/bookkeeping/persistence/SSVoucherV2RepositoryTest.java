@@ -38,7 +38,7 @@ class SSVoucherV2RepositoryTest {
         Class.forName("org.hsqldb.jdbcDriver");
         connection = DriverManager.getConnection(JDBC_URL, "sa", "");
 
-        SSDB.getInstance().startupLocal(connection);
+        se.swedsoft.bookkeeping.data.system.SSSystemConfigContext.startupLocal(connection);
 
         Integer companyId = createCompany("V2 Voucher Repo Test AB");
         SSNewCompany company = new SSNewCompany();
@@ -49,7 +49,7 @@ class SSVoucherV2RepositoryTest {
         year = new SSNewAccountingYear();
         year.setLocalFrom(LocalDate.of(2026, 1, 1));
         year.setLocalTo(LocalDate.of(2026, 12, 31));
-        SSDB.getInstance().addAccountingYear(year);
+        se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.addAccountingYear(year);
         SSDB.getInstance().setCurrentYear(year);
 
         Repositories.init(SSDB.getInstance());
@@ -68,7 +68,7 @@ class SSVoucherV2RepositoryTest {
 
     @BeforeEach
     void clearCaches() {
-        SSDB.getInstance().clearLists();
+        se.swedsoft.bookkeeping.data.system.SSEventTriggerSyncContext.clearCachedLists();
         SSDB.getInstance().setCurrentYear(year);
     }
 
@@ -111,19 +111,10 @@ class SSVoucherV2RepositoryTest {
     }
 
     private static Integer createCompany(String name) throws Exception {
-        try (PreparedStatement statement = connection.prepareStatement(
-                "INSERT INTO tbl_company(name) VALUES (?)", Statement.RETURN_GENERATED_KEYS)) {
-            statement.setString(1, name);
-            statement.executeUpdate();
-            connection.commit();
-
-            try (ResultSet keys = statement.getGeneratedKeys()) {
-                if (keys.next()) {
-                    return keys.getInt(1);
-                }
-            }
-        }
-        throw new IllegalStateException("Could not create test company for voucher repository test");
+        se.swedsoft.bookkeeping.data.SSNewCompany company = new se.swedsoft.bookkeeping.data.SSNewCompany();
+        company.setName(name);
+        se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.addCompany(company);
+        return company.getId();
     }
 }
 

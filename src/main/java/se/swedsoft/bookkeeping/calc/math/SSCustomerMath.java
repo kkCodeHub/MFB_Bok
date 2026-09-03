@@ -48,7 +48,7 @@ public class SSCustomerMath {
             iInvoicesForCustomers = new HashMap<>();
         }
 
-        List<SSCustomer> iCustomers = SSDB.getInstance().getCustomers();
+        List<SSCustomer> iCustomers = se.swedsoft.bookkeeping.data.system.SSSalesContext.getCustomers();
 
         for (SSCustomer iCustomer:iCustomers) {
             List<SSInvoice> iInvoices = SSInvoiceMath.getInvoicesForCustomer(iCustomer);

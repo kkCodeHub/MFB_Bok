@@ -77,7 +77,7 @@ public class SSSupplier implements Serializable, SSTableSearchable {
     public SSSupplier() {
         iAddress = new SSAddress();
 
-        SSNewCompany iCompany = SSDB.getInstance().getCurrentCompany();
+        SSNewCompany iCompany = se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.getCurrentCompany();
 
         if (iCompany != null) {
             iOurContact = iCompany.getContactPerson();
@@ -355,7 +355,7 @@ public class SSSupplier implements Serializable, SSTableSearchable {
      * @return
      */
     public SSCurrency getCurrency() {
-        return SSDB.getInstance().getCurrency(iCurrency).orElse(null);
+        return se.swedsoft.bookkeeping.data.system.SSMasterdataContext.getCurrency(iCurrency).orElse(null);
     }
 
     /**

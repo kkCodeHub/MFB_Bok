@@ -77,10 +77,7 @@ public class SSSupplierDialog {
                 }
 
                 Repositories.suppliers().add(iSupplier1);
-
-                if (pModel != null) {
-                    pModel.fireTableDataChanged();
-                }
+                SSSupplierFrame.fireTableDataChanged();
                 iDialog.closeDialog();
 
             };
@@ -152,10 +149,7 @@ public class SSSupplierDialog {
                     }
                 }
                 Repositories.suppliers().update(iSupplier);
-
-                if (pModel != null) {
-                    pModel.fireTableDataChanged();
-                }
+                SSSupplierFrame.fireTableDataChanged();
                 iDialog.closeDialog();
 
             };
@@ -233,10 +227,7 @@ public class SSSupplierDialog {
                 }
 
                 Repositories.suppliers().add(iSupplier1);
-
-                if (pModel != null) {
-                    pModel.fireTableDataChanged();
-                }
+                SSSupplierFrame.fireTableDataChanged();
                 iDialog.closeDialog();
 
             };

@@ -4,7 +4,7 @@ package se.swedsoft.bookkeeping.gui.inventory;
 import se.swedsoft.bookkeeping.data.SSInventory;
 import se.swedsoft.bookkeeping.data.SSInventoryRow;
 import se.swedsoft.bookkeeping.data.SSProduct;
-import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.data.system.SSProductContext;
 import se.swedsoft.bookkeeping.gui.SSMainFrame;
 import se.swedsoft.bookkeeping.gui.inventory.panel.SSInventoryPanel;
 import se.swedsoft.bookkeeping.gui.util.SSBundle;
@@ -40,7 +40,8 @@ public class SSInventoryDialog {
         final SSDialog         iDialog = new SSDialog(iMainFrame,
                 SSBundle.getBundle().getString("inventortyframe.new.title"));
 
-        SSInventory iInventory = new SSInventory();
+        // Slice Q: Use repository factory method instead of direct instantiation
+        SSInventory iInventory = Repositories.inventories().createNew();
 
         iInventory.setNumber(null);
         int iResponce = SSQueryDialog.showDialog(iMainFrame, SSBundle.getBundle(),
@@ -48,7 +49,7 @@ public class SSInventoryDialog {
         final SSInventoryPanel iPanel = new SSInventoryPanel(iDialog);
 
         if (iResponce == JOptionPane.OK_OPTION) {
-            List<SSProduct> iProducts = SSDB.getInstance().getProducts();
+            List<SSProduct> iProducts = SSProductContext.getProducts();
 
             for (SSProduct iProduct : iProducts) {
                 if (iProduct.isStockProduct() && !iProduct.isParcel()) {
@@ -66,9 +67,8 @@ public class SSInventoryDialog {
                 SSInventory iInventory1 = iPanel.getInventory();
 
                 Repositories.inventories().add(iInventory1);
-                if (pModel != null) {
-                    pModel.fireTableDataChanged();
-                }
+
+                SSInventoryFrame.fireTableDataChanged();
 
                 iDialog.closeDialog();
 
@@ -89,9 +89,7 @@ public class SSInventoryDialog {
 
                 Repositories.inventories().add(iInventory1);
 
-                if (pModel != null) {
-                    pModel.fireTableDataChanged();
-                }
+                SSInventoryFrame.fireTableDataChanged();
 
                 iDialog.closeDialog();
             }
@@ -122,9 +120,7 @@ public class SSInventoryDialog {
 
                 Repositories.inventories().update(iInventory1);
 
-                if (pModel != null) {
-                    pModel.fireTableDataChanged();
-                }
+                SSInventoryFrame.fireTableDataChanged();
                 iDialog.closeDialog();
 
             });
@@ -148,9 +144,7 @@ public class SSInventoryDialog {
 
                 Repositories.inventories().update(iInventory1);
 
-                if (pModel != null) {
-                    pModel.fireTableDataChanged();
-                }
+                SSInventoryFrame.fireTableDataChanged();
                 iDialog.closeDialog();
             }
         });
@@ -180,9 +174,7 @@ public class SSInventoryDialog {
 
                 Repositories.inventories().add(iInventory1);
 
-                if (pModel != null) {
-                    pModel.fireTableDataChanged();
-                }
+                SSInventoryFrame.fireTableDataChanged();
 
                 iDialog.closeDialog();
 

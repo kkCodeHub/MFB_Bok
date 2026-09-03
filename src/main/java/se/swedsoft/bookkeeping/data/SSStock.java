@@ -51,9 +51,9 @@ public class SSStock {
      *
      */
     public void update() {
-        List<SSOrder>                 iOrders = SSDB.getInstance().getOrders();
-        List<SSInvoice>               iInvoices = SSDB.getInstance().getInvoices();
-        List<SSCreditInvoice>         iCreditInvoices = SSDB.getInstance().getCreditInvoices();
+        List<SSOrder>                 iOrders = se.swedsoft.bookkeeping.data.system.SSSalesContext.getOrders();
+        List<SSInvoice>               iInvoices = se.swedsoft.bookkeeping.data.system.SSSalesContext.getInvoices();
+        List<SSCreditInvoice>         iCreditInvoices = se.swedsoft.bookkeeping.data.system.SSSalesContext.getCreditInvoices();
         List<SSPurchaseOrder>         iPurchaseOrders = Repositories.purchaseOrders().findAll();
         List<SSSupplierInvoice>       iSupplierInvoices = Repositories.supplierInvoices().findAll();
         List<SSSupplierCreditInvoice> iSupplierCreditInvoices = Repositories.supplierCreditInvoices().findAll();
@@ -111,9 +111,9 @@ public class SSStock {
     }
 
     public void update(final LocalDate iDate) {
-        List<SSOrder>                 iOrders = SSDB.getInstance().getOrders();
-        List<SSInvoice>               iInvoices = SSDB.getInstance().getInvoices();
-        List<SSCreditInvoice>         iCreditInvoices = SSDB.getInstance().getCreditInvoices();
+        List<SSOrder>                 iOrders = se.swedsoft.bookkeeping.data.system.SSSalesContext.getOrders();
+        List<SSInvoice>               iInvoices = se.swedsoft.bookkeeping.data.system.SSSalesContext.getInvoices();
+        List<SSCreditInvoice>         iCreditInvoices = se.swedsoft.bookkeeping.data.system.SSSalesContext.getCreditInvoices();
         List<SSPurchaseOrder>         iPurchaseOrders = Repositories.purchaseOrders().findAll();
         List<SSSupplierInvoice>       iSupplierInvoices = Repositories.supplierInvoices().findAll();
         List<SSSupplierCreditInvoice> iSupplierCreditInvoices = Repositories.supplierCreditInvoices().findAll();
@@ -126,7 +126,7 @@ public class SSStock {
 
         iOrders = SSFilterFactory.doFilter(iOrders, new SSFilter<>() {
             public boolean applyFilter(SSOrder iOrder) {
-                return SSOrderMath.inPeriod(iOrder, SSDateUtil.toDate(iDate));
+                return SSOrderMath.inPeriod(iOrder, iDate);
             }
         });
 
@@ -134,7 +134,7 @@ public class SSStock {
                 new SSFilter<>() {
             public boolean applyFilter(SSInvoice iInvoice) {
                 return iInvoice.isStockInfluencing()
-                        && SSInvoiceMath.inPeriod(iInvoice, SSDateUtil.toDate(iDate));
+                        && SSInvoiceMath.inPeriod(iInvoice, iDate);
             }
         });
 
@@ -142,7 +142,7 @@ public class SSStock {
                 new SSFilter<>() {
             public boolean applyFilter(SSCreditInvoice iCreditInvoice) {
                 return iCreditInvoice.isStockInfluencing()
-                        && SSInvoiceMath.inPeriod(iCreditInvoice, SSDateUtil.toDate(iDate));
+                        && SSInvoiceMath.inPeriod(iCreditInvoice, iDate);
             }
         });
 
@@ -150,7 +150,7 @@ public class SSStock {
                 new SSFilter<>() {
             public boolean applyFilter(SSPurchaseOrder iPurchaseOrder) {
                 return iPurchaseOrder.isStockInfluencing()
-                        && SSPurchaseOrderMath.inPeriod(iPurchaseOrder, SSDateUtil.toDate(iDate));
+                        && SSPurchaseOrderMath.inPeriod(iPurchaseOrder, iDate);
             }
         });
 
@@ -173,21 +173,21 @@ public class SSStock {
         iInventories = SSFilterFactory.doFilter(iInventories,
                 new SSFilter<>() {
             public boolean applyFilter(SSInventory iInventory) {
-                return SSInventoryMath.inPeriod(iInventory, SSDateUtil.toDate(iDate));
+                return SSInventoryMath.inPeriod(iInventory, iDate);
             }
         });
 
         iIndeliveries = SSFilterFactory.doFilter(iIndeliveries,
                 new SSFilter<>() {
             public boolean applyFilter(SSIndelivery iIndelivery) {
-                return SSIndeliveryMath.inPeriod(iIndelivery, SSDateUtil.toDate(iDate));
+                return SSIndeliveryMath.inPeriod(iIndelivery, iDate);
             }
         });
 
         iOutdeliveries = SSFilterFactory.doFilter(iOutdeliveries,
                 new SSFilter<>() {
             public boolean applyFilter(SSOutdelivery iOutdelivery) {
-                return SSOutdeliveryMath.inPeriod(iOutdelivery, SSDateUtil.toDate(iDate));
+                return SSOutdeliveryMath.inPeriod(iOutdelivery, iDate);
             }
         });
 
@@ -200,10 +200,10 @@ public class SSStock {
      * @param iFrom
      * @param iTo
      */
-    public void update(final Date iFrom, final Date iTo) {
-        List<SSOrder>                 iOrders = SSDB.getInstance().getOrders();
-        List<SSInvoice>               iInvoices = SSDB.getInstance().getInvoices();
-        List<SSCreditInvoice>         iCreditInvoices = SSDB.getInstance().getCreditInvoices();
+    public void update(final LocalDate iFrom, final LocalDate iTo) {
+        List<SSOrder>                 iOrders = se.swedsoft.bookkeeping.data.system.SSSalesContext.getOrders();
+        List<SSInvoice>               iInvoices = se.swedsoft.bookkeeping.data.system.SSSalesContext.getInvoices();
+        List<SSCreditInvoice>         iCreditInvoices = se.swedsoft.bookkeeping.data.system.SSSalesContext.getCreditInvoices();
         List<SSPurchaseOrder>         iPurchaseOrders = Repositories.purchaseOrders().findAll();
         List<SSSupplierInvoice>       iSupplierInvoices = Repositories.supplierInvoices().findAll();
         List<SSSupplierCreditInvoice> iSupplierCreditInvoices = Repositories.supplierCreditInvoices().findAll();
@@ -300,7 +300,7 @@ public class SSStock {
      */
     private void calculate(List<SSOrder> iOrders, List<SSInvoice> iInvoices, List<SSCreditInvoice> iCreditInvoices, List<SSPurchaseOrder> iPurchaseOrders, List<SSSupplierInvoice> iSupplierInvoices, List<SSSupplierCreditInvoice> iSupplierCreditInvoices, List<SSInventory> iInventories, List<SSIndelivery> iIndeliveries, List<SSOutdelivery> iOutdeliveries) {
         List<SSProduct> iProducts = new LinkedList<>(
-                SSDB.getInstance().getProducts());
+                se.swedsoft.bookkeeping.data.system.SSProductContext.getProducts());
 
         Map<String, Integer> iOrderCount = SSOrderMath.getStockInfluencing(iOrders);
 

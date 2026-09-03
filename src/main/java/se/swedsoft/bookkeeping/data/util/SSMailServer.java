@@ -12,7 +12,7 @@ import java.net.URISyntaxException;
  * Class to store data about a mail server. Immutable.
  *
  * $Id$
- * 
+ *
  * @author jensli
  * @author ljo
  */
@@ -106,7 +106,7 @@ public class SSMailServer implements Serializable {
         }
     }
 
-    private String getName() {
+    public String getName() {
         return name;
     }
 
@@ -137,7 +137,7 @@ public class SSMailServer implements Serializable {
     public boolean isNoConnectionSecurity() {
         return !isSSL() && !isStartTLS();
     }
-    
+
     public ConnectionSecurity getConnectionSecurity() {
 	return connectionSecurity;
     }

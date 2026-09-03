@@ -44,7 +44,7 @@ class SSCreditInvoiceV2RepositoryTest {
         Class.forName("org.hsqldb.jdbcDriver");
         connection = DriverManager.getConnection(JDBC_URL, "sa", "");
 
-        SSDB.getInstance().startupLocal(connection);
+        se.swedsoft.bookkeeping.data.system.SSSystemConfigContext.startupLocal(connection);
 
         Integer companyId = createCompany("V2 Credit Invoice Repo Test AB");
         SSNewCompany company = new SSNewCompany();
@@ -52,10 +52,10 @@ class SSCreditInvoiceV2RepositoryTest {
         company.setName("V2 Credit Invoice Repo Test AB");
         SSDB.getInstance().setCurrentCompany(company);
 
-        SSNewAccountingYear year = new SSNewAccountingYear(
-                se.swedsoft.bookkeeping.util.SSDateUtil.toDate(LocalDate.of(2025, 1, 1)),
-                se.swedsoft.bookkeeping.util.SSDateUtil.toDate(LocalDate.of(2025, 12, 31)));
-        SSDB.getInstance().addAccountingYear(year);
+        SSNewAccountingYear year = new SSNewAccountingYear();
+        year.setLocalFrom(LocalDate.of(2025, 1, 1));
+        year.setLocalTo(LocalDate.of(2025, 12, 31));
+        se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.addAccountingYear(year);
         SSDB.getInstance().setCurrentYear(year);
 
         Repositories.init(SSDB.getInstance());
@@ -74,7 +74,7 @@ class SSCreditInvoiceV2RepositoryTest {
 
     @BeforeEach
     void clearCaches() {
-        SSDB.getInstance().clearLists();
+        se.swedsoft.bookkeeping.data.system.SSEventTriggerSyncContext.clearCachedLists();
         SSDB.getInstance().getCurrentYear();
     }
 
@@ -92,7 +92,7 @@ class SSCreditInvoiceV2RepositoryTest {
         Repositories.creditInvoices().add(creditInvoice);
         assertThat(creditInvoice.getNumber()).isGreaterThan(0);
 
-        SSDB.getInstance().clearLists();
+        se.swedsoft.bookkeeping.data.system.SSEventTriggerSyncContext.clearCachedLists();
         Optional<SSCreditInvoice> fetched = Repositories.creditInvoices().findByCreditInvoice(creditInvoice);
         assertThat(fetched).isPresent();
         assertThat(fetched.get().getCustomerName()).isEqualTo("Repo Credit Invoice Customer AB");
@@ -110,7 +110,7 @@ class SSCreditInvoiceV2RepositoryTest {
                 invoiceRow("P-CINV-REPO-002", "Before update row", new BigDecimal("100.00"), 1, 3010));
         Repositories.creditInvoices().add(creditInvoice);
 
-        SSDB.getInstance().clearLists();
+        se.swedsoft.bookkeeping.data.system.SSEventTriggerSyncContext.clearCachedLists();
         Optional<SSCreditInvoice> fetched = Repositories.creditInvoices().findByCreditInvoice(creditInvoice);
         assertThat(fetched).isPresent();
 
@@ -124,7 +124,7 @@ class SSCreditInvoiceV2RepositoryTest {
                 invoiceRow("P-CINV-REPO-003", "After update row", new BigDecimal("750.00"), 3, 3041));
         Repositories.creditInvoices().update(updatedCreditInvoice);
 
-        SSDB.getInstance().clearLists();
+        se.swedsoft.bookkeeping.data.system.SSEventTriggerSyncContext.clearCachedLists();
         Optional<SSCreditInvoice> updated = Repositories.creditInvoices().findByCreditInvoice(creditInvoice);
         assertThat(updated).isPresent();
         assertThat(updated.get().getCustomerName()).isEqualTo("After Credit Invoice Repo Update");
@@ -136,7 +136,7 @@ class SSCreditInvoiceV2RepositoryTest {
 
         Integer number = updated.get().getNumber();
         Repositories.creditInvoices().delete(updated.get());
-        SSDB.getInstance().clearLists();
+        se.swedsoft.bookkeeping.data.system.SSEventTriggerSyncContext.clearCachedLists();
         List<SSCreditInvoice> all = Repositories.creditInvoices().findAll();
         assertThat(all).extracting(SSCreditInvoice::getNumber).doesNotContain(number);
     }
@@ -171,19 +171,10 @@ class SSCreditInvoiceV2RepositoryTest {
     }
 
     private static Integer createCompany(String name) throws Exception {
-        try (PreparedStatement statement = connection.prepareStatement(
-                "INSERT INTO tbl_company(name) VALUES (?)", Statement.RETURN_GENERATED_KEYS)) {
-            statement.setString(1, name);
-            statement.executeUpdate();
-            connection.commit();
-
-            try (ResultSet keys = statement.getGeneratedKeys()) {
-                if (keys.next()) {
-                    return keys.getInt(1);
-                }
-            }
-        }
-        throw new IllegalStateException("Could not create test company for credit-invoice repository V2 integration test");
+        se.swedsoft.bookkeeping.data.SSNewCompany company = new se.swedsoft.bookkeeping.data.SSNewCompany();
+        company.setName(name);
+        se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.addCompany(company);
+        return company.getId();
     }
 }
 

@@ -57,7 +57,7 @@ public class SSAutoDistPanel {
         iAccount.setEnabled(!iEdit);
         iTable.setColorReadOnly(true);
         iTable.setColumnSortingEnabled(false);
-        iTable.setSingleSelect();
+        iTable.setSelectionForeground(Color.BLACK);
         iButtonPanel.getOkButton().setEnabled(false);
         iModel = new SSAutoDistRowTableModel();
         iModel.addColumn(SSAutoDistRowTableModel.COLUMN_ACCOUNT, true);

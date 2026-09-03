@@ -5,7 +5,7 @@ import se.swedsoft.bookkeeping.calc.math.SSVoucherMath;
 import se.swedsoft.bookkeeping.data.SSVoucher;
 import se.swedsoft.bookkeeping.data.SSVoucherRow;
 import se.swedsoft.bookkeeping.data.SSVoucherTemplate;
-import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.data.system.SSAccountingContext;
 
 import se.swedsoft.bookkeeping.gui.SSMainFrame;
 import se.swedsoft.bookkeeping.gui.util.SSBundle;
@@ -48,7 +48,6 @@ public class SSVoucherDialog {    private static final Logger LOG = LoggerFactor
                 SSBundle.getBundle().getString("voucherframe.new.title"));
         final SSVoucherPanel iPanel = new SSVoucherPanel(iDialog);
 
-        // iPanel.setModel( new SSVoucherRowTableModelOld( false, false ));
         iPanel.setVoucher(new SSVoucher(), false, false);
         iPanel.setMarkRowButtonVisible(false);
         iPanel.setDeleteRowButtonVisible(true);
@@ -66,15 +65,13 @@ public class SSVoucherDialog {    private static final Logger LOG = LoggerFactor
                             return;
                         }
 
-                        SSDB.getInstance().addVoucher(iVoucher, false);
+                        SSAccountingContext.addVoucher(iVoucher, false);
 
                         if (iPanel.isStoreAsTemplate()) {
-                            SSDB.getInstance().addVoucherTemplate(new SSVoucherTemplate(iVoucher));
+                            SSAccountingContext.addVoucherTemplate(new SSVoucherTemplate(iVoucher));
+                            iPanel.updateAccounts();
                         }
-
-                        if (pModel != null) {
-                            pModel.fireTableDataChanged();
-                        }
+                        SSVoucherFrame.fireTableDataChanged();
 
                         if (iPanel.doReopen()) {
                             try {
@@ -83,6 +80,7 @@ public class SSVoucherDialog {    private static final Logger LOG = LoggerFactor
                                 LOG.error("Unexpected error", e1);
                             }
                             iPanel.setVoucher(new SSVoucher(), false, false);
+                            iPanel.updateAccounts();
                             return;
                         }
                         iDialog.closeDialog();
@@ -120,11 +118,8 @@ public class SSVoucherDialog {    private static final Logger LOG = LoggerFactor
                 }
                 SSVoucher iVoucher = iPanel.getVoucher();
 
-                SSDB.getInstance().addVoucher(iVoucher, false);
-
-                if (pModel != null) {
-                    pModel.fireTableDataChanged();
-                }
+                SSAccountingContext.addVoucher(iVoucher, false);
+                SSVoucherFrame.fireTableDataChanged();
             }
         });
         iDialog.setSize(800, 600);
@@ -143,7 +138,6 @@ public class SSVoucherDialog {    private static final Logger LOG = LoggerFactor
                 SSBundle.getBundle().getString("voucherframe.edit.title"));
         final SSVoucherPanel iPanel = new SSVoucherPanel(iDialog);
 
-        // iPanel.setModel( new SSVoucherRowTableModelOld( true, false ));
         iPanel.setMarkRowButtonVisible(true);
         iPanel.setDeleteRowButtonVisible(true);
         iPanel.setVoucher(new SSVoucher(iVoucher), true, false);
@@ -161,15 +155,13 @@ public class SSVoucherDialog {    private static final Logger LOG = LoggerFactor
                             return;
                         }
 
-                        SSDB.getInstance().updateVoucher(iVoucher1);
+                        SSAccountingContext.updateVoucher(iVoucher1);
 
                         if (iPanel.isStoreAsTemplate()) {
-                            SSDB.getInstance().addVoucherTemplate(new SSVoucherTemplate(iVoucher1));
+                            SSAccountingContext.addVoucherTemplate(new SSVoucherTemplate(iVoucher1));
+                            iPanel.updateAccounts();
                         }
-
-                        if (pModel != null) {
-                            pModel.fireTableDataChanged();
-                        }
+                        SSVoucherFrame.fireTableDataChanged();
                         iDialog.closeDialog();
 
                         if (iPanel.doReopen()) {
@@ -212,7 +204,8 @@ public class SSVoucherDialog {    private static final Logger LOG = LoggerFactor
                 }
                 SSVoucher iVoucher = iPanel.getVoucher();
 
-                SSDB.getInstance().updateVoucher(iVoucher);
+                SSAccountingContext.updateVoucher(iVoucher);
+                SSVoucherFrame.fireTableDataChanged();
 
             }
         });
@@ -259,7 +252,6 @@ public class SSVoucherDialog {    private static final Logger LOG = LoggerFactor
                         iVoucher.getNumber(), iVoucher.getDescription()));
         iNew.setCorrects(iVoucher);
 
-        // iPanel.setModel( new SSVoucherRowTableModelOld( false, false ));
         iPanel.setMarkRowButtonVisible(false);
         iPanel.setDeleteRowButtonVisible(true);
         iPanel.setVoucher(iNew, false, false);
@@ -279,19 +271,17 @@ public class SSVoucherDialog {    private static final Logger LOG = LoggerFactor
                             return;
                         }
 
-                        SSDB.getInstance().addVoucher(iVoucher1, false);
+                        SSAccountingContext.addVoucher(iVoucher1, false);
 
                         if (iPanel.isStoreAsTemplate()) {
-                            SSDB.getInstance().addVoucherTemplate(new SSVoucherTemplate(iVoucher1));
+                            SSAccountingContext.addVoucherTemplate(new SSVoucherTemplate(iVoucher1));
+                            iPanel.updateAccounts();
                         }
 
                         iOriginal.setCorrectedBy(iVoucher1);
 
-                        SSDB.getInstance().updateVoucher(iOriginal);
-
-                        if (pModel != null) {
-                            pModel.fireTableDataChanged();
-                        }
+                        SSAccountingContext.updateVoucher(iOriginal);
+                        SSVoucherFrame.fireTableDataChanged();
                         iDialog.closeDialog();
 
                         if (iPanel.doReopen()) {
@@ -335,14 +325,11 @@ public class SSVoucherDialog {    private static final Logger LOG = LoggerFactor
                 }
                 SSVoucher iVoucher = iPanel.getVoucher();
 
-                SSDB.getInstance().addVoucher(iVoucher, false);
+                SSAccountingContext.addVoucher(iVoucher, false);
 
                 iOriginal.setCorrectedBy(iVoucher);
-                SSDB.getInstance().updateVoucher(iVoucher);
-
-                if (pModel != null) {
-                    pModel.fireTableDataChanged();
-                }
+                SSAccountingContext.updateVoucher(iVoucher);
+                SSVoucherFrame.fireTableDataChanged();
             }
         });
         iDialog.setSize(800, 600);
@@ -350,3 +337,4 @@ public class SSVoucherDialog {    private static final Logger LOG = LoggerFactor
         iDialog.setVisible();
     }
 }
+

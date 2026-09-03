@@ -10,6 +10,7 @@ import se.swedsoft.bookkeeping.data.SSVoucher;
 import se.swedsoft.bookkeeping.data.base.SSSaleRow;
 import se.swedsoft.bookkeeping.data.common.*;
 import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.data.system.SSSalesContext;
 import se.swedsoft.bookkeeping.gui.SSMainFrame;
 import se.swedsoft.bookkeeping.gui.company.panel.SSAdressPanel;
 import se.swedsoft.bookkeeping.gui.company.panel.SSDefaultAccountPanel;
@@ -31,7 +32,7 @@ import se.swedsoft.bookkeeping.gui.util.table.actions.SSDeleteAction;
 import se.swedsoft.bookkeeping.gui.util.table.actions.SSTraversalAction;
 import se.swedsoft.bookkeeping.gui.util.table.editors.SSTaxCodeCellEditor;
 import se.swedsoft.bookkeeping.gui.util.table.editors.SSTaxCodeCellRenderer;
-import se.swedsoft.bookkeeping.gui.voucher.util.SSVoucherRowTableModelOld;
+import se.swedsoft.bookkeeping.gui.voucher.util.SSVoucherRowTableModel;
 
 import javax.swing.*;
 import javax.swing.event.TableModelEvent;
@@ -126,7 +127,7 @@ public class SSPeriodicInvoicePanel {
 
     private SSTable iVoucherTable;
 
-    private SSVoucherRowTableModelOld iVoucherTableModel;
+    private SSVoucherRowTableModel iVoucherTableModel;
 
     private JButton iRefreshVoucher;
 
@@ -163,6 +164,7 @@ public class SSPeriodicInvoicePanel {
 
         iTable.setColorReadOnly(true);
         iTable.setColumnSortingEnabled(false);
+        iTable.setSelectionForeground(Color.BLACK);
 
         iModel = new SSInvoiceRowTableModel();
         iModel.addColumn(SSInvoiceRowTableModel.COLUMN_PRODUCT, true);
@@ -179,11 +181,15 @@ public class SSPeriodicInvoicePanel {
         iModel.setupTable(iTable);
 
         iModel.addTableModelListener(e -> updateSumFields());
-        iVoucherTableModel = new SSVoucherRowTableModelOld(false, true);
-
-        iVoucherTable.setModel(iVoucherTableModel);
-
-        SSVoucherRowTableModelOld.setupTable(iVoucherTable, iVoucherTableModel);
+        iVoucherTableModel = new SSVoucherRowTableModel();
+        iVoucherTableModel.addColumn(SSVoucherRowTableModel.COLUMN_ACCOUNT, true);
+        iVoucherTableModel.addColumn(SSVoucherRowTableModel.COLUMN_DESCRIPTION, true);
+        iVoucherTableModel.addColumn(SSVoucherRowTableModel.COLUMN_DEBET, true);
+        iVoucherTableModel.addColumn(SSVoucherRowTableModel.COLUMN_CREDIT, true);
+        iVoucherTableModel.addColumn(SSVoucherRowTableModel.COLUMN_PROJECT, true);
+        iVoucherTableModel.addColumn(SSVoucherRowTableModel.COLUMN_RESULTUNIT, true);
+        iVoucherTableModel.setReadOnlyMode(true);
+        iVoucherTableModel.setupTable(iVoucherTable, true);
 
         iCustomer.setModel(SSCustomerTableModel.getDropDownModel());
         iCustomer.setSearchColumns(0, 1);
@@ -326,7 +332,7 @@ public class SSPeriodicInvoicePanel {
         iCurrencyCalculatorButton.addActionListener(
                 e -> {
 
-                        SSCurrency iCompanyCurrency = SSDB.getInstance().getCurrentCompany().getCurrency();
+                        SSCurrency iCompanyCurrency = se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.getCurrentCompany().getCurrency();
                         SSCurrency iCurrentCurrency = iCurrency.getSelected();
 
                         if (iCompanyCurrency == null || iCurrentCurrency == null) {
@@ -342,7 +348,7 @@ public class SSPeriodicInvoicePanel {
 
                 SSVoucher iVoucher = iInvoice.generateVoucher();
 
-                iVoucherTableModel.setVoucher(iVoucher);
+                iVoucherTableModel.setVoucher(iVoucher, false);
 
             });
         SSButtonGroup iGroup = new SSButtonGroup(true);
@@ -567,7 +573,7 @@ public class SSPeriodicInvoicePanel {
 
         iInformation.setText(iPeriodicInvoice.getInformation());
 
-        iVoucherTableModel.setVoucher(iInvoice.getVoucher());
+        iVoucherTableModel.setVoucher(iInvoice.getVoucher(), false);
 
         iModel.setObjects(iInvoice.getRows());
 
@@ -578,7 +584,7 @@ public class SSPeriodicInvoicePanel {
         iYourOrderNumber.setText(iInvoice.getYourOrderNumber());
         // Kund nummer
         iCustomer.setText(iInvoice.getCustomerNr());
-        for (SSCustomer pCustomer : SSDB.getInstance().getCustomers()) {
+        for (SSCustomer pCustomer : SSSalesContext.getCustomers()) {
             if (pCustomer.getNumber().equals(iCustomer.getText())) {
                 iModel.setCustomer(pCustomer);
             }
@@ -782,7 +788,7 @@ public class SSPeriodicInvoicePanel {
         iTaxSum1.setValue(iTaxSum.get(SSTaxCode.TAXRATE_1));
         iTaxSum2.setValue(iTaxSum.get(SSTaxCode.TAXRATE_2));
         iTaxSum3.setValue(iTaxSum.get(SSTaxCode.TAXRATE_3));
-        if (!SSDB.getInstance().getCurrentCompany().isRoundingOff()) {
+        if (!se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.getCurrentCompany().isRoundingOff()) {
             iRoundingSum.setValue(iRounding);
         }
         this.iTotalSum.setValue(iTotalSum);

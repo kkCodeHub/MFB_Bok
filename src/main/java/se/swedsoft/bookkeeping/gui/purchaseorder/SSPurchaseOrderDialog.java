@@ -6,7 +6,8 @@ import se.swedsoft.bookkeeping.data.SSOrder;
 import se.swedsoft.bookkeeping.data.SSPurchaseOrder;
 import se.swedsoft.bookkeeping.data.SSSupplier;
 import se.swedsoft.bookkeeping.data.SSSupplierInvoice;
-import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.data.system.SSPurchaseContext;
+import se.swedsoft.bookkeeping.data.system.SSSalesContext;
 import se.swedsoft.bookkeeping.gui.SSMainFrame;
 import se.swedsoft.bookkeeping.gui.purchaseorder.panel.SSPurchaseOrderPanel;
 import se.swedsoft.bookkeeping.gui.supplierinvoice.SSSupplierInvoiceDialog;
@@ -59,10 +60,7 @@ public class SSPurchaseOrderDialog {
                 SSPurchaseOrder iOrder = iPanel.getOrder();
 
                 Repositories.purchaseOrders().add(iOrder);
-
-                if (pModel != null) {
-                    pModel.fireTableDataChanged();
-                }
+                SSPurchaseOrderFrame.fireTableDataChanged();
 
                 iPanel.dispose();
                 iDialog.closeDialog();
@@ -125,11 +123,13 @@ public class SSPurchaseOrderDialog {
                 Repositories.purchaseOrders().add(iPurchaseOrder1);
 
                 for (SSOrder iOrder : iSelected) {
-                    if (SSDB.getInstance().getOrders().contains(iOrder)) {
+                    if (SSSalesContext.getOrders().contains(iOrder)) {
                         iOrder.setPurchaseOrder(iPurchaseOrder1);
-                        SSDB.getInstance().updateOrder(iOrder);
+                        SSSalesContext.updateOrder(iOrder);
                     }
                 }
+
+                SSPurchaseOrderFrame.fireTableDataChanged();
 
                 iPanel.dispose();
                 iDialog.closeDialog();
@@ -186,10 +186,7 @@ public class SSPurchaseOrderDialog {
                 SSPurchaseOrder iOrder = iPanel.getOrder();
 
                 Repositories.purchaseOrders().update(iOrder);
-
-                if (pModel != null) {
-                    pModel.fireTableDataChanged();
-                }
+                SSPurchaseOrderFrame.fireTableDataChanged();
 
                 iPanel.dispose();
                 iDialog.closeDialog();
@@ -255,10 +252,7 @@ public class SSPurchaseOrderDialog {
                 SSPurchaseOrder iOrder = iPanel.getOrder();
 
                 Repositories.purchaseOrders().add(iOrder);
-
-                if (pModel != null) {
-                    pModel.fireTableDataChanged();
-                }
+                SSPurchaseOrderFrame.fireTableDataChanged();
 
                 iPanel.dispose();
                 iDialog.closeDialog();
@@ -348,9 +342,7 @@ public class SSPurchaseOrderDialog {
             SSSupplierInvoiceDialog.newDialog(iMainFrame, iSupplierInvoice,
                     iPurchaseOrders, null);
         }
-        if (iModel != null) {
-            iModel.fireTableDataChanged();
-        }
+        SSPurchaseOrderFrame.fireTableDataChanged();
 
         /*
 
@@ -399,7 +391,7 @@ public class SSPurchaseOrderDialog {
          */
         // iModel.fireTableDataChanged();
 
-        // SSDB.getInstance().notifyYearUpdated();
+        // Year refresh handled by surrounding dialog/frame flow.
     }
 
 }

@@ -6,6 +6,7 @@ import se.swedsoft.bookkeeping.data.SSSupplier;
 import se.swedsoft.bookkeeping.data.SSSupplierInvoice;
 import se.swedsoft.bookkeeping.data.common.SSCurrency;
 import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.data.system.SSPurchaseContext;
 import se.swedsoft.bookkeeping.gui.util.SSBundle;
 import se.swedsoft.bookkeeping.gui.util.table.model.SSTableColumn;
 import se.swedsoft.bookkeeping.gui.util.table.model.SSTableModel;
@@ -323,7 +324,7 @@ public class SSSupplierInvoiceTableModel extends SSTableModel<SSSupplierInvoice>
             SSBundle.getBundle().getString("supplierinvoicetable.column.11")) {
         @Override
         public Object getValue(SSSupplierInvoice iObject) {
-            SSSupplier iSupplier = iObject.getSupplier(SSDB.getInstance().getSuppliers());
+            SSSupplier iSupplier = iObject.getSupplier(SSPurchaseContext.getSuppliers());
 
             return iSupplier == null ? null : iSupplier.getBankgiro();
         }
@@ -349,7 +350,7 @@ public class SSSupplierInvoiceTableModel extends SSTableModel<SSSupplierInvoice>
             SSBundle.getBundle().getString("supplierinvoicetable.column.12")) {
         @Override
         public Object getValue(SSSupplierInvoice iObject) {
-            SSSupplier iSupplier = iObject.getSupplier(SSDB.getInstance().getSuppliers());
+            SSSupplier iSupplier = iObject.getSupplier(SSPurchaseContext.getSuppliers());
 
             return iSupplier == null ? null : iSupplier.getPlusgiro();
         }

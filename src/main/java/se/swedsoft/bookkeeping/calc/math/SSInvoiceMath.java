@@ -5,6 +5,7 @@ import se.swedsoft.bookkeeping.data.*;
 import se.swedsoft.bookkeeping.data.base.SSSaleRow;
 import se.swedsoft.bookkeeping.data.common.SSInvoiceType;
 import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.data.system.SSInvoiceActionPolicy;
 
 import se.swedsoft.bookkeeping.util.SSDateUtil;
 
@@ -60,7 +61,7 @@ public class SSInvoiceMath extends SSSaleMath {    private static final Logger L
         SSInvoice iInvoice = new SSInvoice();
 
         iInvoice.setNumber(iInvoiceNr);
-        iInvoice = SSDB.getInstance().getInvoice(iInvoice).orElse(null);
+        iInvoice = se.swedsoft.bookkeeping.data.system.SSSalesContext.getInvoice(iInvoice).orElse(null);
 
         BigDecimal iCurrencyRate = iInvoice.getCurrencyRate();
 
@@ -113,7 +114,7 @@ public class SSInvoiceMath extends SSSaleMath {    private static final Logger L
 
         HashMap<Integer, BigDecimal> iCreditInvoiceSum = SSCreditInvoiceMath.getSumsForInvoices();
 
-        List<SSInvoice> iInvoices = SSDB.getInstance().getInvoices();
+        List<SSInvoice> iInvoices = se.swedsoft.bookkeeping.data.system.SSSalesContext.getInvoices();
 
         for (SSInvoice iInvoice : iInvoices) {
             if (iInvoice.getType() == SSInvoiceType.CASH) {
@@ -143,7 +144,7 @@ public class SSInvoiceMath extends SSSaleMath {    private static final Logger L
         HashMap<Integer, BigDecimal> iCreditInvoiceSum = SSCreditInvoiceMath.getSumsForInvoices(
                 iDate);
 
-        List<SSInvoice> iInvoices = SSDB.getInstance().getInvoices();
+        List<SSInvoice> iInvoices = se.swedsoft.bookkeeping.data.system.SSSalesContext.getInvoices();
 
         for (SSInvoice iInvoice : iInvoices) {
             if (iInvoice.getType() == SSInvoiceType.CASH) {
@@ -284,7 +285,7 @@ public class SSInvoiceMath extends SSSaleMath {    private static final Logger L
      * @return the order or null
      */
     public static List<SSOrder> getOrdersForInvoice(SSInvoice iInvoice) {
-        return getOrdersForInvoice(SSDB.getInstance().getOrders(), iInvoice);
+        return getOrdersForInvoice(se.swedsoft.bookkeeping.data.system.SSSalesContext.getOrders(), iInvoice);
     }
 
     /**
@@ -307,7 +308,7 @@ public class SSInvoiceMath extends SSSaleMath {    private static final Logger L
      * @return the invoices for the customer
      */
     public static List<SSInvoice> getInvoicesForCustomer(SSCustomer iCustomer) {
-        return getInvoicesForCustomer(SSDB.getInstance().getInvoices(), iCustomer);
+        return getInvoicesForCustomer(se.swedsoft.bookkeeping.data.system.SSSalesContext.getInvoices(), iCustomer);
     }
 
     /**
@@ -324,7 +325,7 @@ public class SSInvoiceMath extends SSSaleMath {    private static final Logger L
     }
 
     public static Map<String, List<SSInvoice>> getInvoicesforCustomers() {
-        List<SSInvoice> iInvoices = SSDB.getInstance().getInvoices();
+        List<SSInvoice> iInvoices = se.swedsoft.bookkeeping.data.system.SSSalesContext.getInvoices();
         Map<String, List<SSInvoice>> iMap = new HashMap<>();
 
         for (SSInvoice iInvoice : iInvoices) {
@@ -349,8 +350,8 @@ public class SSInvoiceMath extends SSSaleMath {    private static final Logger L
      * @param iDate
      * @return the invoices for the customer
      */
-    public static List<SSInvoice> getInvoicesForCustomer(SSCustomer iCustomer, Date iDate) {
-        return getInvoicesForCustomer(SSDB.getInstance().getInvoices(), iCustomer, iDate);
+    public static List<SSInvoice> getInvoicesForCustomer(SSCustomer iCustomer, LocalDate iDate) {
+        return getInvoicesForCustomer(se.swedsoft.bookkeeping.data.system.SSSalesContext.getInvoices(), iCustomer, iDate);
     }
 
     /**
@@ -361,7 +362,7 @@ public class SSInvoiceMath extends SSSaleMath {    private static final Logger L
      * @param iDate
      * @return the invoices for the customer
      */
-    public static List<SSInvoice> getInvoicesForCustomer(List<SSInvoice> iInvoices, SSCustomer iCustomer, Date iDate) {
+    public static List<SSInvoice> getInvoicesForCustomer(List<SSInvoice> iInvoices, SSCustomer iCustomer, LocalDate iDate) {
         return iInvoices.stream()
                 .filter(iInvoice -> iInvoice.hasCustomer(iCustomer) && inPeriod(iInvoice, iDate))
                 .collect(Collectors.toList());
@@ -373,7 +374,7 @@ public class SSInvoiceMath extends SSSaleMath {    private static final Logger L
      * @return list of invoices
      */
     public static List<SSInvoice> getPayedOrCreditedInvoices() {
-        return getPayedOrCreditedInvoices(SSDB.getInstance().getInvoices());
+        return getPayedOrCreditedInvoices(se.swedsoft.bookkeeping.data.system.SSSalesContext.getInvoices());
     }
 
     /**
@@ -401,7 +402,7 @@ public class SSInvoiceMath extends SSSaleMath {    private static final Logger L
      * @return list of invoices
      */
     public static List<SSInvoice> getNonPayedOrCreditedInvoices() {
-        return getNonPayedOrCreditedInvoices(SSDB.getInstance().getInvoices());
+        return getNonPayedOrCreditedInvoices(se.swedsoft.bookkeeping.data.system.SSSalesContext.getInvoices());
     }
 
     /**
@@ -416,7 +417,7 @@ public class SSInvoiceMath extends SSSaleMath {    private static final Logger L
         for (SSInvoice iInvoice : iInvoices) {
             BigDecimal iSaldo = getSaldo(iInvoice.getNumber());
 
-            if (iSaldo.signum() != 0) {
+            if (iSaldo.signum() != 0 && SSInvoiceActionPolicy.canRegisterInpayment(iInvoice)) {
                 iFiltered.add(iInvoice);
             }
         }
@@ -482,7 +483,7 @@ public class SSInvoiceMath extends SSSaleMath {    private static final Logger L
      * @return
      */
     public static Optional<SSInvoice> getInvoiceByReference(String iReferensNumber) {
-        return getInvoiceByReference(SSDB.getInstance().getInvoices(), iReferensNumber);
+        return getInvoiceByReference(se.swedsoft.bookkeeping.data.system.SSSalesContext.getInvoices(), iReferensNumber);
     }
 
     /**
@@ -507,7 +508,7 @@ public class SSInvoiceMath extends SSSaleMath {    private static final Logger L
         Map<String, Integer> iInvoiceCount = new HashMap<>();
         List<String> iParcelProducts = new LinkedList<>();
         List<SSProduct> iProducts = new LinkedList<>(
-                SSDB.getInstance().getProducts());
+                se.swedsoft.bookkeeping.data.system.SSProductContext.getProducts());
 
         for (SSProduct iProduct : iProducts) {
             if (iProduct.isParcel() && iProduct.getNumber() != null) {

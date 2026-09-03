@@ -3,6 +3,7 @@ package se.swedsoft.bookkeeping.print.dialog;
 
 import se.swedsoft.bookkeeping.data.SSNewAccountingYear;
 import se.swedsoft.bookkeeping.data.SSNewProject;
+import se.swedsoft.bookkeeping.data.system.SSCompanyYearContext;
 import se.swedsoft.bookkeeping.data.system.SSDB;
 import se.swedsoft.bookkeeping.gui.project.util.SSProjectTableModel;
 import se.swedsoft.bookkeeping.gui.util.SSButtonPanel;
@@ -69,7 +70,7 @@ public class SSProjectResultSetupDialog extends SSDialog {
         LocalDate iFrom = SSDateUtil.today();
         LocalDate iTo = SSDateUtil.today();
 
-        List<SSNewAccountingYear> iYears = SSDB.getInstance().getYears();
+        List<SSNewAccountingYear> iYears = SSCompanyYearContext.getYears();
 
         for (SSNewAccountingYear iYear : iYears) {
             if (iFrom.isAfter(iYear.getLocalFrom())) {
@@ -84,35 +85,31 @@ public class SSProjectResultSetupDialog extends SSDialog {
     }
 
     /**
-     *
-     * @param pDate
+     * @param pDate the start date
      */
-    public void setFrom(Date pDate) {
-        iFrom.setDate(pDate);
+    public void setLocalFrom(LocalDate pDate) {
+        iFrom.setLocalDate(pDate);
     }
 
     /**
-     *
-     * @param pDate
+     * @param pDate the end date
      */
-    public void setTo(Date pDate) {
-        iTo.setDate(pDate);
+    public void setLocalTo(LocalDate pDate) {
+        iTo.setLocalDate(pDate);
     }
 
     /**
-     *
-     * @return
+     * @return the start date as a {@link LocalDate}
      */
-    public Date getFrom() {
-        return iFrom.getDate();
+    public LocalDate getLocalFrom() {
+        return iFrom.getLocalDate();
     }
 
     /**
-     *
-     * @return
+     * @return the end date as a {@link LocalDate}
      */
-    public Date getTo() {
-        return iTo.getDate();
+    public LocalDate getLocalTo() {
+        return iTo.getLocalDate();
     }
 
     /**

@@ -7,12 +7,14 @@ import se.swedsoft.bookkeeping.gui.util.SSButtonPanel;
 import se.swedsoft.bookkeeping.gui.util.components.SSTableComboBox;
 import se.swedsoft.bookkeeping.gui.util.datechooser.SSDateChooser;
 import se.swedsoft.bookkeeping.gui.util.dialogs.SSDialog;
+import se.swedsoft.bookkeeping.util.SSDateUtil;
 
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.time.LocalDate;
 import java.util.Date;
 
 
@@ -64,35 +66,31 @@ public class SSResultUnitResultSetupDialog extends SSDialog {
     }
 
     /**
-     *
-     * @param pDate
+     * @param pDate the start date
      */
-    public void setFrom(Date pDate) {
-        iFrom.setDate(pDate);
+    public void setLocalFrom(LocalDate pDate) {
+        iFrom.setLocalDate(pDate);
     }
 
     /**
-     *
-     * @param pDate
+     * @param pDate the end date
      */
-    public void setTo(Date pDate) {
-        iTo.setDate(pDate);
+    public void setLocalTo(LocalDate pDate) {
+        iTo.setLocalDate(pDate);
     }
 
     /**
-     *
-     * @return
+     * @return the start date as a {@link LocalDate}
      */
-    public Date getFrom() {
-        return iFrom.getDate();
+    public LocalDate getLocalFrom() {
+        return iFrom.getLocalDate();
     }
 
     /**
-     *
-     * @return
+     * @return the end date as a {@link LocalDate}
      */
-    public Date getTo() {
-        return iTo.getDate();
+    public LocalDate getLocalTo() {
+        return iTo.getLocalDate();
     }
 
     /**

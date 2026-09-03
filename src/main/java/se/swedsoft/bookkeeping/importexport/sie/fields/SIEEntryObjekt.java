@@ -76,7 +76,7 @@ public class SIEEntryObjekt implements SIEEntry {    private static final Logger
             iResultUnit.setNumber(iNum);
             iResultUnit.setName(iReader.nextString());
 
-            SSDB.getInstance().addResultUnit(iResultUnit);
+            se.swedsoft.bookkeeping.data.system.SSResultUnitContext.addResultUnit(iResultUnit);
         }
 
         // Projekt, #DIM 6
@@ -86,7 +86,7 @@ public class SIEEntryObjekt implements SIEEntry {    private static final Logger
             iProject.setNumber(iNum);
             iProject.setName(iReader.nextString());
 
-            SSDB.getInstance().addProject(iProject);
+            se.swedsoft.bookkeeping.data.system.SSProjectContext.addProject(iProject);
         }
 
         return true;
@@ -103,8 +103,8 @@ public class SIEEntryObjekt implements SIEEntry {    private static final Logger
      */
     @Override
     public boolean exportEntry(SSSIEExporter iExporter, SIEWriter iWriter, SSNewAccountingYear iCurrentYearData) throws SSExportException {
-        List<SSNewResultUnit> iResultUnits = SSDB.getInstance().getResultUnits();
-        List<SSNewProject   > iProjects = SSDB.getInstance().getProjects();
+        List<SSNewResultUnit> iResultUnits = se.swedsoft.bookkeeping.data.system.SSResultUnitContext.getResultUnits();
+        List<SSNewProject   > iProjects = se.swedsoft.bookkeeping.data.system.SSProjectContext.getProjects();
 
         // Resultatenhet, #DIM 1
         for (SSNewResultUnit iResultUnit: iResultUnits) {

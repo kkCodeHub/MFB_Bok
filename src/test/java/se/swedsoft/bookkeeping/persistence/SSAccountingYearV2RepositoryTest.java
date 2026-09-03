@@ -37,7 +37,7 @@ class SSAccountingYearV2RepositoryTest {
         Class.forName("org.hsqldb.jdbcDriver");
         connection = DriverManager.getConnection(JDBC_URL, "sa", "");
 
-        SSDB.getInstance().startupLocal(connection);
+        se.swedsoft.bookkeeping.data.system.SSSystemConfigContext.startupLocal(connection);
 
         Integer companyId = createCompany("V2 AccountingYear Repo Test AB");
         SSNewCompany company = new SSNewCompany();
@@ -61,7 +61,7 @@ class SSAccountingYearV2RepositoryTest {
 
     @BeforeEach
     void clearCaches() {
-        SSDB.getInstance().clearLists();
+        se.swedsoft.bookkeeping.data.system.SSEventTriggerSyncContext.clearCachedLists();
     }
 
     @Test
@@ -87,16 +87,19 @@ class SSAccountingYearV2RepositoryTest {
 
         Repositories.accountingYears().add(year);
         assertThat(year.getId()).isNotNull();
+        assertThat(countAccountRowsForYear(year.getId())).isZero();
 
-        SSDB.getInstance().setCurrentYear(year);
+        Repositories.accountingYears().open(year);
+        assertThat(countAccountRowsForYear(year.getId())).isEqualTo(1);
         Optional<SSNewAccountingYear> current = Repositories.accountingYears().findCurrent();
         assertThat(current).isPresent();
         assertThat(current.get().getId()).isEqualTo(year.getId());
 
         year.setInBalance(cash, new BigDecimal("1500.00"));
         Repositories.accountingYears().update(year);
+        assertThat(countAccountRowsForYear(year.getId())).isEqualTo(1);
 
-        Optional<SSNewAccountingYear> reloaded = SSDB.getInstance().getAccountingYear(year);
+        Optional<SSNewAccountingYear> reloaded = se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.getAccountingYear(year);
         assertThat(reloaded).isPresent();
         assertThat(reloaded.get().getLocalTo()).isEqualTo(LocalDate.of(2027, 12, 31));
         assertThat(reloaded.get().getInBalance(new SSAccount(1910))).isEqualByComparingTo("1500.00");
@@ -104,9 +107,10 @@ class SSAccountingYearV2RepositoryTest {
                 .hasValueSatisfying(value -> assertThat(value).isEqualByComparingTo("300.00"));
 
         Repositories.accountingYears().delete(year);
-        assertThat(SSDB.getInstance().getAccountingYear(year)).isEmpty();
+        assertThat(se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.getAccountingYear(year)).isEmpty();
         assertThat(countChildRows("tbl_year_balance", year.getId())).isZero();
         assertThat(countChildRows("tbl_budget_row", year.getId())).isZero();
+        assertThat(countAccountRowsForYear(year.getId())).isZero();
 
         Repositories.accountPlans().delete(plan);
     }
@@ -193,7 +197,7 @@ class SSAccountingYearV2RepositoryTest {
         year.setLocalTo(LocalDate.of(2032, 6, 30));
         Repositories.accountingYears().update(year);
 
-        Optional<SSNewAccountingYear> reloaded = SSDB.getInstance().getAccountingYear(year);
+        Optional<SSNewAccountingYear> reloaded = se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.getAccountingYear(year);
         assertThat(reloaded).isPresent();
         assertThat(reloaded.get().getLocalFrom()).isEqualTo(LocalDate.of(2031, 7, 1));
         assertThat(reloaded.get().getLocalTo()).isEqualTo(LocalDate.of(2032, 6, 30));
@@ -209,6 +213,75 @@ class SSAccountingYearV2RepositoryTest {
 
         Repositories.accountingYears().delete(year);
         Repositories.accountPlans().delete(plan);
+    }
+
+    @Test
+    void openingYearWithoutSnapshotIsBlocked() throws Exception {
+        Integer yearId;
+        try (PreparedStatement statement = connection.prepareStatement(
+                "INSERT INTO tbl_accountingyear(companyid, from_date, to_date, accountplan_id) VALUES (?, ?, ?, ?)",
+                Statement.RETURN_GENERATED_KEYS)) {
+            statement.setInt(1, SSDB.getInstance().getCurrentCompany().getId());
+            statement.setDate(2, java.sql.Date.valueOf(LocalDate.of(2040, 1, 1)));
+            statement.setDate(3, java.sql.Date.valueOf(LocalDate.of(2040, 12, 31)));
+            statement.setObject(4, null);
+            statement.executeUpdate();
+            connection.commit();
+            try (ResultSet keys = statement.getGeneratedKeys()) {
+                keys.next();
+                yearId = keys.getInt(1);
+            }
+        }
+
+        SSNewAccountingYear yearProbe = new SSNewAccountingYear();
+        yearProbe.setId(yearId);
+
+        assertThat(se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.canOpenAccountingYear(yearProbe)).isFalse();
+    }
+
+    @Test
+    void openingSecondYearReplacesAccountWorkspaceRows() throws Exception {
+        SSAccountPlan planA = new SSAccountPlan();
+        planA.setName("PLAN-YEAR-N-SWITCH-A");
+        SSAccount accountA = new SSAccount();
+        accountA.setNumber(1910);
+        accountA.setDescription("Cash");
+        planA.addAccount(accountA);
+        Repositories.accountPlans().add(planA);
+
+        SSAccountPlan planB = new SSAccountPlan();
+        planB.setName("PLAN-YEAR-N-SWITCH-B");
+        SSAccount accountB = new SSAccount();
+        accountB.setNumber(1930);
+        accountB.setDescription("Bank");
+        planB.addAccount(accountB);
+        Repositories.accountPlans().add(planB);
+
+        SSNewAccountingYear yearA = new SSNewAccountingYear();
+        yearA.setLocalFrom(LocalDate.of(2033, 1, 1));
+        yearA.setLocalTo(LocalDate.of(2033, 12, 31));
+        yearA.setAccountPlan(planA);
+        Repositories.accountingYears().add(yearA);
+
+        SSNewAccountingYear yearB = new SSNewAccountingYear();
+        yearB.setLocalFrom(LocalDate.of(2034, 1, 1));
+        yearB.setLocalTo(LocalDate.of(2034, 12, 31));
+        yearB.setAccountPlan(planB);
+        Repositories.accountingYears().add(yearB);
+
+        Repositories.accountingYears().open(yearA);
+        assertThat(countDistinctYearIdsInAccountTable()).isEqualTo(1);
+        assertThat(countAccountRowsForYear(yearA.getId())).isEqualTo(1);
+
+        Repositories.accountingYears().open(yearB);
+        assertThat(countDistinctYearIdsInAccountTable()).isEqualTo(1);
+        assertThat(countAccountRowsForYear(yearA.getId())).isZero();
+        assertThat(countAccountRowsForYear(yearB.getId())).isEqualTo(1);
+
+        Repositories.accountingYears().delete(yearA);
+        Repositories.accountingYears().delete(yearB);
+        Repositories.accountPlans().delete(planA);
+        Repositories.accountPlans().delete(planB);
     }
 
     private static SSMonth findMonth(SSNewAccountingYear year, int monthNumber) {
@@ -229,20 +302,31 @@ class SSAccountingYearV2RepositoryTest {
         }
     }
 
-    private static Integer createCompany(String name) throws Exception {
-        try (PreparedStatement statement = connection.prepareStatement(
-                "INSERT INTO tbl_company(name) VALUES (?)", Statement.RETURN_GENERATED_KEYS)) {
-            statement.setString(1, name);
-            statement.executeUpdate();
-            connection.commit();
-
-            try (ResultSet keys = statement.getGeneratedKeys()) {
-                if (keys.next()) {
-                    return keys.getInt(1);
-                }
+    private static int countAccountRowsForYear(Integer yearId) throws Exception {
+        String sql = "SELECT COUNT(*) FROM tbl_account WHERE accountingyear_id=?";
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setObject(1, yearId);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                resultSet.next();
+                return resultSet.getInt(1);
             }
         }
-        throw new IllegalStateException("Could not create test company for accounting-year repository test");
+    }
+
+    private static int countDistinctYearIdsInAccountTable() throws Exception {
+        String sql = "SELECT COUNT(DISTINCT accountingyear_id) FROM tbl_account";
+        try (PreparedStatement statement = connection.prepareStatement(sql);
+             ResultSet resultSet = statement.executeQuery()) {
+            resultSet.next();
+            return resultSet.getInt(1);
+        }
+    }
+
+    private static Integer createCompany(String name) throws Exception {
+        se.swedsoft.bookkeeping.data.SSNewCompany company = new se.swedsoft.bookkeeping.data.SSNewCompany();
+        company.setName(name);
+        se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.addCompany(company);
+        return company.getId();
     }
 }
 

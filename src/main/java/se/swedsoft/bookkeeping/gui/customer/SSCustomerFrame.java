@@ -3,6 +3,8 @@ package se.swedsoft.bookkeeping.gui.customer;
 
 import se.swedsoft.bookkeeping.data.SSCustomer;
 import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.data.system.SSCompanyYearContext;
+import se.swedsoft.bookkeeping.data.system.SSSalesContext;
 import se.swedsoft.bookkeeping.gui.SSMainFrame;
 import se.swedsoft.bookkeeping.gui.customer.panel.SSCustomerSearchPanel;
 import se.swedsoft.bookkeeping.gui.customer.util.SSCustomerTableModel;
@@ -30,10 +32,9 @@ import se.swedsoft.bookkeeping.print.report.SSCustomerRevenuePrinter;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
-import java.util.Date;
+import java.time.LocalDate;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -262,17 +263,17 @@ public class SSCustomerFrame extends SSDefaultTableFrame {
                                 break;
 
                             case JOptionPane.NO_OPTION:
-                                iItems = SSDB.getInstance().getCustomers();
+                                iItems = SSSalesContext.getCustomers();
                                 break;
 
                             default:
                                 return;
                             }
                         } else {
-                            iItems = SSDB.getInstance().getCustomers();
+                            iItems = SSSalesContext.getCustomers();
                         }
 
-                        iFilechooser.setSelectedFile(new File("Kundlista.xls"));
+                        iFilechooser.setSelectedFile(new File("Kundlista.xlsx"));
 
                         if (iFilechooser.showSaveDialog(getMainFrame())
                                 == JFileChooser.APPROVE_OPTION) {
@@ -311,14 +312,14 @@ public class SSCustomerFrame extends SSDefaultTableFrame {
                                 break;
 
                             case JOptionPane.NO_OPTION:
-                                iItems = SSDB.getInstance().getCustomers();
+                                iItems = SSSalesContext.getCustomers();
                                 break;
 
                             default:
                                 return;
                             }
                         } else {
-                            iItems = SSDB.getInstance().getCustomers();
+                            iItems = SSSalesContext.getCustomers();
                         }
                         if (!iItems.isEmpty()) {
 
@@ -483,7 +484,7 @@ public class SSCustomerFrame extends SSDefaultTableFrame {
 
         if (iResponce == JOptionPane.YES_OPTION) {
             for (SSCustomer iCustomer : delete) {
-                    SSDB.getInstance().deleteCustomer(iCustomer);
+                    SSSalesContext.deleteCustomer(iCustomer);
             }
         }
     }
@@ -541,53 +542,61 @@ public class SSCustomerFrame extends SSDefaultTableFrame {
                 break;
 
             case JOptionPane.NO_OPTION:
-                iCustomers = SSDB.getInstance().getCustomers();
+                iCustomers = SSSalesContext.getCustomers();
                 break;
 
             default:
                 return;
             }
         } else {
-            iCustomers = SSDB.getInstance().getCustomers();
+            iCustomers = SSSalesContext.getCustomers();
         }
 
         SSPeriodSelectionDialog iDialog = new SSPeriodSelectionDialog(getMainFrame(),
                 SSBundle.getBundle().getString("customerrevenue.perioddialog.title"));
 
-        if (SSDB.getInstance().getCurrentYear() != null) {
-            iDialog.setFrom(se.swedsoft.bookkeeping.util.SSDateUtil.toDate(
-                    SSDB.getInstance().getCurrentYear().getLocalFrom()));
-            iDialog.setTo(se.swedsoft.bookkeeping.util.SSDateUtil.toDate(
-                    SSDB.getInstance().getCurrentYear().getLocalTo()));
+        if (SSCompanyYearContext.getCurrentYear() != null) {
+            iDialog.setLocalFrom(SSCompanyYearContext.getCurrentYear().getLocalFrom());
+            iDialog.setLocalTo(SSCompanyYearContext.getCurrentYear().getLocalTo());
         } else {
-            java.time.LocalDate now = java.time.LocalDate.now();
-            iDialog.setFrom(se.swedsoft.bookkeeping.util.SSDateUtil.toDate(now));
-            iDialog.setTo(se.swedsoft.bookkeeping.util.SSDateUtil.toDate(now.plusMonths(1)));
+            LocalDate now = LocalDate.now();
+            iDialog.setLocalFrom(now);
+            iDialog.setLocalTo(now.plusMonths(1));
         }
         iDialog.setLocationRelativeTo(getMainFrame());
         if (iDialog.showDialog() != JOptionPane.OK_OPTION) {
             return;
         }
 
-        final Date iFrom = iDialog.getFrom();
-        final Date iTo = iDialog.getTo();
+        final LocalDate iFrom = iDialog.getLocalFrom();
+        final LocalDate iTo = iDialog.getLocalTo();
 
         final SSCustomerRevenuePrinter iPrinter = new SSCustomerRevenuePrinter(iCustomers,
-                iFrom, iTo);
+                se.swedsoft.bookkeeping.util.SSDateUtil.toDate(iFrom),
+                se.swedsoft.bookkeeping.util.SSDateUtil.toDate(iTo));
 
         SSProgressDialog.runProgress(getMainFrame(), () -> iPrinter.preview(getMainFrame()));
     }
 
     private SSCustomer getCustomer(SSCustomer iCustomer) {
-        return SSDB.getInstance().getCustomer(iCustomer).orElse(null);
+        return SSSalesContext.getCustomer(iCustomer.getNumber()).orElse(null);
     }
 
     private List<SSCustomer> getCustomers(List<SSCustomer> iCustomers) {
-        return SSDB.getInstance().getCustomers(iCustomers);
+        if (iCustomers == null || iCustomers.isEmpty()) {
+            return new LinkedList<>();
+        }
+        return SSSalesContext.getCustomers(iCustomers);
+    }
+
+    public static void fireTableDataChanged() {
+        if (cInstance != null) {
+            cInstance.updateFrame();
+        }
     }
 
     public void updateFrame() {
-        iModel.setObjects(SSDB.getInstance().getCustomers());
+        iModel.setObjects(SSSalesContext.getCustomers());
         iSearchPanel.ApplyFilter();
 
     }

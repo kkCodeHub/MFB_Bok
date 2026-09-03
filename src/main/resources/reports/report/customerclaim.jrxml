@@ -1,272 +1,165 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE jasperReport PUBLIC "-//JasperReports//DTD Report Design//EN"
-        "http://jasperreports.sourceforge.net/dtds/jasperreport.dtd">
-
-<jasperReport name="CustomerClaim" resourceBundle="book">
-
-
-    <!-- Declared fields in the report. -->
-
-    <field name="customer.number"       class="java.lang.String"/>
-    <field name="customer.name"         class="java.lang.String"/>
-
-    <field name="invoice.number"        class="java.lang.Integer"/>
-    <field name="invoice.date"          class="java.lang.String"/>
-    <field name="invoice.sum"           class="java.math.BigDecimal"/>
-    <field name="invoice.saldo"         class="java.math.BigDecimal"/>
-    <field name="invoice.localsaldo"    class="java.math.BigDecimal"/>
-
-    <field name="invoice.currencyrate"  class="java.math.BigDecimal"/>
-    <field name="invoice.currency"      class="java.lang.String"/>
-
-
-
-    <!-- The sum. -->
-    <variable name="sum" class="java.math.BigDecimal" resetType="Report" calculation="Sum">
-        <variableExpression>$F{invoice.localsaldo}</variableExpression>
-        <initialValueExpression>new BigDecimal(0.0) </initialValueExpression>
-    </variable>
-
-
-    <columnHeader>
-        <band height="14">
-            <line>
-                <reportElement x="20" y="11" width="510" height="1"/>
-            </line>
-
-            <!-- Invoice nr  -->
-            <textField>
-                <reportElement x="20" y="0" width="45" height="12" />
-                <textElement>
-                    <font size="8"/>
-                </textElement>
-                <textFieldExpression class="java.lang.String">
-                    <![CDATA[$R{customerclaimreport.column.1}]]>
-                </textFieldExpression>
-            </textField>
-
-            <!-- Customer nr -->
-            <textField>
-                <reportElement x="65" y="0" width="50" height="12" />
-                <textElement>
-                    <font size="8"/>
-                </textElement>
-                <textFieldExpression class="java.lang.String">
-                    <![CDATA[$R{customerclaimreport.column.2}]]>
-                </textFieldExpression>
-            </textField>
-
-            <!-- Customer name -->
-            <textField>
-                <reportElement x="115" y="0" width="150" height="12" />
-                <textElement>
-                    <font size="8"/>
-                </textElement>
-                <textFieldExpression class="java.lang.String">
-                    <![CDATA[$R{customerclaimreport.column.3}]]>
-                </textFieldExpression>
-            </textField>
-
-            <!-- Date  -->
-            <textField>
-                <reportElement x="265" y="0" width="45" height="12" />
-                <textElement textAlignment="Left">
-                    <font size="8"/>
-                </textElement>
-                <textFieldExpression class="java.lang.String">
-                    <![CDATA[$R{customerclaimreport.column.4}]]>
-                </textFieldExpression>
-            </textField>
-
-
-
-
-            <!-- Sum  -->
-            <textField>
-                <reportElement x="310" y="0" width="60" height="12" />
-                <textElement textAlignment="Right">
-                    <font size="8"/>
-                </textElement>
-                <textFieldExpression class="java.lang.String">
-                    <![CDATA[$R{customerclaimreport.column.5}]]>
-                </textFieldExpression>
-            </textField>
-
-            <!--Saldo -->
-
-            <textField>
-                <reportElement x="370" y="0" width="60" height="12" />
-                <textElement textAlignment="Right">
-                    <font size="8"/>
-                </textElement>
-                <textFieldExpression class="java.lang.String">
-                    <![CDATA[$R{customerclaimreport.column.6}]]>
-                </textFieldExpression>
-            </textField>
-
-
-            <!-- Currency  -->
-            <textField>
-                <reportElement x="430" y="0" width="40" height="12" />
-                <textElement textAlignment="Right">
-                    <font size="8"/>
-                </textElement>
-                <textFieldExpression class="java.lang.String">
-                    <![CDATA[$R{customerclaimreport.column.7}]]>
-                </textFieldExpression>
-            </textField>
-
-
-            <!-- Customer claim  -->
-            <textField>
-                <reportElement x="470" y="0" width="60" height="12" />
-                <textElement textAlignment="Right">
-                    <font size="8"/>
-                </textElement>
-                <textFieldExpression class="java.lang.String">
-                    <![CDATA[$R{customerclaimreport.column.8}]]>
-                </textFieldExpression>
-            </textField>
-
-
-        </band>
-    </columnHeader>
-
-
-    <detail>
-        <band height="14" isSplitAllowed="true">
-            <printWhenExpression>
-                <![CDATA[new Boolean( $F{invoice.localsaldo}.signum() != 0) ]]>
-            </printWhenExpression>
-
-            <!-- Invoice number -->
-            <textField>
-                <reportElement x="20" y="0" width="45" height="12"/>
-                <textElement>
-                    <font size="8" />
-                </textElement>
-                <textFieldExpression class="java.lang.Integer">
-                    <![CDATA[$F{invoice.number}]]>
-                </textFieldExpression>
-            </textField>
-
-            <!-- Customer nr -->
-            <textField>
-                <reportElement x="65" y="0" width="50" height="12"/>
-                <textElement>
-                    <font size="8"/>
-                </textElement>
-                <textFieldExpression class="java.lang.String">
-                    <![CDATA[$F{customer.number}]]>
-                </textFieldExpression>
-            </textField>
-
-            <!-- Customer name -->
-            <textField>
-                <reportElement x="115" y="0" width="150" height="12"/>
-                <textElement>
-                    <font size="8"/>
-                </textElement>
-                <textFieldExpression class="java.lang.String">
-                    <![CDATA[$F{customer.name}]]>
-                </textFieldExpression>
-            </textField>
-
-            <!-- Date -->
-            <textField>
-                <reportElement x="265" y="0" width="45" height="12"/>
-                <textElement textAlignment="Left">
-                    <font size="8"/>
-                </textElement>
-                <textFieldExpression class="java.lang.String">
-                    <![CDATA[$F{invoice.date}]]>
-                </textFieldExpression>
-            </textField>
-
-
-            <!-- Sum -->
-            <textField pattern="#,##0.00" isBlankWhenNull="true">
-                <reportElement x="310" y="0" width="60" height="12"/>
-                <textElement textAlignment="Right">
-                    <font size="8"/>
-                </textElement>
-                <textFieldExpression class="java.math.BigDecimal">
-                    <![CDATA[$F{invoice.sum}]]>
-                </textFieldExpression>
-            </textField>
-
-
-            <!-- Saldo  -->
-            <textField pattern="#,##0.00" isBlankWhenNull="true">
-                <reportElement x="370" y="0" width="60" height="12"/>
-                <textElement textAlignment="Right">
-                    <font size="8"/>
-                </textElement>
-                <textFieldExpression class="java.math.BigDecimal">
-                    <![CDATA[$F{invoice.saldo}]]>
-                </textFieldExpression>
-            </textField>
-
-            <!-- Curency -->
-            <textField>
-                <reportElement x="430" y="0" width="40" height="12"/>
-                <textElement textAlignment="Right">
-                    <font size="8"/>
-                </textElement>
-                <textFieldExpression class="java.lang.String">
-                    <![CDATA[$F{invoice.currency}]]>
-                </textFieldExpression>
-            </textField>
-
-
-            <!-- Customerclaim  -->
-            <textField pattern="#,##0.00" isBlankWhenNull="true">
-                <reportElement x="470" y="0" width="60" height="12"/>
-                <textElement textAlignment="Right">
-                    <font size="8"/>
-                </textElement>
-                <textFieldExpression class="java.math.BigDecimal">
-                    <![CDATA[$F{invoice.localsaldo}]]>
-                </textFieldExpression>
-            </textField>
-
-
-
-        </band>
-    </detail>
-
-
-    <summary>
-        <band height="20">
-
-            <rectangle>
-                <reportElement x="20" y="0" width="510" height="2" backcolor="#000000"/>
-                <graphicElement pen="None" fill="Solid"/>
-            </rectangle>
-
-            <textField>
-                <reportElement x="20" y="2" width="250" height="14"/>
-                <textElement>
-                    <font size="8" isBold="false"/>
-                </textElement>
-                <textFieldExpression class="java.lang.String">
-                    <![CDATA[$R{customerclaimreport.totalsum}]]>
-                </textFieldExpression>
-            </textField>
-
-
-            <!-- Total sum-->
-            <textField pattern="#,##0.00" isBlankWhenNull="true">
-                <reportElement x="450" y="2" width="80" height="14"/>
-
-                <textElement textAlignment="Right">
-                    <font size="8" isBold="false"/>
-                </textElement>
-                <textFieldExpression class="java.math.BigDecimal">
-                    <![CDATA[$V{sum} != null ? $V{sum} : new BigDecimal(0.0)]]>
-                </textFieldExpression>
-            </textField>
-        </band>
-    </summary>
-
+<!-- Created with Jaspersoft Studio version 6.21.1.final using JasperReports Library version 6.21.0-4f56c4f36cd19e17675219a9ac4692d5f0f13b06  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="CustomerClaim" pageWidth="595" pageHeight="842" whenNoDataType="NoPages" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="30" bottomMargin="30" resourceBundle="book" uuid="85d18668-b1b5-4ea6-9a28-611e0f8f4024">
+	<field name="customer.number" class="java.lang.String"/>
+	<field name="customer.name" class="java.lang.String"/>
+	<field name="invoice.number" class="java.lang.Integer"/>
+	<field name="invoice.date" class="java.lang.String"/>
+	<field name="invoice.sum" class="java.math.BigDecimal"/>
+	<field name="invoice.saldo" class="java.math.BigDecimal"/>
+	<field name="invoice.localsaldo" class="java.math.BigDecimal"/>
+	<field name="invoice.currencyrate" class="java.math.BigDecimal"/>
+	<field name="invoice.currency" class="java.lang.String"/>
+	<variable name="sum" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{invoice.localsaldo}]]></variableExpression>
+		<initialValueExpression><![CDATA[new BigDecimal(0.0)]]></initialValueExpression>
+	</variable>
+	<columnHeader>
+		<band height="14" splitType="Stretch">
+			<line>
+				<reportElement x="20" y="11" width="510" height="1" uuid="5c9202dd-3080-4671-a1af-285c42dae7c1"/>
+			</line>
+			<textField>
+				<reportElement x="20" y="0" width="45" height="12" uuid="2e12ea52-fb1a-431d-824f-577ebd66f846"/>
+				<textElement>
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$R{customerclaimreport.column.1}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="65" y="0" width="50" height="12" uuid="694e5e56-f55c-491e-b7f3-983b4426671d"/>
+				<textElement>
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$R{customerclaimreport.column.2}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="115" y="0" width="150" height="12" uuid="26d625b8-c729-4d0f-a5a8-354b15cb9443"/>
+				<textElement>
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$R{customerclaimreport.column.3}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="265" y="0" width="45" height="12" uuid="8ce32e31-029e-4262-822a-a657542493b4"/>
+				<textElement textAlignment="Left">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$R{customerclaimreport.column.4}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="310" y="0" width="60" height="12" uuid="d02e37e1-fbd6-43d8-8855-9cf58dc5822a"/>
+				<textElement textAlignment="Right">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$R{customerclaimreport.column.5}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="370" y="0" width="60" height="12" uuid="cdf95ea4-53d7-414b-98f5-0edf78ee9b2e"/>
+				<textElement textAlignment="Right">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$R{customerclaimreport.column.6}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="430" y="0" width="40" height="12" uuid="7f88ace0-d53e-4659-a694-4f16aaed0bf3"/>
+				<textElement textAlignment="Right">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$R{customerclaimreport.column.7}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="470" y="0" width="60" height="12" uuid="43cbedc4-f007-4540-9843-b8b2d90c6313"/>
+				<textElement textAlignment="Right">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$R{customerclaimreport.column.8}]]></textFieldExpression>
+			</textField>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="14" splitType="Stretch">
+			<printWhenExpression><![CDATA[new Boolean( $F{invoice.localsaldo}.signum() != 0)]]></printWhenExpression>
+			<textField>
+				<reportElement x="20" y="0" width="45" height="12" uuid="f17722fa-5939-4e59-93f4-e1864e70dec6"/>
+				<textElement>
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{invoice.number}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="65" y="0" width="50" height="12" uuid="1c6f6273-b058-4200-be53-b231bc570817"/>
+				<textElement>
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{customer.number}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="115" y="0" width="150" height="12" uuid="ae9b7849-b6d6-4056-bee0-de2d3d4970ce"/>
+				<textElement>
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{customer.name}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="265" y="0" width="45" height="12" uuid="c8d8d6ad-3520-483b-b2f7-344d9245db34"/>
+				<textElement textAlignment="Left">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{invoice.date}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00" isBlankWhenNull="true">
+				<reportElement x="310" y="0" width="60" height="12" uuid="0d9df348-d85c-4d37-b52b-7773cc7e6d9f"/>
+				<textElement textAlignment="Right">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{invoice.sum}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00" isBlankWhenNull="true">
+				<reportElement x="370" y="0" width="60" height="12" uuid="eacc3335-3af9-463d-9323-c41b7e75a843"/>
+				<textElement textAlignment="Right">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{invoice.saldo}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="430" y="0" width="40" height="12" uuid="3cfcb6b9-ab97-4cbb-a02b-1fe1fb591585"/>
+				<textElement textAlignment="Right">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{invoice.currency}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00" isBlankWhenNull="true">
+				<reportElement x="470" y="0" width="60" height="12" uuid="394b773a-be74-4647-9faa-0c20be22821d"/>
+				<textElement textAlignment="Right">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{invoice.localsaldo}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<summary>
+		<band height="20" splitType="Stretch">
+			<rectangle>
+				<reportElement x="20" y="0" width="510" height="2" backcolor="#000000" uuid="14034ee3-a561-4bd0-b833-cd56671b600a"/>
+				<graphicElement fill="Solid">
+					<pen lineWidth="0.0" lineStyle="Solid"/>
+				</graphicElement>
+			</rectangle>
+			<textField>
+				<reportElement x="20" y="2" width="250" height="14" uuid="82deda7c-d28f-473f-a608-8eb2a7ff6440"/>
+				<textElement>
+					<font size="8" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$R{customerclaimreport.totalsum}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00" isBlankWhenNull="true">
+				<reportElement x="450" y="2" width="80" height="14" uuid="50cef096-e29e-4d75-9b37-4a6461807082"/>
+				<textElement textAlignment="Right">
+					<font size="8" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{sum} != null ? $V{sum} : new BigDecimal(0.0)]]></textFieldExpression>
+			</textField>
+		</band>
+	</summary>
 </jasperReport>

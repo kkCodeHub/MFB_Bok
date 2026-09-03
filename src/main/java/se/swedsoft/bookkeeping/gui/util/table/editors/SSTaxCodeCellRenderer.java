@@ -3,7 +3,7 @@ package se.swedsoft.bookkeeping.gui.util.table.editors;
 
 import se.swedsoft.bookkeeping.data.SSNewCompany;
 import se.swedsoft.bookkeeping.data.common.SSTaxCode;
-import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.data.system.SSCompanyYearContext;
 
 import javax.swing.table.DefaultTableCellRenderer;
 import java.math.BigDecimal;
@@ -28,7 +28,7 @@ public class SSTaxCodeCellRenderer extends DefaultTableCellRenderer {
     public SSTaxCodeCellRenderer() {
         iValues = new HashMap<>();
 
-        SSNewCompany iCompany = SSDB.getInstance().getCurrentCompany();
+        SSNewCompany iCompany = SSCompanyYearContext.getCurrentCompany();
 
         if (iCompany != null) {
             setValue(SSTaxCode.TAXRATE_0, new BigDecimal(0));

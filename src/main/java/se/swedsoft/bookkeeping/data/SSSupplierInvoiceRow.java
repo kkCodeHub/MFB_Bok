@@ -21,6 +21,8 @@ public class SSSupplierInvoiceRow  implements SSTableSearchable, Serializable {
 
     // Constant for serialization versioning.
     private static final long serialVersionUID = 1L;
+    private static final int TENTHS_SCALE = 1;
+    private static final int DEFAULT_QUANTITY_TENTHS = 10;
 
     // Productnr
     private String iProductNr;
@@ -325,7 +327,7 @@ public class SSSupplierInvoiceRow  implements SSTableSearchable, Serializable {
      * @return
      */
     public SSProduct getProduct() {
-        return getProduct(SSDB.getInstance().getProducts());
+        return getProduct(se.swedsoft.bookkeeping.data.system.SSProductContext.getProducts());
     }
 
     /**
@@ -363,7 +365,7 @@ public class SSSupplierInvoiceRow  implements SSTableSearchable, Serializable {
             iUnit = iProduct.getUnit();
             iAccountNr = iProduct.getDefaultAccount(SSDefaultAccount.Purchases);
             iAccount = null;
-            iQuantity = 1;
+            iQuantity = DEFAULT_QUANTITY_TENTHS;
         }
     }
 
@@ -479,7 +481,8 @@ public class SSSupplierInvoiceRow  implements SSTableSearchable, Serializable {
         }
 
         // Calculate the sum of the products
-        return Optional.of(iUnitprice.multiply(new BigDecimal(iQuantity)));
+        BigDecimal iDecimalQuantity = BigDecimal.valueOf(iQuantity, TENTHS_SCALE);
+        return Optional.of(iUnitprice.multiply(iDecimalQuantity));
     }
 
 }

@@ -5,8 +5,13 @@
 package se.swedsoft.bookkeeping.gui.util;
 
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.Enumeration;
 import java.util.MissingResourceException;
+import java.util.PropertyResourceBundle;
 import java.util.ResourceBundle;
 
 
@@ -19,7 +24,19 @@ public class SSBundle extends ResourceBundle {
     private static SSBundle cBundle;
 
     static {
-        cBundle = new SSBundle(ResourceBundle.getBundle("book"));
+        try {
+            // Load book.properties explicitly with UTF-8 encoding to support Swedish characters
+            InputStream in = SSBundle.class.getResourceAsStream("/book.properties");
+            if (in != null) {
+                cBundle = new SSBundle(new PropertyResourceBundle(new InputStreamReader(in, StandardCharsets.UTF_8)));
+            } else {
+                // Fallback to default ResourceBundle if resource not found
+                cBundle = new SSBundle(ResourceBundle.getBundle("book"));
+            }
+        } catch (IOException e) {
+            // Fallback to default ResourceBundle on error
+            cBundle = new SSBundle(ResourceBundle.getBundle("book"));
+        }
     }
 
     /** */

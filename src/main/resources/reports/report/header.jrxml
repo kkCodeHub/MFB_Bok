@@ -1,120 +1,81 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
-<!DOCTYPE jasperReport PUBLIC "-//JasperReports//DTD Report Design//EN" "http://jasperreports.sourceforge.net/dtds/jasperreport.dtd">
-
-<jasperReport name="PeriodHeader" resourceBundle="book">
-
-    <!--- Declared parameters in the report. -->
-    <parameter name="title"       class="java.lang.String"/>
-    <parameter name="subtitle"    class="java.lang.String"/>
-    <parameter name="company"     class="java.lang.String"/>
-    <parameter name="lastvoucher" class="java.lang.Integer"/>
-    <parameter name="reportdate"  class="java.util.Date"/>
-
-    <pageHeader>
-        <band isSplitAllowed="false" height="85">
-
-            <!-- title -->
-            <textField>
-                <reportElement x="80" y="12" width="395" height="30"/>
-                <textElement textAlignment="Center">
-                    <font size="20"></font>
-                </textElement>
-                <textFieldExpression>
-                    <![CDATA[$P{title}]]>
-                </textFieldExpression>
-            </textField>
-
-            <!-- secondary title -->
-            <textField isBlankWhenNull="true">
-                <reportElement x="80" y="42" width="395" height="30"/>
-                <textElement textAlignment="Center">
-                    <font size="12"></font>
-                </textElement>
-                <textFieldExpression>
-                    <![CDATA[$P{subtitle}]]>
-                </textFieldExpression>
-            </textField>
-
-            <!-- last voucher -->
-            <textField isBlankWhenNull="true">
-                <reportElement x="290" y="25" width="240" height="25"/>
-                <textElement textAlignment="Right">
-                    <font size="10"></font>
-                </textElement>
-                <textFieldExpression>
-                    <![CDATA["Senaste verifikat: " + $P{lastvoucher}]]>
-                </textFieldExpression>
-            </textField>
-
-            <!-- company name -->
-            <textField>
-                <reportElement x="20" y="0" width="455" height="14"/>
-                <textElement textAlignment="Left">
-                    <font size="10"></font>
-                </textElement>
-                <textFieldExpression>
-                    <![CDATA[$P{company}]]>
-                </textFieldExpression>
-            </textField>
-
-
-            <!-- date of report -->
-            <textField pattern="Short">
-                <reportElement x="80" y="50" width="450" height="15"/>
-                <textElement textAlignment="Right">
-                    <font size="8"></font>
-                </textElement>
-                <textFieldExpression class="java.util.Date">
-                    <![CDATA[$P{reportdate}]]>
-                </textFieldExpression>
-            </textField>
-
-            <!-- page number-->
-            <elementGroup>
-                <textField evaluationTime="Report">
-                    <reportElement x="365" y="65" width="100" height="15"/>
-                    <textElement textAlignment="Right">
-                        <font size="8"/>
-                    </textElement>
-                    <textFieldExpression class="java.lang.String">
-                        <![CDATA[$R{report.page}]]>
-                    </textFieldExpression>
-                </textField>
-                <textField evaluationTime="Now">
-                    <reportElement x="465" y="65" width="25" height="15"/>
-                    <textElement textAlignment="Right">
-                        <font size="8"/>
-                    </textElement>
-                    <textFieldExpression class="java.lang.Integer">
-                        <![CDATA[$V{PAGE_NUMBER}]]>
-                    </textFieldExpression>
-                </textField>
-                <textField evaluationTime="Report">
-                    <reportElement x="490" y="65" width="15" height="15"/>
-                    <textElement textAlignment="Right">
-                        <font size="8"/>
-                    </textElement>
-                    <textFieldExpression class="java.lang.String">
-                        <![CDATA[$R{report.page.of}]]>
-                    </textFieldExpression>
-                </textField>
-                <textField evaluationTime="Report">
-                    <reportElement x="505" y="65" width="25" height="15"/>
-                    <textElement textAlignment="Right">
-                        <font size="8"/>
-                    </textElement>
-                    <textFieldExpression class="java.lang.Integer">
-                        <![CDATA[$V{PAGE_NUMBER}]]>
-                    </textFieldExpression>
-                </textField>
-            </elementGroup>
-
-            <line>
-                <reportElement x="20" y="84" width="510" height="1"/>
-            </line>
-
-        </band>
-    </pageHeader>
-
+<!-- Created with Jaspersoft Studio version 6.21.1.final using JasperReports Library version 6.21.0-4f56c4f36cd19e17675219a9ac4692d5f0f13b06  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="PeriodHeader" pageWidth="595" pageHeight="842" whenNoDataType="NoPages" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="30" bottomMargin="30" resourceBundle="book" uuid="b52bae20-68d6-487d-87b4-8fa2c76d7428">
+	<parameter name="title" class="java.lang.String"/>
+	<parameter name="subtitle" class="java.lang.String"/>
+	<parameter name="company" class="java.lang.String"/>
+	<parameter name="lastvoucher" class="java.lang.Integer"/>
+	<parameter name="reportdate" class="java.util.Date"/>
+	<pageHeader>
+		<band height="85" splitType="Prevent">
+			<textField>
+				<reportElement x="80" y="12" width="395" height="30" uuid="de14a14a-c025-4b61-9e87-037996d845e8"/>
+				<textElement textAlignment="Center">
+					<font size="20"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{title}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="80" y="42" width="395" height="30" uuid="0e811a17-d895-4425-b932-5e49be04f0e0"/>
+				<textElement textAlignment="Center">
+					<font size="12"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{subtitle}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="290" y="25" width="240" height="25" uuid="cd77fd91-537c-4787-b3c2-0b46505d50ef"/>
+				<textElement textAlignment="Right">
+					<font size="10"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Senaste verifikat: " + $P{lastvoucher}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="20" y="0" width="455" height="14" uuid="60426aa2-643c-4450-b6b8-d33e60305a1d"/>
+				<textElement textAlignment="Left">
+					<font size="10"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{company}]]></textFieldExpression>
+			</textField>
+			<textField pattern="yyyy-MM-dd">
+				<reportElement x="80" y="50" width="450" height="15" uuid="9ab4185c-d009-477a-afa8-fd6f8912016f"/>
+				<textElement textAlignment="Right">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{reportdate}]]></textFieldExpression>
+			</textField>
+			<elementGroup>
+				<textField evaluationTime="Report">
+					<reportElement x="365" y="65" width="100" height="15" uuid="0c8718f4-1d5b-4d8c-805f-99d588bc77cb"/>
+					<textElement textAlignment="Right">
+						<font size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$R{report.page}]]></textFieldExpression>
+				</textField>
+				<textField>
+					<reportElement x="465" y="65" width="25" height="15" uuid="989affa3-3203-4b05-a44a-d8cdffcd45f2"/>
+					<textElement textAlignment="Right">
+						<font size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{PAGE_NUMBER}]]></textFieldExpression>
+				</textField>
+				<textField evaluationTime="Report">
+					<reportElement x="490" y="65" width="15" height="15" uuid="f1d64867-66b7-4460-96bd-699ad8a998d2"/>
+					<textElement textAlignment="Right">
+						<font size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$R{report.page.of}]]></textFieldExpression>
+				</textField>
+				<textField evaluationTime="Report">
+					<reportElement x="505" y="65" width="25" height="15" uuid="c067de2b-a248-476b-a96c-aed137b9ee80"/>
+					<textElement textAlignment="Right">
+						<font size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{PAGE_NUMBER}]]></textFieldExpression>
+				</textField>
+			</elementGroup>
+			<line>
+				<reportElement x="20" y="84" width="510" height="1" uuid="89c69111-a8cd-4118-b082-c068fccda0ab"/>
+			</line>
+		</band>
+	</pageHeader>
 </jasperReport>

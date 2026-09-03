@@ -1,11 +1,8 @@
 package se.swedsoft.bookkeeping.calc.math;
 
 import org.junit.jupiter.api.Test;
-import se.swedsoft.bookkeeping.util.SSDateUtil;
 
 import java.time.LocalDate;
-import java.util.Calendar;
-import java.util.Date;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -13,68 +10,6 @@ import static org.assertj.core.api.Assertions.assertThat;
  * Tests for {@link SSDateMath}.
  */
 class SSDateMathTest {
-
-    /**
-     * Helper: create a Date for the given year/month/day at the given hour/min/sec.
-     */
-    private static Date makeDate(int year, int month, int day, int hour, int minute, int second) {
-        Calendar cal = Calendar.getInstance();
-        cal.set(Calendar.YEAR, year);
-        cal.set(Calendar.MONTH, month - 1); // Calendar months are 0-based
-        cal.set(Calendar.DAY_OF_MONTH, day);
-        cal.set(Calendar.HOUR_OF_DAY, hour);
-        cal.set(Calendar.MINUTE, minute);
-        cal.set(Calendar.SECOND, second);
-        cal.set(Calendar.MILLISECOND, 0);
-        return cal.getTime();
-    }
-
-    private static Date makeDate(int year, int month, int day) {
-        return makeDate(year, month, day, 12, 0, 0);
-    }
-
-    // ---- floor / ceil compatibility ----
-
-    @Test
-    void floorSetsTimeTo000000() {
-        Date input = makeDate(2024, 6, 15, 14, 30, 45);
-        Date result = SSDateMath.floor(input);
-
-        Calendar cal = Calendar.getInstance();
-        cal.setTime(result);
-
-        assertThat(cal.get(Calendar.HOUR_OF_DAY)).isEqualTo(0);
-        assertThat(cal.get(Calendar.MINUTE)).isEqualTo(0);
-        assertThat(cal.get(Calendar.SECOND)).isEqualTo(0);
-        assertThat(cal.get(Calendar.MILLISECOND)).isEqualTo(0);
-    }
-
-    @Test
-    void floorPreservesDatePart() {
-        Date input = makeDate(2024, 6, 15, 14, 30, 45);
-        Date result = SSDateMath.floor(input);
-
-        Calendar cal = Calendar.getInstance();
-        cal.setTime(result);
-
-        assertThat(cal.get(Calendar.YEAR)).isEqualTo(2024);
-        assertThat(cal.get(Calendar.MONTH)).isEqualTo(Calendar.JUNE);
-        assertThat(cal.get(Calendar.DAY_OF_MONTH)).isEqualTo(15);
-    }
-
-    @Test
-    void ceilCompatibilitySetsTimeTo235959() {
-        Date input = makeDate(2024, 6, 15, 10, 0, 0);
-        Date result = SSDateMath.ceil(input);
-
-        Calendar cal = Calendar.getInstance();
-        cal.setTime(result);
-
-        assertThat(cal.get(Calendar.HOUR_OF_DAY)).isEqualTo(23);
-        assertThat(cal.get(Calendar.MINUTE)).isEqualTo(59);
-        assertThat(cal.get(Calendar.SECOND)).isEqualTo(59);
-        assertThat(cal.get(Calendar.MILLISECOND)).isEqualTo(999);
-    }
 
     // ---- getFirstDayInMonth (LocalDate) ----
 
@@ -195,22 +130,5 @@ class SSDateMathTest {
         LocalDate result = SSDateMath.addMonths(input, 0);
 
         assertThat(result).isEqualTo(LocalDate.of(2024, 6, 15));
-    }
-
-    @Test
-    void compatibilityMethodsMatchLocalDateConversions() {
-        Date input = makeDate(2024, 6, 15, 14, 30, 45);
-        LocalDate localDate = SSDateUtil.toLocalDate(input);
-
-        assertThat(SSDateMath.getFirstDayInMonth(localDate))
-                .isEqualTo(SSDateUtil.toLocalDate(SSDateMath.getFirstDayInMonth(input)));
-        assertThat(SSDateMath.getLastDayInMonth(localDate))
-                .isEqualTo(SSDateUtil.toLocalDate(SSDateMath.getLastDayMonth(input)));
-        assertThat(SSDateMath.getDaysBetween(localDate, localDate.plusDays(7)))
-                .isEqualTo(SSDateMath.getDaysBetween(input, SSDateUtil.toDate(localDate.plusDays(7))));
-        assertThat(SSDateMath.getMonthsBetween(localDate.plusMonths(5), localDate))
-                .isEqualTo(SSDateMath.getMonthsBetween(SSDateUtil.toDate(localDate.plusMonths(5)), input));
-        assertThat(SSDateMath.addMonths(localDate, 3))
-                .isEqualTo(SSDateUtil.toLocalDate(SSDateMath.addMonths(input, 3)));
     }
 }

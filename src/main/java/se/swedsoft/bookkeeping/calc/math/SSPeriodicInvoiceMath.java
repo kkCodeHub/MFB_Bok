@@ -25,13 +25,16 @@ public class SSPeriodicInvoiceMath {
      * @return
      */
     public static Map<SSPeriodicInvoice, List<SSInvoice>> getPeriodicInvoices() {
-        List<SSPeriodicInvoice> iPeriodicInvoices = SSDB.getInstance().getPeriodicInvoices();
+        List<SSPeriodicInvoice> iPeriodicInvoices = se.swedsoft.bookkeeping.data.system.SSSalesContext.getPeriodicInvoices();
 
         Map<SSPeriodicInvoice, List<SSInvoice>> iResult = new HashMap<>();
 
         LocalDate iNow = SSDateUtil.today();
 
         for (SSPeriodicInvoice iPeriodicInvoice : iPeriodicInvoices) {
+            if (iPeriodicInvoice.getInvoices().isEmpty()) {
+                iPeriodicInvoice.createInvoices();
+            }
             List<SSInvoice> iInvoices = iPeriodicInvoice.getInvoices(iNow);
 
             iResult.put(iPeriodicInvoice, iInvoices);

@@ -51,17 +51,14 @@ public class SSCustomerDialog {
 
                 SSCustomer iCustomer = iPanel.getCustomer();
 
-                if (SSDB.getInstance().getCustomers().contains(iCustomer)) {
+                if (se.swedsoft.bookkeeping.data.system.SSSalesContext.getCustomers().contains(iCustomer)) {
                     new SSErrorDialog(iMainFrame, "customerframe.duplicate",
                             iCustomer.getNumber());
                     return;
                 }
 
-                SSDB.getInstance().addCustomer(iCustomer);
-
-                if (pModel != null) {
-                    pModel.fireTableDataChanged();
-                }
+                se.swedsoft.bookkeeping.data.system.SSSalesContext.addCustomer(iCustomer);
+                SSCustomerFrame.fireTableDataChanged();
 
                 iDialog.closeDialog();
 
@@ -111,11 +108,8 @@ public class SSCustomerDialog {
 
                 SSCustomer iCustomer1 = iPanel.getCustomer();
 
-                SSDB.getInstance().updateCustomer(iCustomer1);
-
-                if (pModel != null) {
-                    pModel.fireTableDataChanged();
-                }
+                se.swedsoft.bookkeeping.data.system.SSSalesContext.updateCustomer(iCustomer1);
+                SSCustomerFrame.fireTableDataChanged();
                 iDialog.closeDialog();
 
             };
@@ -170,16 +164,13 @@ public class SSCustomerDialog {
 
                 SSCustomer iCustomer1 = iPanel.getCustomer();
 
-                if (SSDB.getInstance().getCustomers().contains(iCustomer1)) {
+                if (se.swedsoft.bookkeeping.data.system.SSSalesContext.getCustomers().contains(iCustomer1)) {
                     new SSErrorDialog(iMainFrame, "customerframe.duplicate",
                             iCustomer1.getNumber());
                     return;
                 }
-                SSDB.getInstance().addCustomer(iCustomer1);
-
-                if (pModel != null) {
-                    pModel.fireTableDataChanged();
-                }
+                se.swedsoft.bookkeeping.data.system.SSSalesContext.addCustomer(iCustomer1);
+                SSCustomerFrame.fireTableDataChanged();
 
                 iDialog.closeDialog();
 

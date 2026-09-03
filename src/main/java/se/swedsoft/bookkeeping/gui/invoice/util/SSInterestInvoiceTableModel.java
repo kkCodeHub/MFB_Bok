@@ -9,6 +9,7 @@ import se.swedsoft.bookkeeping.data.base.SSSaleRow;
 import se.swedsoft.bookkeeping.data.common.SSCurrency;
 import se.swedsoft.bookkeeping.data.common.SSTaxCode;
 import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.data.system.SSSalesContext;
 import se.swedsoft.bookkeeping.gui.util.SSBundle;
 import se.swedsoft.bookkeeping.gui.util.dialogs.SSErrorDialog;
 import se.swedsoft.bookkeeping.gui.util.model.SSDefaultTableModel;
@@ -32,6 +33,7 @@ import java.util.List;
  * $Id$
  */
 public class SSInterestInvoiceTableModel extends SSDefaultTableModel<SSInvoice> {
+    private static final int DEFAULT_QUANTITY_TENTHS = 10;
 
     private Map<SSInvoice, InterestAction> iActions;
 
@@ -215,7 +217,7 @@ public class SSInterestInvoiceTableModel extends SSDefaultTableModel<SSInvoice> 
             // If we selected INVOICE or OBLITERATE, set the flag to true
             iInvoice.setInterestInvoiced(true);
 
-            SSDB.getInstance().updateInvoice(iInvoice);
+            SSSalesContext.updateInvoice(iInvoice);
             // Obliterate the sales, no need to create a new invoiec
             if (iAction == InterestAction.OBLITERATE) {
                 continue;
@@ -245,7 +247,7 @@ public class SSInterestInvoiceTableModel extends SSDefaultTableModel<SSInvoice> 
             iRow.setDescription(iDescription);
             iRow.setAccount(iAccount);
             iRow.setTaxCode(SSTaxCode.TAXRATE_0);
-            iRow.setQuantity(1);
+            iRow.setQuantity(DEFAULT_QUANTITY_TENTHS);
             iRow.setUnitprice(
                     SSInvoiceMath.getInterestSum(iInvoice,
                     SSInvoiceMath.getInterestSaldo(iInvoice),
@@ -346,16 +348,17 @@ public class SSInterestInvoiceTableModel extends SSDefaultTableModel<SSInvoice> 
          * Constructs a {@code DefaultCellEditor} that uses a text field.
          *
          */
+        @SuppressWarnings("unchecked")
         public InterestActionCellEditor() {
-            super(new JComboBox());
+            super(new JComboBox<InterestAction>());
 
-            JComboBox iComboBox = (JComboBox) getComponent();
+            JComboBox<InterestAction> iComboBox = (JComboBox<InterestAction>) getComponent();
 
-            iComboBox.setModel(new DefaultComboBoxModel(InterestAction.values()));
+            iComboBox.setModel(new DefaultComboBoxModel<>(InterestAction.values()));
             iComboBox.setRenderer(
                     new DefaultListCellRenderer() {
                 @Override
-                public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+                public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
                     super.getListCellRendererComponent(list, value, index, isSelected,
                             cellHasFocus);
 

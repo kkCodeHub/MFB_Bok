@@ -16,6 +16,7 @@ public class SSProductRow implements Serializable {
 
     // Constant for serialization versioning.
     static final long serialVersionUID = 1L;
+    private static final int DEFAULT_QUANTITY_TENTHS = 10;
 
     private String iProductNr;
 
@@ -108,7 +109,7 @@ public class SSProductRow implements Serializable {
      * @return
      */
     public SSProduct getProduct() {
-        return getProduct(SSDB.getInstance().getProducts());
+        return getProduct(se.swedsoft.bookkeeping.data.system.SSProductContext.getProducts());
     }
 
     /**
@@ -136,7 +137,7 @@ public class SSProductRow implements Serializable {
         iProductNr = iProduct == null ? null : iProduct.getNumber();
 
         if (iProduct != null) {
-            iCount = 1;
+            iCount = DEFAULT_QUANTITY_TENTHS;
             iDescription = iProduct.getDescription();
 
         }

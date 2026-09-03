@@ -10,7 +10,11 @@ import se.swedsoft.bookkeeping.gui.util.datechooser.SSDateChooser;
 import se.swedsoft.bookkeeping.util.SSDateUtil;
 
 import javax.swing.*;
+import javax.swing.text.DefaultFormatterFactory;
+import javax.swing.text.NumberFormatter;
 import java.awt.event.*;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 /**
  * @author
  */
@@ -40,7 +44,18 @@ public class SSProjectPanel {
      */
     public SSProjectPanel(boolean iEdit) {
         iNumber.setEnabled(!iEdit);
-        iNumber.setValue("");
+        iNumber.setValue(null);
+
+        DecimalFormat iIntegerFormat = (DecimalFormat) NumberFormat.getIntegerInstance();
+        iIntegerFormat.setGroupingUsed(false);
+
+        NumberFormatter iNumberFormatter = new NumberFormatter(iIntegerFormat);
+        iNumberFormatter.setValueClass(Integer.class);
+        iNumberFormatter.setAllowsInvalid(false);
+        iNumberFormatter.setCommitsOnValidEdit(true);
+
+        iNumber.setFormatterFactory(new DefaultFormatterFactory(iNumberFormatter));
+        iNumber.setFocusLostBehavior(JFormattedTextField.COMMIT_OR_REVERT);
 
         iConcluded.addItemListener(e -> iConcludedDate.setEnabled(iConcluded.isSelected()));
 
@@ -176,7 +191,7 @@ public class SSProjectPanel {
     public void setProject(SSNewProject iProject) {
         this.iProject = iProject;
 
-        iNumber.setValue(iProject.getNumber());
+        iNumber.setValue(parseNumber(iProject.getNumber()));
         iName.setText(iProject.getName());
         iDescription.setText(iProject.getDescription());
         iConcluded.setSelected(iProject.getConcluded());
@@ -198,6 +213,18 @@ public class SSProjectPanel {
         iProject.setLocalConcludedDate(iConcludedDate.getLocalDate());
 
         return iProject;
+    }
+
+    private Integer parseNumber(String pNumber) {
+        if (pNumber == null || pNumber.trim().isEmpty()) {
+            return null;
+        }
+
+        try {
+            return Integer.valueOf(pNumber.trim());
+        } catch (NumberFormatException e) {
+            return null;
+        }
     }
 
     @Override

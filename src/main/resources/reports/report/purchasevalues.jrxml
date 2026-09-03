@@ -1,156 +1,101 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE jasperReport PUBLIC "-//JasperReports//DTD Report Design//EN"
-        "http://jasperreports.sourceforge.net/dtds/jasperreport.dtd">
-
-<jasperReport name="MainBook" resourceBundle="book">
-
-
-    <parameter name="Report"     class="net.sf.jasperreports.engine.JasperReport"/>
-    <parameter name="Parameters" class="java.util.HashMap"/>
-
-
-
-    <!-- Declared fields in the report. -->
-
-    <field name="month.name"      class="java.lang.String"/>
-    <field name="month.purchaseorder" class="java.lang.Double"/>
-    <field name="month.supplierinvoice"     class="java.lang.Double"/>
-
-    <!-- The  purchaseorder sum. -->
-    <variable name="sumorder" class="java.lang.Double"  resetType="Report" calculation="Sum">
-        <variableExpression>
-            <![CDATA[$F{month.purchaseorder}]]>
-        </variableExpression>
-        <initialValueExpression>
-            <![CDATA[new Double(0.0)]]>
-        </initialValueExpression>
-    </variable>
-
-    <!-- The invoice sum. -->
-    <variable name="suminvoice" class="java.lang.Double"  resetType="Report" calculation="Sum">
-        <variableExpression>
-            <![CDATA[$F{month.supplierinvoice}]]>
-        </variableExpression>
-        <initialValueExpression>
-            <![CDATA[new Double(0.0)]]>
-        </initialValueExpression>
-    </variable>
-
-    <columnHeader>
-        <band height="30">
-            <line>
-                <reportElement x="20" y="23" width="510" height="1"/>
-            </line>
-
-            <!-- Column 1 -->
-            <textField>
-                <reportElement x="20" y="0" width="100" height="14" />
-                <textElement>
-                    <font size="8"/>
-                </textElement>
-                <textFieldExpression class="java.lang.String">
-                    <![CDATA[$R{purchasevalues.column.1}]]>
-                </textFieldExpression>
-            </textField>
-
-            <textField>
-                <reportElement x="294" y="0" width="100" height="14" />
-                <textElement textAlignment="Right">
-                    <font size="8"/>
-                </textElement>
-                <textFieldExpression class="java.lang.String">
-                    <![CDATA[$R{purchasevalues.column.2}]]>
-                </textFieldExpression>
-            </textField>
-
-            <textField>
-                <reportElement x="430" y="0" width="100" height="14" />
-                <textElement textAlignment="Right">
-                    <font size="8"/>
-                </textElement>
-                <textFieldExpression class="java.lang.String">
-                    <![CDATA[$R{purchasevalues.column.3}]]>
-                </textFieldExpression>
-            </textField>
-
-        </band>
-    </columnHeader>
-
-
-    <detail>
-        <band height="12" isSplitAllowed="true">
-
-            <!-- Title -->
-            <textField>
-                <reportElement x="20" y="0" width="100" height="12"/>
-                <textElement>
-                    <font size="8" isBold="false"/>
-                </textElement>
-                <textFieldExpression class="java.lang.String">
-                    <![CDATA[$F{month.name}]]>
-                </textFieldExpression>
-            </textField>
-	    <textField pattern="#,##0.00" isBlankWhenNull="true">
-                <reportElement x="294" y="0" width="100" height="12"/>
-                <textElement textAlignment="Right">
-                    <font size="8" isBold="false"/>
-                </textElement>
-                <textFieldExpression class="java.lang.Double">
-                    <![CDATA[$F{month.purchaseorder}]]>
-                </textFieldExpression>
-            </textField>
-	    <textField pattern="#,##0.00" isBlankWhenNull="true">
-                <reportElement x="430" y="0" width="100" height="12"/>
-                <textElement textAlignment="Right">
-                    <font size="8" isBold="false"/>
-                </textElement>
-                <textFieldExpression class="java.lang.Double">
-                    <![CDATA[$F{month.supplierinvoice}]]>
-                </textFieldExpression>
-            </textField>
-
-        </band>
-    </detail>
-
-    <summary>
-        <band height="20">
-
-            <rectangle>
-                <reportElement x="20" y="0" width="510" height="2" backcolor="#000000"/>
-                <graphicElement pen="None" fill="Solid"/>
-            </rectangle>
-
-            <textField>
-                <reportElement x="20" y="2" width="250" height="14"/>
-                <textElement>
-                    <font size="8" isBold="false"/>
-                </textElement>
-                <textFieldExpression class="java.lang.String">
-                    <![CDATA[$R{purchasevalues.sum}]]>
-                </textFieldExpression>
-            </textField>
-
-
-            <!-- Total sum-->
-	    <textField pattern="#,##0.00" isBlankWhenNull="true">
-		<reportElement x="294" y="2" width="100" height="14"/>
-                <textElement textAlignment="Right">
-                    <font size="8" isBold="false"/>
-                </textElement>
-                <textFieldExpression class="java.lang.Double">
-                    <![CDATA[$V{sumorder}]]>
-                </textFieldExpression>
-            </textField>
-	    <textField pattern="#,##0.00" isBlankWhenNull="true">
-		<reportElement x="430" y="2" width="100" height="14"/>
-                <textElement textAlignment="Right">
-                    <font size="8" isBold="false"/>
-                </textElement>
-                <textFieldExpression class="java.lang.Double">
-                    <![CDATA[$V{suminvoice}]]>
-                </textFieldExpression>
-            </textField>
-        </band>
-    </summary>
-
+<!-- Created with Jaspersoft Studio version 6.21.1.final using JasperReports Library version 6.21.0-4f56c4f36cd19e17675219a9ac4692d5f0f13b06  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="MainBook" pageWidth="595" pageHeight="842" whenNoDataType="NoPages" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="30" bottomMargin="30" resourceBundle="book" uuid="1dcf4236-b391-4829-a62f-e84163eb6c07">
+	<parameter name="Report" class="net.sf.jasperreports.engine.JasperReport"/>
+	<parameter name="Parameters" class="java.util.HashMap"/>
+	<field name="month.name" class="java.lang.String"/>
+	<field name="month.purchaseorder" class="java.lang.Double"/>
+	<field name="month.supplierinvoice" class="java.lang.Double"/>
+	<variable name="sumorder" class="java.lang.Double" calculation="Sum">
+		<variableExpression><![CDATA[$F{month.purchaseorder}]]></variableExpression>
+		<initialValueExpression><![CDATA[new Double(0.0)]]></initialValueExpression>
+	</variable>
+	<variable name="suminvoice" class="java.lang.Double" calculation="Sum">
+		<variableExpression><![CDATA[$F{month.supplierinvoice}]]></variableExpression>
+		<initialValueExpression><![CDATA[new Double(0.0)]]></initialValueExpression>
+	</variable>
+	<columnHeader>
+		<band height="30" splitType="Stretch">
+			<line>
+				<reportElement x="20" y="23" width="510" height="1" uuid="ad3a8ee6-b7b6-400b-bfe0-eb232465ee35"/>
+			</line>
+			<textField>
+				<reportElement x="20" y="0" width="100" height="14" uuid="783f9f84-fe5a-4a83-bab3-99c47332e139"/>
+				<textElement>
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$R{purchasevalues.column.1}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="294" y="0" width="100" height="14" uuid="3c400d4d-af05-4d85-83aa-cdc8e7a4ebcf"/>
+				<textElement textAlignment="Right">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$R{purchasevalues.column.2}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="430" y="0" width="100" height="14" uuid="8bec9243-292d-4e89-b9a3-81c837ba1be2"/>
+				<textElement textAlignment="Right">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$R{purchasevalues.column.3}]]></textFieldExpression>
+			</textField>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="12" splitType="Stretch">
+			<textField>
+				<reportElement x="20" y="0" width="100" height="12" uuid="f7266b25-c659-4e84-a540-8e8b3f44903f"/>
+				<textElement>
+					<font size="8" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{month.name}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00" isBlankWhenNull="true">
+				<reportElement x="294" y="0" width="100" height="12" uuid="ab923a01-ee03-4640-a7ec-851605ef8da8"/>
+				<textElement textAlignment="Right">
+					<font size="8" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{month.purchaseorder}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00" isBlankWhenNull="true">
+				<reportElement x="430" y="0" width="100" height="12" uuid="148173b6-3a36-4462-9d46-df0ead97f1a4"/>
+				<textElement textAlignment="Right">
+					<font size="8" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{month.supplierinvoice}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<summary>
+		<band height="20" splitType="Stretch">
+			<rectangle>
+				<reportElement x="20" y="0" width="510" height="2" backcolor="#000000" uuid="2c6e2b75-0477-414d-9b9a-a2fbd54edc5a"/>
+				<graphicElement fill="Solid">
+					<pen lineWidth="0.0" lineStyle="Solid"/>
+				</graphicElement>
+			</rectangle>
+			<textField>
+				<reportElement x="20" y="2" width="250" height="14" uuid="0e197edc-33b7-4a55-9277-b4e10d8a0740"/>
+				<textElement>
+					<font size="8" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$R{purchasevalues.sum}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00" isBlankWhenNull="true">
+				<reportElement x="294" y="2" width="100" height="14" uuid="e598a43a-e171-4204-9943-67074c433cb7"/>
+				<textElement textAlignment="Right">
+					<font size="8" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{sumorder}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00" isBlankWhenNull="true">
+				<reportElement x="430" y="2" width="100" height="14" uuid="dcb39c67-ef6a-4891-af7b-ca34f741b6af"/>
+				<textElement textAlignment="Right">
+					<font size="8" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{suminvoice}]]></textFieldExpression>
+			</textField>
+		</band>
+	</summary>
 </jasperReport>

@@ -1,9 +1,7 @@
 package se.swedsoft.bookkeeping.gui.inpayment;
 
 
-import se.swedsoft.bookkeeping.calc.math.SSInvoiceMath;
 import se.swedsoft.bookkeeping.data.SSInpayment;
-import se.swedsoft.bookkeeping.data.SSInpaymentRow;
 import se.swedsoft.bookkeeping.gui.SSMainFrame;
 import se.swedsoft.bookkeeping.gui.inpayment.panel.SSInpaymentSearchPanel;
 import se.swedsoft.bookkeeping.gui.inpayment.util.SSInpaymentTableModel;
@@ -241,22 +239,28 @@ public class SSInpaymentFrame extends SSDefaultTableFrame {
 
         if (iResponce == JOptionPane.YES_OPTION) {
             for (SSInpayment iInpayment : delete) {
-                    for (SSInpaymentRow iRow : iInpayment.getRows()) {
-                        if (iRow.getValue() != null && iRow.getInvoiceNr() != null) {
-                            if (SSInvoiceMath.iSaldoMap.containsKey(iRow.getInvoiceNr())) {
-                                SSInvoiceMath.iSaldoMap.put(iRow.getInvoiceNr(),
-                                        SSInvoiceMath.iSaldoMap.get(iRow.getInvoiceNr()).add(
-                                        iRow.getValue()));
-                            }
-                        }
+                    SSInpayment iCurrentInpayment = getInpayment(iInpayment);
+
+                    if (iCurrentInpayment == null) {
+                        // The row may still be visible if trigger refresh has not run yet.
+                        iModel.delete(iInpayment);
+                        continue;
                     }
-                    Repositories.inpayments().delete(iInpayment);
+
+                    Repositories.inpayments().delete(iCurrentInpayment);
+                    iModel.delete(iInpayment);
             }
         }
     }
 
     private SSInpayment getInpayment(SSInpayment iInpayment) {
         return Repositories.inpayments().findByInpayment(iInpayment).orElse(null);
+    }
+
+    public static void fireTableDataChanged() {
+        if (cInstance != null) {
+            cInstance.updateFrame();
+        }
     }
 
     public void updateFrame() {

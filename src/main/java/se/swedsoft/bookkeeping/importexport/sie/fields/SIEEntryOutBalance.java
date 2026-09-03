@@ -4,6 +4,7 @@ package se.swedsoft.bookkeeping.importexport.sie.fields;
 import se.swedsoft.bookkeeping.calc.SSBalanceCalculator;
 import se.swedsoft.bookkeeping.data.SSAccount;
 import se.swedsoft.bookkeeping.data.SSNewAccountingYear;
+import se.swedsoft.bookkeeping.data.system.SSCompanyYearContext;
 import se.swedsoft.bookkeeping.data.system.SSDB;
 import se.swedsoft.bookkeeping.importexport.sie.SSSIEExporter;
 import se.swedsoft.bookkeeping.importexport.sie.SSSIEImporter;
@@ -49,7 +50,7 @@ public class SIEEntryOutBalance implements SIEEntry {
      */
     @Override
     public boolean exportEntry(SSSIEExporter iExporter, SIEWriter iWriter, SSNewAccountingYear iCurrentYearData) throws SSExportException {
-        SSNewAccountingYear iPreviousYearData = SSDB.getInstance().getPreviousYear().orElse(null);
+        SSNewAccountingYear iPreviousYearData = SSCompanyYearContext.getPreviousYear().orElse(null);
 
         boolean iHasData = false;
 

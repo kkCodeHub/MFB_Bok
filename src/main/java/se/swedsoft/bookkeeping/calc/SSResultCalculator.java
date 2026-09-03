@@ -6,8 +6,10 @@ import se.swedsoft.bookkeeping.calc.math.SSVoucherMath;
 import se.swedsoft.bookkeeping.calc.util.SSCalculatorException;
 import se.swedsoft.bookkeeping.data.*;
 import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.util.SSDateUtil;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.*;
 
 
@@ -45,8 +47,8 @@ public class SSResultCalculator {
 
     private SSNewAccountingYear   iYearData;
 
-    private Date         iFrom;
-    private Date         iTo;
+    private LocalDate iFrom;
+    private LocalDate iTo;
     private SSNewProject    iProject;
     private SSNewResultUnit iResultUnit;
 
@@ -66,7 +68,8 @@ public class SSResultCalculator {
 
     private Map<SSAccount, BigDecimal> iResultunitChangePeriod;
 
-    public SSResultCalculator(SSNewAccountingYear pYearData, Date pFrom, Date pTo, SSNewProject pProject, SSNewResultUnit pResultUnit) {
+    public SSResultCalculator(SSNewAccountingYear pYearData, LocalDate pFrom, LocalDate pTo,
+                              SSNewProject pProject, SSNewResultUnit pResultUnit) {
         iYearData = pYearData;
         iFrom = pFrom;
         iTo = pTo;
@@ -87,6 +90,16 @@ public class SSResultCalculator {
     }
 
     /**
+     * @deprecated use {@link #SSResultCalculator(SSNewAccountingYear, LocalDate, LocalDate, SSNewProject, SSNewResultUnit)}
+     */
+    @Deprecated
+    public SSResultCalculator(SSNewAccountingYear pYearData, Date pFrom, Date pTo,
+                              SSNewProject pProject, SSNewResultUnit pResultUnit) {
+        this(pYearData, SSDateUtil.toLocalDate(pFrom), SSDateUtil.toLocalDate(pTo), pProject,
+                pResultUnit);
+    }
+
+    /**
      *
      *
      * @throws SSCalculatorException
@@ -94,7 +107,7 @@ public class SSResultCalculator {
     public void calculate() throws SSCalculatorException {
 
         // Get all years
-        List<SSNewAccountingYear> iAllYearData = SSDB.getInstance().getYears();
+        List<SSNewAccountingYear> iAllYearData = se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.getYears();
 
         // All vouchers
         List<SSVoucher> iVouchers = new LinkedList<>();
@@ -111,8 +124,8 @@ public class SSResultCalculator {
             boolean inPeriod = SSVoucherMath.inPeriod(iVoucher, iFrom, iTo);
 
             boolean inYear = SSVoucherMath.inPeriod(iVoucher,
-                    java.sql.Date.valueOf(iYearData.getLocalFrom()),
-                    java.sql.Date.valueOf(iYearData.getLocalTo()));
+                    iYearData.getLocalFrom(),
+                    iYearData.getLocalTo());
 
             boolean inPrevYear = SSVoucherMath.inPeriodPrevYear(iVoucher, iFrom, iTo);
 

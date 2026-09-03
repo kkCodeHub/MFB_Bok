@@ -5,10 +5,11 @@ import se.swedsoft.bookkeeping.calc.math.SSAccountMath;
 import se.swedsoft.bookkeeping.util.SSDateUtil;
 
 import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.text.DateFormat;
+import java.time.LocalDate;
 import java.util.*;
 import java.util.Optional;
 
@@ -73,19 +74,17 @@ public class SSBudget implements Serializable {
     }
 
     /**
-     *
-     * @return the from date
+     * @return the from date as a {@link LocalDate}
      */
-    public Date getFrom() {
-        return iFrom;
+    public LocalDate getLocalFrom() {
+        return SSDateUtil.toLocalDate(iFrom);
     }
 
     /**
-     *
-     * @return the to date
+     * @return the to date as a {@link LocalDate}
      */
-    public Date getTo() {
-        return iTo;
+    public LocalDate getLocalTo() {
+        return SSDateUtil.toLocalDate(iTo);
     }
 
     /**
@@ -244,13 +243,13 @@ public class SSBudget implements Serializable {
         if (iMonths.isEmpty()) {
             return;
         }
-        // Get the number of months as a bigdecimal for our calculations
-        BigDecimal numMonths = new BigDecimal(iMonths.size());
+         // Get the number of months as a bigdecimal for our calculations
+         BigDecimal numMonths = new BigDecimal(iMonths.size());
 
-        // Make shure we have 2 decimals for the sum, else the accuracy of the divission will be of
-        pValue = pValue.setScale(2, BigDecimal.ROUND_HALF_UP);
-        // Get the sum to be added per month
-        BigDecimal sumPerMonth = pValue.divide(numMonths, BigDecimal.ROUND_FLOOR);
+         // Make shure we have 2 decimals for the sum, else the accuracy of the divission will be of
+         pValue = pValue.setScale(2, RoundingMode.HALF_UP);
+         // Get the sum to be added per month
+         BigDecimal sumPerMonth = pValue.divide(numMonths, 2, RoundingMode.FLOOR);
         // Get the last few ören that differs from the total sum
         BigDecimal remainder = pValue.subtract(sumPerMonth.multiply(numMonths));
 
@@ -306,19 +305,18 @@ public class SSBudget implements Serializable {
      * Get the budget sum for an account.
      *
      * @param pAccount The account to get the sum from.
-     * @param pFrom
-     * @param pTo
+     * @param pFrom the start date
+     * @param pTo the end date
      *
      * @return The sum
      */
-    public BigDecimal getSumForAccount(SSAccount pAccount, Date pFrom, Date pTo) {
+    public BigDecimal getSumForAccount(SSAccount pAccount, LocalDate pFrom, LocalDate pTo) {
         BigDecimal iSum = new BigDecimal(0);
 
         for (Map.Entry<SSMonth, Map<SSAccount, BigDecimal>> ssMonthMapEntry : iBudget.entrySet()) {
             BigDecimal iValue = ssMonthMapEntry.getValue().get(pAccount);
 
-            if (iValue == null || !ssMonthMapEntry.getKey().isBetween(
-                    SSDateUtil.toLocalDate(pFrom), SSDateUtil.toLocalDate(pTo))) {
+            if (iValue == null || !ssMonthMapEntry.getKey().isBetween(pFrom, pTo)) {
                 continue;
             }
 
@@ -343,12 +341,12 @@ public class SSBudget implements Serializable {
 
     /**
      * Get the budget sum for all accounts.
-     * @param pFrom
-     * @param pTo
      *
+     * @param pFrom the start date
+     * @param pTo the end date
      * @return The sum
      */
-    public Map<SSAccount, BigDecimal> getSumForAccounts(Date pFrom, Date pTo) {
+    public Map<SSAccount, BigDecimal> getSumForAccounts(LocalDate pFrom, LocalDate pTo) {
         Map<SSAccount, BigDecimal> sum = new HashMap<>();
 
         for (SSAccount account: getAccounts()) {
@@ -450,26 +448,6 @@ public class SSBudget implements Serializable {
         }
 
         return b.toString();
-    }
-
-    /**
-     *
-     * @param iObjectInputStream
-     * @throws IOException
-     * @throws ClassNotFoundException
-     */
-    private void readObject(ObjectInputStream iObjectInputStream)  throws IOException, ClassNotFoundException {
-        iObjectInputStream.defaultReadObject();
-
-        if (iBudget == null) {
-            iBudget = new HashMap<>();
-        }
-
-        if (iBudget.isEmpty() && !iFrom.equals(iTo)) {
-            iFrom = SSDateUtil.toDate(SSDateUtil.today());
-            iTo = SSDateUtil.toDate(SSDateUtil.today());
-
-        }
     }
 
 }

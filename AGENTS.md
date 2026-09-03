@@ -24,21 +24,22 @@ error handling, Javadoc, UI conventions, testing patterns and best practices.
 
 ## Lint & Static Analysis
 - `mvn checkstyle:check`                  Enforce Checkstyle rules
-- `mvn findbugs:check`                    Run FindBugs analysis
-- `mvn jdepend:jdepend`                   Generate dependency report
+- `mvn spotbugs:check`                    Run SpotBugs analysis
+- JDepend report is generated via `mvn site -DskipTests`
 - `mvn javadoc:javadoc`                   Generate Javadoc in target/site
 - `mvn site -DskipTests`                  Generate project site and reports
 
 ## Running a Single Test
 - `mvn test -Dtest=MyTest`                Run specific test class
 - `mvn test -Dtest=MyTest#methodName`     Run single test method
-- Supports JUnit 4 syntax; use fully qualified class names if needed
+- `mvn test` runs both Surefire executions: unit tests (`excludedGroups=integration`) and `@Tag("integration")` tests in a separate forked JVM
+- Uses JUnit 5 syntax; use fully qualified class names if needed
+- Integration tests use `@Tag("integration")` and the shared fixtures in `src/test/java/se/swedsoft/bookkeeping/testsupport/system/`
 
 ## Continuous Integration
-CI pipeline in `.github/workflows/ci.yml`:
-- PR build: `mvn clean install` on pull_request
-- Release build: `mvn clean package -Djpackage.profile=true` on master
-- Appliance tests: AppImage/MSI/DMG smoke tests
+No CI workflow is currently committed under `.github/workflows/` in this repository snapshot.
+- Use local pre-PR gate: `mvn clean install`
+- For release packaging checks, run: `mvn clean package -Djpackage.profile=true`
 
 ## Documentation Generation
 - `mvn javadoc:javadoc`                   Generate API docs in target/site/apidocs
@@ -48,9 +49,10 @@ CI pipeline in `.github/workflows/ci.yml`:
 ### Test Structure
 - Place unit tests in `src/test/java` mirroring production packages
 - Store test data under `src/test/resources` for integration tests
+- Schema-V2 repository/system tests set `fribok.schema.version=v2` before `SSSystemConfigContext.startupLocal(...)` and clear it in teardown; see `src/test/java/se/swedsoft/bookkeeping/persistence/SSAccountPlanV2RepositoryTest.java` and `src/test/java/se/swedsoft/bookkeeping/testsupport/system/SSV2DatabaseFixture.java`
 
 ### Test Assertions
-- Use JUnit 4 `Assert` or Hamcrest matchers for clarity
+- Use JUnit 5 assertions or AssertJ for clarity
 - Keep tests focused: one logical assertion per test
 - Name tests with descriptive verbs and expected outcome
 
@@ -80,7 +82,7 @@ CI pipeline in `.github/workflows/ci.yml`:
 ## Additional Tools
 - `mvn dependency:tree`                   Inspect dependency graph
 - `mvn versions:display-dependency-updates` Report available updates
-- `mvn exec:java -Dexec.mainClass=org.fribok.bookkeeping.app.Bookkeeping`
+- `mvn exec:java -Dexec.mainClass=org.fribok.bookkeeping.Bookkeeping`
 Launch main application via Maven
 
 ## Code Style Guidelines

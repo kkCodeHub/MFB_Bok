@@ -127,8 +127,8 @@ public class SSVATControl2015Printer extends SSPrinter {    private static final
                 iFormat.format(SSDateUtil.toDate(iDateFrom)), iFormat.format(SSDateUtil.toDate(iDateTo)));
 
         List<SSAccount> iAccounts = SSAccountMath.getAccountsByVATCode(
-                se.swedsoft.bookkeeping.data.system.SSAccountingContext.getAccounts(), "10U1", "11U2", "12U3", "10UVL", "30UEU", "30UTFU",
-                "30U1MI", "31U2MI", "32U3MI", "48I", "48IVL", "60UI1", "61UI2", "62UI3");
+                se.swedsoft.bookkeeping.data.system.SSAccountingContext.getAccounts(), "10", "11", "12", "30", "31",
+                "32", "48", "60", "61", "62");
 
         SSVoucher    iVoucher = new SSVoucher();
 
@@ -190,22 +190,22 @@ public class SSVATControl2015Printer extends SSPrinter {    private static final
 
         switch (group) {
         case 1:
-            return getSumForAccounts(iCreditMinusDebetSum, "5MP1", "8MPFF", "7MBBU", "6MU1");
+            return getSumForAccounts(iCreditMinusDebetSum, "5_25", "8", "7_25", "6_25");
 
         case 2:
-            return getSumForAccounts(iCreditMinusDebetSum, "5MP2", "6MU2");
+            return getSumForAccounts(iCreditMinusDebetSum, "5_12", "6_12", "7_12");
 
         case 3:
-            return getSumForAccounts(iCreditMinusDebetSum, "5MP3", "6MU3");
+            return getSumForAccounts(iCreditMinusDebetSum, "5_6", "6_6", "7_6");
 
         case 4:
-            return getSumForAccounts(iCreditMinusDebetSum, "50IBU", "50IBU1");
+            return getSumForAccounts(iDebetMinusCreditSum, "50_25");
 
         case 5:
-            return getSumForAccounts(iCreditMinusDebetSum, "50IBU2");
+            return getSumForAccounts(iDebetMinusCreditSum, "50_12");
 
         case 6:
-            return getSumForAccounts(iCreditMinusDebetSum, "50IBU3");
+            return getSumForAccounts(iDebetMinusCreditSum, "50_6");
         }
 
         return new BigDecimal(0);
@@ -251,22 +251,22 @@ public class SSVATControl2015Printer extends SSPrinter {    private static final
 
         switch (group) {
         case 1:
-            return getSumForAccounts(iCreditMinusDebetSum, "10U1", "10UVL");
+            return getSumForAccounts(iCreditMinusDebetSum, "10");
 
         case 2:
-            return getSumForAccounts(iCreditMinusDebetSum, "11U2");
+            return getSumForAccounts(iCreditMinusDebetSum, "11");
 
         case 3:
-            return getSumForAccounts(iCreditMinusDebetSum, "12U3");
+            return getSumForAccounts(iCreditMinusDebetSum, "12");
 
         case 4:
-            return getSumForAccounts(iCreditMinusDebetSum, "60UI1");
+            return getSumForAccounts(iCreditMinusDebetSum, "60");
 
         case 5:
-            return getSumForAccounts(iCreditMinusDebetSum, "61UI2");
+            return getSumForAccounts(iCreditMinusDebetSum, "61");
 
         case 6:
-            return getSumForAccounts(iCreditMinusDebetSum, "62UI3");
+            return getSumForAccounts(iCreditMinusDebetSum, "62");
         }
 
         return new BigDecimal(0);

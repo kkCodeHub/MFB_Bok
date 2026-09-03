@@ -44,7 +44,7 @@ class SSOrderV2RepositoryTest {
         Class.forName("org.hsqldb.jdbcDriver");
         connection = DriverManager.getConnection(JDBC_URL, "sa", "");
 
-        SSDB.getInstance().startupLocal(connection);
+        se.swedsoft.bookkeeping.data.system.SSSystemConfigContext.startupLocal(connection);
 
         Integer companyId = createCompany("V2 Order Repo Test AB");
         SSNewCompany company = new SSNewCompany();
@@ -53,10 +53,10 @@ class SSOrderV2RepositoryTest {
         company.setCurrency(new SSCurrency("SEK", "SEK"));
         SSDB.getInstance().setCurrentCompany(company);
 
-        SSNewAccountingYear year = new SSNewAccountingYear(
-                se.swedsoft.bookkeeping.util.SSDateUtil.toDate(LocalDate.of(2025, 1, 1)),
-                se.swedsoft.bookkeeping.util.SSDateUtil.toDate(LocalDate.of(2025, 12, 31)));
-        SSDB.getInstance().addAccountingYear(year);
+        SSNewAccountingYear year = new SSNewAccountingYear();
+        year.setLocalFrom(LocalDate.of(2025, 1, 1));
+        year.setLocalTo(LocalDate.of(2025, 12, 31));
+        se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.addAccountingYear(year);
         SSDB.getInstance().setCurrentYear(year);
 
         Repositories.init(SSDB.getInstance());
@@ -75,7 +75,7 @@ class SSOrderV2RepositoryTest {
 
     @BeforeEach
     void clearCaches() {
-        SSDB.getInstance().clearLists();
+        se.swedsoft.bookkeeping.data.system.SSEventTriggerSyncContext.clearCachedLists();
         SSDB.getInstance().getCurrentYear();
     }
 
@@ -93,7 +93,7 @@ class SSOrderV2RepositoryTest {
         Repositories.orders().add(order);
         assertThat(order.getNumber()).isGreaterThan(0);
 
-        SSDB.getInstance().clearLists();
+        se.swedsoft.bookkeeping.data.system.SSEventTriggerSyncContext.clearCachedLists();
         Optional<SSOrder> fetched = Repositories.orders().findByOrder(order);
         assertThat(fetched).isPresent();
         assertThat(fetched.get().getCustomerName()).isEqualTo("Repo Order Customer AB");
@@ -109,7 +109,7 @@ class SSOrderV2RepositoryTest {
         order.getRows().add(orderRow("P-ORD-REPO-002", "Before update row", new BigDecimal("100.00"), 1, 3010));
         Repositories.orders().add(order);
 
-        SSDB.getInstance().clearLists();
+        se.swedsoft.bookkeeping.data.system.SSEventTriggerSyncContext.clearCachedLists();
         Optional<SSOrder> fetched = Repositories.orders().findByOrder(order);
         assertThat(fetched).isPresent();
 
@@ -122,7 +122,7 @@ class SSOrderV2RepositoryTest {
         updatedOrder.getRows().add(orderRow("P-ORD-REPO-003", "After update row", new BigDecimal("750.00"), 3, 3041));
         Repositories.orders().update(updatedOrder);
 
-        SSDB.getInstance().clearLists();
+        se.swedsoft.bookkeeping.data.system.SSEventTriggerSyncContext.clearCachedLists();
         Optional<SSOrder> updated = Repositories.orders().findByOrder(order);
         assertThat(updated).isPresent();
         assertThat(updated.get().getCustomerName()).isEqualTo("After Order Repo Update");
@@ -134,7 +134,7 @@ class SSOrderV2RepositoryTest {
 
         Integer number = updated.get().getNumber();
         Repositories.orders().delete(updated.get());
-        SSDB.getInstance().clearLists();
+        se.swedsoft.bookkeeping.data.system.SSEventTriggerSyncContext.clearCachedLists();
         List<SSOrder> all = Repositories.orders().findAll();
         assertThat(all).extracting(SSOrder::getNumber).doesNotContain(number);
     }
@@ -172,19 +172,10 @@ class SSOrderV2RepositoryTest {
     }
 
     private static Integer createCompany(String name) throws Exception {
-        try (PreparedStatement statement = connection.prepareStatement(
-                "INSERT INTO tbl_company(name) VALUES (?)", Statement.RETURN_GENERATED_KEYS)) {
-            statement.setString(1, name);
-            statement.executeUpdate();
-            connection.commit();
-
-            try (ResultSet keys = statement.getGeneratedKeys()) {
-                if (keys.next()) {
-                    return keys.getInt(1);
-                }
-            }
-        }
-        throw new IllegalStateException("Could not create test company for order repository V2 integration test");
+        se.swedsoft.bookkeeping.data.SSNewCompany company = new se.swedsoft.bookkeeping.data.SSNewCompany();
+        company.setName(name);
+        se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.addCompany(company);
+        return company.getId();
     }
 }
 

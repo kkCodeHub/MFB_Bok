@@ -27,7 +27,11 @@ public class LBinPostTK54 extends LBinPost {
      * @param iPayment
      */
     public LBinPostTK54(SupplierPayment iPayment) {
-        iPlusGiro = iPayment.getPlusGiro().replaceAll("-", "").replaceAll(" ", "");
+        this(iPayment, iPayment.getPlusGiro());
+    }
+
+    public LBinPostTK54(SupplierPayment iPayment, String iPlusGiro) {
+        this.iPlusGiro = iPlusGiro.replaceAll("-", "").replaceAll(" ", "");
         iReference = iPayment.getReference();
         iValue = iPayment.getValue();
         iDate = SSDateUtil.toDate(iPayment.getLocalDate());

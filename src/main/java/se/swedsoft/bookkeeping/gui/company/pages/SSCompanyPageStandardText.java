@@ -6,6 +6,7 @@ import se.swedsoft.bookkeeping.gui.company.panel.SSStandardTextPanel;
 import se.swedsoft.bookkeeping.gui.util.SSBundle;
 
 import javax.swing.*;
+import java.util.ResourceBundle;
 
 
 /**
@@ -15,17 +16,26 @@ import javax.swing.*;
  */
 public class SSCompanyPageStandardText extends SSCompanyPage {
 
+    private static final ResourceBundle BUNDLE = SSBundle.getBundle();
+
     private SSNewCompany iCompany;
 
     private JPanel iPanel;
 
     private SSStandardTextPanel iStandardTextPanel;
+    private JLabel iCustomerInvoiceTextboxLabel;
+    private JComboBox<CustomerInvoiceTextboxOption> iCustomerInvoiceTextboxComboBox;
 
     /**
      * @param iDialog
      */
     public SSCompanyPageStandardText(JDialog iDialog) {
         super(iDialog);
+
+        iCustomerInvoiceTextboxLabel.setText(getBundleText(
+                "companypanel.standardtext.customerinvoice.textbox",
+                "Kundfaktura textbox:"));
+        iCustomerInvoiceTextboxComboBox.setModel(createCustomerInvoiceTextboxModel());
     }
 
     /**
@@ -56,6 +66,7 @@ public class SSCompanyPageStandardText extends SSCompanyPage {
         this.iCompany = iCompany;
 
         iStandardTextPanel.setData(iCompany.getStandardTexts());
+        setCustomerInvoiceTextboxValue(iCompany.getCustomerInvoiceTextbox());
     }
 
     /**
@@ -66,8 +77,62 @@ public class SSCompanyPageStandardText extends SSCompanyPage {
     @Override
     public SSNewCompany getCompany() {
         iStandardTextPanel.getData(iCompany.getStandardTexts());
+        iCompany.setCustomerInvoiceTextbox(getCustomerInvoiceTextboxValue());
 
         return iCompany;
+    }
+
+    private DefaultComboBoxModel<CustomerInvoiceTextboxOption> createCustomerInvoiceTextboxModel() {
+        DefaultComboBoxModel<CustomerInvoiceTextboxOption> iModel = new DefaultComboBoxModel<>();
+        iModel.addElement(new CustomerInvoiceTextboxOption(
+                getBundleText("companypanel.standardtext.customerinvoice.textbox.small", "Liten"), 0));
+        iModel.addElement(new CustomerInvoiceTextboxOption(
+                getBundleText("companypanel.standardtext.customerinvoice.textbox.medium", "Mellan"), 1));
+        iModel.addElement(new CustomerInvoiceTextboxOption(
+                getBundleText("companypanel.standardtext.customerinvoice.textbox.large", "Stor"), 2));
+        return iModel;
+    }
+
+    private String getBundleText(String pKey, String pFallback) {
+        return BUNDLE.containsKey(pKey) ? BUNDLE.getString(pKey) : pFallback;
+    }
+
+    private int getCustomerInvoiceTextboxValue() {
+        CustomerInvoiceTextboxOption iOption =
+                (CustomerInvoiceTextboxOption) iCustomerInvoiceTextboxComboBox.getSelectedItem();
+        return iOption == null ? 0 : iOption.getValue();
+    }
+
+    private void setCustomerInvoiceTextboxValue(int pValue) {
+        ComboBoxModel<CustomerInvoiceTextboxOption> iModel = iCustomerInvoiceTextboxComboBox.getModel();
+        for (int iIndex = 0; iIndex < iModel.getSize(); iIndex++) {
+            CustomerInvoiceTextboxOption iOption = iModel.getElementAt(iIndex);
+            if (iOption.getValue() == pValue) {
+                iCustomerInvoiceTextboxComboBox.setSelectedItem(iOption);
+                return;
+            }
+        }
+        iCustomerInvoiceTextboxComboBox.setSelectedIndex(0);
+    }
+
+    private static class CustomerInvoiceTextboxOption {
+
+        private final String iDescription;
+        private final int iValue;
+
+        CustomerInvoiceTextboxOption(String pDescription, int pValue) {
+            iDescription = pDescription;
+            iValue = pValue;
+        }
+
+        int getValue() {
+            return iValue;
+        }
+
+        @Override
+        public String toString() {
+            return iDescription;
+        }
     }
 
     @Override
@@ -81,4 +146,5 @@ public class SSCompanyPageStandardText extends SSCompanyPage {
         sb.append('}');
         return sb.toString();
     }
+
 }

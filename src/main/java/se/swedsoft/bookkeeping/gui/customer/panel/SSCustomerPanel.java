@@ -107,7 +107,7 @@ public class SSCustomerPanel {
         iPaymentTerm.getComboBox().setSearchColumns(0);
         iPaymentTerm.setEditingFactory(SSPaymentTermTableModel.getEditingFactory(iOwner));
 
-        SSCurrency iCurrency = SSDB.getInstance().getCurrentCompany().getCurrency();
+        SSCurrency iCurrency = se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.getCurrentCompany().getCurrency();
 
         iCreditLimitCurrency.setText(iCurrency == null ? "" : iCurrency.getName());
 

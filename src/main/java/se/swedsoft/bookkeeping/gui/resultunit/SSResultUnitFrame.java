@@ -6,7 +6,8 @@ package se.swedsoft.bookkeeping.gui.resultunit;
 
 
 import se.swedsoft.bookkeeping.data.SSNewResultUnit;
-import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.data.system.SSCompanyYearContext;
+import se.swedsoft.bookkeeping.data.system.SSResultUnitContext;
 import se.swedsoft.bookkeeping.gui.SSMainFrame;
 import se.swedsoft.bookkeeping.gui.resultunit.util.SSResultUnitTableModel;
 import se.swedsoft.bookkeeping.gui.util.SSBundle;
@@ -24,8 +25,7 @@ import se.swedsoft.bookkeeping.print.report.SSResultUnitRevenuePrinter;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.util.Date;
+import java.time.LocalDate;
 import java.util.List;
 
 
@@ -244,8 +244,9 @@ public class SSResultUnitFrame extends SSDefaultTableFrame {
 
         if (iResponce == JOptionPane.YES_OPTION) {
             for (SSNewResultUnit iResultUnit : delete) {
-                SSDB.getInstance().deleteResultUnit(iResultUnit);
+                SSResultUnitContext.deleteResultUnit(iResultUnit);
             }
+            iModel.setObjects(SSResultUnitContext.getResultUnits());
         }
     }
 
@@ -264,28 +265,26 @@ public class SSResultUnitFrame extends SSDefaultTableFrame {
                 break;
 
             case JOptionPane.NO_OPTION:
-                iResultUnits = SSDB.getInstance().getResultUnits();
+                iResultUnits = SSResultUnitContext.getResultUnits();
                 break;
 
             default:
                 return;
             }
         } else {
-            iResultUnits = SSDB.getInstance().getResultUnits();
+            iResultUnits = SSResultUnitContext.getResultUnits();
         }
 
         SSPeriodSelectionDialog iDialog = new SSPeriodSelectionDialog(getMainFrame(),
                 SSBundle.getBundle().getString("resultunitrevenue.perioddialog.title"));
 
-        if (SSDB.getInstance().getCurrentYear() != null) {
-            iDialog.setFrom(se.swedsoft.bookkeeping.util.SSDateUtil.toDate(
-                    SSDB.getInstance().getCurrentYear().getLocalFrom()));
-            iDialog.setTo(se.swedsoft.bookkeeping.util.SSDateUtil.toDate(
-                    SSDB.getInstance().getCurrentYear().getLocalTo()));
+        if (SSCompanyYearContext.getCurrentYear() != null) {
+            iDialog.setLocalFrom(SSCompanyYearContext.getCurrentYear().getLocalFrom());
+            iDialog.setLocalTo(SSCompanyYearContext.getCurrentYear().getLocalTo());
         } else {
-            java.time.LocalDate now = java.time.LocalDate.now();
-            iDialog.setFrom(se.swedsoft.bookkeeping.util.SSDateUtil.toDate(now));
-            iDialog.setTo(se.swedsoft.bookkeeping.util.SSDateUtil.toDate(now.plusMonths(1)));
+            LocalDate now = LocalDate.now();
+            iDialog.setLocalFrom(now);
+            iDialog.setLocalTo(now.plusMonths(1));
         }
         iDialog.setLocationRelativeTo(getMainFrame());
 
@@ -293,11 +292,12 @@ public class SSResultUnitFrame extends SSDefaultTableFrame {
             return;
         }
 
-        final Date iFrom = iDialog.getFrom();
-        final Date iTo = iDialog.getTo();
+        final LocalDate iFrom = iDialog.getLocalFrom();
+        final LocalDate iTo = iDialog.getLocalTo();
 
         final SSResultUnitRevenuePrinter iPrinter = new SSResultUnitRevenuePrinter(
-                iResultUnits, iFrom, iTo);
+                iResultUnits, se.swedsoft.bookkeeping.util.SSDateUtil.toDate(iFrom),
+                se.swedsoft.bookkeeping.util.SSDateUtil.toDate(iTo));
 
         SSProgressDialog.runProgress(getMainFrame(), () -> iPrinter.preview(getMainFrame()));
     }
@@ -338,15 +338,15 @@ public class SSResultUnitFrame extends SSDefaultTableFrame {
     }
 
     private SSNewResultUnit getResultUnit(SSNewResultUnit iResultUnit) {
-        return SSDB.getInstance().getResultUnit(iResultUnit).orElse(null);
+        return SSResultUnitContext.getResultUnit(iResultUnit).orElse(null);
     }
 
     private List<SSNewResultUnit> getResultUnits(List<SSNewResultUnit> iResultUnits) {
-        return SSDB.getInstance().getResultUnits(iResultUnits);
+        return SSResultUnitContext.getResultUnits(iResultUnits);
     }
 
     public void updateFrame() {
-        iModel.setObjects(SSDB.getInstance().getResultUnits());
+        iModel.setObjects(SSResultUnitContext.getResultUnits());
     }
 
     public void actionPerformed(ActionEvent e) {

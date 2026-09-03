@@ -2,7 +2,7 @@ package se.swedsoft.bookkeeping.gui.ownreport;
 
 
 import se.swedsoft.bookkeeping.data.SSOwnReport;
-import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.data.system.SSOwnReportContext;
 import se.swedsoft.bookkeeping.gui.SSMainFrame;
 import se.swedsoft.bookkeeping.gui.ownreport.panel.SSOwnReportPanel;
 import se.swedsoft.bookkeeping.gui.util.SSBundle;
@@ -39,7 +39,7 @@ public class SSOwnReportDialog {
 
                 SSOwnReport iOwnReport = iPanel.getOwnReport();
 
-                SSDB.getInstance().addOwnReport(iOwnReport);
+                SSOwnReportContext.addOwnReport(iOwnReport);
 
                 iDialog.setVisible(false);
                 iDialog.dispose();
@@ -90,7 +90,7 @@ public class SSOwnReportDialog {
 
                 SSOwnReport iOwnReport = iPanel.getOwnReport();
 
-                SSDB.getInstance().updateOwnReport(iOwnReport);
+                SSOwnReportContext.updateOwnReport(iOwnReport);
 
                 iDialog.setVisible(false);
                 iDialog.dispose();

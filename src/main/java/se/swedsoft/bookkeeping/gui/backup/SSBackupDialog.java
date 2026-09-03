@@ -47,6 +47,13 @@ public class SSBackupDialog {
         if (result == JFileChooser.APPROVE_OPTION) {
             String filename = fileChooser.getSelectedFile().getAbsolutePath();
             SSBackup backup = SSBackupFactory.createBackup(filename);
+            if (backup == null) {
+                JOptionPane.showMessageDialog(parent,
+                        "Kunde inte skapa säkerhetskopia.",
+                        "Backup",
+                        JOptionPane.ERROR_MESSAGE);
+                return false;
+            }
 
             backupDatabase.add(backup);
             backupDatabase.notifyUpdated();

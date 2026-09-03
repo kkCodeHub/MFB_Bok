@@ -5,7 +5,7 @@ import se.swedsoft.bookkeeping.data.SSAccount;
 import se.swedsoft.bookkeeping.data.SSNewProject;
 import se.swedsoft.bookkeeping.data.SSNewResultUnit;
 import se.swedsoft.bookkeeping.data.SSVoucherRow;
-import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.data.system.SSAccountingContext;
 import se.swedsoft.bookkeeping.gui.util.SSBundle;
 import se.swedsoft.bookkeeping.gui.util.components.SSTableComboBoxOld;
 import se.swedsoft.bookkeeping.gui.util.model.SSDefaultTableModel;
@@ -32,6 +32,15 @@ public class SSVoucherEditors {
 
     public static Color COLOR_CROSSED = new Color(255, 192, 192);
     public static Color COLOR_ADDED = new Color(192, 192, 255);
+
+    private static final int COL_ACCOUNT = 0;
+    private static final int COL_DESCRIPTION = 1;
+    private static final int COL_DEBET = 2;
+    private static final int COL_CREDIT = 3;
+    private static final int COL_PROJECT = 4;
+    private static final int COL_RESULTUNIT = 5;
+    private static final int COL_EDITED_DATE = 6;
+    private static final int COL_EDITED_SIGNATURE = 7;
 
     private SSVoucherEditors() {}
 
@@ -62,9 +71,10 @@ public class SSVoucherEditors {
         }
 
         @Override
+        @SuppressWarnings("unchecked")
         protected void setValue(Object value) {
             if (value instanceof SSTableSearchable) {
-                setValue(value);
+                setValue((T) value);
             } else {
                 super.setValue(value);
             }
@@ -87,7 +97,7 @@ public class SSVoucherEditors {
     }
 
     public static DefaultTableCellRenderer createVoucherRowRenderer(SSDefaultTableModel<SSVoucherRow> pModel) {
-        return new SSDefaultVoucherRowRenderer(pModel);
+        return new SSDefaultVoucherRowRenderer<>(pModel);
     }
 
     public static DefaultTableCellRenderer createAccountRenderer(SSDefaultTableModel<SSVoucherRow> pModel) {
@@ -122,25 +132,25 @@ public class SSVoucherEditors {
      */
 
     public static DefaultTableCellRenderer createResultUnitRenderer(SSDefaultTableModel<SSVoucherRow> pModel) {
-        return new SSDefaultVoucherRowRenderer(pModel) {
+        return new SSDefaultVoucherRowRenderer<SSNewResultUnit>(pModel) {
             @Override
-            public void setValue(Object value) {
-                setText((value == null) ? "" : ((SSNewResultUnit) value).getNumber());
+            protected void setValue(SSNewResultUnit value) {
+                setText(value == null ? "" : value.getNumber());
             }
         };
     }
 
     public static DefaultTableCellRenderer createProjectRenderer(SSDefaultTableModel<SSVoucherRow> pModel) {
-        return new SSDefaultVoucherRowRenderer(pModel) {
+        return new SSDefaultVoucherRowRenderer<SSNewProject>(pModel) {
             @Override
-            public void setValue(Object value) {
-                setText((value == null) ? "" : ((SSNewProject) value).getNumber());
+            protected void setValue(SSNewProject value) {
+                setText(value == null ? "" : value.getNumber());
             }
         };
     }
 
     public static DefaultTableCellRenderer createBigDecimalRenderer(SSDefaultTableModel<SSVoucherRow> pModel) {
-        DefaultTableCellRenderer iEditor = new SSDefaultVoucherRowRenderer(pModel) {
+        DefaultTableCellRenderer iEditor = new SSDefaultVoucherRowRenderer<SSTableSearchable>(pModel) {
             @Override
             protected void setValue(Object value) {
                 NumberFormat format = NumberFormat.getNumberInstance();
@@ -160,7 +170,7 @@ public class SSVoucherEditors {
 
     public static DefaultTableCellRenderer createDateRenderer(SSDefaultTableModel<SSVoucherRow> pModel) {
 
-        return new SSDefaultVoucherRowRenderer(pModel) {
+        return new SSDefaultVoucherRowRenderer<SSTableSearchable>(pModel) {
             @Override
             protected void setValue(Object value) {
                 DateFormat format = DateFormat.getDateInstance(DateFormat.SHORT);
@@ -172,7 +182,7 @@ public class SSVoucherEditors {
 
     public static TableCellEditor createAccountEditor() {
         SSDefaultTableModel<SSAccount> model = new SSDefaultTableModel<>(
-                SSDB.getInstance().getCurrentYear().getActiveAccounts()) {
+                SSAccountingContext.getCurrentYear().getActiveAccounts()) {
             @Override
             public Class<?> getType() {
                 return SSAccount.class;
@@ -212,7 +222,7 @@ public class SSVoucherEditors {
     public static TableCellEditor createProjectEditor() {
 
         SSDefaultTableModel<SSNewProject> model = new SSDefaultTableModel<>(
-                SSDB.getInstance().getProjects()) {
+                SSAccountingContext.getProjects()) {
 
             @Override
             public Class<?> getType() {
@@ -256,7 +266,7 @@ public class SSVoucherEditors {
 
     public static TableCellEditor createResultUnitEditor() {
         SSDefaultTableModel<SSNewResultUnit> model = new SSDefaultTableModel<>(
-                SSDB.getInstance().getResultUnits()) {
+                SSAccountingContext.getResultUnits()) {
             @Override
             public Class<?> getType() {
                 return SSNewResultUnit.class;
@@ -334,29 +344,30 @@ public class SSVoucherEditors {
 
         try {
 
-            pTable.getColumnModel().getColumn(SSVoucherRowTableModelOld.COL_ACCOUNT).setPreferredWidth(
+            pTable.getColumnModel().getColumn(COL_ACCOUNT).setPreferredWidth(
                     65);
-            pTable.getColumnModel().getColumn(SSVoucherRowTableModelOld.COL_DESCRIPTION).setPreferredWidth(
+            pTable.getColumnModel().getColumn(COL_DESCRIPTION).setPreferredWidth(
                     240);
-            pTable.getColumnModel().getColumn(SSVoucherRowTableModelOld.COL_DEBET).setPreferredWidth(
+            pTable.getColumnModel().getColumn(COL_DEBET).setPreferredWidth(
                     85);
-            pTable.getColumnModel().getColumn(SSVoucherRowTableModelOld.COL_CREDIT).setPreferredWidth(
+            pTable.getColumnModel().getColumn(COL_CREDIT).setPreferredWidth(
                     85);
-            pTable.getColumnModel().getColumn(SSVoucherRowTableModelOld.COL_PROJECT).setPreferredWidth(
+            pTable.getColumnModel().getColumn(COL_PROJECT).setPreferredWidth(
                     85);
-            pTable.getColumnModel().getColumn(SSVoucherRowTableModelOld.COL_RESULTUNIT).setPreferredWidth(
+            pTable.getColumnModel().getColumn(COL_RESULTUNIT).setPreferredWidth(
                     85);
 
             if (pTable.getColumnModel().getColumnCount() == 8) {
-                pTable.getColumnModel().getColumn(SSVoucherRowTableModelOld.COL_EDITED_DATE).setPreferredWidth(
+                pTable.getColumnModel().getColumn(COL_EDITED_DATE).setPreferredWidth(
                         70);
-                pTable.getColumnModel().getColumn(SSVoucherRowTableModelOld.COL_EDITED_SIGNATURE).setPreferredWidth(
+                pTable.getColumnModel().getColumn(COL_EDITED_SIGNATURE).setPreferredWidth(
                         65);
             } else {
-                pTable.getColumnModel().getColumn(SSVoucherRowTableModelOld.COL_DESCRIPTION).setPreferredWidth(
+                pTable.getColumnModel().getColumn(COL_DESCRIPTION).setPreferredWidth(
                         376);
             }
         } catch (ArrayIndexOutOfBoundsException ignored) {}
     }
 }
+
 

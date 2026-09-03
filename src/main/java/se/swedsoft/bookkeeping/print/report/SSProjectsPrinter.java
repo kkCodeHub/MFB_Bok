@@ -23,7 +23,7 @@ public class SSProjectsPrinter extends SSPrinter {
      *
      */
     public SSProjectsPrinter() {
-        this(SSDB.getInstance().getProjects());
+        this(se.swedsoft.bookkeeping.data.system.SSProjectContext.getProjects());
     }
 
     /**

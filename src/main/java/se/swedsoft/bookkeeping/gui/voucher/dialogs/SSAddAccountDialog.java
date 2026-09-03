@@ -4,7 +4,7 @@ package se.swedsoft.bookkeeping.gui.voucher.dialogs;
 import se.swedsoft.bookkeeping.data.SSAccount;
 import se.swedsoft.bookkeeping.data.SSNewAccountingYear;
 import se.swedsoft.bookkeeping.data.common.SSVATCode;
-import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.data.system.SSAccountingContext;
 import se.swedsoft.bookkeeping.gui.SSMainFrame;
 import se.swedsoft.bookkeeping.gui.util.SSButtonPanel;
 import se.swedsoft.bookkeeping.gui.util.SSInputVerifier;
@@ -65,7 +65,7 @@ public class SSAddAccountDialog extends SSDialog {
                             return;
                         }
 
-                        SSNewAccountingYear iCurrentYear = SSDB.getInstance().getCurrentYear();
+                        SSNewAccountingYear iCurrentYear = SSAccountingContext.getCurrentYear();
                         List<SSAccount> iExistingAccounts = new LinkedList<>(
                                 iCurrentYear.getAccounts());
 
@@ -82,7 +82,7 @@ public class SSAddAccountDialog extends SSDialog {
 
                                 if (result == JOptionPane.YES_OPTION) {
                                     iAccount.setActive(true);
-                                    SSDB.getInstance().updateAccountingYear(iCurrentYear);
+                                    SSAccountingContext.updateAccountingYear(iCurrentYear);
                                 } else {
                                     return;
                                 }
@@ -103,7 +103,7 @@ public class SSAddAccountDialog extends SSDialog {
                             iCurrentYear.getAccountPlan().setAccounts(
                                     iCurrentYear.getAccountPlan().getAccounts());
 
-                            SSDB.getInstance().updateAccountingYear(iCurrentYear);
+                            SSAccountingContext.updateAccountingYear(iCurrentYear);
                         }
 
                         closeDialog(JOptionPane.OK_OPTION);
@@ -164,4 +164,5 @@ public class SSAddAccountDialog extends SSDialog {
         return sb.toString();
     }
 }
+
 

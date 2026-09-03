@@ -14,6 +14,7 @@ import se.swedsoft.bookkeeping.data.SSProduct;
 import se.swedsoft.bookkeeping.data.base.SSSaleRow;
 import se.swedsoft.bookkeeping.data.common.*;
 import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.data.system.SSSalesContext;
 import se.swedsoft.bookkeeping.gui.SSMainFrame;
 import se.swedsoft.bookkeeping.gui.util.dialogs.SSErrorDialog;
 import se.swedsoft.bookkeeping.gui.util.dialogs.SSInformationDialog;
@@ -24,6 +25,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.*;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -36,6 +38,7 @@ import org.slf4j.LoggerFactory;
 
 
 public class SSOrderImporter {    private static final Logger LOG = LoggerFactory.getLogger(SSOrderImporter.class);
+    private static final int DEFAULT_QUANTITY_TENTHS = 10;
 
 
     private File iFile;
@@ -617,7 +620,7 @@ public class SSOrderImporter {    private static final Logger LOG = LoggerFactor
                                 iValue = iTextRowAttList.item(0) == null
                                         ? "0"
                                         : iTextRowAttList.item(0).getNodeValue().trim();
-                                iRow.setQuantity(Integer.parseInt(iValue));
+                                iRow.setQuantity(parseQuantityToTenths(iValue));
                             }
 
                             // Rabatt
@@ -730,14 +733,14 @@ public class SSOrderImporter {    private static final Logger LOG = LoggerFactor
             }
 
             for (SSProduct iProduct : iProducts) {
-                SSDB.getInstance().addProduct(iProduct);
+                se.swedsoft.bookkeeping.data.system.SSProductContext.addProduct(iProduct);
             }
             for (SSCustomer iCustomer : iCustomers) {
-                SSDB.getInstance().addCustomer(iCustomer);
+                se.swedsoft.bookkeeping.data.system.SSSalesContext.addCustomer(iCustomer);
             }
 
             for (SSOrder iNewOrder : iOrders) {
-                SSDB.getInstance().addOrder(iNewOrder);
+                SSSalesContext.addOrder(iNewOrder);
             }
 
         } catch (ParserConfigurationException e) {
@@ -750,7 +753,7 @@ public class SSOrderImporter {    private static final Logger LOG = LoggerFactor
     }
 
     private SSCustomer getCustomer(String iNumber) {
-        List<SSCustomer> pCustomers = SSDB.getInstance().getCustomers();
+        List<SSCustomer> pCustomers = SSSalesContext.getCustomers();
 
         for (SSCustomer iCustomer : pCustomers) {
             if (iCustomer.getNumber().equals(iNumber)) {
@@ -767,7 +770,7 @@ public class SSOrderImporter {    private static final Logger LOG = LoggerFactor
     }
 
     private SSCurrency getCurrency(String iName) {
-        List<SSCurrency> iCurrencies = SSDB.getInstance().getCurrencies();
+        List<SSCurrency> iCurrencies = se.swedsoft.bookkeeping.data.system.SSMasterdataContext.getCurrencies();
 
         for (SSCurrency iCurrency : iCurrencies) {
             if (iCurrency.getName().equals(iName)) {
@@ -778,7 +781,7 @@ public class SSOrderImporter {    private static final Logger LOG = LoggerFactor
     }
 
     private SSPaymentTerm getPaymentTerm(String iName) {
-        List<SSPaymentTerm> iPaymentTerms = SSDB.getInstance().getPaymentTerms();
+        List<SSPaymentTerm> iPaymentTerms = se.swedsoft.bookkeeping.data.system.SSMasterdataContext.getPaymentTerms();
 
         for (SSPaymentTerm iPaymentTerm : iPaymentTerms) {
             if (iPaymentTerm.getName().equals(iName)) {
@@ -789,7 +792,7 @@ public class SSOrderImporter {    private static final Logger LOG = LoggerFactor
     }
 
     private SSDeliveryTerm getDeliveryTerm(String iName) {
-        List<SSDeliveryTerm> iDeliveryTerms = SSDB.getInstance().getDeliveryTerms();
+        List<SSDeliveryTerm> iDeliveryTerms = se.swedsoft.bookkeeping.data.system.SSMasterdataContext.getDeliveryTerms();
 
         for (SSDeliveryTerm iDeliveryTerm : iDeliveryTerms) {
             if (iDeliveryTerm.getName().equals(iName)) {
@@ -800,7 +803,7 @@ public class SSOrderImporter {    private static final Logger LOG = LoggerFactor
     }
 
     private SSDeliveryWay getDeliveryWay(String iName) {
-        List<SSDeliveryWay> iDeliveryWays = SSDB.getInstance().getDeliveryWays();
+        List<SSDeliveryWay> iDeliveryWays = se.swedsoft.bookkeeping.data.system.SSMasterdataContext.getDeliveryWays();
 
         for (SSDeliveryWay iDeliveryWay : iDeliveryWays) {
             if (iDeliveryWay.getName().equals(iName)) {
@@ -811,7 +814,7 @@ public class SSOrderImporter {    private static final Logger LOG = LoggerFactor
     }
 
     private SSProduct getProduct(String iName) {
-        List<SSProduct> iProducts = SSDB.getInstance().getProducts();
+        List<SSProduct> iProducts = se.swedsoft.bookkeeping.data.system.SSProductContext.getProducts();
 
         for (SSProduct iProduct : iProducts) {
             if (iProduct.getNumber().equals(iName)) {
@@ -827,7 +830,7 @@ public class SSOrderImporter {    private static final Logger LOG = LoggerFactor
     }
 
     private SSUnit getUnit(String iName) {
-        List<SSUnit> iUnits = SSDB.getInstance().getUnits();
+        List<SSUnit> iUnits = se.swedsoft.bookkeeping.data.system.SSMasterdataContext.getUnits();
 
         for (SSUnit iUnit : iUnits) {
             if (iUnit.getName().equals(iName)) {
@@ -870,13 +873,13 @@ public class SSOrderImporter {    private static final Logger LOG = LoggerFactor
 
             Collection<String> iBadOrders = new LinkedList<>();
 
-            if (SSDB.getInstance().getProduct("frakt") == null/* && SSDB.getInstance().getProduct("frakt") == null && SSDB.getInstance().getProduct("FRAKT") == null*/) {
+            if (se.swedsoft.bookkeeping.data.system.SSProductContext.getProduct("frakt") == null/* && se.swedsoft.bookkeeping.data.system.SSProductContext.getProduct("frakt") == null && se.swedsoft.bookkeeping.data.system.SSProductContext.getProduct("FRAKT") == null*/) {
                 SSErrorDialog.showDialog(SSMainFrame.getInstance(), "",
                         "Du måste skapa en produkt med nummer \"Frakt\" innan du kan importera.");
                 return;
             }
 
-            if (SSDB.getInstance().getProduct("avgift") == null) {
+            if (se.swedsoft.bookkeeping.data.system.SSProductContext.getProduct("avgift") == null) {
                 SSErrorDialog.showDialog(SSMainFrame.getInstance(), "",
                         "Du måste skapa en produkt med nummer \"Avgift\" innan du kan importera.");
                 return;
@@ -898,7 +901,7 @@ public class SSOrderImporter {    private static final Logger LOG = LoggerFactor
                     String[] iFields = iLine.split("\t");
 
                     if (iOrder.getCustomer() == null && iFields[0] != null) {
-                        SSCustomer iCustomer = SSDB.getInstance().getCustomer(iFields[0]).orElse(null);
+                        SSCustomer iCustomer = se.swedsoft.bookkeeping.data.system.SSSalesContext.getCustomer(iFields[0]).orElse(null);
 
                         if (iCustomer == null) {
                             iBadOrders.add(
@@ -926,7 +929,7 @@ public class SSOrderImporter {    private static final Logger LOG = LoggerFactor
                     SSSaleRow iRow = new SSSaleRow();
 
                     if (iFields[2] != null) {
-                        SSProduct iProduct = SSDB.getInstance().getProduct(iFields[2]).orElse(null);
+                        SSProduct iProduct = se.swedsoft.bookkeeping.data.system.SSProductContext.getProduct(iFields[2]);
 
                         if (iProduct != null) {
                             iRow.setProduct(iProduct);
@@ -972,7 +975,7 @@ public class SSOrderImporter {    private static final Logger LOG = LoggerFactor
                                 LOG.error("Unexpected error", e);
                             }
                             iRow.setProduct(iProduct);
-                            SSDB.getInstance().addProduct(iProduct);
+                            se.swedsoft.bookkeeping.data.system.SSProductContext.addProduct(iProduct);
                         }
                     } else {
                         iBadOrders.add(iOrderNumber + " - Artikelnummer saknas.");
@@ -980,7 +983,7 @@ public class SSOrderImporter {    private static final Logger LOG = LoggerFactor
                     }
 
                     try {
-                        iRow.setQuantity(Integer.parseInt(iFields[5]));
+                        iRow.setQuantity(parseQuantityToTenths(iFields[5]));
                     } catch (NumberFormatException e) {
                         iRow.setQuantity(0);
                     }
@@ -997,12 +1000,12 @@ public class SSOrderImporter {    private static final Logger LOG = LoggerFactor
                     try {
                         iFeeString = iFeeString.replace(",", ".");
                         SSSaleRow iRow = new SSSaleRow(
-                                SSDB.getInstance().getProduct("Avgift").orElse(null));
+                                se.swedsoft.bookkeeping.data.system.SSProductContext.getProduct("Avgift"));
                         BigDecimal iFee = new BigDecimal(iFeeString);
 
                         iFee = iFee.multiply(new BigDecimal("0.8"));
                         iRow.setUnitprice(iFee);
-                        iRow.setQuantity(1);
+                        iRow.setQuantity(DEFAULT_QUANTITY_TENTHS);
                         iOrder.getRows().add(iRow);
                     } catch (RuntimeException e) {
                         iBadOrders.add(
@@ -1016,12 +1019,12 @@ public class SSOrderImporter {    private static final Logger LOG = LoggerFactor
                     try {
                         iFreightString = iFreightString.replace(",", ".");
                         SSSaleRow iRow = new SSSaleRow(
-                                SSDB.getInstance().getProduct("Frakt").orElse(null));
+                                se.swedsoft.bookkeeping.data.system.SSProductContext.getProduct("Frakt"));
                         BigDecimal iFreight = new BigDecimal(iFreightString);
 
                         iFreight = iFreight.multiply(new BigDecimal("0.8"));
                         iRow.setUnitprice(iFreight);
-                        iRow.setQuantity(1);
+                        iRow.setQuantity(DEFAULT_QUANTITY_TENTHS);
                         iOrder.getRows().add(iRow);
                     } catch (RuntimeException e) {
                         iBadOrders.add(
@@ -1032,7 +1035,7 @@ public class SSOrderImporter {    private static final Logger LOG = LoggerFactor
                 if (iPaymentString != null && iPaymentString.length() != 0) {
                     boolean set = false;
 
-                    for (SSPaymentTerm iPaymentTerm : SSDB.getInstance().getPaymentTerms()) {
+                    for (SSPaymentTerm iPaymentTerm : se.swedsoft.bookkeeping.data.system.SSMasterdataContext.getPaymentTerms()) {
                         if (iPaymentTerm.getDescription().equals(iPaymentString)) {
                             iOrder.setPaymentTerm(iPaymentTerm);
                             set = true;
@@ -1040,11 +1043,11 @@ public class SSOrderImporter {    private static final Logger LOG = LoggerFactor
                     }
                     if (!set) {
                         iOrder.setPaymentTerm(
-                                SSDB.getInstance().getCurrentCompany().getPaymentTerm());
+                                se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.getCurrentCompany().getPaymentTerm());
                     }
                 }
                 iOrderCount++;
-                SSDB.getInstance().addOrder(iOrder);
+                SSSalesContext.addOrder(iOrder);
             }
             if (!iBadOrders.isEmpty()) {
                 BufferedWriter bw = new BufferedWriter(
@@ -1066,6 +1069,20 @@ public class SSOrderImporter {    private static final Logger LOG = LoggerFactor
         } catch (IOException e) {
             throw new SSImportException(e.getMessage());
         }
+    }
+
+    static Integer parseQuantityToTenths(String iValue) {
+        if (iValue == null) {
+            return 0;
+        }
+
+        String iNormalized = iValue.trim().replace(',', '.');
+        if (iNormalized.length() == 0) {
+            return 0;
+        }
+
+        BigDecimal iDecimal = new BigDecimal(iNormalized);
+        return iDecimal.movePointRight(1).setScale(0, RoundingMode.HALF_UP).intValue();
     }
 
     @Override

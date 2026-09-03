@@ -5,6 +5,7 @@ import se.swedsoft.bookkeeping.calc.math.SSInvoiceMath;
 import se.swedsoft.bookkeeping.data.SSPeriodicInvoice;
 import se.swedsoft.bookkeeping.data.common.SSCurrency;
 import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.data.system.SSSalesContext;
 import se.swedsoft.bookkeeping.gui.util.SSBundle;
 import se.swedsoft.bookkeeping.gui.util.table.model.SSTableColumn;
 import se.swedsoft.bookkeeping.gui.util.table.model.SSTableModel;
@@ -27,7 +28,7 @@ public class SSPeriodicInvoiceTableModel extends SSTableModel<SSPeriodicInvoice>
      * Default constructor.
      */
     public SSPeriodicInvoiceTableModel() {
-        super(SSDB.getInstance().getPeriodicInvoices());
+        super(SSSalesContext.getPeriodicInvoices());
     }
 
     /**

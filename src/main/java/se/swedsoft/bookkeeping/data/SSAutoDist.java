@@ -165,7 +165,7 @@ public class SSAutoDist implements SSTableSearchable, Serializable {
     // /////////////////////////////////////////////////
 
     public SSAccount getAccount() {
-        return getAccount(SSDB.getInstance().getAccounts());
+        return getAccount(se.swedsoft.bookkeeping.data.system.SSAccountingContext.getAccounts());
     }
 
     public SSAccount getAccount(List<SSAccount> iAccounts) {

@@ -5,7 +5,8 @@ import se.swedsoft.bookkeeping.data.SSProduct;
 import se.swedsoft.bookkeeping.data.SSSupplierCreditInvoice;
 import se.swedsoft.bookkeeping.data.SSSupplierInvoice;
 import se.swedsoft.bookkeeping.data.SSSupplierInvoiceRow;
-import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.data.system.SSProductContext;
+import se.swedsoft.bookkeeping.data.system.SSPurchaseContext;
 import se.swedsoft.bookkeeping.persistence.Repositories;
 
 import se.swedsoft.bookkeeping.gui.SSMainFrame;
@@ -75,10 +76,7 @@ public class SSSupplierCreditInvoiceDialog {
                 SSSupplierCreditInvoice iSupplierCreditInvoice1 = iPanel.getSupplierCreditInvoice();
 
                 Repositories.supplierCreditInvoices().add(iSupplierCreditInvoice1);
-
-                if (pModel != null) {
-                    pModel.fireTableDataChanged();
-                }
+                SSSupplierCreditInvoiceFrame.fireTableDataChanged();
 
                 iPanel.dispose();
                 iDialog.closeDialog();
@@ -135,7 +133,7 @@ public class SSSupplierCreditInvoiceDialog {
         iSupplierCreditInvoice.setNumber(null);
         for (SSSupplierInvoiceRow iRow : iSupplierInvoice.getRows()) {
             if (iRow.getProductNr() != null) {
-                SSProduct iProduct = iRow.getProduct(SSDB.getInstance().getProducts());
+                SSProduct iProduct = iRow.getProduct(SSProductContext.getProducts());
 
                 iRow.setProject(
                         iProduct == null
@@ -156,10 +154,7 @@ public class SSSupplierCreditInvoiceDialog {
                 SSSupplierCreditInvoice iSupplierCreditInvoice1 = iPanel.getSupplierCreditInvoice();
 
                 Repositories.supplierCreditInvoices().add(iSupplierCreditInvoice1);
-
-                if (pModel != null) {
-                    pModel.fireTableDataChanged();
-                }
+                SSSupplierCreditInvoiceFrame.fireTableDataChanged();
 
                 iPanel.dispose();
                 iDialog.closeDialog();
@@ -218,10 +213,7 @@ public class SSSupplierCreditInvoiceDialog {
                 SSSupplierCreditInvoice iSupplierCreditInvoice1 = iPanel.getSupplierCreditInvoice();
 
                 Repositories.supplierCreditInvoices().update(iSupplierCreditInvoice1);
-
-                if (pModel != null) {
-                    pModel.fireTableDataChanged();
-                }
+                SSSupplierCreditInvoiceFrame.fireTableDataChanged();
 
                 iPanel.dispose();
                 iDialog.closeDialog();
@@ -291,10 +283,7 @@ public class SSSupplierCreditInvoiceDialog {
                 SSSupplierCreditInvoice iSupplierCreditInvoice1 = iPanel.getSupplierCreditInvoice();
 
                 Repositories.supplierCreditInvoices().add(iSupplierCreditInvoice1);
-
-                if (pModel != null) {
-                    pModel.fireTableDataChanged();
-                }
+                SSSupplierCreditInvoiceFrame.fireTableDataChanged();
 
                 iPanel.dispose();
                 iDialog.closeDialog();

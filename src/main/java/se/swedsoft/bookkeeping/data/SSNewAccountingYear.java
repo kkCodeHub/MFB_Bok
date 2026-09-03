@@ -13,16 +13,19 @@ import se.swedsoft.bookkeeping.util.SSDateUtil;
 
 import javax.swing.*;
 import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.io.Serial;
 import java.io.Serializable;
 import java.math.BigDecimal;
-import java.text.DateFormat;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.FormatStyle;
 import java.util.*;
 
 
 /**
+ * V2 target model for accounting years.
+ *
+ * <p>This is the supported accounting-year representation in active V2 code paths.</p>
  */
 public class SSNewAccountingYear implements Serializable, SSTableSearchable {
 
@@ -42,6 +45,18 @@ public class SSNewAccountingYear implements Serializable, SSTableSearchable {
 
     private SSBudget iBudget;
 
+    // Hybrid Light: snapshot metadata for account plan (Release 1)
+    private Integer iAccountPlanSchemaVersion;
+    private String iAccountPlanCompressionFlag;
+    private String iAccountPlanChecksum;
+    private Integer iAccountPlanSnapshotVersion;
+    private java.time.Instant iAccountPlanUpdatedAt;
+    private String iAccountPlanUpdatedBy;
+    private String iAccountPlanName;
+
+    // Dirty-flag for active account plan (tracks unsaved changes)
+    private transient boolean iAccountPlanDirtyFlag;
+
     /**
      * Default constructor.
      */
@@ -51,17 +66,11 @@ public class SSNewAccountingYear implements Serializable, SSTableSearchable {
         iTo = SSDateUtil.today();
         iInBalance = new HashMap<>();
         iBudget = new SSBudget();
-    }
-
-    /**
-     *
-     * @param pFrom
-     * @param pTo
-     */
-    public SSNewAccountingYear(Date pFrom, Date pTo) {
-        this();
-        iFrom = SSDateUtil.toLocalDate(pFrom);
-        iTo = SSDateUtil.toLocalDate(pTo);
+        // Initialize snapshot metadata
+        iAccountPlanSchemaVersion = 1;
+        iAccountPlanCompressionFlag = "gzip";
+        iAccountPlanSnapshotVersion = 0;
+        iAccountPlanDirtyFlag = false;
     }
 
     /**
@@ -73,13 +82,6 @@ public class SSNewAccountingYear implements Serializable, SSTableSearchable {
         setData(pAccountingYear);
     }
 
-    public SSNewAccountingYear(SSAccountingYear iOldYear) {
-        iFrom = SSDateUtil.toLocalDate(iOldYear.getFrom());
-        iTo = SSDateUtil.toLocalDate(iOldYear.getTo());
-        iPlan = iOldYear.getAccountPlan();
-        iInBalance = iOldYear.getInBalance();
-        iBudget = iOldYear.getBudget();
-    }
 
     /**
      * Sets the data of the accountingyear to the same as the parameter
@@ -95,6 +97,14 @@ public class SSNewAccountingYear implements Serializable, SSTableSearchable {
         iInBalance = pAccountingYear.iInBalance;
         iBudget = pAccountingYear.iBudget;
         iPlan = pAccountingYear.iPlan;
+        iAccountPlanSchemaVersion = pAccountingYear.iAccountPlanSchemaVersion;
+        iAccountPlanCompressionFlag = pAccountingYear.iAccountPlanCompressionFlag;
+        iAccountPlanChecksum = pAccountingYear.iAccountPlanChecksum;
+        iAccountPlanSnapshotVersion = pAccountingYear.iAccountPlanSnapshotVersion;
+        iAccountPlanUpdatedAt = pAccountingYear.iAccountPlanUpdatedAt;
+        iAccountPlanUpdatedBy = pAccountingYear.iAccountPlanUpdatedBy;
+        iAccountPlanName = pAccountingYear.iAccountPlanName;
+        iAccountPlanDirtyFlag = pAccountingYear.iAccountPlanDirtyFlag;
     }
 
     /**
@@ -109,23 +119,6 @@ public class SSNewAccountingYear implements Serializable, SSTableSearchable {
         iId = pId;
     }
 
-    /**
-     *
-     * @return the from date
-     */
-    @Deprecated
-    public Date getFrom() {
-        return SSDateUtil.toDate(iFrom);
-    }
-
-    /**
-     *
-     * @param pFrom
-     */
-    @Deprecated
-    public void setFrom(Date pFrom) {
-        iFrom = SSDateUtil.toLocalDate(pFrom);
-    }
 
     /**
      * @return the from date as a LocalDate
@@ -141,23 +134,6 @@ public class SSNewAccountingYear implements Serializable, SSTableSearchable {
         iFrom = pFrom;
     }
 
-    /**
-     *
-     * @return the todate
-     */
-    @Deprecated
-    public Date getTo() {
-        return SSDateUtil.toDate(iTo);
-    }
-
-    /**
-     *
-     * @param pTo
-     */
-    @Deprecated
-    public void setTo(Date pTo) {
-        iTo = SSDateUtil.toLocalDate(pTo);
-    }
 
     /**
      * @return the to date as a LocalDate
@@ -234,7 +210,7 @@ public class SSNewAccountingYear implements Serializable, SSTableSearchable {
      * @return the vouchers
      */
     public List<SSVoucher> getVouchers() {
-        return SSDB.getInstance().getVouchers(this);
+        return se.swedsoft.bookkeeping.data.system.SSAccountingContext.getVouchers(this);
     }
 
     /**
@@ -267,21 +243,21 @@ public class SSNewAccountingYear implements Serializable, SSTableSearchable {
      * @return The searchable string
      */
     public String toRenderString() {
-        DateFormat iFormat = DateFormat.getDateInstance(DateFormat.SHORT);
+        DateTimeFormatter fmt = DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT);
 
-        return iFormat.format(SSDateUtil.toDate(iFrom)) + " - " + iFormat.format(SSDateUtil.toDate(iTo));
+        return iFrom.format(fmt) + " - " + iTo.format(fmt);
     }
 
     public String toString() {
-        DateFormat iFormat = DateFormat.getDateInstance(DateFormat.SHORT);
+        DateTimeFormatter fmt = DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT);
 
         StringBuilder sb = new StringBuilder();
 
-        sb.append(iFormat.format(SSDateUtil.toDate(iFrom)));
+        sb.append(iFrom.format(fmt));
         sb.append(' ');
         sb.append(SSBundle.getBundle().getString("date.separator"));
         sb.append(' ');
-        sb.append(iFormat.format(SSDateUtil.toDate(iTo)));
+        sb.append(iTo.format(fmt));
 
         return sb.toString();
     }
@@ -317,24 +293,93 @@ public class SSNewAccountingYear implements Serializable, SSTableSearchable {
     }
 
     /**
-     * Custom deserialization that handles both old (Date) and new (LocalDate) field formats.
-     *
-     * <p>Pre-migration serialized streams stored {@code iFrom} and {@code iTo} as
-     * {@code java.util.Date}.  This method reads them as raw objects and converts
-     * via {@link SSDateUtil#readLocalDate(Object)}.
+     * Snapshot metadata: schema version for account plan storage.
      */
-    @SuppressWarnings("unchecked")
-    @Serial
-    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
-        ObjectInputStream.GetField fields = in.readFields();
-        iId = (Integer) fields.get("iId", null);
-        iFrom = SSDateUtil.readLocalDate(fields.get("iFrom", null));
-        iTo = SSDateUtil.readLocalDate(fields.get("iTo", null));
-        iPlan = (SSAccountPlan) fields.get("iPlan", null);
-        iInBalance = (Map<SSAccount, BigDecimal>) fields.get("iInBalance", null);
-        iBudget = (SSBudget) fields.get("iBudget", null);
+    public Integer getAccountPlanSchemaVersion() {
+        return iAccountPlanSchemaVersion;
     }
 
+    public void setAccountPlanSchemaVersion(Integer pVersion) {
+        iAccountPlanSchemaVersion = pVersion;
+    }
+
+    /**
+     * Snapshot metadata: compression flag ("gzip" or "none").
+     */
+    public String getAccountPlanCompressionFlag() {
+        return iAccountPlanCompressionFlag;
+    }
+
+    public void setAccountPlanCompressionFlag(String pFlag) {
+        iAccountPlanCompressionFlag = pFlag;
+    }
+
+    /**
+     * Snapshot metadata: SHA-256 checksum of compressed data.
+     */
+    public String getAccountPlanChecksum() {
+        return iAccountPlanChecksum;
+    }
+
+    public void setAccountPlanChecksum(String pChecksum) {
+        iAccountPlanChecksum = pChecksum;
+    }
+
+    /**
+     * Snapshot metadata: incremented on each write.
+     */
+    public Integer getAccountPlanSnapshotVersion() {
+        return iAccountPlanSnapshotVersion;
+    }
+
+    public void setAccountPlanSnapshotVersion(Integer pVersion) {
+        iAccountPlanSnapshotVersion = pVersion;
+    }
+
+    /**
+     * Snapshot metadata: timestamp of last update.
+     */
+    public java.time.Instant getAccountPlanUpdatedAt() {
+        return iAccountPlanUpdatedAt;
+    }
+
+    public void setAccountPlanUpdatedAt(java.time.Instant pTimestamp) {
+        iAccountPlanUpdatedAt = pTimestamp;
+    }
+
+    /**
+     * Snapshot metadata: user who last updated the plan.
+     */
+    public String getAccountPlanUpdatedBy() {
+        return iAccountPlanUpdatedBy;
+    }
+
+    public void setAccountPlanUpdatedBy(String pUserId) {
+        iAccountPlanUpdatedBy = pUserId;
+    }
+
+    /**
+     * Snapshot metadata: name of the account plan.
+     */
+    public String getAccountPlanName() {
+        return iAccountPlanName;
+    }
+
+    public void setAccountPlanName(String pName) {
+        iAccountPlanName = pName;
+    }
+
+    /**
+     * Dirty flag: indicates whether the active account plan has unsaved changes.
+     * This is transient and not persisted (resets on load).
+     */
+    public boolean isAccountPlanDirty() {
+        return iAccountPlanDirtyFlag;
+    }
+
+    public void setAccountPlanDirty(boolean pDirty) {
+        iAccountPlanDirtyFlag = pDirty;
+    }
 
     /**
      *

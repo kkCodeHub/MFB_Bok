@@ -5,8 +5,10 @@
 package se.swedsoft.bookkeeping.gui.accountingyear;
 
 
+import org.fribok.bookkeeping.app.SSDBUiInitializer;
 import se.swedsoft.bookkeeping.data.SSNewAccountingYear;
-import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.data.system.SSAccountingContext;
+import se.swedsoft.bookkeeping.data.system.SSCompanyYearContext;
 import se.swedsoft.bookkeeping.data.system.SSDBConfig;
 import se.swedsoft.bookkeeping.gui.SSMainFrame;
 import se.swedsoft.bookkeeping.gui.accountingyear.dialog.SSEditAccountingYearDialog;
@@ -166,7 +168,7 @@ public class SSAccountingYearFrame extends SSDefaultTableFrame {
         iModel = new SSSystemYearDataModel();
 
         // Get the objects.
-        List<SSNewAccountingYear> iYears = SSDB.getInstance().getYears();
+        List<SSNewAccountingYear> iYears = SSCompanyYearContext.getYears();
 
         Collections.sort(iYears, (o1, o2) -> o1.getLocalFrom().compareTo(o2.getLocalFrom()));
         iModel.setObjects(iYears);
@@ -259,12 +261,12 @@ public class SSAccountingYearFrame extends SSDefaultTableFrame {
             return;
         }
         // Stäng fönstret om året är öppet
-        if (iNewYear.equals(SSDB.getInstance().getCurrentYear())) {
+        if (iNewYear.equals(SSAccountingContext.getCurrentYear())) {
             cInstance.dispose();
             return;
         }
         // Kontrollera att året fortfarande finns i databasen
-        iNewYear = SSDB.getInstance().getAccountingYear(iNewYear).orElse(null);
+        iNewYear = SSCompanyYearContext.getAccountingYear(iNewYear).orElse(null);
         if (iNewYear == null) {
             // Året fanns inte kvar i databasen. Visa felmeddelande.
             new SSErrorDialog(getMainFrame(), "accountingyearframe.yeargone");
@@ -279,11 +281,13 @@ public class SSAccountingYearFrame extends SSDefaultTableFrame {
             // Svarade inte ja. Avbryt funktionen
             return;
         }
-        // Lås upp förra året
-        // Sätt det valda året som nuvarande år
-        SSDB.getInstance().setCurrentYear(iNewYear);
-        SSDB.getInstance().initYear(true);
-        SSDBConfig.setYearId(SSDB.getInstance().getCurrentCompany().getId(),
+        if (!SSAccountingContext.canOpenAccountingYear(iNewYear)) {
+            return;
+        }
+        // Stäng föregående år och öppna det valda
+        SSCompanyYearContext.openYear(iNewYear);
+        SSDBUiInitializer.initYear(true);
+        SSDBConfig.setYearId(SSAccountingContext.getCurrentCompany().getId(),
                 iNewYear.getId());
 
         // Stäng alla fönster
@@ -303,7 +307,7 @@ public class SSAccountingYearFrame extends SSDefaultTableFrame {
         }
 
         // Kontrollera att året fortfarande finns i databasen
-        iAccountingYear = SSDB.getInstance().getAccountingYear(iAccountingYear).orElse(null);
+        iAccountingYear = SSCompanyYearContext.getAccountingYear(iAccountingYear).orElse(null);
         if (iAccountingYear == null) {
             // Året fanns inte kvar i databasen. Visa felmeddelande.
             new SSErrorDialog(getMainFrame(), "accountingyearframe.yeargone");
@@ -311,12 +315,12 @@ public class SSAccountingYearFrame extends SSDefaultTableFrame {
         }
 
         // Ask the user if he want's to open the selected year to be able to edit it
-        if (!iAccountingYear.equals(SSDB.getInstance().getCurrentYear())) {
+        if (!iAccountingYear.equals(SSAccountingContext.getCurrentYear())) {
 
             // Ask to open the year
-            String iCurrent = SSDB.getInstance().getCurrentYear() == null
+            String iCurrent = SSAccountingContext.getCurrentYear() == null
                     ? ""
-                    : SSDB.getInstance().getCurrentYear().toRenderString();
+                    : SSAccountingContext.getCurrentYear().toRenderString();
             String iNew = iAccountingYear.toRenderString();
 
             SSQueryDialog iDialog = new SSQueryDialog(getMainFrame(), SSBundle.getBundle(),
@@ -325,19 +329,21 @@ public class SSAccountingYearFrame extends SSDefaultTableFrame {
             if (iDialog.getResponce() != JOptionPane.YES_OPTION) {
                 return;
             }
+            if (!SSAccountingContext.canOpenAccountingYear(iAccountingYear)) {
+                return;
+            }
 
-            // Lås upp förra året
-            // Sätt det valda året som nuvarande år
-            SSDB.getInstance().setCurrentYear(iAccountingYear);
-            SSDB.getInstance().initYear(true);
-            SSDBConfig.setYearId(SSDB.getInstance().getCurrentCompany().getId(),
+            // Stäng föregående år och öppna det valda
+            SSCompanyYearContext.openYear(iAccountingYear);
+            SSDBUiInitializer.initYear(true);
+            SSDBConfig.setYearId(SSAccountingContext.getCurrentCompany().getId(),
                     iAccountingYear.getId());
 
             // Stäng alla fönster
             SSFrameManager.getInstance().close();
         }
 
-        SSNewAccountingYear iYearData = SSDB.getInstance().getCurrentYear();
+        SSNewAccountingYear iYearData = SSAccountingContext.getCurrentYear();
 
         SSEditAccountingYearDialog.showDialog(getMainFrame(), iYearData, iModel);
         updateFrame();
@@ -363,18 +369,18 @@ public class SSAccountingYearFrame extends SSDefaultTableFrame {
         }
         updateFrame();
 
-        if (pAccountingYear.equals(SSDB.getInstance().getCurrentYear())) {
-            SSDBConfig.setYearId(SSDB.getInstance().getCurrentCompany().getId(), null);
-            SSDB.getInstance().setCurrentYear(null);
+        if (pAccountingYear.equals(SSAccountingContext.getCurrentYear())) {
+            SSDBConfig.setYearId(SSAccountingContext.getCurrentCompany().getId(), null);
+            SSCompanyYearContext.setCurrentYear(null);
         }
 
-        SSDB.getInstance().deleteAccountingYear(pAccountingYear);
+        SSAccountingContext.deleteAccountingYear(pAccountingYear);
         updateFrame();
     }
 
     public void updateFrame() {
-        iModel.setObjects(SSDB.getInstance().getYears());
-        SSDB.getInstance().notifyListeners("YEAR", SSDB.getInstance().getCurrentYear(),
+        iModel.setObjects(SSCompanyYearContext.getYears());
+        SSCompanyYearContext.notifyListeners("YEAR", SSCompanyYearContext.getCurrentYear(),
                 null);
     }
 
@@ -395,3 +401,5 @@ public class SSAccountingYearFrame extends SSDefaultTableFrame {
         return sb.toString();
     }
 }
+
+

@@ -6,7 +6,7 @@ package se.swedsoft.bookkeeping.gui.project.util;
 
 
 import se.swedsoft.bookkeeping.data.SSNewProject;
-import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.data.system.SSProjectContext;
 import se.swedsoft.bookkeeping.gui.util.SSBundle;
 import se.swedsoft.bookkeeping.gui.util.table.SSTable;
 import se.swedsoft.bookkeeping.gui.util.table.model.SSTableColumn;
@@ -24,7 +24,7 @@ public class SSProjectTableModel extends SSTableModel<SSNewProject> {
      * Default constructor.
      */
     public SSProjectTableModel() {
-        super(SSDB.getInstance().getProjects());
+        super(SSProjectContext.getProjects());
     }
 
     /**

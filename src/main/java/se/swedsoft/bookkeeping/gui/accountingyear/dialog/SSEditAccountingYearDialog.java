@@ -6,7 +6,7 @@ package se.swedsoft.bookkeeping.gui.accountingyear.dialog;
 
 
 import se.swedsoft.bookkeeping.data.SSNewAccountingYear;
-import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.data.system.SSAccountingContext;
 import se.swedsoft.bookkeeping.gui.SSMainFrame;
 import se.swedsoft.bookkeeping.gui.accountingyear.panel.SSAccountingYearPanel;
 import se.swedsoft.bookkeeping.gui.util.SSBundle;
@@ -47,7 +47,7 @@ public class SSEditAccountingYearDialog {
 
                 iYear.setId(pAccountingYear.getId());
 
-                SSDB.getInstance().updateAccountingYear(iYear);
+                SSAccountingContext.updateAccountingYear(iYear);
 
                 iDialog.closeDialog();
 
@@ -67,3 +67,4 @@ public class SSEditAccountingYearDialog {
     }
 
 }
+

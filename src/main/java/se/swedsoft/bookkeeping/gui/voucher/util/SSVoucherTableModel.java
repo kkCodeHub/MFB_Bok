@@ -7,6 +7,7 @@ package se.swedsoft.bookkeeping.gui.voucher.util;
 
 import se.swedsoft.bookkeeping.calc.math.SSVoucherMath;
 import se.swedsoft.bookkeeping.data.SSVoucher;
+import se.swedsoft.bookkeeping.data.system.SSAccountingContext;
 import se.swedsoft.bookkeeping.data.system.SSDB;
 import se.swedsoft.bookkeeping.gui.util.SSBundle;
 import se.swedsoft.bookkeeping.gui.util.table.model.SSTableColumn;
@@ -29,7 +30,7 @@ public class SSVoucherTableModel extends SSTableModel<SSVoucher> {
      * Default constructor.
      */
     public SSVoucherTableModel() {
-        super(SSDB.getInstance().getVouchers());
+        super(SSAccountingContext.getVouchers());
     }
 
     /**

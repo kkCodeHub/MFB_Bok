@@ -2,7 +2,7 @@ package se.swedsoft.bookkeeping.gui.util.filechooser;
 
 
 import se.swedsoft.bookkeeping.data.SSNewCompany;
-import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.data.system.SSCompanyYearContext;
 import se.swedsoft.bookkeeping.gui.util.filechooser.util.SSFilterSIE;
 
 import java.io.File;
@@ -35,7 +35,7 @@ public class SSSIEFileChooser extends SSFileChooser {
      *
      */
     public void setDefaultFileName() {
-        SSNewCompany iCompany = SSDB.getInstance().getCurrentCompany();
+        SSNewCompany iCompany = SSCompanyYearContext.getCurrentCompany();
 
         if (iCompany != null) {
             File iParent = getSelectedFile();

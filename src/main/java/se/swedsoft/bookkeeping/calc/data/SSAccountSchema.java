@@ -6,14 +6,15 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.DefaultHandler;
-import org.xml.sax.helpers.XMLReaderFactory;
-import org.fribok.bookkeeping.app.Path;
+import se.swedsoft.bookkeeping.data.SSAccountPlanType;
 import se.swedsoft.bookkeeping.data.SSNewAccountingYear;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.parsers.SAXParser;
+import javax.xml.parsers.SAXParserFactory;
 import java.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,11 +27,9 @@ import org.slf4j.LoggerFactory;
 public class SSAccountSchema implements Serializable {    private static final Logger LOG = LoggerFactory.getLogger(SSAccountSchema.class);
 
 
-    private static String cParserClass = "org.apache.xerces.parsers.SAXParser";
+    private final List<SSAccountGroup> iResultGroups;
 
-    private List<SSAccountGroup> iResultGroups;
-
-    private List<SSAccountGroup> iBalanceGroups;
+    private final List<SSAccountGroup> iBalanceGroups;
 
     /**
      *
@@ -42,7 +41,7 @@ public class SSAccountSchema implements Serializable {    private static final L
 
     /**
      * Returns the result groups
-     * @return
+     * @return result groups in schema order
      */
     public List<SSAccountGroup> getResultGroups() {
         return iResultGroups;
@@ -50,7 +49,7 @@ public class SSAccountSchema implements Serializable {    private static final L
 
     /**
      * Returns the balance groups
-     * @return
+     * @return balance groups in schema order
      */
     public List<SSAccountGroup> getBalanceGroups() {
         return iBalanceGroups;
@@ -74,12 +73,13 @@ public class SSAccountSchema implements Serializable {    private static final L
         return sb.toString();
     }
 
-    private static Map<String, SSAccountSchema> iSchemaCache = new HashMap<>();
+    private static final Map<String, SSAccountSchema> iSchemaCache = new HashMap<>();
 
     /**
+     * Returns a schema loaded from a classpath resource.
      *
-     * @param iSchema
-     * @return
+     * @param iSchema the schema resource name
+     * @return cached or newly loaded schema instance
      */
     public static SSAccountSchema getAccountSchema(String iSchema) {
         SSAccountSchema iAccountSchema;
@@ -98,20 +98,27 @@ public class SSAccountSchema implements Serializable {    private static final L
     }
 
     /**
+     * Returns the schema for the provided accounting year.
      *
-     * @param pYearData
-     * @return
+     * @param pYearData accounting year configuration
+     * @return matching account schema
      */
     public static SSAccountSchema getAccountSchema(SSNewAccountingYear pYearData) {
-        String iSchema = pYearData.getAccountPlan().getType().getSchema();
+        String iSchema = SSAccountPlanType.getDefault().getSchema();
+
+        if (pYearData != null && pYearData.getAccountPlan() != null
+                && pYearData.getAccountPlan().getType() != null) {
+            iSchema = pYearData.getAccountPlan().getType().getSchema();
+        }
 
         return getAccountSchema(iSchema);
     }
 
     /**
+     * Loads an account schema from the classpath.
      *
-     * @param iFile
-     * @return
+     * @param is the schema stream
+     * @return the parsed schema
      */
     private static SSAccountSchema createAccountSchema(InputStream is) {
         SSAccountSchema iSchema = new SSAccountSchema();
@@ -119,8 +126,10 @@ public class SSAccountSchema implements Serializable {    private static final L
         XMLReader iReader;
 
         try {
-            iReader = XMLReaderFactory.createXMLReader(cParserClass);
-        } catch (SAXException e) {
+            SAXParserFactory iFactory = SAXParserFactory.newInstance();
+            SAXParser iParser = iFactory.newSAXParser();
+            iReader = iParser.getXMLReader();
+        } catch (ParserConfigurationException | SAXException e) {
             LOG.error("Unexpected error", e);
             return iSchema;
         }
@@ -129,9 +138,7 @@ public class SSAccountSchema implements Serializable {    private static final L
 
         try {
             iReader.parse(new InputSource(is));
-        } catch (SAXException ex) {
-            LOG.error("Unexpected error", ex);
-        } catch (IOException ex) {
+        } catch (SAXException | IOException ex) {
             LOG.error("Unexpected error", ex);
         }
         return iSchema;
@@ -142,15 +149,16 @@ public class SSAccountSchema implements Serializable {    private static final L
      */
     private static class AccountGroupLoader extends DefaultHandler {
 
-        private SSAccountSchema iSchema;
+        private final SSAccountSchema iSchema;
 
         private List<SSAccountGroup> iLevelOne;
 
-        private Stack<SSAccountGroup> iLevelTwo;
+        private final Stack<SSAccountGroup> iLevelTwo;
 
         /**
+         * Creates a SAX loader for account groups.
          *
-         * @param pSchema
+         * @param pSchema target schema to populate
          */
         public AccountGroupLoader(SSAccountSchema pSchema) {
             iSchema = pSchema;
@@ -159,9 +167,10 @@ public class SSAccountSchema implements Serializable {    private static final L
         }
 
         /**
+         * Creates a group from XML attributes.
          *
-         * @param iAttributes
-         * @return
+         * @param iAttributes the source attributes
+         * @return the created group
          */
         private SSAccountGroup createGroup(Attributes iAttributes) {
             String iId = iAttributes.getValue("id");
@@ -187,8 +196,9 @@ public class SSAccountSchema implements Serializable {    private static final L
         }
 
         /**
+         * Adds a group to the current tree level.
          *
-         * @param pGroup
+         * @param pGroup the group to add
          */
         private void add(SSAccountGroup pGroup) {
             if (iLevelTwo.isEmpty()) {
@@ -198,45 +208,53 @@ public class SSAccountSchema implements Serializable {    private static final L
             }
         }
 
+        private String getElementName(String localName, String qName) {
+            return (localName != null && !localName.isEmpty()) ? localName : qName;
+        }
+
         /**
+         * Handles the start of an XML element.
          *
-         * @param uri
-         * @param localName
-         * @param qName
-         * @param iAttributes
-         * @throws SAXException
+         * @param uri the namespace URI
+         * @param localName the local name
+         * @param qName the qualified name
+         * @param iAttributes the element attributes
          */
         @Override
-        public void startElement(String uri, String localName, String qName, Attributes iAttributes) throws SAXException {
-            if (localName.equalsIgnoreCase("result")) {
+        public void startElement(String uri, String localName, String qName, Attributes iAttributes) {
+            String iElementName = getElementName(localName, qName);
+
+            if ("result".equalsIgnoreCase(iElementName)) {
                 iLevelOne = iSchema.iResultGroups;
             }
-            if (localName.equalsIgnoreCase("balance")) {
+            if ("balance".equalsIgnoreCase(iElementName)) {
                 iLevelOne = iSchema.iBalanceGroups;
             }
 
-            if (localName.equalsIgnoreCase("group")) {
+            if ("group".equalsIgnoreCase(iElementName)) {
                 iLevelTwo.push(createGroup(iAttributes));
             }
 
         }
 
         /**
+         * Handles the end of an XML element.
          *
-         * @param uri
-         * @param localName
-         * @param qName
-         * @throws SAXException
+         * @param uri the namespace URI
+         * @param localName the local name
+         * @param qName the qualified name
          */
         @Override
-        public void endElement(String uri, String localName, String qName) throws SAXException {
-            if (localName.equalsIgnoreCase("result")) {
+        public void endElement(String uri, String localName, String qName) {
+            String iElementName = getElementName(localName, qName);
+
+            if ("result".equalsIgnoreCase(iElementName)) {
                 iLevelOne = null;
             }
-            if (localName.equalsIgnoreCase("balance")) {
+            if ("balance".equalsIgnoreCase(iElementName)) {
                 iLevelOne = null;
             }
-            if (localName.equalsIgnoreCase("group")) {
+            if ("group".equalsIgnoreCase(iElementName)) {
                 iLevelTwo.pop();
             }
 
@@ -244,15 +262,11 @@ public class SSAccountSchema implements Serializable {    private static final L
 
         @Override
         public String toString() {
-            final StringBuilder sb = new StringBuilder();
-
-            sb.append(
-                    "se.swedsoft.bookkeeping.calc.data.SSAccountSchema.AccountGroupLoader");
-            sb.append("{iLevelOne=").append(iLevelOne);
-            sb.append(", iLevelTwo=").append(iLevelTwo);
-            sb.append(", iSchema=").append(iSchema);
-            sb.append('}');
-            return sb.toString();
+            return "se.swedsoft.bookkeeping.calc.data.SSAccountSchema.AccountGroupLoader"
+                    + "{iLevelOne=" + iLevelOne
+                    + ", iLevelTwo=" + iLevelTwo
+                    + ", iSchema=" + iSchema
+                    + '}';
         }
     }
 }

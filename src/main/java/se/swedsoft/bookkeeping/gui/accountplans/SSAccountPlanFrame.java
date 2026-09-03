@@ -1,8 +1,8 @@
 package se.swedsoft.bookkeeping.gui.accountplans;
 
-
+import org.fribok.bookkeeping.app.Path;
 import se.swedsoft.bookkeeping.data.SSAccountPlan;
-import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.data.system.SSAccountingContext;
 import se.swedsoft.bookkeeping.gui.SSMainFrame;
 import se.swedsoft.bookkeeping.gui.accountplans.util.SSAccountPlanTableModel;
 import se.swedsoft.bookkeeping.gui.util.SSBundle;
@@ -19,30 +19,28 @@ import se.swedsoft.bookkeeping.importexport.util.SSExportException;
 import se.swedsoft.bookkeeping.importexport.util.SSImportException;
 import se.swedsoft.bookkeeping.print.report.SSAccountPlanPrinter;
 
-import javax.swing.*;
+import javax.swing.BorderFactory;
+import javax.swing.JFileChooser;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JToolBar;
+import javax.swing.JOptionPane;
+import javax.swing.JComponent;
 import javax.swing.event.InternalFrameAdapter;
 import javax.swing.event.InternalFrameEvent;
-import java.awt.*;
+import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
 
-
 /**
- * Date: 2006-feb-13
- * Time: 12:09:40
+ * Account plan frame.
  */
 public class SSAccountPlanFrame extends SSDefaultTableFrame {
 
     private static SSAccountPlanFrame cInstance;
 
-    /**
-     *
-     * @param pMainFrame
-     * @param pWidth
-     * @param pHeight
-     */
     public static void showFrame(SSMainFrame pMainFrame, int pWidth, int pHeight) {
         if (cInstance == null || cInstance.isClosed()) {
             cInstance = new SSAccountPlanFrame(pMainFrame, pWidth, pHeight);
@@ -51,220 +49,66 @@ public class SSAccountPlanFrame extends SSDefaultTableFrame {
         cInstance.deIconize();
     }
 
-    /**
-     *
-     * @return The SSNewCompanyFrame
-     */
     public static SSAccountPlanFrame getInstance() {
         return cInstance;
     }
 
     private SSTable iTable;
-
     private SSAccountPlanTableModel iModel;
 
-    /**
-     * Constructor.
-     *
-     * @param pMainFrame The main frame.
-     * @param width     The width of the frame.
-     * @param height    The height of the frame.
-     */
     private SSAccountPlanFrame(SSMainFrame pMainFrame, int width, int height) {
-        super(pMainFrame, SSBundle.getBundle().getString("accountplanframe.title"), width,
-                height);
+        super(pMainFrame, SSBundle.getBundle().getString("accountplanframe.title"), width, height);
         addInternalFrameListener(new InternalFrameAdapter() {
             @Override
             public void internalFrameActivated(InternalFrameEvent e) {
                 updateFrame();
             }
         });
-
     }
 
-    /**
-     * This method should return a toolbar if the sub-class wants one.
-     * Otherwise, it may return null.
-     *
-     * @return A JToolBar or null.
-     */
     @Override
     public JToolBar getToolBar() {
-        JToolBar iToolBar = new JToolBar();
+        JToolBar toolBar = new JToolBar();
 
-        // New
-        // ***************************
-        SSButton iButton = new SSButton("ICON_NEWITEM", "accountplanframe.newbutton",
-                e -> {
+        SSButton button = new SSButton("ICON_NEWITEM", "accountplanframe.newbutton", e -> {
+            updateFrame();
+            SSAccountPlanDialog.newDialog(getMainFrame());
+            updateFrame();
+        });
+        toolBar.add(button);
 
-                        updateFrame();
-                        SSAccountPlanDialog.newDialog(getMainFrame(), iModel);
-                        updateFrame();
+        button = new SSButton("ICON_EDITITEM", "accountplanframe.editbutton", e -> editSelectedAccountPlan());
+        iTable.addSelectionDependentComponent(button);
+        toolBar.add(button);
+        toolBar.addSeparator();
 
-                    });
+        button = new SSButton("ICON_COPYITEM", "accountplanframe.copybutton", e -> copySelectedAccountPlan());
+        iTable.addSelectionDependentComponent(button);
+        toolBar.add(button);
 
-        iToolBar.add(iButton);
+        button = new SSButton("ICON_DELETEITEM", "accountplanframe.deletebutton", e -> deleteSelectedAccountPlan());
+        iTable.addSelectionDependentComponent(button);
+        toolBar.add(button);
+        toolBar.addSeparator();
 
-        // Edit
-        // ***************************
-        iButton = new SSButton("ICON_EDITITEM", "accountplanframe.editbutton",
-                e -> editSelectedAccountPlan());
-        iTable.addSelectionDependentComponent(iButton);
+        button = new SSButton("ICON_IMPORT", "accountplanframe.importbutton", e -> {
+            SSAccountPlanDialog.newDialog(getMainFrame());
+            updateFrame();
+        });
+        toolBar.add(button);
 
-        iToolBar.add(iButton);
-        iToolBar.addSeparator();
+        button = new SSButton("ICON_EXPORT", "accountplanframe.exportbutton", e -> exportSelectedAccountPlan());
+        iTable.addSelectionDependentComponent(button);
+        toolBar.add(button);
+        toolBar.addSeparator();
 
-        // Copy
-        // ***************************
-        iButton = new SSButton("ICON_COPYITEM", "accountplanframe.copybutton",
-                e -> {
+        button = new SSButton("ICON_PRINT", "accountplanframe.printbutton", e -> printSelectedAccountPlan());
+        iTable.addSelectionDependentComponent(button);
+        toolBar.add(button);
 
-                        SSAccountPlan iSelected = iModel.getSelectedRow(iTable);
-                        String iName = null;
-
-                        if (iSelected != null) {
-                            iName = iSelected.getName();
-                            // Make sure accountplan is still in database
-                            iSelected = getAccountPlan(iSelected);
-                        }
-                        updateFrame();
-                        if (iSelected != null) {
-                            SSAccountPlanDialog.copyDialog(getMainFrame(), iSelected, iModel);
-                        } else {
-                            new SSErrorDialog(getMainFrame(), "accountplanframe.accountplangone",
-                                    iName);
-                        }
-                        updateFrame();
-
-                    });
-
-        iToolBar.add(iButton);
-        iTable.addSelectionDependentComponent(iButton);
-
-        // Delete
-        // ***************************
-        iButton = new SSButton("ICON_DELETEITEM", "accountplanframe.deletebutton",
-                e -> deleteSelectedAccountPlan());
-        iToolBar.add(iButton);
-        iToolBar.addSeparator();
-        iTable.addSelectionDependentComponent(iButton);
-
-        // Import
-        // ***************************
-        iButton = new SSButton("ICON_IMPORT", "accountplanframe.importbutton",
-                e -> {
-
-                        SSExcelFileChooser iFilechooser = SSExcelFileChooser.getInstance();
-
-                        if (iFilechooser.showOpenDialog(getMainFrame())
-                                == JFileChooser.APPROVE_OPTION) {
-
-                            SSAccountPlanImporter iImporter = new SSAccountPlanImporter(
-                                    iFilechooser.getSelectedFile());
-
-                            try {
-                                iImporter.doImport();
-
-                            } catch (IOException ex) {
-                                SSErrorDialog.showDialog(getMainFrame(), "",
-                                        ex.getLocalizedMessage());
-                            } catch (SSImportException ex) {
-                                SSErrorDialog.showDialog(getMainFrame(), "",
-                                        ex.getLocalizedMessage());
-                            }
-                            iModel.fireTableDataChanged();
-                            updateFrame();
-                        }
-
-                    });
-        iToolBar.add(iButton);
-
-        // Export
-        // ***************************
-        iButton = new SSButton("ICON_EXPORT", "accountplanframe.exportbutton",
-                e -> {
-
-                        SSAccountPlan iSelected = getSelected();
-                        String iName = iSelected.getName();
-
-                        iSelected = getAccountPlan(iSelected);
-                        if (iSelected == null) {
-                            new SSErrorDialog(getMainFrame(), "accountplanframe.accountplangone",
-                                    iName);
-                            return;
-                        }
-                        updateFrame();
-                        SSExcelFileChooser iFilechooser = SSExcelFileChooser.getInstance();
-
-                        iFilechooser.setSelectedFile(new File(iSelected.getName() + ".xls"));
-
-                        if (iFilechooser.showSaveDialog(getMainFrame())
-                                == JFileChooser.APPROVE_OPTION) {
-
-                            SSAccountPlanExporter iExporter = new SSAccountPlanExporter(
-                                    iFilechooser.getSelectedFile());
-
-                            try {
-                                iExporter.doExport(iSelected);
-                            } catch (IOException ex) {
-                                SSErrorDialog.showDialog(getMainFrame(), "",
-                                        ex.getLocalizedMessage());
-                            } catch (SSExportException ex) {
-                                SSErrorDialog.showDialog(getMainFrame(), "",
-                                        ex.getLocalizedMessage());
-                            }
-                        }
-
-                    });
-        iTable.addSelectionDependentComponent(iButton);
-        iToolBar.add(iButton);
-        iToolBar.addSeparator();
-
-        // Print
-        // ***************************
-        iButton = new SSButton("ICON_PRINT", "accountplanframe.printbutton",
-                e -> {
-
-                        final SSAccountPlan pAccountPlan = getSelected();
-
-                        // If nothing selected, return
-                        if (pAccountPlan == null) {
-                            new SSErrorDialog(getMainFrame(), "accountplanframe.selectone");
-                            return;
-                        }
-                        updateFrame();
-                        String iName = pAccountPlan.getName();
-                        final SSAccountPlan iAccountPlan = getAccountPlan(pAccountPlan);
-
-                        if (iAccountPlan == null) {
-                            new SSErrorDialog(getMainFrame(), "accountplanframe.accountplangone",
-                                    iName);
-                            return;
-                        }
-                        SSProgressDialog.runProgress(getMainFrame(),
-                                () -> {
-
-                                        SSAccountPlanPrinter iPrinter = new SSAccountPlanPrinter(
-                                                iAccountPlan);
-
-                                        iPrinter.preview(getMainFrame());
-
-                                    });
-
-                    });
-        iToolBar.add(iButton);
-        iTable.addSelectionDependentComponent(iButton);
-
-        return iToolBar;
-
+        return toolBar;
     }
 
-    /**
-     * This method should return the main content for the frame.
-     * Such as an object table.
-     *
-     * @return The main content for this frame.
-     */
     @Override
     public JComponent getMainContent() {
         iTable = new SSTable();
@@ -273,127 +117,204 @@ public class SSAccountPlanFrame extends SSDefaultTableFrame {
         iModel.addColumn(SSAccountPlanTableModel.COLUMN_NAME);
         iModel.addColumn(SSAccountPlanTableModel.COLUMN_TYPE);
         iModel.addColumn(SSAccountPlanTableModel.COLUMN_ASSESSMENTYEAR);
-        iModel.setObjects(SSDB.getInstance().getAccountPlans());
+        iModel.addColumn(SSAccountPlanTableModel.COLUMN_DEFAULTPLAN);
+//        iModel.addColumn(SSAccountPlanTableModel.COLUMN_EXCELPATH);
+        iModel.setObjects(SSAccountingContext.getAccountPlans());
         iModel.setupTable(iTable);
 
-        iTable.addDblClickListener(e -> editSelectedAccountPlan());
+        iTable.addDblClickListener(e -> ShowSelectedAccountPlan());   //editSelectedAccountPlan());
 
-        JPanel iPanel = new JPanel();
-
-        iPanel.setLayout(new BorderLayout());
-        iPanel.add(new JScrollPane(iTable), BorderLayout.CENTER);
-        iPanel.setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2));
-
-        return iPanel;
+        JPanel panel = new JPanel();
+        panel.setLayout(new BorderLayout());
+        panel.add(new JScrollPane(iTable), BorderLayout.CENTER);
+        panel.setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2));
+        return panel;
     }
 
-    /**
-     *
-     * @return The selected company, if any
-     */
+    @Override
+    public JComponent getStatusBar() {
+        return null;
+    }
+
+    @Override
+    public boolean isCompanyFrame() {
+        return true;
+    }
+
+    @Override
+    public boolean isYearDataFrame() {
+        return false;
+    }
+
     private SSAccountPlan getSelected() {
         int selected = iTable.getSelectedRow();
-
         if (selected >= 0) {
             return iModel.getObject(selected);
         }
         return null;
     }
 
-    /**
-     * This method should return the status bar content, if any.
-     *
-     * @return The content for the status bar or null if none is wanted.
-     */
-    @Override
-    public JComponent getStatusBar() {
-        return null;
+    private void ShowSelectedAccountPlan() {
+        SSAccountPlan selected = getSelected();
+        if (selected == null) {
+            return;
+        }
+        if (selected.isTemplatePlan()) {
+            new SSErrorDialog(getMainFrame(), "accountplanframe.show");
+            return;
+        }
     }
 
-    /**
-     * Indicates whether this frame is a company data related frame.
-     *
-     * @return A boolean value.
-     */
-    @Override
-    public boolean isCompanyFrame() {
-        return false;
-    }
-
-    /**
-     * Indicates whether this frame is a year data related frame.
-     *
-     * @return A boolean value.
-     */
-    @Override
-    public boolean isYearDataFrame() {
-        return false;
-    }
-
-    /**
-     *
-     */
     private void editSelectedAccountPlan() {
-        SSAccountPlan pAccountPlan = getSelected();
-
-        // If nothing selected, return
-        if (pAccountPlan == null) {
+        SSAccountPlan selected = getSelected();
+        if (selected == null) {
             new SSErrorDialog(getMainFrame(), "accountplanframe.selectone");
             return;
         }
-        updateFrame();
-        String iName = pAccountPlan.getName();
-
-        // Make sure accountplan is still in database
-        pAccountPlan = getAccountPlan(pAccountPlan);
-
-        if (pAccountPlan != null) {
-            SSAccountPlanDialog.editDialog(getMainFrame(), pAccountPlan, iModel);
-        } else {
-            new SSErrorDialog(getMainFrame(), "accountplanframe.accountplangone", iName);
+        if (selected.isDefaultPlan()) {
+            new SSErrorDialog(getMainFrame(), "accountplanframe.editDEFblocked");
+            return;
         }
-        updateFrame();
+
+        if (!selected.isDefaultPlan()) {
+            new SSErrorDialog(getMainFrame(), "accountplanframe.editblocked");
+            return;
+        }
+
+     //   String name = selected.getName();
+     //   SSAccountPlan accountPlan = getAccountPlan(selected);
+     //   if (accountPlan != null) {
+     //       SSAccountPlanDialog.editDialog(getMainFrame(), accountPlan, iModel);
+     //   } else {
+     //       new SSErrorDialog(getMainFrame(), "accountplanframe.accountplangone", name);
+     //   }
+     //   updateFrame();
     }
 
-    /**
-     *
-     */
-    private void deleteSelectedAccountPlan() {
-        final SSAccountPlan pAccountPlan = getSelected();
-
-        // If nothing selected, return
-        if (pAccountPlan == null) {
+    private void copySelectedAccountPlan() {
+        SSAccountPlan selected = getSelected();
+        if (selected == null) {
             new SSErrorDialog(getMainFrame(), "accountplanframe.selectone");
             return;
         }
 
-        String iName = pAccountPlan.getName();
-        final SSAccountPlan iAccountPlan = getAccountPlan(pAccountPlan);
-
-        if (iAccountPlan == null) {
-            updateFrame();
-            new SSErrorDialog(getMainFrame(), "accountplanframe.accountplangone", iName);
+        if (selected.isTemplatePlan()) {
+            new SSErrorDialog(getMainFrame(), "accountplanframe.copyblocked");
             return;
         }
-        SSQueryDialog iDialog = new SSQueryDialog(getMainFrame(), SSBundle.getBundle(),
-                "accountplanframe.delete", iAccountPlan.getName());
-        int iResponce = iDialog.getResponce();
 
-        updateFrame();
-        if (iResponce != JOptionPane.YES_OPTION) {
+//        String name = selected.getName();
+//        SSAccountPlan accountPlan = getAccountPlan(selected);
+//        if (accountPlan != null) {
+//            SSAccountPlanDialog.copyDialog(getMainFrame(), accountPlan);
+//        } else {
+//            new SSErrorDialog(getMainFrame(), "accountplanframe.accountplangone", name);
+//        }
+//        updateFrame();
+    }
+
+    private void deleteSelectedAccountPlan() {
+        SSAccountPlan selected = getSelected();
+        if (selected == null) {
+            new SSErrorDialog(getMainFrame(), "accountplanframe.selectone");
             return;
         }
-        SSDB.getInstance().deleteAccountPlan(iAccountPlan);
-        iModel.fireTableDataChanged();
+        if (selected.isDefaultPlan()) {
+            new SSErrorDialog(getMainFrame(), "accountplanframe.deleteblocked");  //"Default account plans cannot be deleted.");
+            return;
+        }
+
+        SSQueryDialog dialog = new SSQueryDialog(getMainFrame(), SSBundle.getBundle(), "accountplanframe.delete", selected.getName());
+        int response = dialog.getResponce();
         updateFrame();
+        if (response != JOptionPane.YES_OPTION) {
+            return;
+        }
+        SSAccountingContext.deleteAccountPlan(selected);
+        fireTableDataChanged();
+    }
+
+    private void exportSelectedAccountPlan() {
+        SSAccountPlan selected = getSelected();
+        if (selected == null) {
+            new SSErrorDialog(getMainFrame(), "accountplanframe.selectone");
+            return;
+        }
+
+        String name = selected.getName();
+        SSAccountPlan accountPlan = getAccountPlan(selected);
+        if (accountPlan == null) {
+            new SSErrorDialog(getMainFrame(), "accountplanframe.accountplangone", name);
+            return;
+        }
+
+        SSExcelFileChooser chooser = SSExcelFileChooser.getInstance();
+        File dataDir = Path.get(Path.USER_DATA);
+        if (!dataDir.exists()) {
+            dataDir.mkdirs();
+        }
+        chooser.setCurrentDirectory(dataDir);
+        chooser.setSelectedFile(new File(dataDir, accountPlan.getName() + ".xlsx"));
+
+        if (chooser.showSaveDialog(getMainFrame()) != JFileChooser.APPROVE_OPTION) {
+            return;
+        }
+
+        SSAccountPlanExporter exporter = new SSAccountPlanExporter(chooser.getSelectedFile());
+        try {
+            exporter.doExport(accountPlan);
+        } catch (IOException ex) {
+            SSErrorDialog.showDialog(getMainFrame(), "", ex.getLocalizedMessage());
+        } catch (SSExportException ex) {
+            SSErrorDialog.showDialog(getMainFrame(), "", ex.getLocalizedMessage());
+        }
+    }
+
+    private void printSelectedAccountPlan() {
+        SSAccountPlan selected = getSelected();
+        if (selected == null) {
+            new SSErrorDialog(getMainFrame(), "accountplanframe.selectone");
+            return;
+        }
+
+        String name = selected.getName();
+        SSAccountPlan accountPlan = getAccountPlan(selected);
+        if (accountPlan == null) {
+            new SSErrorDialog(getMainFrame(), "accountplanframe.accountplangone", name);
+            return;
+        }
+
+        SSProgressDialog.runProgress(getMainFrame(), () -> {
+            SSAccountPlanPrinter printer = new SSAccountPlanPrinter(accountPlan);
+            printer.preview(getMainFrame());
+        });
     }
 
     public SSAccountPlan getAccountPlan(SSAccountPlan iAccountPlan) {
-        return SSDB.getInstance().getAccountPlan(iAccountPlan).orElse(null);
+        if (iAccountPlan == null) {
+            return null;
+        }
+
+        if (!iAccountPlan.isTemplatePlan()) {
+            return SSAccountingContext.getAccountPlan(iAccountPlan).orElse(iAccountPlan);
+        }
+
+        try {
+            return SSAccountPlanImporter.loadPlan(iAccountPlan);
+        } catch (IOException ex) {
+            SSErrorDialog.showDialog(getMainFrame(), "", ex.getLocalizedMessage());
+            return null;
+        }
     }
 
     public void updateFrame() {
-        iModel.setObjects(SSDB.getInstance().getAccountPlans());
+        iModel.setObjects(SSAccountingContext.getAccountPlans());
+    }
+
+    public static void fireTableDataChanged() {
+        if (cInstance != null && !cInstance.isClosed()) {
+            cInstance.updateFrame();
+        }
     }
 
     public void actionPerformed(ActionEvent e) {
@@ -405,7 +326,6 @@ public class SSAccountPlanFrame extends SSDefaultTableFrame {
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder();
-
         sb.append("se.swedsoft.bookkeeping.gui.accountplans.SSAccountPlanFrame");
         sb.append("{iModel=").append(iModel);
         sb.append(", iTable=").append(iTable);
@@ -413,4 +333,3 @@ public class SSAccountPlanFrame extends SSDefaultTableFrame {
         return sb.toString();
     }
 }
-

@@ -1,10 +1,12 @@
 package se.swedsoft.bookkeeping.importexport.excel;
 
 
-import jxl.Workbook;
-import jxl.WorkbookSettings;
-import jxl.format.Colour;
-import jxl.write.*;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.Font;
+import org.apache.poi.ss.usermodel.IndexedColors;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import se.swedsoft.bookkeeping.data.SSVoucher;
 import se.swedsoft.bookkeeping.data.SSVoucherRow;
 import se.swedsoft.bookkeeping.data.system.SSDB;
@@ -37,22 +39,24 @@ public class SSVoucherExporter {
     public static final String PROJEKT = "Projekt";
     public static final String RESULTATENHET = "Resultatenhet";
 
-    private File iFile;
-    private List<SSVoucher> iVouchers;
+    private final File iFile;
+    private final List<SSVoucher> iVouchers;
 
     /**
+     * Creates an exporter that uses all vouchers from the database.
      *
-     * @param iFile
+     * @param iFile destination Excel file
      */
     public SSVoucherExporter(File iFile) {
         this.iFile = iFile;
-        iVouchers = SSDB.getInstance().getVouchers();
+        iVouchers = se.swedsoft.bookkeeping.data.system.SSAccountingContext.getVouchers();
     }
 
     /**
+     * Creates an exporter with an explicit voucher list.
      *
-     * @param iFile
-     * @param iVouchers
+     * @param iFile destination Excel file
+     * @param iVouchers vouchers to export
      */
     public SSVoucherExporter(File iFile, List<SSVoucher> iVouchers) {
         this.iFile = iFile;
@@ -60,39 +64,35 @@ public class SSVoucherExporter {
     }
 
     /**
+     * Exports vouchers to Excel format.
      *
-     * @throws IOException
-     * @throws SSImportException
-     * @throws SSExportException
+     * @throws IOException if writing to disk fails
+     * @throws SSExportException if workbook export fails
      */
     public void export()  throws IOException, SSExportException {
-        WorkbookSettings iSettings = new WorkbookSettings();
-
-        iSettings.setLocale(new Locale("sv", "SE"));
-        iSettings.setEncoding("windows-1252");
-        iSettings.setExcelDisplayLanguage("SE");
-        iSettings.setExcelRegionalSettings("SE");
-
         try {
-            WritableWorkbook iWorkbook = Workbook.createWorkbook(iFile, iSettings);
+            Workbook iWorkbook = new XSSFWorkbook();
 
-            WritableSheet iSheet = iWorkbook.createSheet("Verifikationer", 0);
+            Sheet iSheet = iWorkbook.createSheet("Verifikationer");
 
             writeVouchers(new SSWritableExcelSheet(iSheet));
 
-            iWorkbook.write();
+            try (java.io.FileOutputStream fos = new java.io.FileOutputStream(iFile)) {
+                iWorkbook.write(fos);
+            }
             iWorkbook.close();
 
-        } catch (WriteException e) {
+        } catch (Exception e) {
             throw new SSExportException(e.getLocalizedMessage());
         }
 
     }
 
     /**
+     * Calculates required row count for voucher export.
      *
-     * @param iVouchers
-     * @return
+     * @param iVouchers vouchers to count rows for
+     * @return number of output rows excluding header padding
      */
     private int getNumRows(List<SSVoucher> iVouchers) {
         int count = 0;
@@ -104,30 +104,33 @@ public class SSVoucherExporter {
     }
 
     /**
+     * Writes vouchers and voucher rows to the worksheet.
      *
-     * @param pSheet
-     * @throws WriteException
+     * @param pSheet writable destination sheet
+     * @throws Exception if writing to workbook fails
      */
-    private void writeVouchers(SSWritableExcelSheet pSheet) throws WriteException {
+    private void writeVouchers(SSWritableExcelSheet pSheet) throws Exception {
         List<SSWritableExcelRow> iRows = pSheet.getRows(getNumRows(iVouchers) + 4);
 
-        WritableCellFormat iCellFormat = new WritableCellFormat();
+        Workbook iWorkbook = pSheet.getSheet().getWorkbook();
+        CellStyle iCellFormat = iWorkbook.createCellStyle();
+        iCellFormat.setFillForegroundColor(IndexedColors.GREY_25_PERCENT.getIndex());
+        iCellFormat.setFillPattern(org.apache.poi.ss.usermodel.FillPatternType.SOLID_FOREGROUND);
 
-        iCellFormat.setBackground(Colour.GRAY_25);
+        SSWritableExcelRow iHeaderRow = iRows.getFirst();
+        iHeaderRow.setString(0, NUMMER, iCellFormat);
+        iHeaderRow.setString(1, BESKRIVNING, iCellFormat);
+        iHeaderRow.setString(2, DATUM, iCellFormat);
+        iHeaderRow.setString(3, KONTO, iCellFormat);
+        iHeaderRow.setString(4, DEBET, iCellFormat);
+        iHeaderRow.setString(5, KREDIT, iCellFormat);
+        iHeaderRow.setString(6, PROJEKT, iCellFormat);
+        iHeaderRow.setString(7, RESULTATENHET, iCellFormat);
 
-        iRows.get(0).setString(0, NUMMER, iCellFormat);
-        iRows.get(0).setString(1, BESKRIVNING, iCellFormat);
-        iRows.get(0).setString(2, DATUM, iCellFormat);
-        iRows.get(0).setString(3, KONTO, iCellFormat);
-        iRows.get(0).setString(4, DEBET, iCellFormat);
-        iRows.get(0).setString(5, KREDIT, iCellFormat);
-        iRows.get(0).setString(6, PROJEKT, iCellFormat);
-        iRows.get(0).setString(7, RESULTATENHET, iCellFormat);
-
-        iCellFormat = new WritableCellFormat();
-        WritableFont iFont = new WritableFont(WritableFont.ARIAL,
-                WritableFont.DEFAULT_POINT_SIZE, WritableFont.BOLD);
-
+        iCellFormat = iWorkbook.createCellStyle();
+        Font iFont = iWorkbook.createFont();
+        iFont.setFontName("Arial");
+        iFont.setBold(true);
         iCellFormat.setFont(iFont);
 
         int iRowIndex = 1;
@@ -160,12 +163,9 @@ public class SSVoucherExporter {
 
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder();
-
-        sb.append("se.swedsoft.bookkeeping.importexport.excel.SSVoucherExporter");
-        sb.append("{iFile=").append(iFile);
-        sb.append(", iVouchers=").append(iVouchers);
-        sb.append('}');
-        return sb.toString();
+        return "se.swedsoft.bookkeeping.importexport.excel.SSVoucherExporter"
+                + "{iFile=" + iFile
+                + ", iVouchers=" + iVouchers
+                + '}';
     }
 }

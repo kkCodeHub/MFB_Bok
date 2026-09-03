@@ -3,7 +3,7 @@
   <grid id="ba12e" binding="iPanel" layout-manager="GridLayoutManager" row-count="1" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
     <margin top="8" left="8" bottom="8" right="8"/>
     <constraints>
-      <xy x="75" y="50" width="316" height="243"/>
+      <xy x="144" y="50" width="472" height="422"/>
     </constraints>
     <properties/>
     <border type="none"/>
@@ -66,9 +66,12 @@
               </grid>
             </constraints>
             <properties>
+              <caretPosition value="0"/>
               <contentType value="text/html"/>
               <editable value="false"/>
               <enabled value="true"/>
+              <selectionEnd value="0"/>
+              <selectionStart value="0"/>
               <text resource-bundle="book" key="aboutframe.abouttext"/>
             </properties>
           </component>

@@ -2,7 +2,7 @@ package se.swedsoft.bookkeeping.gui.exportbgcadmission;
 
 
 import se.swedsoft.bookkeeping.data.SSCustomer;
-import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.data.system.SSCompanyYearContext;
 import se.swedsoft.bookkeeping.gui.SSMainFrame;
 import se.swedsoft.bookkeeping.gui.exportbgcadmission.util.SSExportBGCAdmissionTableModel;
 import se.swedsoft.bookkeeping.gui.util.SSBundle;
@@ -58,7 +58,7 @@ public class SSExportBGCAdmissionDialog extends SSDialog {
         iModel.setupTable(iTable);
 
         iOurBankGiroNumber.setText(
-                SSDB.getInstance().getCurrentCompany().getBankGiroNumber());
+                SSCompanyYearContext.getCurrentCompany().getBankGiroNumber());
 
         iButtonPanel.addOkActionListener(e -> closeDialog(JOptionPane.OK_OPTION));
 

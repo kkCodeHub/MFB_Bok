@@ -7,7 +7,9 @@ package se.swedsoft.bookkeeping.gui.ownreport.panel;
 
 import se.swedsoft.bookkeeping.data.*;
 import se.swedsoft.bookkeeping.data.common.SSHeadingType;
-import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.data.system.SSCompanyYearContext;
+import se.swedsoft.bookkeeping.data.system.SSProjectContext;
+import se.swedsoft.bookkeeping.data.system.SSResultUnitContext;
 import se.swedsoft.bookkeeping.gui.SSMainFrame;
 import se.swedsoft.bookkeeping.gui.ownreport.util.SSOwnReportAccountRow;
 import se.swedsoft.bookkeeping.gui.ownreport.util.SSOwnReportAccountTableModel;
@@ -122,7 +124,7 @@ public class SSOwnReportPanel {
             }
         });
         iProjectComboBox.setSelected(
-                SSDB.getInstance().getProject(iOwnReport.getProjectNr()).orElse(null));
+                SSProjectContext.getProject(iOwnReport.getProjectNr()).orElse(null));
         iProjectComboBox.getComponent(0).addKeyListener(
                 new KeyAdapter() {
             @Override
@@ -146,7 +148,7 @@ public class SSOwnReportPanel {
             }
         });
         iResultUnitComboBox.setSelected(
-                SSDB.getInstance().getResultUnit(iOwnReport.getResultUnitNr()).orElse(null));
+                SSResultUnitContext.getResultUnit(iOwnReport.getResultUnitNr()).orElse(null));
         iResultUnitComboBox.getComponent(0).addKeyListener(
                 new KeyAdapter() {
             @Override
@@ -179,7 +181,7 @@ public class SSOwnReportPanel {
         iMonthlyTableModel = new SSOwnReportMonthlyTableModel(null, iOwnReportRows);
 
         List<SSMonth> iMonths = SSMonth.splitYearIntoMonths(
-                SSDB.getInstance().getCurrentYear());
+                SSCompanyYearContext.getCurrentYear());
 
         iMonthlyTableModel = new SSOwnReportMonthlyTableModel(null, iOwnReportRows);
         iMonthlyTableModel.addColumn(

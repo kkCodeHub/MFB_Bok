@@ -15,7 +15,7 @@ import se.swedsoft.bookkeeping.importexport.util.SSExportException;
 import se.swedsoft.bookkeeping.importexport.util.SSImportException;
 import se.swedsoft.bookkeeping.util.SSDateUtil;
 
-import java.util.Date;
+import java.time.LocalDate;
 import java.util.List;
 
 import static se.swedsoft.bookkeeping.importexport.sie.util.SIEReader.SIEDataType.STRING;
@@ -26,6 +26,23 @@ import static se.swedsoft.bookkeeping.importexport.sie.util.SIEReader.SIEDataTyp
  * Time: 09:04:07
  */
 public class SIEEntryVerifikation implements SIEEntry {
+
+
+    public static Integer toInternalVoucherNumber(String pSerie, Integer pNumber) {
+        if (pNumber == null) {
+            return null;
+        }
+
+        if (pSerie == null || pSerie.isEmpty() || pSerie.equals("A")) {
+            return pNumber;
+        }
+
+        if (pSerie.charAt(0) - 'A' < 0) {
+            return pNumber + (10000 * pSerie.charAt(0)) + 2000000;
+        }
+
+        return pNumber + (10000 * (pSerie.charAt(0) - 'A')) + 1000000;
+    }
 
     /**
      * Imports the entry
@@ -48,16 +65,10 @@ public class SIEEntryVerifikation implements SIEEntry {
 
         String     iSerie = iReader.nextString();
         Integer    iNumber = iReader.nextInteger().orElse(null);
-        Date       iDate = iReader.hasNextDate() ? iReader.nextDate() : SSDateUtil.toDate(SSDateUtil.today());
+        java.util.Date iDate = iReader.hasNextDate() ? iReader.nextDate() : SSDateUtil.toDate(SSDateUtil.today());
         String     iDescription = iReader.hasNextString() ? iReader.nextString() : null;
 
-        if (!iSerie.equals("A") && iSerie.length() > 0) {
-	    if (iSerie.charAt(0) - 'A' < 0) {
-		iNumber = iNumber + (10000 * iSerie.charAt(0)) + 2000000;
-	    } else {
-		iNumber = iNumber + (10000 * (iSerie.charAt(0) - 'A')) + 1000000;
-	    }
-        }
+        iNumber = toInternalVoucherNumber(iSerie, iNumber);
         boolean iHasNumber = false;
 
         if (iNumber != null && !SSVoucherMath.hasVoucher(iNumber)) {
@@ -82,7 +93,7 @@ public class SIEEntryVerifikation implements SIEEntry {
             ((SIEEntryTransaktion) iEntry).importEntry(iVoucher, iImporter, iReader,
                     iYearData);
         }
-        SSDB.getInstance().addVoucher(iVoucher, iHasNumber);
+        se.swedsoft.bookkeeping.data.system.SSAccountingContext.addVoucher(iVoucher, iHasNumber);
         return true;
     }
 
@@ -97,7 +108,7 @@ public class SIEEntryVerifikation implements SIEEntry {
      */
     @Override
     public boolean exportEntry(SSSIEExporter iExporter, SIEWriter iWriter, SSNewAccountingYear iCurrentYearData) throws SSExportException {
-        List<SSVoucher> iVouchers = SSDB.getInstance().getVouchers();
+        List<SSVoucher> iVouchers = se.swedsoft.bookkeeping.data.system.SSAccountingContext.getVouchers();
 
         SIEEntryTransaktion iEntry = new SIEEntryTransaktion();
 
@@ -106,7 +117,8 @@ public class SIEEntryVerifikation implements SIEEntry {
             iWriter.append(SIELabel.SIE_VER);
             iWriter.append("A"); // Serie A
             iWriter.append(iVoucher.getNumber());
-            iWriter.append(iVoucher.getDate());
+            LocalDate iVoucherDate = iVoucher.getLocalDate();
+            iWriter.append(iVoucherDate);
             iWriter.append(iVoucher.getDescription());
             iWriter.newLine();
 

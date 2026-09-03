@@ -33,7 +33,7 @@ public class SSAccountdiagramPrinter extends SSPrinter {
      *
      */
     public SSAccountdiagramPrinter() {
-        this(SSDB.getInstance().getCurrentYear());
+        this(se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.getCurrentYear());
     }
 
     /**
@@ -49,7 +49,7 @@ public class SSAccountdiagramPrinter extends SSPrinter {
     }
 
     /**
-     * Gets the title file for this repport
+     * Gets the title file for this report
      *
      * @return
      */
@@ -74,7 +74,7 @@ public class SSAccountdiagramPrinter extends SSPrinter {
                 iAccountingYear, iVouchers);
 
         // Maps the sru grops to the string representation
-        List<AccountDiagramGroup> iGroups = createSRUGroups(creditMinusDebetSum,
+        List<AccountDiagramGroup> iGroups = createSRUGroups2026(creditMinusDebetSum,
                 debetMinusCreditSum);
 
         SSDefaultTableModel<AccountDiagramGroup> iModel = new SSDefaultTableModel<>() {
@@ -203,6 +203,7 @@ public class SSAccountdiagramPrinter extends SSPrinter {
         iList.add(new AccountDiagramGroup(202, 1, 2));
         iList.add(new AccountDiagramGroup(203, 1, 2));
         iList.add(new AccountDiagramGroup(200, 1, 2));
+        iList.add(new AccountDiagramGroup(7281, 1, 2));
 
         iList.add(new AccountDiagramGroup(350, 1, 3));
         iList.add(new AccountDiagramGroup(351, 1, 3));
@@ -237,18 +238,20 @@ public class SSAccountdiagramPrinter extends SSPrinter {
         iList.add(new AccountDiagramGroup(321, 1, 6));
         iList.add(new AccountDiagramGroup(329, 1, 6));
         iList.add(new AccountDiagramGroup(307, 1, 6));
-        iList.add(new AccountDiagramGroup(301, 1, 6));
-        iList.add(new AccountDiagramGroup(310, 1, 6));
+        iList.add(new AccountDiagramGroup(7369, 1, 6));
+        iList.add(new AccountDiagramGroup(7368, 1, 6));
+        iList.add(new AccountDiagramGroup(7362, 1, 6));
         iList.add(new AccountDiagramGroup(300, 1, 6));
+        iList.add(new AccountDiagramGroup(7366, 1, 6));
         iList.add(new AccountDiagramGroup(319, 1, 6));
         iList.add(new AccountDiagramGroup(305, 1, 6));
 
-        iList.add(new AccountDiagramGroup(400, 2, 7));
+        iList.add(new AccountDiagramGroup(7410, 2, 7));
         iList.add(new AccountDiagramGroup(509, 2, 7));
         iList.add(new AccountDiagramGroup(510, 2, 7));
         iList.add(new AccountDiagramGroup(402, 2, 7));
         iList.add(new AccountDiagramGroup(552, 2, 7));
-        iList.add(new AccountDiagramGroup(401, 2, 7));
+        iList.add(new AccountDiagramGroup(7413, 2, 7));
 
         iList.add(new AccountDiagramGroup(500, 2, 8));
         iList.add(new AccountDiagramGroup(501, 2, 8));
@@ -294,6 +297,118 @@ public class SSAccountdiagramPrinter extends SSPrinter {
         iList.add(new AccountDiagramGroup(593, 2, 13));
         iList.add(new AccountDiagramGroup(594, 2, 13));
         iList.add(new AccountDiagramGroup(598, 2, 13));
+
+        List<AccountDiagramGroup> iFiltered = new LinkedList<>();
+
+        for (AccountDiagramGroup iGroup: iList) {
+            BigDecimal iSum = getGroupSum(iGroup, creditMinusDebetSum, debetMinusCreditSum);
+
+            if (iSum.signum() != 0) {
+                iGroup.iSum = iSum;
+
+                iFiltered.add(iGroup);
+            }
+        }
+
+        return iFiltered;
+    }
+
+
+    private List<AccountDiagramGroup> createSRUGroups2026(Map<SSAccount, BigDecimal> creditMinusDebetSum, Map<SSAccount, BigDecimal> debetMinusCreditSum) {
+        List<AccountDiagramGroup> iList = new LinkedList<>();
+
+        iList.add(new AccountDiagramGroup(7201,1,1));   // 2.1
+        iList.add(new AccountDiagramGroup(7202,1,1));   // 2.2
+
+        iList.add(new AccountDiagramGroup(7214,1,1));   // 2.3
+        iList.add(new AccountDiagramGroup(7215,1,1));   // 2.4
+        iList.add(new AccountDiagramGroup(7216,1,1));   // 2.5
+        iList.add(new AccountDiagramGroup(7217,1,1));   // 2.6
+        iList.add(new AccountDiagramGroup(7230,1,1));   // 2.7
+        iList.add(new AccountDiagramGroup(7231,1,1));   // 2.8
+        iList.add(new AccountDiagramGroup(7233,1,1));   // 2.9
+        iList.add(new AccountDiagramGroup(7232,1,1));   // 2.10
+        iList.add(new AccountDiagramGroup(7234,1,1));   // 2.11
+        iList.add(new AccountDiagramGroup(7235,1,1));   // 2.12
+
+        iList.add(new AccountDiagramGroup(7241,1,2));   // 2.13
+        iList.add(new AccountDiagramGroup(7242,1,2));   // 2.14
+        iList.add(new AccountDiagramGroup(7243,1,2));   // 2.15
+        iList.add(new AccountDiagramGroup(7244,1,2));   // 2.16
+        iList.add(new AccountDiagramGroup(7245,1,2));   // 2.17
+        iList.add(new AccountDiagramGroup(7246,1,2));   // 2.18
+        iList.add(new AccountDiagramGroup(7251,1,2));   // 2.19
+        iList.add(new AccountDiagramGroup(7252,1,2));   // 2.20
+        iList.add(new AccountDiagramGroup(7261,1,2));   // 2.21
+        iList.add(new AccountDiagramGroup(7262,1,2));   // 2.22
+        iList.add(new AccountDiagramGroup(7263,1,2));   // 2.23
+        iList.add(new AccountDiagramGroup(7270,1,2));   // 2.24
+        iList.add(new AccountDiagramGroup(7271,1,2));   // 2.25
+        iList.add(new AccountDiagramGroup(7281,1,2));   // 2.26
+
+        iList.add(new AccountDiagramGroup(7301,1,3));   // 2.27
+        iList.add(new AccountDiagramGroup(7302,1,3));   // 2.28
+
+        iList.add(new AccountDiagramGroup(7321,1,4));   // 2.29
+        iList.add(new AccountDiagramGroup(7322,1,4));   // 2.30
+        iList.add(new AccountDiagramGroup(7323,1,4));   // 2.31
+
+        iList.add(new AccountDiagramGroup(7331,1,5));   // 2.32
+        iList.add(new AccountDiagramGroup(7332,1,5));   // 2.33
+        iList.add(new AccountDiagramGroup(7333,1,5));   // 2.34
+
+        iList.add(new AccountDiagramGroup(7350,1,6));   // 2.35
+        iList.add(new AccountDiagramGroup(7351,1,6));   // 2.36
+        iList.add(new AccountDiagramGroup(7352,1,6));   // 2.37
+        iList.add(new AccountDiagramGroup(7353,1,6));   // 2.38
+        iList.add(new AccountDiagramGroup(7354,1,6));   // 2.39
+        iList.add(new AccountDiagramGroup(7360,1,6));   // 2.40
+        iList.add(new AccountDiagramGroup(7361,1,6));   // 2.41
+        iList.add(new AccountDiagramGroup(7362,1,6));   // 2.42
+        iList.add(new AccountDiagramGroup(7363,1,6));   // 2.43
+        iList.add(new AccountDiagramGroup(7364,1,6));   // 2.44
+        iList.add(new AccountDiagramGroup(7365,1,6));   // 2.45
+        iList.add(new AccountDiagramGroup(7366,1,6));   // 2.46
+        iList.add(new AccountDiagramGroup(7367,1,6));   // 2.47
+        iList.add(new AccountDiagramGroup(7369,1,6));   // 2.48
+        iList.add(new AccountDiagramGroup(7368,1,6));   // 2.49
+        iList.add(new AccountDiagramGroup(7370,1,6));   // 2.50
+
+        iList.add(new AccountDiagramGroup(7410,2,7));   // 3.1
+        iList.add(new AccountDiagramGroup(7411,2,7));   // 3.2 +
+        iList.add(new AccountDiagramGroup(7510,2,7));   // 3.2 -
+        iList.add(new AccountDiagramGroup(7412,2,7));   // 3.3
+        iList.add(new AccountDiagramGroup(7413,2,7));   // 3.4
+
+        iList.add(new AccountDiagramGroup(7511,2,8));   // 3.5
+        iList.add(new AccountDiagramGroup(7512,2,8));   // 3.6
+        iList.add(new AccountDiagramGroup(7513,2,9));   // 3.7   8  9
+        iList.add(new AccountDiagramGroup(7514,2,10));   // 3.8   9  10
+        iList.add(new AccountDiagramGroup(7515,2,11));  // 3.9   10 11
+        iList.add(new AccountDiagramGroup(7516,2,11));  // 3.10
+        iList.add(new AccountDiagramGroup(7517,2,11));  // 3.11
+
+        iList.add(new AccountDiagramGroup(7414,2,12));  // 3.12 +
+        iList.add(new AccountDiagramGroup(7518,2,12));  // 3.12 -
+        iList.add(new AccountDiagramGroup(7415,2,12));  // 3.13 +
+        iList.add(new AccountDiagramGroup(7519,2,12));  // 3.13 -
+        iList.add(new AccountDiagramGroup(7423,2,12));  // 3.14 +
+        iList.add(new AccountDiagramGroup(7530,2,12));  // 3.14 -
+        iList.add(new AccountDiagramGroup(7416,2,12));  // 3.15 +
+        iList.add(new AccountDiagramGroup(7520,2,12));  // 3.15 -
+        iList.add(new AccountDiagramGroup(7417,2,12));  // 3.16
+        iList.add(new AccountDiagramGroup(7521,2,12));  // 3.17
+        iList.add(new AccountDiagramGroup(7522,2,12));  // 3.18
+
+        iList.add(new AccountDiagramGroup(7524,2,13));  // 3.19
+        iList.add(new AccountDiagramGroup(7419,2,13));  // 3.20
+        iList.add(new AccountDiagramGroup(7420,2,13));  // 3.21
+        iList.add(new AccountDiagramGroup(7525,2,13));  // 3.22
+        iList.add(new AccountDiagramGroup(7421,2,13));  // 3.23 +
+        iList.add(new AccountDiagramGroup(7526,2,13));  // 3.23 -
+        iList.add(new AccountDiagramGroup(7422,2,13));  // 3.24 +
+        iList.add(new AccountDiagramGroup(7527,2,13));  // 3.24 -
+        iList.add(new AccountDiagramGroup(7528,2,13));  // 3.25
 
         List<AccountDiagramGroup> iFiltered = new LinkedList<>();
 

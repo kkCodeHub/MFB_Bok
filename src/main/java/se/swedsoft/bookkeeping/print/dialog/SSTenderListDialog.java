@@ -100,7 +100,7 @@ public class SSTenderListDialog extends SSDialog {
      * @return
      */
     public List<SSTender> getTendersToPrint() {
-        final List<SSCustomer> iCustomers = SSDB.getInstance().getCustomers();
+        final List<SSCustomer> iCustomers = se.swedsoft.bookkeeping.data.system.SSSalesContext.getCustomers();
 
         List<SSTender> iTenders = Repositories.tenders().findAll();
 
@@ -134,7 +134,7 @@ public class SSTenderListDialog extends SSDialog {
 
             iFactory.applyFilter(new SSFilter<>() {
                 public boolean applyFilter(SSTender iTender) {
-                    return SSInvoiceMath.inPeriod(iTender, SSDateUtil.toDate(iDateFrom), SSDateUtil.toDate(iDateTo));
+                    return SSInvoiceMath.inPeriod(iTender, iDateFrom, iDateTo);
                 }
             });
         }

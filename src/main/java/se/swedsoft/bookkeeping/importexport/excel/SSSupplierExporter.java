@@ -1,13 +1,11 @@
 package se.swedsoft.bookkeeping.importexport.excel;
 
 
-import jxl.Workbook;
-import jxl.WorkbookSettings;
-import jxl.format.Colour;
-import jxl.write.WritableCellFormat;
-import jxl.write.WritableSheet;
-import jxl.write.WritableWorkbook;
-import jxl.write.WriteException;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.IndexedColors;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import se.swedsoft.bookkeeping.data.SSSupplier;
 import se.swedsoft.bookkeeping.data.system.SSDB;
 import se.swedsoft.bookkeeping.importexport.excel.util.SSWritableExcelRow;
@@ -48,22 +46,24 @@ public class SSSupplierExporter {
     public static final String ADRESS_POSTORT = "Adress.Postort";
     public static final String ADRESS_LAND = "Adress.Land";
 
-    private File iFile;
-    private List<SSSupplier> iSuppliers;
+    private final File iFile;
+    private final List<SSSupplier> iSuppliers;
 
     /**
+     * Creates an exporter that uses all suppliers from the database.
      *
-     * @param iFile
+     * @param iFile destination Excel file
      */
     public SSSupplierExporter(File iFile) {
         this.iFile = iFile;
-        iSuppliers = SSDB.getInstance().getSuppliers();
+        iSuppliers = se.swedsoft.bookkeeping.data.system.SSPurchaseContext.getSuppliers();
     }
 
     /**
+     * Creates an exporter with an explicit supplier list.
      *
-     * @param iFile
-     * @param iSuppliers
+     * @param iFile destination Excel file
+     * @param iSuppliers suppliers to export
      */
     public SSSupplierExporter(File iFile, List<SSSupplier> iSuppliers) {
         this.iFile = iFile;
@@ -71,50 +71,47 @@ public class SSSupplierExporter {
     }
 
     /**
+     * Exports suppliers to Excel format.
      *
-     * @throws IOException
-     * @throws SSImportException
-     * @throws SSExportException
+     * @throws IOException if writing to disk fails
+     * @throws SSExportException if workbook export fails
      */
     public void export()  throws IOException, SSExportException {
-        WorkbookSettings iSettings = new WorkbookSettings();
-
-        iSettings.setLocale(new Locale("sv", "SE"));
-        iSettings.setEncoding("windows-1252");
-        iSettings.setExcelDisplayLanguage("SE");
-        iSettings.setExcelRegionalSettings("SE");
-
         try {
-            WritableWorkbook iWorkbook = Workbook.createWorkbook(iFile, iSettings);
+            Workbook iWorkbook = new XSSFWorkbook();
 
-            WritableSheet iSheet = iWorkbook.createSheet("Leverantörer", 0);
+            Sheet iSheet = iWorkbook.createSheet("Leverantörer");
 
             writeSuppliers(new SSWritableExcelSheet(iSheet));
 
-            iWorkbook.write();
+            try (java.io.FileOutputStream fos = new java.io.FileOutputStream(iFile)) {
+                iWorkbook.write(fos);
+            }
             iWorkbook.close();
 
-        } catch (WriteException e) {
+        } catch (Exception e) {
             throw new SSExportException(e.getLocalizedMessage());
         }
 
     }
 
     /**
+     * Writes all suppliers to the worksheet.
      *
-     * @param pSheet
-     * @throws WriteException
+     * @param pSheet writable destination sheet
+     * @throws Exception if writing to workbook fails
      */
-    private void writeSuppliers(SSWritableExcelSheet pSheet) throws WriteException {
+    private void writeSuppliers(SSWritableExcelSheet pSheet) throws Exception {
 
         List<SSWritableExcelRow> iRows = pSheet.getRows(iSuppliers.size() + 1);
 
         // Write the column names
-        SSWritableExcelRow iColumns = iRows.get(0);
+        SSWritableExcelRow iColumns = iRows.getFirst();
 
-        WritableCellFormat iCellFormat = new WritableCellFormat();
-
-        iCellFormat.setBackground(Colour.GRAY_25);
+        Workbook iWorkbook = pSheet.getSheet().getWorkbook();
+        CellStyle iCellFormat = iWorkbook.createCellStyle();
+        iCellFormat.setFillForegroundColor(IndexedColors.GREY_25_PERCENT.getIndex());
+        iCellFormat.setFillPattern(org.apache.poi.ss.usermodel.FillPatternType.SOLID_FOREGROUND);
 
         iColumns.setString(0, LEVERANTORSNUMMER, iCellFormat);
         iColumns.setString(1, NAMN, iCellFormat);
@@ -167,12 +164,9 @@ public class SSSupplierExporter {
 
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder();
-
-        sb.append("se.swedsoft.bookkeeping.importexport.excel.SSSupplierExporter");
-        sb.append("{iFile=").append(iFile);
-        sb.append(", iSuppliers=").append(iSuppliers);
-        sb.append('}');
-        return sb.toString();
+        return "se.swedsoft.bookkeeping.importexport.excel.SSSupplierExporter"
+                + "{iFile=" + iFile
+                + ", iSuppliers=" + iSuppliers
+                + '}';
     }
 }

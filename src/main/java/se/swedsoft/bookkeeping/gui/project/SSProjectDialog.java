@@ -2,16 +2,16 @@ package se.swedsoft.bookkeeping.gui.project;
 
 
 import se.swedsoft.bookkeeping.data.SSNewProject;
-import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.data.system.SSProjectContext;
 import se.swedsoft.bookkeeping.gui.SSMainFrame;
 import se.swedsoft.bookkeeping.gui.project.panel.SSProjectPanel;
 import se.swedsoft.bookkeeping.gui.util.SSBundle;
 import se.swedsoft.bookkeeping.gui.util.dialogs.SSDialog;
 import se.swedsoft.bookkeeping.gui.util.dialogs.SSErrorDialog;
 import se.swedsoft.bookkeeping.gui.util.dialogs.SSQueryDialog;
+import se.swedsoft.bookkeeping.gui.util.table.model.SSTableModel;
 
 import javax.swing.*;
-import javax.swing.table.AbstractTableModel;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -35,7 +35,7 @@ public class SSProjectDialog {
      * @param iMainFrame
      * @param iModel
      */
-    public static void newDialog(final SSMainFrame iMainFrame, final AbstractTableModel iModel) {
+    public static void newDialog(final SSMainFrame iMainFrame, final SSTableModel<SSNewProject> iModel) {
         final SSDialog       iDialog = new SSDialog(iMainFrame,
                 bundle.getString("projectframe.new.title"));
         final SSProjectPanel iPanel = new SSProjectPanel(false);
@@ -45,7 +45,7 @@ public class SSProjectDialog {
         final ActionListener iSaveAction = e -> {
 
                 SSNewProject iProject = iPanel.getProject();
-                List<SSNewProject> iProjects = SSDB.getInstance().getProjects();
+                List<SSNewProject> iProjects = SSProjectContext.getProjects();
 
                 for (SSNewProject pProject : iProjects) {
                     if (iProject.getNumber().equals(pProject.getNumber())) {
@@ -54,10 +54,13 @@ public class SSProjectDialog {
                         return;
                     }
                 }
-                SSDB.getInstance().addProject(iProject);
+                SSProjectContext.addProject(iProject);
 
                 if (iModel != null) {
-                    iModel.fireTableDataChanged();
+                    iModel.setObjects(SSProjectContext.getProjects());
+                }
+                if (SSProjectFrame.getInstance() != null) {
+                    SSProjectFrame.getInstance().updateFrame();
                 }
 
                 iDialog.closeDialog();
@@ -94,7 +97,7 @@ public class SSProjectDialog {
      * @param pProject
      * @param iModel
      */
-    public static void editDialog(final SSMainFrame iMainFrame, SSNewProject pProject, final AbstractTableModel iModel) {
+    public static void editDialog(final SSMainFrame iMainFrame, SSNewProject pProject, final SSTableModel<SSNewProject> iModel) {
         final SSDialog       iDialog = new SSDialog(iMainFrame,
                 bundle.getString("projectframe.edit.title"));
         final SSProjectPanel iPanel = new SSProjectPanel(true);
@@ -104,10 +107,13 @@ public class SSProjectDialog {
 
                 SSNewProject iProject = iPanel.getProject();
 
-                SSDB.getInstance().updateProject(iProject);
+                SSProjectContext.updateProject(iProject);
 
                 if (iModel != null) {
-                    iModel.fireTableDataChanged();
+                    iModel.setObjects(SSProjectContext.getProjects());
+                }
+                if (SSProjectFrame.getInstance() != null) {
+                    SSProjectFrame.getInstance().updateFrame();
                 }
                 iDialog.closeDialog();
 

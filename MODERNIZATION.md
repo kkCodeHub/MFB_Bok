@@ -71,6 +71,7 @@ Current repo state:
   - `doc/migration/STEP2_STATUS_2026-05-04.md`
   - `doc/migration/STEP2_3_EXECUTION_PLAN.md`
   - `doc/migration/SESSION_RESUME_CHECKLIST.md`
+  - `doc/migration/COMPANY_SETTINGS_VALIDATION_MATRICES.md`
 
 Remaining tasks:
 - Wire runtime database bootstrap to use V2 schema (`create_tables_v2.sql`)

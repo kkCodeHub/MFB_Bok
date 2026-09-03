@@ -3,7 +3,9 @@ package se.swedsoft.bookkeeping.gui.product;
 
 import se.swedsoft.bookkeeping.data.SSProduct;
 import se.swedsoft.bookkeeping.data.SSStock;
-import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.data.SSNewAccountingYear;
+import se.swedsoft.bookkeeping.data.system.SSCompanyYearContext;
+import se.swedsoft.bookkeeping.data.system.SSProductContext;
 import se.swedsoft.bookkeeping.gui.SSMainFrame;
 import se.swedsoft.bookkeeping.gui.product.panel.SSProductSearchPanel;
 import se.swedsoft.bookkeeping.gui.product.util.SSProductTableModel;
@@ -28,10 +30,9 @@ import se.swedsoft.bookkeeping.print.report.SSProductRevenuePrinter;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
-import java.util.Date;
+import java.time.LocalDate;
 import java.util.List;
 
 
@@ -71,6 +72,8 @@ public class SSProductFrame extends SSDefaultTableFrame {
     private SSProductTableModel iModel;
 
     private SSProductSearchPanel iSearchPanel;
+
+    private SSStock iStock;
 
     /**
      * Constructor.
@@ -236,16 +239,16 @@ public class SSProductFrame extends SSDefaultTableFrame {
                                 break;
 
                             case JOptionPane.NO_OPTION:
-                                iItems = SSDB.getInstance().getProducts();
+                                iItems = SSProductContext.getProducts();
                                 break;
 
                             default:
                                 return;
                             }
                         } else {
-                            iItems = SSDB.getInstance().getProducts();
+                            iItems = SSProductContext.getProducts();
                         }
-                        iFilechooser.setSelectedFile(new File("Produktlista.xls"));
+                        iFilechooser.setSelectedFile(new File("Produktlista.xlsx"));
 
                         if (iFilechooser.showSaveDialog(getMainFrame())
                                 == JFileChooser.APPROVE_OPTION) {
@@ -265,7 +268,7 @@ public class SSProductFrame extends SSDefaultTableFrame {
                         }
 
                     });
-        iButton2.add("customerframe.export.xml",
+        iButton2.add("productframe.export.xml",
                 e -> {
 
                         List<SSProduct> iSelected = iModel.getSelectedRows(iTable);
@@ -285,14 +288,14 @@ public class SSProductFrame extends SSDefaultTableFrame {
                                 break;
 
                             case JOptionPane.NO_OPTION:
-                                iItems = SSDB.getInstance().getProducts();
+                                iItems = SSProductContext.getProducts();
                                 break;
 
                             default:
                                 return;
                             }
                         } else {
-                            iItems = SSDB.getInstance().getProducts();
+                            iItems = SSProductContext.getProducts();
                         }
                         if (!iItems.isEmpty()) {
 
@@ -333,7 +336,7 @@ public class SSProductFrame extends SSDefaultTableFrame {
     @Override
     public JComponent getMainContent() {
 
-        SSStock iStock = new SSStock(true);
+        iStock = new SSStock(true);
 
         iModel = new SSProductTableModel();
         iModel.addColumn(SSProductTableModel.COLUMN_PARCEL);
@@ -436,7 +439,7 @@ public class SSProductFrame extends SSDefaultTableFrame {
 
         if (iResponce == JOptionPane.YES_OPTION) {
             for (SSProduct iProduct : delete) {
-                SSDB.getInstance().deleteProduct(iProduct);
+                SSProductContext.deleteProduct(iProduct);
             }
         }
     }
@@ -456,28 +459,27 @@ public class SSProductFrame extends SSDefaultTableFrame {
                 break;
 
             case JOptionPane.NO_OPTION:
-                iProducts = SSDB.getInstance().getProducts();
+                iProducts = SSProductContext.getProducts();
                 break;
 
             default:
                 return;
             }
         } else {
-            iProducts = SSDB.getInstance().getProducts();
+            iProducts = SSProductContext.getProducts();
         }
 
         SSPeriodSelectionDialog iDialog = new SSPeriodSelectionDialog(getMainFrame(),
                 SSBundle.getBundle().getString("productrevenue.perioddialog.title"));
 
-        if (SSDB.getInstance().getCurrentYear() != null) {
-            iDialog.setFrom(se.swedsoft.bookkeeping.util.SSDateUtil.toDate(
-                    SSDB.getInstance().getCurrentYear().getLocalFrom()));
-            iDialog.setTo(se.swedsoft.bookkeeping.util.SSDateUtil.toDate(
-                    SSDB.getInstance().getCurrentYear().getLocalTo()));
+        SSNewAccountingYear iCurrentYear = SSCompanyYearContext.getCurrentYear();
+        if (iCurrentYear != null) {
+            iDialog.setLocalFrom(iCurrentYear.getLocalFrom());
+            iDialog.setLocalTo(iCurrentYear.getLocalTo());
         } else {
-            java.time.LocalDate now = java.time.LocalDate.now();
-            iDialog.setFrom(se.swedsoft.bookkeeping.util.SSDateUtil.toDate(now));
-            iDialog.setTo(se.swedsoft.bookkeeping.util.SSDateUtil.toDate(now.plusMonths(1)));
+            LocalDate now = LocalDate.now();
+            iDialog.setLocalFrom(now);
+            iDialog.setLocalTo(now.plusMonths(1));
         }
         iDialog.setLocationRelativeTo(getMainFrame());
 
@@ -485,11 +487,12 @@ public class SSProductFrame extends SSDefaultTableFrame {
             return;
         }
 
-        final Date iFrom = iDialog.getFrom();
-        final Date iTo = iDialog.getTo();
+        final LocalDate iFrom = iDialog.getLocalFrom();
+        final LocalDate iTo = iDialog.getLocalTo();
 
         final SSProductRevenuePrinter iPrinter = new SSProductRevenuePrinter(iProducts,
-                iFrom, iTo);
+                se.swedsoft.bookkeeping.util.SSDateUtil.toDate(iFrom),
+                se.swedsoft.bookkeeping.util.SSDateUtil.toDate(iTo));
 
         SSProgressDialog.runProgress(getMainFrame(), () -> iPrinter.preview(getMainFrame()));
     }
@@ -514,7 +517,7 @@ public class SSProductFrame extends SSDefaultTableFrame {
                 break;
 
             case JOptionPane.NO_OPTION:
-                iProducts = SSDB.getInstance().getProducts();
+                iProducts = SSProductContext.getProducts();
                 iPrinter = new SSProductListPrinter(iProducts);
                 break;
 
@@ -522,7 +525,7 @@ public class SSProductFrame extends SSDefaultTableFrame {
                 return;
             }
         } else {
-            iProducts = SSDB.getInstance().getProducts();
+            iProducts = SSProductContext.getProducts();
             iPrinter = new SSProductListPrinter(iProducts);
         }
 
@@ -530,14 +533,23 @@ public class SSProductFrame extends SSDefaultTableFrame {
     }
 
     private SSProduct getProduct(SSProduct iProduct) {
-        return SSDB.getInstance().getProduct(iProduct).orElse(null);
+        return SSProductContext.getProduct(iProduct).orElse(null);
     }
 
     private List<SSProduct> getProducts(List<SSProduct> iProducts) {
-        return SSDB.getInstance().getProducts(iProducts);
+        return SSProductContext.getProducts(iProducts);
+    }
+
+    public static void fireTableDataChanged() {
+        if (cInstance != null) {
+            cInstance.updateFrame();
+        }
     }
 
     public void updateFrame() {
+        if (iStock != null) {
+            iStock.update();
+        }
         iSearchPanel.ApplyFilter();
     }
 

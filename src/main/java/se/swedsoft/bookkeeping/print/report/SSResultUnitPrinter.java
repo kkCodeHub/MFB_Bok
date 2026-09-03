@@ -22,7 +22,7 @@ public class SSResultUnitPrinter extends SSPrinter {
      *
      */
     public SSResultUnitPrinter() {
-        this(SSDB.getInstance().getResultUnits());
+        this(se.swedsoft.bookkeeping.data.system.SSResultUnitContext.getResultUnits());
     }
 
     /**

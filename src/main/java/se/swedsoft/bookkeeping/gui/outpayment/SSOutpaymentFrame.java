@@ -1,9 +1,7 @@
 package se.swedsoft.bookkeeping.gui.outpayment;
 
 
-import se.swedsoft.bookkeeping.calc.math.SSSupplierInvoiceMath;
 import se.swedsoft.bookkeeping.data.SSOutpayment;
-import se.swedsoft.bookkeeping.data.SSOutpaymentRow;
 import se.swedsoft.bookkeeping.gui.SSMainFrame;
 import se.swedsoft.bookkeeping.gui.outpayment.panel.SSOutpaymentSearchPanel;
 import se.swedsoft.bookkeeping.gui.outpayment.util.SSOutpaymentTableModel;
@@ -242,23 +240,28 @@ public class SSOutpaymentFrame extends SSDefaultTableFrame {
 
         if (iResponce == JOptionPane.YES_OPTION) {
             for (SSOutpayment iOutpayment : delete) {
-                for (SSOutpaymentRow iRow : iOutpayment.getRows()) {
-                    if (iRow.getValue() != null && iRow.getInvoiceNr() != null) {
-                        if (SSSupplierInvoiceMath.iSaldoMap.containsKey(
-                                iRow.getInvoiceNr())) {
-                            SSSupplierInvoiceMath.iSaldoMap.put(iRow.getInvoiceNr(),
-                                    SSSupplierInvoiceMath.iSaldoMap.get(iRow.getInvoiceNr()).add(
-                                    iRow.getValue()));
-                        }
-                    }
+                SSOutpayment iCurrentOutpayment = getOutpayment(iOutpayment);
+
+                if (iCurrentOutpayment == null) {
+                    // The row may still be visible if trigger refresh has not run yet.
+                    iModel.delete(iOutpayment);
+                    continue;
                 }
-                Repositories.outpayments().delete(iOutpayment);
+
+                Repositories.outpayments().delete(iCurrentOutpayment);
+                iModel.delete(iOutpayment);
             }
         }
     }
 
     private SSOutpayment getOutpayment(SSOutpayment iOutpayment) {
         return Repositories.outpayments().findByOutpayment(iOutpayment).orElse(null);
+    }
+
+    public static void fireTableDataChanged() {
+        if (cInstance != null) {
+            cInstance.updateFrame();
+        }
     }
 
     public void updateFrame() {

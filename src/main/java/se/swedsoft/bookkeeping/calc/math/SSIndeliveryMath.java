@@ -22,33 +22,31 @@ public class SSIndeliveryMath {
     private SSIndeliveryMath() {}
 
     /**
+     * Returns true if the indelivery's date is on or before pTo.
      *
-     * @param iInventory
-     * @param pTo
-     * @return
+     * @param iInventory the indelivery to test
+     * @param pTo        the upper bound
+     * @return true if within the period
      */
-    public static boolean inPeriod(SSIndelivery iInventory, Date pTo) {
+    public static boolean inPeriod(SSIndelivery iInventory, LocalDate pTo) {
         LocalDate iDate = iInventory.getLocalDate();
-        LocalDate iTo = SSDateUtil.toLocalDate(pTo);
 
-        return iDate != null && iTo != null && !iDate.isAfter(iTo);
-
+        return iDate != null && pTo != null && !iDate.isAfter(pTo);
     }
 
     /**
+     * Returns true if the indelivery's date falls within [pFrom, pTo] inclusive.
      *
-     * @param iInventory
-     * @param pFrom
-     * @param pTo
-     * @return
+     * @param iInventory the indelivery to test
+     * @param pFrom      the start of the period
+     * @param pTo        the end of the period
+     * @return true if within the period
      */
-    public static boolean inPeriod(SSIndelivery iInventory, Date pFrom, Date pTo) {
+    public static boolean inPeriod(SSIndelivery iInventory, LocalDate pFrom, LocalDate pTo) {
         LocalDate iDate = iInventory.getLocalDate();
-        LocalDate iFrom = SSDateUtil.toLocalDate(pFrom);
-        LocalDate iTo = SSDateUtil.toLocalDate(pTo);
 
-        return iDate != null && iFrom != null && iTo != null
-                && !iDate.isBefore(iFrom) && !iDate.isAfter(iTo);
+        return iDate != null && pFrom != null && pTo != null
+                && !iDate.isBefore(pFrom) && !iDate.isAfter(pTo);
     }
 
     /**
@@ -92,11 +90,18 @@ public class SSIndeliveryMath {
                 if (iRow.getChange() == null) {
                     continue;
                 }
-                Integer iReserved = iIndeliveryCount.get(iRow.getProductNr()) == null
+                String iProductNr = iRow.getProductNr();
+                if (iProductNr == null && iRow.getProduct() != null) {
+                    iProductNr = iRow.getProduct().getNumber();
+                }
+                if (iProductNr == null) {
+                    continue;
+                }
+                Integer iReserved = iIndeliveryCount.get(iProductNr) == null
                         ? iRow.getChange()
-                        : iIndeliveryCount.get(iRow.getProductNr()) + iRow.getChange();
+                        : iIndeliveryCount.get(iProductNr) + iRow.getChange();
 
-                iIndeliveryCount.put(iRow.getProductNr(), iReserved);
+                iIndeliveryCount.put(iProductNr, iReserved);
             }
         }
         return iIndeliveryCount;

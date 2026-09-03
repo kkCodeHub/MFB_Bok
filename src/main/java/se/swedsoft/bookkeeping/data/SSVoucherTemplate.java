@@ -6,7 +6,6 @@ import se.swedsoft.bookkeeping.gui.util.table.SSTableSearchable;
 import se.swedsoft.bookkeeping.util.SSDateUtil;
 
 import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -268,7 +267,7 @@ public class SSVoucherTemplate implements Serializable, SSTableSearchable {
          * @return
          */
         public SSAccount getAccount() {
-            return getAccount(SSDB.getInstance().getAccounts());
+            return getAccount(se.swedsoft.bookkeeping.data.system.SSAccountingContext.getAccounts());
         }
 
         /**
@@ -307,21 +306,6 @@ public class SSVoucherTemplate implements Serializable, SSTableSearchable {
         private void writeObject(ObjectOutputStream out) throws IOException {
             iAccount = null;
             out.defaultWriteObject();
-        }
-
-        /**
-         *
-         * @param in
-         * @throws IOException
-         * @throws ClassNotFoundException
-         */
-        private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
-            in.defaultReadObject();
-            if (iAccount != null) {
-                iAccountNr = iAccount.getNumber();
-            }
-
-            iAccount = null;
         }
 
     }

@@ -1,7 +1,7 @@
 package se.swedsoft.bookkeeping.gui.util.datechooser;
 
 
-import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.data.system.SSCompanyYearContext;
 import se.swedsoft.bookkeeping.gui.util.SSBundle;
 import se.swedsoft.bookkeeping.gui.util.components.SSButton;
 import se.swedsoft.bookkeeping.gui.util.datechooser.panel.SSCalendar;
@@ -16,6 +16,7 @@ import java.time.LocalDate;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 
 
 /**
@@ -28,11 +29,21 @@ import java.util.List;
  */
 public class SSDateChooser extends JPanel implements ActionListener, ChangeListener {
 
+    /**
+     * Supported spinner UI modes in the date chooser.
+     */
+    public enum SpinnerUiMode {
+        STANDARD,
+        HORIZONTAL
+    }
+
+    private static final SpinnerUiMode DEFAULT_SPINNER_UI_MODE = SpinnerUiMode.HORIZONTAL;
+
     private static final int SPINNER_FIELD_MONTH = 2;
 
     private static final int SPINNER_FIELD_DAY_OF_MONTH = 5;
 
-    private JSpinner iSpinner;
+    private JSpinnerX iSpinner;
 
     private JSpinner.DateEditor iEditor;
 
@@ -56,6 +67,8 @@ public class SSDateChooser extends JPanel implements ActionListener, ChangeListe
 
     private JPanel iPanel;
 
+    private SpinnerUiMode iSpinnerUiMode = DEFAULT_SPINNER_UI_MODE;
+
     /**
      * Creates a new {@code JPanel} with a double buffer
      * and a flow layout.
@@ -76,13 +89,14 @@ public class SSDateChooser extends JPanel implements ActionListener, ChangeListe
         iModel.setCalendarField(SPINNER_FIELD_MONTH);
         iModel.addChangeListener(this);
 
-        iSpinner = new JSpinner();
+        iSpinner = new JSpinnerX();
         iSpinner.setModel(iModel);
         iSpinner.setPreferredSize(new Dimension(-1, 20));
         iSpinner.setMaximumSize(new Dimension(-1, 20));
         iSpinner.setMinimumSize(new Dimension(-1, 20));
 
         iEditor = new JSpinner.DateEditor(iSpinner, iDateFormatString);
+
         iSpinner.setEditor(iEditor);
 
         iCalendar = new SSCalendar();
@@ -111,7 +125,7 @@ public class SSDateChooser extends JPanel implements ActionListener, ChangeListe
 
                 isDateSelected = false;
 
-                iCalendar.setDate(getDate());
+                iCalendar.setLocalDate(getLocalDate());
 
                 // iPopup
                 show(iCalendarButton, x, y);
@@ -121,8 +135,20 @@ public class SSDateChooser extends JPanel implements ActionListener, ChangeListe
         setLayout(new BorderLayout());
         add(iSpinner, BorderLayout.CENTER);
         add(iCalendarButton, BorderLayout.EAST);
+        setSpinnerUiMode(iSpinnerUiMode);
+        iEditor.getTextField().setHorizontalAlignment(JTextField.LEFT);
         setLocalDate(SSDateUtil.today());
     }
+
+    /**
+     * Creates a date chooser with the specified spinner UI mode.
+     *
+     * @param spinnerUiMode spinner UI mode
+     */
+ //   public SSDateChooser(SpinnerUiMode spinnerUiMode) {
+ //       this();
+ //       setSpinnerUiMode(spinnerUiMode);
+ //   }
 
     /**
      *
@@ -194,30 +220,10 @@ public class SSDateChooser extends JPanel implements ActionListener, ChangeListe
     }
 
     /**
-     * @return the selected date
-     */
-    public Date getDate() {
-        return iModel.getDate();
-    }
-
-    /**
      * @return the selected date as a {@link LocalDate}
      */
     public LocalDate getLocalDate() {
         return SSDateUtil.toLocalDate(iModel.getDate());
-    }
-
-    /**
-     * Set the selected date, if the date is null, the current date is selected.
-     *
-     * @param iDate the date
-     */
-    public void setDate(Date iDate) {
-        if (iDate != null) {
-            iModel.setValue(iDate);
-        } else {
-            iModel.setValue(SSDateUtil.toDate(SSDateUtil.today()));
-        }
     }
 
     /**
@@ -258,23 +264,44 @@ public class SSDateChooser extends JPanel implements ActionListener, ChangeListe
     }
 
     /**
+     * Sets the spinner UI mode.
+     *
+     * @param spinnerUiMode the desired spinner UI mode
+     */
+    public void setSpinnerUiMode(SpinnerUiMode spinnerUiMode) {
+        iSpinnerUiMode = Objects.requireNonNull(spinnerUiMode, "spinnerUiMode");
+
+        if (iSpinnerUiMode == SpinnerUiMode.HORIZONTAL) {
+            iSpinner.setUiMode(JSpinnerX.UiMode.HORIZONTAL_BUTTONS);
+        } else {
+            iSpinner.setUiMode(JSpinnerX.UiMode.STANDARD);
+        }
+    }
+
+    /**
+     * @return the current spinner UI mode
+     */
+ //   public SpinnerUiMode getSpinnerUiMode() {
+ //       return iSpinnerUiMode;
+ //   }
+
+    /**
      * Set the spinner field the updown shall edit.
      *
      * @param iCalendarField the field identifier expected by {@link SpinnerDateModel}
      */
-    public void setCalendarField(int iCalendarField) {
-        this.iCalendarField = iCalendarField;
-
-    }
+ //   public void setCalendarField(int iCalendarField) {
+ //       this.iCalendarField = iCalendarField;
+ //   }
 
     /**
      * Get the spinner field the updown are editing.
      *
      * @return the field identifier expected by {@link SpinnerDateModel}
      */
-    public int getCalendarField() {
-        return iCalendarField;
-    }
+ //   public int getCalendarField() {
+ //       return iCalendarField;
+ //   }
 
     /**
      * Invoked when the date changes
@@ -302,9 +329,7 @@ public class SSDateChooser extends JPanel implements ActionListener, ChangeListe
      * Invoked when an action occurs.
      */
     public void actionPerformed(ActionEvent e) {
-        Date iDate = iCalendar.getDate();
-
-        iModel.setValue(iDate);
+        iModel.setValue(SSDateUtil.toDate(iCalendar.getLocalDate()));
 
         if (e.getActionCommand().equals("day")) {
             isDateSelected = true;
@@ -323,8 +348,8 @@ public class SSDateChooser extends JPanel implements ActionListener, ChangeListe
      * @return true if the selected date is within the current accounting year
      */
     public boolean isInCurrentAccountYear() {
-        LocalDate accountYearTo = SSDB.getInstance().getCurrentYear().getLocalTo();
-        LocalDate accountYearFrom = SSDB.getInstance().getCurrentYear().getLocalFrom();
+        LocalDate accountYearTo = SSCompanyYearContext.getCurrentYear().getLocalTo();
+        LocalDate accountYearFrom = SSCompanyYearContext.getCurrentYear().getLocalFrom();
 
         // Add end-of-day tolerance (the original code added 23:59 to the 'to' date)
         LocalDate iCurrent = getLocalDate();

@@ -136,7 +136,7 @@ public class SSPurchaseOrderListDialog extends SSDialog {
             iFactory.applyFilter(
                     new SSFilter<>() {
                 public boolean applyFilter(SSPurchaseOrder iPurchaseOrder) {
-                    return SSPurchaseOrderMath.inPeriod(iPurchaseOrder, SSDateUtil.toDate(iDateFrom), SSDateUtil.toDate(iDateTo));
+                    return SSPurchaseOrderMath.inPeriod(iPurchaseOrder, iDateFrom, iDateTo);
                 }
             });
         }

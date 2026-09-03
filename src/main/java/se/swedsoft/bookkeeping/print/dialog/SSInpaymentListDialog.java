@@ -113,7 +113,7 @@ public class SSInpaymentListDialog extends SSDialog {
 
             iFactory.applyFilter(new SSFilter<>() {
                 public boolean applyFilter(SSInpayment iInpayment) {
-                    return SSInpaymentMath.inPeriod(iInpayment, SSDateUtil.toDate(iDateFrom), SSDateUtil.toDate(iDateTo));
+                    return SSInpaymentMath.inPeriod(iInpayment, iDateFrom, iDateTo);
                 }
             });
         }

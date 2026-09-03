@@ -13,9 +13,9 @@ import javax.imageio.ImageIO;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.Serializable;
 import java.math.BigDecimal;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -25,7 +25,10 @@ import org.slf4j.LoggerFactory;
 
 
 /**
+ * V2 target model for companies.
+ *
  * @author Roger Björnstedt
+ * <p>This is the supported company representation in active V2 code paths.</p>
  */
 public class SSNewCompany implements Serializable {    private static final Logger LOG = LoggerFactory.getLogger(SSNewCompany.class);
 
@@ -34,6 +37,9 @@ public class SSNewCompany implements Serializable {    private static final Logg
     static final long serialVersionUID = 1L;
 
     private Integer iId;
+    private transient String iSchemaName;
+    private transient boolean iNeedsAttention;
+    private transient boolean iCorrupt;
     // Grunduppgifter
     private String      iName;
     // Telefon
@@ -58,6 +64,12 @@ public class SSNewCompany implements Serializable {    private static final Logg
     private String      iCorporateID;
     // Logo url
     private String      iLogotype;
+
+    // Swish image url
+    private String      iSwishImagePath;
+
+    // Swish text (ledtext)
+    private String      iSwishText;
 
     private String      iBank;
     // Momsregistreringsnummer (vat nr)
@@ -99,6 +111,7 @@ public class SSNewCompany implements Serializable {    private static final Logg
 
     // Standardtexter
     private Map<SSStandardText, String> iStandardTexts;
+    private Integer iCustomerInvoiceTextbox;
     // Standardkonton
     private Map<SSDefaultAccount, Integer> iDefaultAccounts;
 
@@ -129,52 +142,13 @@ public class SSNewCompany implements Serializable {    private static final Logg
         iAddress = new SSAddress();
         iDeliveryAddress = new SSAddress();
         iStandardTexts = new HashMap<>();
+        iCustomerInvoiceTextbox = 0;
         iDefaultAccounts = new HashMap<>();
 
         iAutoIncrement = new SSAutoIncrement();
         iRoundingOff = false;
         iVatPeriod = 1;
 
-    }
-
-    public SSNewCompany(SSCompany iOldCompany) {
-        iName = iOldCompany.getName();
-        iPhone = iOldCompany.getPhone();
-        iPhone2 = iOldCompany.getPhone2();
-        iTelefax = iOldCompany.getTelefax();
-        iResidence = iOldCompany.getResidence();
-        iWebAddress = iOldCompany.getHomepage();
-        iSMTPAddress = iOldCompany.getSMTP();
-        iEMail = iOldCompany.getEMail();
-        iContactPerson = iOldCompany.getContactPerson();
-        iTaxRegistered = iOldCompany.getTaxRegistered();
-        iCorporateID = iOldCompany.getCorporateID();
-        iLogotype = iOldCompany.getLogotype();
-        iBank = iOldCompany.getBank();
-        iVATNumber = iOldCompany.getVATNumber();
-        iBankAccountNumber = iOldCompany.getBankGiroNumber();
-        iPlusAccountNumber = iOldCompany.getPlusGiroNumber();
-        iIBAN = iOldCompany.getIBAN();
-        iSwift = iOldCompany.getBIC();
-        iCurrency = iOldCompany.getCurrency();
-        iDelayintrest = iOldCompany.getDelayInterest();
-        iReminderfee = iOldCompany.getReminderfee();
-        iEstimatedDelivery = iOldCompany.getEstimatedDelivery();
-        iTaxrate1 = iOldCompany.getTaxRate1();
-        iTaxrate2 = iOldCompany.getTaxRate2();
-        iTaxrate3 = iOldCompany.getTaxRate3();
-        iWeightUnit = iOldCompany.getWeightUnit();
-        iVolumeUnit = iOldCompany.getVolumeUnit();
-        iAddress = iOldCompany.getAddress();
-        iDeliveryAddress = iOldCompany.getDeliveryAddress();
-        iStandardTexts = iOldCompany.getStandardTexts();
-        iDefaultAccounts = iOldCompany.getDefaultAccounts();
-        iStandardUnit = iOldCompany.getStandardUnit();
-        iPaymentTerm = iOldCompany.getPaymentTerm();
-        iDeliveryTerm = iOldCompany.getDeliveryTerm();
-        iDeliveryWay = iOldCompany.getDeliveryWay();
-        iAutoIncrement = iOldCompany.getAutoIncrement();
-        iVatPeriod = 1;
     }
 
     // //////////////////////////////////////////////////////////////////////////////////
@@ -185,6 +159,30 @@ public class SSNewCompany implements Serializable {    private static final Logg
 
     public void setId(Integer pId) {
         iId = pId;
+    }
+
+    public String getSchemaName() {
+        return iSchemaName;
+    }
+
+    public void setSchemaName(String schemaName) {
+        iSchemaName = schemaName;
+    }
+
+    public boolean isNeedsAttention() {
+        return iNeedsAttention;
+    }
+
+    public void setNeedsAttention(boolean needsAttention) {
+        iNeedsAttention = needsAttention;
+    }
+
+    public boolean isCorrupt() {
+        return iCorrupt;
+    }
+
+    public void setCorrupt(boolean corrupt) {
+        iCorrupt = corrupt;
     }
 
     /**
@@ -262,6 +260,20 @@ public class SSNewCompany implements Serializable {    private static final Logg
      */
     public void setStandardTexts(Map<SSStandardText, String> pStandardTexts) {
         iStandardTexts = pStandardTexts;
+    }
+
+    public int getCustomerInvoiceTextbox() {
+        if (iCustomerInvoiceTextbox == null) {
+            iCustomerInvoiceTextbox = 0;
+        }
+        if (iCustomerInvoiceTextbox < 0 || iCustomerInvoiceTextbox > 2) {
+            iCustomerInvoiceTextbox = 0;
+        }
+        return iCustomerInvoiceTextbox;
+    }
+
+    public void setCustomerInvoiceTextbox(Integer iCustomerInvoiceTextbox) {
+        this.iCustomerInvoiceTextbox = iCustomerInvoiceTextbox;
     }
 
     // ///////////////////////////////////////////////////
@@ -538,6 +550,36 @@ public class SSNewCompany implements Serializable {    private static final Logg
      */
     public void setLogotype(String pLogotype) {
         iLogotype = pLogotype;
+    }
+
+    /**
+     *
+     * @return
+     */
+    public String getSwishImagePath() {
+        return iSwishImagePath;
+    }
+
+    /**
+     *
+     * @param pSwishImagePath
+     */
+    public void setSwishImagePath(String pSwishImagePath) {
+        iSwishImagePath = pSwishImagePath;
+    }
+
+    /**
+     * @return the swish text (ledtext)
+     */
+    public String getSwishText() {
+        return iSwishText;
+    }
+
+    /**
+     * @param pSwishText the swish text (ledtext)
+     */
+    public void setSwishText(String pSwishText) {
+        iSwishText = pSwishText;
     }
 
     // ///////////////////////////////////////////////////
@@ -918,7 +960,7 @@ public class SSNewCompany implements Serializable {    private static final Logg
 
     public Double getOrderValueForMonth(SSMonth iMonth) {
         Double sum = 0.0;
-        List<SSOrder> iOrders = SSDB.getInstance().getOrders();
+        List<SSOrder> iOrders = se.swedsoft.bookkeeping.data.system.SSSalesContext.getOrders();
 
         for (SSOrder iOrder : iOrders) {
             if (iMonth.isDateInMonth(iOrder.getLocalDate())) {
@@ -936,7 +978,7 @@ public class SSNewCompany implements Serializable {    private static final Logg
     public Double getInvoiceValueForMonth(SSMonth iMonth) {
         Double suminvoices = 0.0;
 
-        for (SSInvoice iInvoice:SSDB.getInstance().getInvoices()) {
+        for (SSInvoice iInvoice:se.swedsoft.bookkeeping.data.system.SSSalesContext.getInvoices()) {
             if (iMonth.isDateInMonth(iInvoice.getLocalDate())) {
                 for (SSSaleRow iRow : iInvoice.getRows()) {
                     if (iRow.getSum().isPresent()) {
@@ -949,7 +991,7 @@ public class SSNewCompany implements Serializable {    private static final Logg
         }
         Double sumcreditinvoices = 0.0;
 
-        for (SSCreditInvoice iCreditInvoice:SSDB.getInstance().getCreditInvoices()) {
+        for (SSCreditInvoice iCreditInvoice:se.swedsoft.bookkeeping.data.system.SSSalesContext.getCreditInvoices()) {
             if (iMonth.isDateInMonth(iCreditInvoice.getLocalDate())) {
                 for (SSSaleRow iRow : iCreditInvoice.getRows()) {
                     if (iRow.getSum().isPresent()) {
@@ -1024,34 +1066,54 @@ public class SSNewCompany implements Serializable {    private static final Logg
      * @return
      */
     public Optional<Image> getLogoImage() {
-        // The logotype is null
-        if (iLogotype == null) {
+        return loadImage(iLogotype);
+    }
+
+    /**
+     *
+     * @return
+     */
+    public Optional<Image> getSwishImage() {
+        return loadImage(iSwishImagePath);
+    }
+
+    private Optional<Image> loadImage(String iPath) {
+        if (iPath == null) {
             return Optional.empty();
         }
 
-        // Create the file
-        File iFile = new File(iLogotype);
-
-        // The file doesn't exists, return null
+        File iFile = new File(iPath);
         if (!iFile.exists()) {
-            return Optional.empty();
+            String resourcePath = iPath.startsWith("/") ? iPath : "/" + iPath;
+            try (InputStream iStream = SSNewCompany.class.getResourceAsStream(resourcePath)) {
+                if (iStream == null) {
+                    return Optional.empty();
+                }
+                return Optional.ofNullable(ImageIO.read(iStream));
+            } catch (IOException e) {
+                LOG.error("Unexpected error", e);
+                return Optional.empty();
+            }
         }
-
-        Image iImage = null;
 
         try {
-            iImage = ImageIO.read(iFile);
+            return Optional.ofNullable(ImageIO.read(iFile));
         } catch (IOException e) {
             LOG.error("Unexpected error", e);
+            return Optional.empty();
         }
-        return Optional.ofNullable(iImage);
-
     }
 
     // ////////////////////////////////////////////////////
 
     public int hashCode() {
-        return iId.hashCode();
+        if (iId != null) {
+            return iId.hashCode();
+        }
+        if (iSchemaName != null) {
+            return iSchemaName.toUpperCase().hashCode();
+        }
+        return 0;
     }
 
     public boolean equals(Object obj) {
@@ -1062,11 +1124,14 @@ public class SSNewCompany implements Serializable {    private static final Logg
         if (!(obj instanceof SSNewCompany)) {
             return false;
         }
-        if (iId == null) {
-            return false;
+        SSNewCompany other = (SSNewCompany) obj;
+        if (iId != null && other.iId != null) {
+            return iId.equals(other.iId);
         }
-
-        return iId.equals(((SSNewCompany) obj).iId);
+        if (iSchemaName != null && other.iSchemaName != null) {
+            return iSchemaName.equalsIgnoreCase(other.iSchemaName);
+        }
+        return false;
     }
 
     public String toString() {

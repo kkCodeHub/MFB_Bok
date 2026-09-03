@@ -1,326 +1,246 @@
-<?xml version="1.0" encoding="ISO-8859-1" ?>
-<!DOCTYPE jasperReport PUBLIC "-//JasperReports//DTD Report Design//EN"
-        "http://jasperreports.sourceforge.net/dtds/jasperreport.dtd">
-
-<jasperReport name="SimpleStatement" resourceBundle="book" >
-
-    <reportFont name="SansSerif" isDefault="true" fontName="SansSerif"></reportFont>
-
-    <parameter name="Report"     class="net.sf.jasperreports.engine.JasperReport"/>
-    <parameter name="Parameters" class="java.util.HashMap"/>
-
-
-    <parameter name="date.from"  class="java.lang.String"/>
-    <parameter name="date.to"     class="java.lang.String"/>
-
-    <parameter name="company.name"         class="java.lang.String"/>
-    <parameter name="company.corporateid"  class="java.lang.String"/>
-
-
-    <!-- Declared fields in the report. -->
-    <field name="group.number"         class="java.lang.Integer"/>
-    <field name="group.section"        class="java.lang.Integer"/>
-    <field name="group.description"    class="java.lang.String"/>
-
-    <field name="group.rows"        class="net.sf.jasperreports.engine.JRDataSource"/>
- 
-    <pageHeader>
-        <band height="120">
-
-            <textField>
-                <reportElement x="300" y="0" width="150" height="16"/>
-                <textElement>
-                    <font size="12"/>
-                </textElement>
-                <textFieldExpression>
-                    <![CDATA["Förenklat årsbokslut"]]>
-                </textFieldExpression>
-            </textField>
-
-            <textField>
-                <reportElement x="300" y="12" width="150" height="16"/>
-                <textElement>
-                    <font size="10"/>
-                </textElement>
-                <textFieldExpression>
-                    <![CDATA["Enskilda näringsidkare"]]>
-                </textFieldExpression>
-            </textField>
-
-
-            <rectangle radius="3">
-                <reportElement x="0" y="42" width="555" height="78"/>
-                <graphicElement pen="Thin"/>
-            </rectangle>
-
-            <line>
-                <reportElement x="450" y="42" width="1" height="78"/>
-                <graphicElement pen="Thin"/>
-            </line>
-
-            <textField>
-                <reportElement x="5" y="42" width="150" height="26"/>
-                <textElement>
-                    <font size="6"/>
-                </textElement>
-                <textFieldExpression>
-                    <![CDATA["Namn"]]>
-                </textFieldExpression>
-            </textField>
-            <textField>
-                <reportElement x="5" y="42" width="450" height="24"/>
-                <textElement verticalAlignment="Bottom">
-                    <font size="10"/>
-                </textElement>
-                <textFieldExpression class="java.lang.String">
-                    <![CDATA[$P{company.name}]]>
-                </textFieldExpression>
-            </textField>
-
-
-            <textField>
-                <reportElement x="455" y="42" width="105" height="26"/>
-                <textElement>
-                    <font size="6"/>
-                </textElement>
-                <textFieldExpression>
-                    <![CDATA["Organisationsnummer"]]>
-                </textFieldExpression>
-            </textField>
-
-            <textField>
-                <reportElement x="455" y="42" width="105" height="24"/>
-                <textElement verticalAlignment="Bottom">
-                    <font size="10" />
-                </textElement>
-                <textFieldExpression class="java.lang.String">
-                    <![CDATA[$P{company.corporateid}]]>
-                </textFieldExpression>
-            </textField>
-
-            <line>
-                <reportElement x="0" y="66" width="555" height="1"/>
-                <graphicElement pen="Thin"/>
-            </line>
-
-            <frame>
-                <reportElement x="0" y="79" width="13" height="11"/>
-                <box topBorder="Thin" rightBorder="Thin"/>
-            </frame>
-
-            <textField>
-                <reportElement x="15" y="66" width="75" height="24"/>
-                <textElement verticalAlignment="Bottom">
-                    <font size="8"/>
-                </textElement>
-                <textFieldExpression>
-                    <![CDATA["Kalenderår"]]>
-                </textFieldExpression>
-            </textField>
-
-            <frame>
-                <reportElement x="75" y="79" width="13" height="11"/>
-                <box topBorder="Thin" rightBorder="Thin"  leftBorder="Thin"/>
-            </frame>
-
-            <textField>
-                <reportElement x="90" y="66" width="75" height="24"/>
-                <textElement verticalAlignment="Bottom">
-                    <font size="8"/>
-                </textElement>
-                <textFieldExpression>
-                    <![CDATA["Räkenskapsår"]]>
-                </textFieldExpression>
-            </textField>
-
-
-            <line>
-                <reportElement x="150" y="66" width="1" height="25"/>
-                <graphicElement pen="Thin"/>
-            </line>
-
-
-
-            <textField>
-                <reportElement x="155" y="66" width="150" height="26"/>
-                <textElement>
-                    <font size="6"/>
-                </textElement>
-                <textFieldExpression>
-                    <![CDATA["F.o.m"]]>
-                </textFieldExpression>
-            </textField>
-            <textField>
-                <reportElement x="155" y="66" width="150" height="24"/>
-                <textElement verticalAlignment="Bottom">
-                    <font size="10" />
-                </textElement>
-                <textFieldExpression class="java.lang.String">
-                    <![CDATA[$P{date.from}]]>
-                </textFieldExpression>
-            </textField>
-
-            <line>
-                <reportElement x="300" y="66" width="1" height="25"/>
-                <graphicElement pen="Thin"/>
-            </line>
-
-            <textField>
-                <reportElement x="305" y="66" width="150" height="26"/>
-                <textElement>
-                    <font size="6"/>
-                </textElement>
-                <textFieldExpression>
-                    <![CDATA["T.o.m"]]>
-                </textFieldExpression>
-            </textField>
-            <textField>
-                <reportElement x="305" y="66" width="150" height="24"/>
-                <textElement verticalAlignment="Bottom">
-                    <font size="10" />
-                </textElement>
-                <textFieldExpression class="java.lang.String">
-                    <![CDATA[$P{date.to}]]>
-                </textFieldExpression>
-            </textField>
-
-            <textField>
-                <reportElement x="450" y="66" width="105" height="52"/>
-                <textElement textAlignment="Center">
-                    <font size="8" />
-                </textElement>
-                <textFieldExpression>
-                    <![CDATA["Bokföringsnämndens regler\nför förenklat årsbokslut\n(BFNAR 2006:1)\noch broschyr hittar du\npå www.bfn.se"]]>
-                </textFieldExpression>
-            </textField>
-
-            <line>
-                <reportElement x="0" y="90" width="450" height="1"/>
-                <graphicElement pen="Thin"/>
-            </line>
-
-            <textField>
-                <reportElement x="5" y="90" width="150" height="26"/>
-                <textElement>
-                    <font size="6"/>
-                </textElement>
-                <textFieldExpression>
-                    <![CDATA["Verksamhetens art"]]>
-                </textFieldExpression>
-            </textField>
-
-
-        </band>
-    </pageHeader>
-
-    <detail>
-        <band height="52" isSplitAllowed="false">
-
-
-            <textField>
-                <reportElement x="0" y="0" width="275" height="14">
-                    <printWhenExpression>
-                        <![CDATA[ new Boolean($F{group.number}.intValue() == 1 || $F{group.number}.intValue() == 7 )]]>
-                    </printWhenExpression>
-                </reportElement>
-
-                <textElement>
-                    <font size="10" isBold="true"/>
-                </textElement>
-                <textFieldExpression class="java.lang.String">
-                    <![CDATA[$F{group.section}.intValue() == 1 ? $R{simplestatement.section.1} : $R{simplestatement.section.2}]]>
-                </textFieldExpression>
-            </textField>
-
-            <textField>
-                <reportElement x="0" y="0" width="275" height="26"/>
-                <textElement verticalAlignment="Bottom">
-                    <font size="10" isBold="true"/>
-                </textElement>
-                <textFieldExpression class="java.lang.String">
-                    <![CDATA[$F{group.description}]]>
-                </textFieldExpression>
-            </textField>
-
-            <rectangle radius="3">
-                <reportElement x="0" y="26" width="275" height="26" stretchType="RelativeToBandHeight"/>
-                <graphicElement pen="Thin"/>
-            </rectangle>
-
-            <!-- Mainbook rows -->
-            <subreport isUsingCache="false">
-                <reportElement x="0" y="26" width="275" height="26" isPrintWhenDetailOverflows="true"/>
-
-                <subreportParameter name="section.number">
-                    <subreportParameterExpression>
-                        <![CDATA[$F{group.number}]]>
-                    </subreportParameterExpression>
-                </subreportParameter>
-
-                <dataSourceExpression>
-                    <![CDATA[$F{group.rows}]]>
-                </dataSourceExpression>
-
-                <subreportExpression class="net.sf.jasperreports.engine.JasperReport">
-                    <![CDATA[$P{Report}]]>
-                </subreportExpression>
-            </subreport>
-
-        </band>
-    </detail>
-
-
-    <pageFooter>
-        <band height="60">
-            <textField>
-                <reportElement x="0" y="0" width="555" height="25"/>
-                <textElement>
-                    <font size="10" isBold="true"/>
-                </textElement>
-                <textFieldExpression>
-                    <![CDATA["Underskrift"]]>
-                </textFieldExpression>
-            </textField>
-            <textField>
-                <reportElement x="0" y="12" width="555" height="14"/>
-                <textElement>
-                    <font size="8" isBold="false"/>
-                </textElement>
-                <textFieldExpression>
-                    <![CDATA["enligt bokföringslagen och Bokföringsnämndens regler för förenklat bokslut"]]>
-                </textFieldExpression>
-            </textField>
-
-
-            <rectangle radius="3">
-                <reportElement x="0" y="25" width="275" height="35"/>
-                <graphicElement pen="Thin"/>
-            </rectangle>
-            <textField>
-                <reportElement x="4" y="25" width="555" height="25"/>
-                <textElement>
-                    <font size="6"/>
-                </textElement>
-                <textFieldExpression>
-                    <![CDATA["Namnteckning"]]>
-                </textFieldExpression>
-            </textField>
-
-            <rectangle radius="3">
-                <reportElement x="280" y="25" width="275" height="35"/>
-                <graphicElement pen="Thin"/>
-            </rectangle>
-
-            <textField>
-                <reportElement x="280" y="25" width="275" height="35"/>
-                <textElement textAlignment="Center"  verticalAlignment="Middle" >
-                    <font size="8" isBold="false"/>
-                </textElement>
-                <textFieldExpression>
-                    <![CDATA["Spara detta årsbokslut i 7 år tillsammans med bokföringen och\n bokslutsunderlagen.\nÅrsbokslutet ska inte skickas in till Skatteverket."]]>
-                </textFieldExpression>
-            </textField>
-        </band>
-    </pageFooter>
-
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.21.1.final using JasperReports Library version 6.21.0-4f56c4f36cd19e17675219a9ac4692d5f0f13b06  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="SimpleStatement" pageWidth="595" pageHeight="842" whenNoDataType="NoPages" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="30" bottomMargin="30" resourceBundle="book" uuid="2330886f-6bd2-4787-8a9f-e58905d4a744">
+	<style name="SansSerif" isDefault="true" fontName="SansSerif"/>
+	<parameter name="Report" class="net.sf.jasperreports.engine.JasperReport"/>
+	<parameter name="Parameters" class="java.util.HashMap"/>
+	<parameter name="date.from" class="java.lang.String"/>
+	<parameter name="date.to" class="java.lang.String"/>
+	<parameter name="company.name" class="java.lang.String"/>
+	<parameter name="company.corporateid" class="java.lang.String"/>
+	<field name="group.number" class="java.lang.Integer"/>
+	<field name="group.section" class="java.lang.Integer"/>
+	<field name="group.description" class="java.lang.String"/>
+	<field name="group.rows" class="net.sf.jasperreports.engine.JRDataSource"/>
+	<pageHeader>
+		<band height="120" splitType="Stretch">
+			<textField>
+				<reportElement x="300" y="0" width="150" height="16" uuid="353ea05c-e051-4af5-a366-904efc43c175"/>
+				<textElement>
+					<font size="12"/>
+				</textElement>
+				<textFieldExpression><![CDATA["FÃ¶renklat Ã¥rsbokslut"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="300" y="12" width="150" height="16" uuid="99f5b4d5-ba8f-4776-87d1-2d7d74b57a58"/>
+				<textElement>
+					<font size="10"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Enskilda nÃ¤ringsidkare"]]></textFieldExpression>
+			</textField>
+			<rectangle radius="3">
+				<reportElement x="0" y="42" width="555" height="78" uuid="26acb9f9-9c37-4e4c-bd12-b0b9ec7383de"/>
+				<graphicElement>
+					<pen lineWidth="0.5" lineStyle="Solid"/>
+				</graphicElement>
+			</rectangle>
+			<line>
+				<reportElement x="450" y="42" width="1" height="78" uuid="589d23f2-1e1a-48f9-ad94-e5ccf82ecb25"/>
+				<graphicElement>
+					<pen lineWidth="0.5" lineStyle="Solid"/>
+				</graphicElement>
+			</line>
+			<textField>
+				<reportElement x="5" y="42" width="150" height="26" uuid="a4d199e5-2dbb-4681-b4c5-fc78c4a9b590"/>
+				<textElement>
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Namn"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="5" y="42" width="450" height="24" uuid="88f22de4-77ca-40ed-a44f-39355ba705b4"/>
+				<textElement verticalAlignment="Bottom">
+					<font size="10"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{company.name}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="455" y="42" width="105" height="26" uuid="af10e75c-772b-4a5b-b9ab-6736e4a14f55"/>
+				<textElement>
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Organisationsnummer"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="455" y="42" width="105" height="24" uuid="88644c15-9d12-4686-9b66-ff47ad343344"/>
+				<textElement verticalAlignment="Bottom">
+					<font size="10"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{company.corporateid}]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement x="0" y="66" width="555" height="1" uuid="c56943fd-d573-477a-8460-844432033b08"/>
+				<graphicElement>
+					<pen lineWidth="0.5" lineStyle="Solid"/>
+				</graphicElement>
+			</line>
+			<frame>
+				<reportElement x="0" y="79" width="13" height="11" uuid="988b7ff3-f7a1-48bd-a3c2-7b96513a49d0"/>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid"/>
+				</box>
+			</frame>
+			<textField>
+				<reportElement x="15" y="66" width="75" height="24" uuid="2cb32855-a641-478c-a541-1164981eb33c"/>
+				<textElement verticalAlignment="Bottom">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["KalenderÃ¥r"]]></textFieldExpression>
+			</textField>
+			<frame>
+				<reportElement x="75" y="79" width="13" height="11" uuid="450a16b3-57d9-44bb-a94f-dacf3f2c3969"/>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid"/>
+				</box>
+			</frame>
+			<textField>
+				<reportElement x="90" y="66" width="75" height="24" uuid="773e4c0c-ab03-433f-bb92-88322e2b80b7"/>
+				<textElement verticalAlignment="Bottom">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["RÃ¤kenskapsÃ¥r"]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement x="150" y="66" width="1" height="25" uuid="f863a00f-1e00-42fa-9b02-2ff71ac73df7"/>
+				<graphicElement>
+					<pen lineWidth="0.5" lineStyle="Solid"/>
+				</graphicElement>
+			</line>
+			<textField>
+				<reportElement x="155" y="66" width="150" height="26" uuid="342798bd-432a-4d8c-af23-7418b35b1e45"/>
+				<textElement>
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA["F.o.m"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="155" y="66" width="150" height="24" uuid="ffd2fb7e-32bc-481e-8f30-c32dd85f1c6d"/>
+				<textElement verticalAlignment="Bottom">
+					<font size="10"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{date.from}]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement x="300" y="66" width="1" height="25" uuid="c38cc7c4-63ee-4e71-9379-cefbe8404818"/>
+				<graphicElement>
+					<pen lineWidth="0.5" lineStyle="Solid"/>
+				</graphicElement>
+			</line>
+			<textField>
+				<reportElement x="305" y="66" width="150" height="26" uuid="56a64016-18ba-40c8-9710-64abb84b343d"/>
+				<textElement>
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA["T.o.m"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="305" y="66" width="150" height="24" uuid="f3686777-5221-4515-b297-6744c86adb47"/>
+				<textElement verticalAlignment="Bottom">
+					<font size="10"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{date.to}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="450" y="66" width="105" height="52" uuid="d720b1c8-f00c-4e89-b72b-8497e4fa9abd"/>
+				<textElement textAlignment="Center">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["BokfÃ¶ringsnÃ¤mndens regler\nfÃ¶r fÃ¶renklat Ã¥rsbokslut\n(BFNAR 2006:1)\noch broschyr hittar du\npÃ¥ www.bfn.se"]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement x="0" y="90" width="450" height="1" uuid="d05a9718-0912-4f4e-a65a-c3d746796b3f"/>
+				<graphicElement>
+					<pen lineWidth="0.5" lineStyle="Solid"/>
+				</graphicElement>
+			</line>
+			<textField>
+				<reportElement x="5" y="90" width="150" height="26" uuid="4a8e5b75-8636-410d-a30f-f19e63ffdd6f"/>
+				<textElement>
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Verksamhetens art"]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageHeader>
+	<detail>
+		<band height="52" splitType="Prevent">
+			<textField>
+				<reportElement x="0" y="0" width="275" height="14" uuid="29c241df-ef67-416c-a936-6172c3b91d80">
+					<printWhenExpression><![CDATA[new Boolean($F{group.number}.intValue() == 1 || $F{group.number}.intValue() == 7 )]]></printWhenExpression>
+				</reportElement>
+				<textElement>
+					<font size="10" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{group.section}.intValue() == 1 ? $R{simplestatement.section.1} : $R{simplestatement.section.2}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="0" width="275" height="26" uuid="74fbe349-60ab-42e6-8974-df6f241fc719"/>
+				<textElement verticalAlignment="Bottom">
+					<font size="10" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{group.description}]]></textFieldExpression>
+			</textField>
+			<rectangle radius="3">
+				<reportElement stretchType="RelativeToBandHeight" x="0" y="26" width="275" height="26" uuid="48a3bf12-de2b-44d9-8e06-55df80b34d21"/>
+				<graphicElement>
+					<pen lineWidth="0.5" lineStyle="Solid"/>
+				</graphicElement>
+			</rectangle>
+			<subreport isUsingCache="false">
+				<reportElement x="0" y="26" width="275" height="26" isPrintWhenDetailOverflows="true" uuid="23f1a5b2-720f-44ce-a6c2-5ef55fa31615"/>
+				<subreportParameter name="section.number">
+					<subreportParameterExpression><![CDATA[$F{group.number}]]></subreportParameterExpression>
+				</subreportParameter>
+				<dataSourceExpression><![CDATA[$F{group.rows}]]></dataSourceExpression>
+				<subreportExpression><![CDATA[$P{Report}]]></subreportExpression>
+			</subreport>
+		</band>
+	</detail>
+	<pageFooter>
+		<band height="60" splitType="Stretch">
+			<textField>
+				<reportElement x="0" y="0" width="555" height="25" uuid="033fddff-a77b-4abd-a98a-cf6a24a9bf08"/>
+				<textElement>
+					<font size="10" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Underskrift"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="12" width="555" height="14" uuid="6e07b77a-a27f-42c6-8338-560b192bea2b"/>
+				<textElement>
+					<font size="8" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA["enligt bokfÃ¶ringslagen och BokfÃ¶ringsnÃ¤mndens regler fÃ¶r fÃ¶renklat bokslut"]]></textFieldExpression>
+			</textField>
+			<rectangle radius="3">
+				<reportElement x="0" y="25" width="275" height="35" uuid="bda05653-28e3-4ca5-aca4-0d3f0c4067ee"/>
+				<graphicElement>
+					<pen lineWidth="0.5" lineStyle="Solid"/>
+				</graphicElement>
+			</rectangle>
+			<textField>
+				<reportElement x="4" y="25" width="555" height="25" uuid="75d17c35-9ac1-4244-a2c6-cccbc5728a91"/>
+				<textElement>
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Namnteckning"]]></textFieldExpression>
+			</textField>
+			<rectangle radius="3">
+				<reportElement x="280" y="25" width="275" height="35" uuid="ab4430ad-4718-4db8-8b63-d50d2eab672e"/>
+				<graphicElement>
+					<pen lineWidth="0.5" lineStyle="Solid"/>
+				</graphicElement>
+			</rectangle>
+			<textField>
+				<reportElement x="280" y="25" width="275" height="35" uuid="6297d7f0-7ab4-49ad-9f85-ce46b64dbf2d"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="8" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Spara detta Ã¥rsbokslut i 7 Ã¥r tillsammans med bokfÃ¶ringen och\n bokslutsunderlagen.\nÃ…rsbokslutet ska inte skickas in till Skatteverket."]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageFooter>
 </jasperReport>

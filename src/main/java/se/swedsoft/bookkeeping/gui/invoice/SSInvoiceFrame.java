@@ -6,10 +6,14 @@ import se.swedsoft.bookkeeping.calc.math.SSInvoiceMath;
 import se.swedsoft.bookkeeping.calc.math.SSPeriodicInvoiceMath;
 import se.swedsoft.bookkeeping.data.SSInpayment;
 import se.swedsoft.bookkeeping.data.SSInvoice;
+import se.swedsoft.bookkeeping.data.SSNewCompany;
 import se.swedsoft.bookkeeping.data.SSOrder;
 import se.swedsoft.bookkeeping.data.system.SSDB;
-import se.swedsoft.bookkeeping.data.system.SSMail;
+import se.swedsoft.bookkeeping.data.system.SSCompanyYearContext;
+import se.swedsoft.bookkeeping.data.system.SSInvoiceActionPolicy;
+import se.swedsoft.bookkeeping.data.system.SSSalesContext;
 import se.swedsoft.bookkeeping.gui.SSMainFrame;
+import se.swedsoft.bookkeeping.gui.product.SSProductFrame;
 import se.swedsoft.bookkeeping.gui.creditinvoice.SSCreditInvoiceDialog;
 import se.swedsoft.bookkeeping.gui.creditinvoice.SSCreditInvoiceFrame;
 import se.swedsoft.bookkeeping.gui.inpayment.SSInpaymentDialog;
@@ -27,6 +31,7 @@ import se.swedsoft.bookkeeping.gui.util.dialogs.SSErrorDialog;
 import se.swedsoft.bookkeeping.gui.util.dialogs.SSQueryDialog;
 import se.swedsoft.bookkeeping.gui.util.frame.SSDefaultTableFrame;
 import se.swedsoft.bookkeeping.gui.util.table.SSTable;
+import se.swedsoft.bookkeeping.gui.util.table.SSTableSorter;
 import se.swedsoft.bookkeeping.print.SSReportFactory;
 
 import javax.swing.*;
@@ -36,6 +41,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -83,9 +89,19 @@ public class SSInvoiceFrame extends SSDefaultTableFrame {
 
     private SSTable iTable;
 
+    private JScrollPane iTableScrollPane;
+
     private SSInvoiceTableModel iModel;
 
     private SSInvoiceSearchPanel iSearchPanel;
+
+    private SSButton iReminderButton;
+
+    private SSButton iInpaymentButton;
+
+    private SSButton iCreditInvoiceButton;
+
+    private JMenuItem iReminderMenuItem;
 
     /**
      * Constructor.
@@ -112,7 +128,7 @@ public class SSInvoiceFrame extends SSDefaultTableFrame {
         // New
         // ***************************
         SSButton iButton = new SSButton("ICON_NEWITEM", "invoiceframe.newbutton",
-                e -> SSInvoiceDialog.newDialog(getMainFrame(), iModel));
+                e -> SSInvoiceDialog.newDialog(getMainFrame()));
 
         toolBar.add(iButton);
 
@@ -129,7 +145,7 @@ public class SSInvoiceFrame extends SSDefaultTableFrame {
                             iSelected = getInvoice(iSelected);
                         }
                         if (iSelected != null) {
-                            SSInvoiceDialog.editDialog(getMainFrame(), iSelected, iModel);
+                            SSInvoiceDialog.editDialog(getMainFrame(), iSelected);
                         } else {
                             new SSErrorDialog(getMainFrame(), "invoiceframe.invoicegone", iNumber);
                         }
@@ -152,7 +168,7 @@ public class SSInvoiceFrame extends SSDefaultTableFrame {
                             iSelected = getInvoice(iSelected);
                         }
                         if (iSelected != null) {
-                            SSInvoiceDialog.copyDialog(getMainFrame(), iSelected, iModel);
+                            SSInvoiceDialog.copyDialog(getMainFrame(), iSelected);
                         } else {
                             new SSErrorDialog(getMainFrame(), "invoiceframe.invoicegone", iNumber);
                         }
@@ -186,6 +202,7 @@ public class SSInvoiceFrame extends SSDefaultTableFrame {
                             List<SSInvoice> iSelected = iModel.getObjects(iTable.getSelectedRows());
 
                             iSelected = getInvoices(iSelected);
+                            iSelected.removeIf(iInvoice -> !SSInvoiceActionPolicy.canRegisterInpayment(iInvoice));
                             SSInpayment iInpayment = new SSInpayment();
 
                             if (!iSelected.isEmpty()) {
@@ -201,6 +218,7 @@ public class SSInvoiceFrame extends SSDefaultTableFrame {
                         }
 
                     });
+        iInpaymentButton = iButton;
         iTable.addSelectionDependentComponent(iButton);
         toolBar.add(iButton);
 
@@ -216,7 +234,7 @@ public class SSInvoiceFrame extends SSDefaultTableFrame {
                             iNumber = iSelected.getNumber();
                             iSelected = getInvoice(iSelected);
                         }
-                        if (iSelected != null) {
+                        if (iSelected != null && SSInvoiceActionPolicy.canCreateCreditInvoice(iSelected)) {
 
                             if (SSCreditInvoiceFrame.getInstance() != null) {
                                 SSCreditInvoiceDialog.newDialog(getMainFrame(), iSelected,
@@ -224,11 +242,12 @@ public class SSInvoiceFrame extends SSDefaultTableFrame {
                             } else {
                                 SSCreditInvoiceDialog.newDialog(getMainFrame(), iSelected, null);
                             }
-                        } else {
+                        } else if (iSelected == null) {
                             new SSErrorDialog(getMainFrame(), "invoiceframe.invoicegone", iNumber);
                         }
 
                     });
+        iCreditInvoiceButton = iButton;
         iTable.addSelectionDependentComponent(iButton);
         toolBar.add(iButton);
 
@@ -240,6 +259,7 @@ public class SSInvoiceFrame extends SSDefaultTableFrame {
                         List<SSInvoice> iSelected = iModel.getObjects(iTable.getSelectedRows());
 
                         iSelected = getInvoices(iSelected);
+                        iSelected.removeIf(iInvoice -> !SSInvoiceActionPolicy.canSelectForReminder(iInvoice));
                         if (!iSelected.isEmpty()) {
                             SSReportFactory.ReminderReport(getMainFrame(), iSelected);
                             // updateFrame();
@@ -247,7 +267,7 @@ public class SSInvoiceFrame extends SSDefaultTableFrame {
                         // iModel.fireTableDataChanged();
 
                     });
-        iTable.addSelectionDependentComponent(iButton);
+        iReminderButton = iButton;
         toolBar.add(iButton);
 
         // Skapa räntefakturor
@@ -268,6 +288,7 @@ public class SSInvoiceFrame extends SSDefaultTableFrame {
                         List<SSInvoice> iSelected = iModel.getSelectedRows(iTable);
 
                         iSelected = getInvoices(iSelected);
+                        iSelected.removeIf(iInvoice -> !SSInvoiceActionPolicy.canPrint(iInvoice));
                         if (!iSelected.isEmpty()) {
                             SSReportFactory.InvoiceReport(getMainFrame(), iSelected);
                         }
@@ -275,33 +296,18 @@ public class SSInvoiceFrame extends SSDefaultTableFrame {
                     });
 
         iTable.addSelectionDependentComponent(iMenuItem);
-        iMenuItem = iMenuButton.add("invoiceframe.print.emailinvoicereport",
-                e -> {
-
-                        SSInvoice iSelected = iModel.getSelectedRow(iTable);
-
-                        iSelected = getInvoice(iSelected);
-                        if (iSelected == null) {
-                            return;
-                        }
-                        if (!SSMail.isOk(iSelected.getCustomer())) {
-                            return;
-                        }
-                        SSReportFactory.EmailInvoiceReport(getMainFrame(), iSelected);
-
-                    });
-        iTable.addSelectionDependentComponent(iMenuItem);
         iMenuItem = iMenuButton.add("invoiceframe.print.reminder", e -> {
 
                 List<SSInvoice> iSelected = iModel.getObjects(iTable.getSelectedRows());
 
                 iSelected = getInvoices(iSelected);
+                iSelected.removeIf(iInvoice -> !SSInvoiceActionPolicy.canSelectForReminder(iInvoice));
                 if (!iSelected.isEmpty()) {
                     SSReportFactory.ReminderReport(getMainFrame(), iSelected);
                 }
 
             });
-        iTable.addSelectionDependentComponent(iMenuItem);
+        iReminderMenuItem = iMenuItem;
 
         iMenuButton.addSeparator();
         iMenuItem = iMenuButton.add("invoiceframe.print.ocrinvoicereport",
@@ -310,6 +316,7 @@ public class SSInvoiceFrame extends SSDefaultTableFrame {
                         List<SSInvoice> iSelected = iModel.getSelectedRows(iTable);
 
                         iSelected = getInvoices(iSelected);
+                        iSelected.removeIf(iInvoice -> !SSInvoiceActionPolicy.canPrint(iInvoice));
                         if (!iSelected.isEmpty()) {
                             SSReportFactory.OCRInvoiceReport(getMainFrame(), iSelected);
                         }
@@ -320,6 +327,8 @@ public class SSInvoiceFrame extends SSDefaultTableFrame {
         iMenuButton.addSeparator();
         iMenuButton.add("invoiceframe.print.invoicelistreport", e -> SSReportFactory.InvoiceListReport(getMainFrame()));
         toolBar.add(iMenuButton);
+
+        updateReminderActionsState();
 
         return toolBar;
     }
@@ -352,6 +361,10 @@ public class SSInvoiceFrame extends SSDefaultTableFrame {
         iModel.addColumn(SSInvoiceTableModel.COLUMN_REMINDERS);
 
         iModel.setupTable(iTable);
+        ((SSTableSorter) iTable.getModel()).setSortingStatus(1, SSTableSorter.ASCENDING);
+        iTable.addSelectionListener(e -> updateReminderActionsState());
+
+        iTableScrollPane = new JScrollPane(iTable);
 
         iTable.addDblClickListener(
                 e -> {
@@ -366,7 +379,7 @@ public class SSInvoiceFrame extends SSDefaultTableFrame {
                             return;
                         }
                         if (iSelected != null) {
-                            SSInvoiceDialog.editDialog(getMainFrame(), iSelected, iModel);
+                            SSInvoiceDialog.editDialog(getMainFrame(), iSelected);
                         } else {
                             new SSErrorDialog(getMainFrame(), "invoiceframe.invoicegone", iNumber);
                         }
@@ -382,7 +395,7 @@ public class SSInvoiceFrame extends SSDefaultTableFrame {
         iTabbedPane.add(SSBundle.getBundle().getString("invoiceframe.filter.3"),
                 new SSTabbedPanePanel());
 
-        iTabbedPane.addChangeListener(e -> iSearchPanel.ApplyFilter(SSDB.getInstance().getInvoices()));
+        iTabbedPane.addChangeListener(e -> iSearchPanel.ApplyFilter(SSSalesContext.getInvoices()));
         // setFilterIndex(0);
 
         JPanel iPanel = new JPanel();
@@ -392,6 +405,8 @@ public class SSInvoiceFrame extends SSDefaultTableFrame {
         iPanel.add(iSearchPanel, BorderLayout.NORTH);
         iPanel.add(iTabbedPane, BorderLayout.CENTER);
         iPanel.setBorder(BorderFactory.createEmptyBorder(2, 2, 4, 2));
+
+        updateReminderActionsState();
 
         return iPanel;
     }
@@ -404,8 +419,20 @@ public class SSInvoiceFrame extends SSDefaultTableFrame {
     public void setFilterIndex(int index, List<SSInvoice> iInvoices) {
         JPanel iPanel = (JPanel) iTabbedPane.getComponentAt(index);
 
-        iPanel.removeAll();
-        iPanel.add(new JScrollPane(iTable), BorderLayout.CENTER);
+        // Move the shared scroll pane to the selected tab panel, if needed.
+        if (iTableScrollPane.getParent() != iPanel) {
+            Container oldParent = iTableScrollPane.getParent();
+            if (oldParent != null) {
+                oldParent.remove(iTableScrollPane);
+                if (oldParent instanceof JComponent) {
+                    ((JComponent) oldParent).revalidate();
+                }
+            }
+            iPanel.removeAll();
+            iPanel.add(iTableScrollPane, BorderLayout.CENTER);
+            iPanel.revalidate();
+            iPanel.repaint();
+        }
 
         List<SSInvoice> iFiltered = Collections.emptyList();
 
@@ -425,7 +452,8 @@ public class SSInvoiceFrame extends SSDefaultTableFrame {
                 /* if( SSInvoiceMath.getSaldo(iInvoice).signum() != 0){
                  iFiltered.add(iInvoice);
                  }*/
-                if (SSInvoiceMath.iSaldoMap.containsKey(iInvoice.getNumber())) {
+                if (SSInvoiceMath.iSaldoMap != null
+                        && SSInvoiceMath.iSaldoMap.containsKey(iInvoice.getNumber())) {
                     if (SSInvoiceMath.iSaldoMap.get(iInvoice.getNumber()).signum() != 0) {
                         iFiltered.add(iInvoice);
                     }
@@ -437,9 +465,11 @@ public class SSInvoiceFrame extends SSDefaultTableFrame {
         case 2:
             iFiltered = new LinkedList<>();
             for (SSInvoice iInvoice : iInvoices) {
-                if (SSInvoiceMath.iSaldoMap.containsKey(iInvoice.getNumber())) {
+                if (SSInvoiceMath.iSaldoMap != null
+                        && SSInvoiceMath.iSaldoMap.containsKey(iInvoice.getNumber())) {
                     if (SSInvoiceMath.iSaldoMap.get(iInvoice.getNumber()).signum() != 0
-                            && SSInvoiceMath.expired(iInvoice)) {
+                            && SSInvoiceMath.expired(iInvoice)
+                            && SSInvoiceActionPolicy.canSelectForReminder(iInvoice)) {
                         iFiltered.add(iInvoice);
                     }
                 }
@@ -447,7 +477,9 @@ public class SSInvoiceFrame extends SSDefaultTableFrame {
             break;
         }
         iModel.setObjects(iFiltered);
+        iTabbedPane.revalidate();
         iTabbedPane.repaint();
+        updateReminderActionsState();
     }
 
     /**
@@ -505,37 +537,65 @@ public class SSInvoiceFrame extends SSDefaultTableFrame {
         int iResponce = iDialog.getResponce();
 
         if (iResponce == JOptionPane.YES_OPTION) {
-            for (SSInvoice iInvoice : delete) {
-                List<SSOrder> iOrdersToUpdate = new LinkedList<>();
+            List<SSInvoice> iCurrentInvoices = getInvoices(delete);
+            iCurrentInvoices.sort(Comparator.comparing(SSInvoice::getNumber, Comparator.nullsLast(Integer::compareTo))
+                    .reversed());
 
-                for (SSOrder iOrder : SSDB.getInstance().getOrders()) {
-                    if (iOrder.hasInvoice(iInvoice)) {
-                        iOrder.setInvoice(null);
-                        iOrdersToUpdate.add(iOrder);
-                    }
+            for (SSInvoice iInvoice : iCurrentInvoices) {
+                if (SSInvoiceActionPolicy.canDeletePhysically(iInvoice, SSSalesContext.getInvoices())) {
+                    deleteInvoicePhysically(iInvoice);
+                } else if (SSInvoiceActionPolicy.canUncancel(iInvoice, SSSalesContext.getInvoices())) {
+                    iInvoice.clearCancelled();
+                    SSSalesContext.updateInvoice(iInvoice);
+                } else if (SSInvoiceActionPolicy.canCancel(iInvoice)) {
+                    iInvoice.setCancelled();
+                    SSSalesContext.updateInvoice(iInvoice);
                 }
-                for (SSOrder iOrder : iOrdersToUpdate) {
-                    SSDB.getInstance().updateOrder(iOrder);
-                }
-                iOrdersToUpdate = null;
-                int iIndex = SSCustomerMath.iInvoicesForCustomers.get(iInvoice.getCustomerNr()).indexOf(
-                        iInvoice);
-
-                if (iIndex != -1) {
-                    SSCustomerMath.iInvoicesForCustomers.get(iInvoice.getCustomerNr()).remove(
-                            iIndex);
-                }
-                SSDB.getInstance().deleteInvoice(iInvoice);
             }
+            updateFrame();
+        }
+    }
+
+    private void deleteInvoicePhysically(SSInvoice iInvoice) {
+        decrementInvoiceCounter();
+        removeInvoiceFromCustomerCache(iInvoice);
+        SSSalesContext.deleteInvoice(iInvoice);
+    }
+
+    /**
+     * Applies the invoice-number counter step used when the highest invoice is physically deleted.
+     * The counter is reduced by exactly one and persisted on the current company.
+     */
+    private void decrementInvoiceCounter() {
+        SSNewCompany iCurrentCompany = SSCompanyYearContext.getCurrentCompany();
+        if (iCurrentCompany == null) {
+            return;
+        }
+        int iCurrentCounter = iCurrentCompany.getAutoIncrement().getNumber("invoice");
+        if (iCurrentCounter <= 0) {
+            return;
+        }
+        iCurrentCompany.getAutoIncrement().setNumber("invoice", iCurrentCounter - 1);
+        SSCompanyYearContext.updateCompany(iCurrentCompany);
+    }
+
+    private void removeInvoiceFromCustomerCache(SSInvoice iInvoice) {
+        List<SSInvoice> iInvoicesForCustomer = SSCustomerMath.iInvoicesForCustomers.get(iInvoice.getCustomerNr());
+        if (iInvoicesForCustomer == null) {
+            return;
+        }
+        int iIndex = iInvoicesForCustomer.indexOf(iInvoice);
+        if (iIndex != -1) {
+            iInvoicesForCustomer.remove(iIndex);
         }
     }
 
     private SSInvoice getInvoice(SSInvoice iInvoice) {
-        return SSDB.getInstance().getInvoice(iInvoice).orElse(null);
+        return SSSalesContext.getInvoice(iInvoice).orElse(null);
     }
 
     private List<SSInvoice> getInvoices(List<SSInvoice> iInvoices) {
-        return SSDB.getInstance().getInvoices(iInvoices);
+        return SSSalesContext.getInvoices(iInvoices);
     }
 
     /**
@@ -543,12 +603,77 @@ public class SSInvoiceFrame extends SSDefaultTableFrame {
      */
     public static void fireTableDataChanged() {
         if (cInstance != null) {
-            cInstance.iModel.fireTableDataChanged();
+            cInstance.updateFrame();
         }
     }
 
     public void updateFrame() {
-        iSearchPanel.ApplyFilter(SSDB.getInstance().getInvoices());
+        iSearchPanel.ApplyFilter(SSSalesContext.getInvoices());
+        updateReminderActionsState();
+        SSProductFrame.fireTableDataChanged();
+    }
+
+    private void updateReminderActionsState() {
+        if (iModel == null || iTable == null) {
+            return;
+        }
+
+        List<SSInvoice> iSelected = iModel.getObjects(iTable.getSelectedRows());
+        boolean hasSelection = !iSelected.isEmpty();
+        boolean onlyExpired = hasSelection && hasOnlyExpiredInvoices(iSelected);
+        boolean inpaymentAllowed = hasSelection && hasOnlyInvoicesAllowedForInpayment(iSelected);
+        boolean creditAllowed = hasSingleInvoiceAllowedForCredit(iSelected);
+
+        String defaultTooltip = SSBundle.getBundle().getString("invoiceframe.reminderbutton.tooltip");
+        String disabledTooltip = SSBundle.getBundle().getString("invoiceframe.reminderbutton.disabled.tooltip");
+        String menuDefaultTooltip = SSBundle.getBundle().getString("invoiceframe.print.reminder.tooltip");
+
+        if (iReminderButton != null) {
+            iReminderButton.setEnabled(onlyExpired);
+            iReminderButton.setToolTipText(!hasSelection || onlyExpired ? defaultTooltip : disabledTooltip);
+        }
+        if (iReminderMenuItem != null) {
+            iReminderMenuItem.setEnabled(onlyExpired);
+            iReminderMenuItem.setToolTipText(!hasSelection || onlyExpired
+                    ? menuDefaultTooltip
+                    : disabledTooltip);
+        }
+        if (iInpaymentButton != null) {
+            iInpaymentButton.setEnabled(inpaymentAllowed);
+        }
+        if (iCreditInvoiceButton != null) {
+            iCreditInvoiceButton.setEnabled(creditAllowed);
+        }
+    }
+
+    private boolean hasOnlyExpiredInvoices(List<SSInvoice> iInvoices) {
+        for (SSInvoice iInvoice : iInvoices) {
+            SSInvoice iCurrent = getInvoice(iInvoice);
+            if (iCurrent == null
+                    || !SSInvoiceMath.expired(iCurrent)
+                    || !SSInvoiceActionPolicy.canSelectForReminder(iCurrent)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private boolean hasOnlyInvoicesAllowedForInpayment(List<SSInvoice> iInvoices) {
+        for (SSInvoice iInvoice : iInvoices) {
+            SSInvoice iCurrent = getInvoice(iInvoice);
+            if (iCurrent == null || !SSInvoiceActionPolicy.canRegisterInpayment(iCurrent)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private boolean hasSingleInvoiceAllowedForCredit(List<SSInvoice> iInvoices) {
+        if (iInvoices.size() != 1) {
+            return false;
+        }
+        SSInvoice iCurrent = getInvoice(iInvoices.get(0));
+        return iCurrent != null && SSInvoiceActionPolicy.canCreateCreditInvoice(iCurrent);
     }
 
     public void actionPerformed(ActionEvent e) {

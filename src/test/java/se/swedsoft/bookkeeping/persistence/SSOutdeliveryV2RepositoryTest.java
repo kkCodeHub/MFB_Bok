@@ -40,7 +40,7 @@ class SSOutdeliveryV2RepositoryTest {
         Class.forName("org.hsqldb.jdbcDriver");
         connection = DriverManager.getConnection(JDBC_URL, "sa", "");
 
-        SSDB.getInstance().startupLocal(connection);
+        se.swedsoft.bookkeeping.data.system.SSSystemConfigContext.startupLocal(connection);
 
         Integer companyId = createCompany("V2 Outdelivery Repo Test AB");
         SSNewCompany company = new SSNewCompany();
@@ -48,10 +48,10 @@ class SSOutdeliveryV2RepositoryTest {
         company.setName("V2 Outdelivery Repo Test AB");
         SSDB.getInstance().setCurrentCompany(company);
 
-        SSNewAccountingYear year = new SSNewAccountingYear(
-                se.swedsoft.bookkeeping.util.SSDateUtil.toDate(LocalDate.of(2025, 1, 1)),
-                se.swedsoft.bookkeeping.util.SSDateUtil.toDate(LocalDate.of(2025, 12, 31)));
-        SSDB.getInstance().addAccountingYear(year);
+        SSNewAccountingYear year = new SSNewAccountingYear();
+        year.setLocalFrom(LocalDate.of(2025, 1, 1));
+        year.setLocalTo(LocalDate.of(2025, 12, 31));
+        se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.addAccountingYear(year);
         SSDB.getInstance().setCurrentYear(year);
 
         Repositories.init(SSDB.getInstance());
@@ -70,7 +70,7 @@ class SSOutdeliveryV2RepositoryTest {
 
     @BeforeEach
     void clearCaches() {
-        SSDB.getInstance().clearLists();
+        se.swedsoft.bookkeeping.data.system.SSEventTriggerSyncContext.clearCachedLists();
         SSDB.getInstance().getCurrentYear();
     }
 
@@ -88,7 +88,7 @@ class SSOutdeliveryV2RepositoryTest {
         Repositories.outdeliveries().add(outdelivery);
         assertThat(outdelivery.getNumber()).isGreaterThan(0);
 
-        SSDB.getInstance().clearLists();
+        se.swedsoft.bookkeeping.data.system.SSEventTriggerSyncContext.clearCachedLists();
         Optional<SSOutdelivery> fetched = Repositories.outdeliveries().findByOutdelivery(outdelivery);
         assertThat(fetched).isPresent();
         assertThat(fetched.get().getText()).isEqualTo("Repo outdelivery text");
@@ -105,7 +105,7 @@ class SSOutdeliveryV2RepositoryTest {
         outdelivery.getRows().add(row("P-OUT-REPO-002", 1));
         Repositories.outdeliveries().add(outdelivery);
 
-        SSDB.getInstance().clearLists();
+        se.swedsoft.bookkeeping.data.system.SSEventTriggerSyncContext.clearCachedLists();
         Optional<SSOutdelivery> fetched = Repositories.outdeliveries().findByOutdelivery(outdelivery);
         assertThat(fetched).isPresent();
 
@@ -116,7 +116,7 @@ class SSOutdeliveryV2RepositoryTest {
         updatedOutdelivery.getRows().add(row("P-OUT-REPO-003", 6));
         Repositories.outdeliveries().update(updatedOutdelivery);
 
-        SSDB.getInstance().clearLists();
+        se.swedsoft.bookkeeping.data.system.SSEventTriggerSyncContext.clearCachedLists();
         Optional<SSOutdelivery> updated = Repositories.outdeliveries().findByOutdelivery(outdelivery);
         assertThat(updated).isPresent();
         assertThat(updated.get().getText()).isEqualTo("After outdelivery repo update");
@@ -127,7 +127,7 @@ class SSOutdeliveryV2RepositoryTest {
 
         Integer number = updated.get().getNumber();
         Repositories.outdeliveries().delete(updated.get());
-        SSDB.getInstance().clearLists();
+        se.swedsoft.bookkeeping.data.system.SSEventTriggerSyncContext.clearCachedLists();
         List<SSOutdelivery> all = Repositories.outdeliveries().findAll();
         assertThat(all).extracting(SSOutdelivery::getNumber).doesNotContain(number);
     }
@@ -147,19 +147,10 @@ class SSOutdeliveryV2RepositoryTest {
     }
 
     private static Integer createCompany(String name) throws Exception {
-        try (PreparedStatement statement = connection.prepareStatement(
-                "INSERT INTO tbl_company(name) VALUES (?)", Statement.RETURN_GENERATED_KEYS)) {
-            statement.setString(1, name);
-            statement.executeUpdate();
-            connection.commit();
-
-            try (ResultSet keys = statement.getGeneratedKeys()) {
-                if (keys.next()) {
-                    return keys.getInt(1);
-                }
-            }
-        }
-        throw new IllegalStateException("Could not create test company for outdelivery repository V2 integration test");
+        se.swedsoft.bookkeeping.data.SSNewCompany company = new se.swedsoft.bookkeeping.data.SSNewCompany();
+        company.setName(name);
+        se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.addCompany(company);
+        return company.getId();
     }
 }
 

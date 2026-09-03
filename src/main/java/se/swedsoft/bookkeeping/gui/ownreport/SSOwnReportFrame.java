@@ -2,7 +2,7 @@ package se.swedsoft.bookkeeping.gui.ownreport;
 
 
 import se.swedsoft.bookkeeping.data.SSOwnReport;
-import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.data.system.SSOwnReportContext;
 import se.swedsoft.bookkeeping.gui.SSMainFrame;
 import se.swedsoft.bookkeeping.gui.ownreport.util.SSOwnReportTableModel;
 import se.swedsoft.bookkeeping.gui.util.SSBundle;
@@ -247,17 +247,17 @@ public class SSOwnReportFrame extends SSDefaultTableFrame {
 
         if (iResponce == JOptionPane.YES_OPTION) {
             for (SSOwnReport iOwnReport : delete) {
-                SSDB.getInstance().deleteOwnReport(iOwnReport);
+                SSOwnReportContext.deleteOwnReport(iOwnReport);
             }
         }
     }
 
     private SSOwnReport getOwnReport(SSOwnReport iOwnReport) {
-        return SSDB.getInstance().getOwnReport(iOwnReport).orElse(null);
+        return SSOwnReportContext.getOwnReport(iOwnReport).orElse(null);
     }
 
     public void updateFrame() {
-        iModel.setObjects(SSDB.getInstance().getOwnReports());
+        iModel.setObjects(SSOwnReportContext.getOwnReports());
     }
 
     @Override

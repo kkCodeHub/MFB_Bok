@@ -1,164 +1,106 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
-<!DOCTYPE jasperReport PUBLIC "-//JasperReports//DTD Report Design//EN" "http://jasperreports.sourceforge.net/dtds/jasperreport.dtd">
-
-<jasperReport name="PickingslipRows">
-
-    <field name="product.number"          class="java.lang.String"/>
-    <field name="product.description"     class="java.lang.String"/>
-    <field name="product.count"           class="java.lang.Integer"/>
-
-    <field name="product.unitprice"          class="java.math.BigDecimal"/>
-    <field name="product.unit"               class="java.lang.String"/>
-    <field name="product.weight"             class="java.math.BigDecimal"/>
-    <field name="product.volume"             class="java.math.BigDecimal"/>
-
-    <variable name="totalweight" class="java.math.BigDecimal" resetType="Report" calculation="Sum">
-        <variableExpression>
-            <![CDATA[$F{product.weight}.multiply( new BigDecimal( $F{product.count}.doubleValue() ) )]]>
-        </variableExpression>
-        <initialValueExpression>
-            <![CDATA[new BigDecimal(0.0)]]>
-        </initialValueExpression>
-    </variable>
-
-    <variable name="totalvolume" class="java.math.BigDecimal" resetType="Report" calculation="Sum">
-        <variableExpression>
-            <![CDATA[$F{product.volume}.multiply( new BigDecimal( $F{product.count}.doubleValue() ) )]]>
-        </variableExpression>
-        <initialValueExpression>
-            <![CDATA[new BigDecimal(0.0)]]>
-        </initialValueExpression>
-    </variable>
-
-    <columnHeader>
-        <band height="16" isSplitAllowed="true">
-            <line>
-                <reportElement x="0" y="0" width="510" height="1"/>
-                <graphicElement pen="Thin"/>
-            </line>
-
-            <line>
-                <reportElement x="0" y="13" width="510" height="1"/>
-                <graphicElement pen="Thin"/>
-            </line>
-
-            <!-- Product number -->
-            <textField>
-                <reportElement x="10" y="2" width="70" height="12"/>
-                <textElement textAlignment="Left">
-                    <font size="8"/>
-                </textElement>
-                <textFieldExpression>
-                    <![CDATA[$R{deliverynotereport.column.1}]]>
-                </textFieldExpression>
-            </textField>
-
-
-            <!-- Description -->
-            <textField isBlankWhenNull="true">
-                <reportElement x="80" y="2" width="90" height="12"/>
-                <textElement textAlignment="Left">
-                    <font size="8"/>
-                </textElement>
-                <textFieldExpression>
-                    <![CDATA[$R{deliverynotereport.column.2}]]>
-                </textFieldExpression>
-            </textField>
-
-            <!-- Num picked -->
-            <textField isBlankWhenNull="true">
-                <reportElement x="400" y="2" width="80" height="12"/>
-                <textElement textAlignment="Right">
-                    <font size="8"/>
-                </textElement>
-                <textFieldExpression>
-                    <![CDATA[$R{deliverynotereport.column.4}]]>
-                </textFieldExpression>
-            </textField>
-
-
-
-
-
-        </band>
-    </columnHeader>
-
-    <detail>
-        <band height="12" isSplitAllowed="true">
-
-            <!-- Number -->
-            <textField isBlankWhenNull="true">
-                <reportElement x="10" y="0" width="70" height="12"/>
-                <textElement>
-                    <font size="8" isBold="false"/>
-                </textElement>
-                <textFieldExpression>
-                    <![CDATA[$F{product.number}]]>
-                </textFieldExpression>
-            </textField>
-
-            <!-- Description -->
-            <textField  isBlankWhenNull="true">
-                <reportElement x="80" y="0" width="250" height="12"/>
-                <textElement>
-                    <font size="8" isBold="false"/>
-                </textElement>
-                <textFieldExpression>
-                    <![CDATA[$F{product.description}]]>
-                </textFieldExpression>
-            </textField>
-
-            <!-- Count -->
-            <textField isBlankWhenNull="true">
-                <reportElement x="400" y="0" width="70" height="12"/>
-                <textElement textAlignment="Right">
-                    <font size="8" isBold="false"/>
-                </textElement>
-                <textFieldExpression class="java.lang.Integer">
-                    <![CDATA[$F{product.count}]]>
-                </textFieldExpression>
-            </textField>
-
-            <!-- Unit -->
-            <textField isBlankWhenNull="true">
-                <reportElement x="472" y="0" width="18" height="12"/>
-                <textElement textAlignment="Left">
-                    <font size="8" isBold="false"/>
-                </textElement>
-                <textFieldExpression>
-                    <![CDATA[$F{product.unit}]]>
-                </textFieldExpression>
-            </textField>
-
-
-
-
-        </band>
-    </detail>
-
-    <pageFooter>
-        <band height="13">
-            <!-- Number -->
-            <textField>
-                <reportElement x="0" y="0" width="510" height="13"/>
-
-                <box bottomBorder="Thin" borderColor="#000000" />
-
-                <textElement textAlignment="Right" verticalAlignment="Bottom">
-                    <font size="8" isBold="false"/>
-                </textElement>
-                <textFieldExpression>
-                    <![CDATA[$R{deliverynotereport.continuing}]]>
-                </textFieldExpression>
-            </textField>
-
-        </band>
-    </pageFooter>
-
-    <lastPageFooter>
-        <band height="0">
-        </band>
-    </lastPageFooter>
-
+<!-- Created with Jaspersoft Studio version 6.21.1.final using JasperReports Library version 6.21.0-4f56c4f36cd19e17675219a9ac4692d5f0f13b06  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="PickingslipRows" pageWidth="595" pageHeight="842" whenNoDataType="NoPages" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="30" bottomMargin="30" uuid="40fa6a52-6b5e-470a-bd8d-2d590dae26e3">
+	<field name="product.number" class="java.lang.String"/>
+	<field name="product.description" class="java.lang.String"/>
+	<field name="product.count" class="java.math.BigDecimal"/>
+	<field name="product.unitprice" class="java.math.BigDecimal"/>
+	<field name="product.unit" class="java.lang.String"/>
+	<field name="product.weight" class="java.math.BigDecimal"/>
+	<field name="product.volume" class="java.math.BigDecimal"/>
+	<variable name="totalweight" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{product.weight}.multiply( new BigDecimal( $F{product.count}.doubleValue() ) )]]></variableExpression>
+		<initialValueExpression><![CDATA[new BigDecimal(0.0)]]></initialValueExpression>
+	</variable>
+	<variable name="totalvolume" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{product.volume}.multiply( new BigDecimal( $F{product.count}.doubleValue() ) )]]></variableExpression>
+		<initialValueExpression><![CDATA[new BigDecimal(0.0)]]></initialValueExpression>
+	</variable>
+	<columnHeader>
+		<band height="16" splitType="Stretch">
+			<line>
+				<reportElement x="0" y="0" width="510" height="1" uuid="b422bb80-d611-4e0b-ba4f-3762b9ae14e4"/>
+				<graphicElement>
+					<pen lineWidth="0.5" lineStyle="Solid"/>
+				</graphicElement>
+			</line>
+			<line>
+				<reportElement x="0" y="13" width="510" height="1" uuid="de77b94f-c9db-48a2-9a3f-9901229f4370"/>
+				<graphicElement>
+					<pen lineWidth="0.5" lineStyle="Solid"/>
+				</graphicElement>
+			</line>
+			<textField>
+				<reportElement x="10" y="2" width="70" height="12" uuid="af339cb4-ce73-4383-a40e-39ad68d3697d"/>
+				<textElement textAlignment="Left">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$R{deliverynotereport.column.1}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="80" y="2" width="90" height="12" uuid="66656815-e4bd-4c5b-b0bc-71a8bf59d4a8"/>
+				<textElement textAlignment="Left">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$R{deliverynotereport.column.2}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="400" y="2" width="80" height="12" uuid="a9c2707a-a571-45b5-b624-6ab3a419783f"/>
+				<textElement textAlignment="Right">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$R{deliverynotereport.column.4}]]></textFieldExpression>
+			</textField>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="12" splitType="Stretch">
+			<textField isBlankWhenNull="true">
+				<reportElement x="10" y="0" width="70" height="12" uuid="8638dad0-b78c-4ce5-9128-dce0f77db9cb"/>
+				<textElement>
+					<font size="8" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{product.number}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="80" y="0" width="250" height="12" uuid="bb095c91-7e6c-4818-aa8f-f33d6279c62a"/>
+				<textElement>
+					<font size="8" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{product.description}]]></textFieldExpression>
+			</textField>
+		<textField pattern="#,##0.0" isBlankWhenNull="true">
+			<reportElement x="400" y="0" width="70" height="12" uuid="6bd9944f-cacc-4a5c-9c38-ddafe436dbed"/>
+			<textElement textAlignment="Right">
+				<font size="8" isBold="false"/>
+			</textElement>
+			<textFieldExpression><![CDATA[$F{product.count}]]></textFieldExpression>
+		</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="472" y="0" width="18" height="12" uuid="cfe3d462-ae8e-4f64-bfbb-3d4d7f90649a"/>
+				<textElement textAlignment="Left">
+					<font size="8" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{product.unit}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<pageFooter>
+		<band height="13" splitType="Stretch">
+			<textField>
+				<reportElement x="0" y="0" width="510" height="13" uuid="0e617aeb-0600-4beb-94ee-45ce8ad28b10"/>
+				<box>
+					<pen lineColor="#000000"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Bottom">
+					<font size="8" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$R{deliverynotereport.continuing}]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageFooter>
+	<lastPageFooter>
+		<band splitType="Stretch"/>
+	</lastPageFooter>
 </jasperReport>

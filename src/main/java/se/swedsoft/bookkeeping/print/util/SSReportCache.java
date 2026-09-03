@@ -4,19 +4,14 @@ package se.swedsoft.bookkeeping.print.util;
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JasperCompileManager;
 import net.sf.jasperreports.engine.JasperReport;
-import org.fribok.bookkeeping.app.Path;
-import org.fribok.bookkeeping.app.Version;
 import se.swedsoft.bookkeeping.util.SSException;
 
+import java.awt.Font;
+import java.awt.FontFormatException;
+import java.awt.GraphicsEnvironment;
 import java.io.*;
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.PropertyResourceBundle;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,10 +24,11 @@ import org.slf4j.LoggerFactory;
  */
 public class SSReportCache {    private static final Logger LOG = LoggerFactory.getLogger(SSReportCache.class);
 
-    private static final File REPORT_DIR = new File(Path.get(Path.APP_DATA), "report");
-    private static final File COMPILED_DIR = new File(REPORT_DIR, "compiled");
     private static final String REPORT_RESOURCE = "/reports/report/";
-    private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'");
+
+    static {
+        registerBundledAwtFonts();
+    }
 
     // The report cache with compiled report definitions.
     private Map<String, JasperReport> iReportCache;
@@ -89,95 +85,43 @@ public class SSReportCache {    private static final Logger LOG = LoggerFactory.
      * @throws FileNotFoundException
      */
     private JasperReport loadReport(String pReportName) throws FileNotFoundException {
-        File iReportFile = new File(REPORT_DIR, pReportName);
-        File iCompiledFile = new File(COMPILED_DIR,
-                pReportName.replace(".jrxml", ".jasperreport"));
 	String iReportResource = REPORT_RESOURCE + pReportName;
 
         try {
-            // If the report exists on disk, load it...
-            if (iCompiledFile.exists()) {
-		try {
-		    LocalDateTime iReportDate = LocalDateTime.parse(Version.APP_BUILD, DATE_TIME_FORMATTER);
-		    LocalDateTime iCompiledDate = LocalDateTime.ofInstant(
-		            Instant.ofEpochMilli(iCompiledFile.lastModified()),
-		            ZoneId.systemDefault());
-		    // if the report file hasn't been changes since the last compile,
-		    // load the compiled file, else fall through to the compile code
-		    if (iReportDate.compareTo(iCompiledDate) <= 0) {
-			LOG.info("Loading precompiled report {} from disk...", iCompiledFile);
-			return loadCompiledReport(iCompiledFile);
-		    }
-		} catch (DateTimeParseException ex)  {
-		    // ta bort den kompilerade versionen?
-		    LOG.info(ex.getMessage());
-		}
-		
-                LOG.info("Precompiled report exists, but report is changed ...");
-            }
-
-            // .. we need to recompile the report
-	    LOG.info("Compiling and saving report {} to disk...", iReportResource);
+            // Always compile from source; do not load or save precompiled reports
+            // to disk to ensure reports are always up-to-date with the current
+            // JasperReports version and avoid classpath/bytecode compatibility issues
+            // across version upgrades.
+            LOG.info("Compiling report {} from source...", iReportResource);
 
 	    InputStream is = getClass().getResourceAsStream(iReportResource);
 
-	    JasperReport iReport = JasperCompileManager.compileReport(is);
-            // Make the output directory
-            iCompiledFile.getParentFile().mkdirs();
-
-            return saveCompiledReport(iCompiledFile, iReport);
+      return JasperCompileManager.compileReport(is);
         } catch (JRException ex) {
             LOG.error("Unexpected error", ex);
         }
         return null;
     }
 
-    /**
-     *
-     * @param pCompiledFile
-     *
-     * @return The report
-     */
-    private JasperReport loadCompiledReport(File pCompiledFile) {
-        try {
-            FileInputStream iFileInputStream = new FileInputStream(pCompiledFile);
-
-            ObjectInputStream iObjectInputStream = new ObjectInputStream(
-                    new BufferedInputStream(iFileInputStream));
-
-            return (JasperReport) iObjectInputStream.readObject();
-
-        } catch (IOException ex) {
-            LOG.error("Unexpected error", ex);
-        } catch (ClassNotFoundException ex) {
-            LOG.error("Unexpected error", ex);
-        }
-        return null;
+    private static void registerBundledAwtFonts() {
+        registerBundledAwtFont("/org/fribok/fonts/OCRA.ttf");
+        registerBundledAwtFont("/org/fribok/fonts/OCRB.ttf");
     }
 
-    /**
-     *
-     * @param pCompiledFile
-     * @param pReport
-     *
-     * @return The report
-     */
-    private JasperReport saveCompiledReport(File pCompiledFile, JasperReport pReport) {
-        try {
-            FileOutputStream iFileOutputStream = new FileOutputStream(pCompiledFile);
-
-            ObjectOutputStream iObjectOutputStream = new ObjectOutputStream(
-                    new BufferedOutputStream(iFileOutputStream));
-
-            iObjectOutputStream.writeObject(pReport);
-            iObjectOutputStream.flush();
-
-            return pReport;
-        } catch (IOException e) {
-            LOG.error("Unexpected error", e);
+    private static void registerBundledAwtFont(String resourcePath) {
+        try (InputStream stream = SSReportCache.class.getResourceAsStream(resourcePath)) {
+            if (stream == null) {
+                LOG.warn("Bundled font resource not found: {}", resourcePath);
+                return;
+            }
+            Font font = Font.createFont(Font.TRUETYPE_FONT, stream);
+            GraphicsEnvironment.getLocalGraphicsEnvironment().registerFont(font);
+            LOG.info("Registered bundled AWT font: {}", font.getFontName());
+        } catch (IOException | FontFormatException e) {
+            LOG.warn("Failed to register bundled AWT font resource: {}", resourcePath, e);
         }
-        return null;
     }
+
 
     @Override
     public String toString() {

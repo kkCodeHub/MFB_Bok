@@ -40,7 +40,7 @@ class SSInventoryV2RepositoryTest {
         Class.forName("org.hsqldb.jdbcDriver");
         connection = DriverManager.getConnection(JDBC_URL, "sa", "");
 
-        SSDB.getInstance().startupLocal(connection);
+        se.swedsoft.bookkeeping.data.system.SSSystemConfigContext.startupLocal(connection);
 
         Integer companyId = createCompany("V2 Inventory Repo Test AB");
         SSNewCompany company = new SSNewCompany();
@@ -48,10 +48,10 @@ class SSInventoryV2RepositoryTest {
         company.setName("V2 Inventory Repo Test AB");
         SSDB.getInstance().setCurrentCompany(company);
 
-        SSNewAccountingYear year = new SSNewAccountingYear(
-                se.swedsoft.bookkeeping.util.SSDateUtil.toDate(LocalDate.of(2025, 1, 1)),
-                se.swedsoft.bookkeeping.util.SSDateUtil.toDate(LocalDate.of(2025, 12, 31)));
-        SSDB.getInstance().addAccountingYear(year);
+        SSNewAccountingYear year = new SSNewAccountingYear();
+        year.setLocalFrom(LocalDate.of(2025, 1, 1));
+        year.setLocalTo(LocalDate.of(2025, 12, 31));
+        se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.addAccountingYear(year);
         SSDB.getInstance().setCurrentYear(year);
 
         Repositories.init(SSDB.getInstance());
@@ -70,7 +70,7 @@ class SSInventoryV2RepositoryTest {
 
     @BeforeEach
     void clearCaches() {
-        SSDB.getInstance().clearLists();
+        se.swedsoft.bookkeeping.data.system.SSEventTriggerSyncContext.clearCachedLists();
         SSDB.getInstance().getCurrentYear();
     }
 
@@ -88,7 +88,7 @@ class SSInventoryV2RepositoryTest {
         Repositories.inventories().add(inventory);
         assertThat(inventory.getNumber()).isGreaterThan(0);
 
-        SSDB.getInstance().clearLists();
+        se.swedsoft.bookkeeping.data.system.SSEventTriggerSyncContext.clearCachedLists();
         Optional<SSInventory> fetched = Repositories.inventories().findByInventory(inventory);
         assertThat(fetched).isPresent();
         assertThat(fetched.get().getText()).isEqualTo("Repo inventory text");
@@ -106,7 +106,7 @@ class SSInventoryV2RepositoryTest {
         inventory.getRows().add(row("P-INVST-REPO-002", 8, 0));
         Repositories.inventories().add(inventory);
 
-        SSDB.getInstance().clearLists();
+        se.swedsoft.bookkeeping.data.system.SSEventTriggerSyncContext.clearCachedLists();
         Optional<SSInventory> fetched = Repositories.inventories().findByInventory(inventory);
         assertThat(fetched).isPresent();
 
@@ -117,7 +117,7 @@ class SSInventoryV2RepositoryTest {
         updatedInventory.getRows().add(row("P-INVST-REPO-003", 6, 3));
         Repositories.inventories().update(updatedInventory);
 
-        SSDB.getInstance().clearLists();
+        se.swedsoft.bookkeeping.data.system.SSEventTriggerSyncContext.clearCachedLists();
         Optional<SSInventory> updated = Repositories.inventories().findByInventory(inventory);
         assertThat(updated).isPresent();
         assertThat(updated.get().getText()).isEqualTo("After inventory repo update");
@@ -129,7 +129,7 @@ class SSInventoryV2RepositoryTest {
 
         Integer number = updated.get().getNumber();
         Repositories.inventories().delete(updated.get());
-        SSDB.getInstance().clearLists();
+        se.swedsoft.bookkeeping.data.system.SSEventTriggerSyncContext.clearCachedLists();
         List<SSInventory> all = Repositories.inventories().findAll();
         assertThat(all).extracting(SSInventory::getNumber).doesNotContain(number);
     }
@@ -150,19 +150,10 @@ class SSInventoryV2RepositoryTest {
     }
 
     private static Integer createCompany(String name) throws Exception {
-        try (PreparedStatement statement = connection.prepareStatement(
-                "INSERT INTO tbl_company(name) VALUES (?)", Statement.RETURN_GENERATED_KEYS)) {
-            statement.setString(1, name);
-            statement.executeUpdate();
-            connection.commit();
-
-            try (ResultSet keys = statement.getGeneratedKeys()) {
-                if (keys.next()) {
-                    return keys.getInt(1);
-                }
-            }
-        }
-        throw new IllegalStateException("Could not create test company for inventory repository V2 integration test");
+        se.swedsoft.bookkeeping.data.SSNewCompany company = new se.swedsoft.bookkeeping.data.SSNewCompany();
+        company.setName(name);
+        se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.addCompany(company);
+        return company.getId();
     }
 }
 

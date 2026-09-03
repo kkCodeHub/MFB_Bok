@@ -4,7 +4,7 @@ package se.swedsoft.bookkeeping.gui.company.panel;
 import se.swedsoft.bookkeeping.data.SSAccount;
 import se.swedsoft.bookkeeping.data.SSAccountPlan;
 import se.swedsoft.bookkeeping.data.common.SSDefaultAccount;
-import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.data.system.SSAccountingContext;
 import se.swedsoft.bookkeeping.gui.util.SSSelectionListener;
 import se.swedsoft.bookkeeping.gui.util.components.SSTableComboBox;
 import se.swedsoft.bookkeeping.gui.util.model.SSAccountTableModel;
@@ -192,7 +192,7 @@ public class SSDefaultAccountPanel extends JPanel {
     public void setDefaultAccounts(Map<SSDefaultAccount, Integer> iDefaultAccounts) {
         this.iDefaultAccounts = iDefaultAccounts;
 
-        SSAccountPlan iAccountPlan = SSDB.getInstance().getCurrentAccountPlan();
+        SSAccountPlan iAccountPlan = SSAccountingContext.getCurrentAccountPlan();
 
         for (SSDefaultAccount iCurrent : SSDefaultAccount.values()) {
             SSTableComboBox<SSAccount> iComboBox = iComboBoxes.get(iCurrent);

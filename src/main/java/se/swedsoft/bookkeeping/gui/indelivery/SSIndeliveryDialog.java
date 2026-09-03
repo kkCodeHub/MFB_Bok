@@ -48,9 +48,8 @@ public class SSIndeliveryDialog {
                 SSIndelivery iIndelivery1 = iPanel.getIndelivery();
 
                 Repositories.indeliveries().add(iIndelivery1);
-                if (pModel != null) {
-                    pModel.fireTableDataChanged();
-                }
+
+                SSIndeliveryFrame.fireTableDataChanged();
 
                 iDialog.closeDialog();
 
@@ -72,9 +71,7 @@ public class SSIndeliveryDialog {
 
                 Repositories.indeliveries().add(iIndelivery1);
 
-                if (pModel != null) {
-                    pModel.fireTableDataChanged();
-                }
+                SSIndeliveryFrame.fireTableDataChanged();
 
                 iDialog.closeDialog();
             }
@@ -105,9 +102,7 @@ public class SSIndeliveryDialog {
 
                 Repositories.indeliveries().update(iIndelivery1);
 
-                if (pModel != null) {
-                    pModel.fireTableDataChanged();
-                }
+                SSIndeliveryFrame.fireTableDataChanged();
                 iDialog.closeDialog();
 
             });
@@ -132,9 +127,7 @@ public class SSIndeliveryDialog {
 
                 Repositories.indeliveries().update(iIndelivery1);
 
-                if (pModel != null) {
-                    pModel.fireTableDataChanged();
-                }
+                SSIndeliveryFrame.fireTableDataChanged();
                 iDialog.closeDialog();
             }
         });
@@ -168,9 +161,7 @@ public class SSIndeliveryDialog {
 
                 Repositories.indeliveries().add(iIndelivery1);
 
-                if (pModel != null) {
-                    pModel.fireTableDataChanged();
-                }
+                SSIndeliveryFrame.fireTableDataChanged();
 
                 iDialog.closeDialog();
 
@@ -193,9 +184,7 @@ public class SSIndeliveryDialog {
 
                 Repositories.indeliveries().add(iIndelivery1);
 
-                if (pModel != null) {
-                    pModel.fireTableDataChanged();
-                }
+                SSIndeliveryFrame.fireTableDataChanged();
 
                 iDialog.closeDialog();
             }

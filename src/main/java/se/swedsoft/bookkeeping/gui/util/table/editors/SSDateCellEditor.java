@@ -42,7 +42,8 @@ public class SSDateCellEditor extends AbstractCellEditor implements TableCellEdi
         DateFormat iFormat = DateFormat.getDateInstance(DateFormat.SHORT);
 
         iDateChooser = new SSDateChooser();
-        iDateChooser.addChangeListener(e -> setDate(iDateChooser.getDate()));
+        iDateChooser.addChangeListener(
+                e -> setDate(SSDateUtil.toDate(iDateChooser.getLocalDate())));
 
         iTextField = new JFormattedTextField(iFormat);
         iTextField.setHorizontalAlignment(JTextField.TRAILING);
@@ -56,7 +57,7 @@ public class SSDateCellEditor extends AbstractCellEditor implements TableCellEdi
 
         iButton.addActionListener(e -> {
 
-                iDateChooser.setDate(iDate);
+                iDateChooser.setLocalDate(SSDateUtil.toLocalDate(iDate));
                 iDateChooser.show(iButton, 0, iButton.getHeight());
 
             });
@@ -115,7 +116,7 @@ public class SSDateCellEditor extends AbstractCellEditor implements TableCellEdi
         this.iDate = iDate;
 
         iTextField.setValue(iDate);
-        iDateChooser.setDate(iDate);
+        iDateChooser.setLocalDate(SSDateUtil.toLocalDate(iDate));
     }
 
     @Override

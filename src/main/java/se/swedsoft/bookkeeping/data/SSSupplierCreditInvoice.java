@@ -66,8 +66,11 @@ public class SSSupplierCreditInvoice extends SSSupplierInvoice {
     public void doAutoIncrecement() {
         List<SSSupplierCreditInvoice> iInvoices = Repositories.supplierCreditInvoices().findAll();
 
-        int iNumber = SSDB.getInstance().getAutoIncrement().orElse(new SSAutoIncrement()).getNumber(
-                "suppliercreditinvoice");
+        SSNewCompany iCurrentCompany = se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.getCurrentCompany();
+        SSAutoIncrement iAutoIncrement = iCurrentCompany != null && iCurrentCompany.getAutoIncrement() != null
+                ? iCurrentCompany.getAutoIncrement()
+                : new SSAutoIncrement();
+        int iNumber = iAutoIncrement.getNumber("suppliercreditinvoice");
 
         for (SSSupplierCreditInvoice iSupplierInvoice : iInvoices) {
             if (iSupplierInvoice.getNumber() > iNumber) {
@@ -215,9 +218,9 @@ public class SSSupplierCreditInvoice extends SSSupplierInvoice {
         String iDescription = SSBundle.getBundle().getString(
                 "suppliercreditinvoiceframe.voucherdescription");
 
-        SSNewCompany     iCompany = SSDB.getInstance().getCurrentCompany();
+        SSNewCompany     iCompany = se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.getCurrentCompany();
 
-        SSAccountPlan iAccountPlan = SSDB.getInstance().getCurrentAccountPlan();
+        SSAccountPlan iAccountPlan = se.swedsoft.bookkeeping.data.system.SSAccountingContext.getCurrentAccountPlan();
 
         iVoucher = new SSVoucher();
         iVoucher.setLocalDate(SSDateUtil.today());
@@ -255,9 +258,9 @@ public class SSSupplierCreditInvoice extends SSSupplierInvoice {
 
             iVoucherRow.setCredit(iRow.getSum().orElse(null));
             iVoucherRow.setAccount(iRow.getAccount(iAccountPlan.getAccounts()));
-            iVoucherRow.setProject(iRow.getProject(SSDB.getInstance().getProjects()));
+            iVoucherRow.setProject(iRow.getProject(se.swedsoft.bookkeeping.data.system.SSProjectContext.getProjects()));
             iVoucherRow.setResultUnit(
-                    iRow.getResultUnit(SSDB.getInstance().getResultUnits()));
+                    iRow.getResultUnit(se.swedsoft.bookkeeping.data.system.SSResultUnitContext.getResultUnits()));
 
             if (iVoucherRow.getAccountNr() != null) {
                 iVoucher.addVoucherRow(iVoucherRow);

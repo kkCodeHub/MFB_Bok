@@ -9,11 +9,16 @@ import se.swedsoft.bookkeeping.data.SSNewProject;
 import se.swedsoft.bookkeeping.data.SSNewResultUnit;
 import se.swedsoft.bookkeeping.data.SSOwnReport;
 import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.data.system.SSCompanyYearContext;
+import se.swedsoft.bookkeeping.data.system.SSProjectContext;
+import se.swedsoft.bookkeeping.data.system.SSResultUnitContext;
 import se.swedsoft.bookkeeping.gui.util.SSBundle;
 import se.swedsoft.bookkeeping.gui.util.model.SSDefaultTableModel;
 import se.swedsoft.bookkeeping.print.SSPrinter;
+import se.swedsoft.bookkeeping.util.SSDateUtil;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.*;
 
 
@@ -33,9 +38,9 @@ public class SSOwnReportPrinter extends SSPrinter {
 
     SSOwnReportAccountSchema iAccountSchema;
 
-    Date iDateFrom;
+    LocalDate iDateFrom;
 
-    Date iDateTo;
+    LocalDate iDateTo;
 
     Map<Integer, String> iSummaries;
 
@@ -46,19 +51,19 @@ public class SSOwnReportPrinter extends SSPrinter {
      * @param pOwnReport
      */
 
-    public SSOwnReportPrinter(Date pFrom, Date pTo, SSOwnReport pOwnReport) {
+    public SSOwnReportPrinter(LocalDate pFrom, LocalDate pTo, SSOwnReport pOwnReport) {
         iDateFrom = pFrom;
         iDateTo = pTo;
         iOwnReport = pOwnReport;
 
         iProject = iOwnReport.getProjectNr() == null
                 ? null
-                : SSDB.getInstance().getProject(iOwnReport.getProjectNr()).orElse(null);
+                : SSProjectContext.getProject(iOwnReport.getProjectNr()).orElse(null);
         iResultUnit = iOwnReport.getResultUnitNr() == null
                 ? null
-                : SSDB.getInstance().getResultUnit(iOwnReport.getResultUnitNr()).orElse(null);
+                : SSResultUnitContext.getResultUnit(iOwnReport.getResultUnitNr()).orElse(null);
 
-        // iYearData = SSDB.getInstance().getCurrentYear();
+        // iYearData = se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.getCurrentYear();
 
         iAccountSchema = SSOwnReportAccountSchema.getSchema(iOwnReport);
 
@@ -121,8 +126,8 @@ public class SSOwnReportPrinter extends SSPrinter {
     @Override
     protected SSDefaultTableModel getModel() {
 
-        addParameter("dateFrom", iDateFrom);
-        addParameter("dateTo", iDateTo);
+        addParameter("dateFrom", SSDateUtil.toDate(iDateFrom));
+        addParameter("dateTo", SSDateUtil.toDate(iDateTo));
 
         if (iProject != null) {
             addParameter("periodTitle",
@@ -148,7 +153,7 @@ public class SSOwnReportPrinter extends SSPrinter {
 
         getSummaries(iResultGroups);
 
-        List<SSAccount> iAccounts = SSDB.getInstance().getCurrentYear().getAccounts();
+        List<SSAccount> iAccounts = SSCompanyYearContext.getCurrentYear().getAccounts();
 
         List<ResultRow> iRows = new LinkedList<>();
 

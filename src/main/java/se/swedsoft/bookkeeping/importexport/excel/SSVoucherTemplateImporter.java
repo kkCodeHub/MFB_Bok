@@ -1,10 +1,8 @@
 package se.swedsoft.bookkeeping.importexport.excel;
 
 
-import jxl.Sheet;
-import jxl.Workbook;
-import jxl.WorkbookSettings;
-import jxl.read.biff.BiffException;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
 import se.swedsoft.bookkeeping.data.SSVoucherTemplate;
 import se.swedsoft.bookkeeping.data.system.SSDB;
 import se.swedsoft.bookkeeping.gui.SSMainFrame;
@@ -13,6 +11,7 @@ import se.swedsoft.bookkeeping.importexport.dialog.SSImportReportDialog;
 import se.swedsoft.bookkeeping.importexport.excel.util.SSExcelCell;
 import se.swedsoft.bookkeeping.importexport.excel.util.SSExcelRow;
 import se.swedsoft.bookkeeping.importexport.excel.util.SSExcelSheet;
+import se.swedsoft.bookkeeping.importexport.excel.util.SSExcelWorkbookReader;
 import se.swedsoft.bookkeeping.importexport.util.SSImportException;
 
 import javax.swing.*;
@@ -29,13 +28,14 @@ import static se.swedsoft.bookkeeping.data.SSVoucherTemplate.SSVoucherTemplateRo
  */
 public class SSVoucherTemplateImporter {
 
-    private File iFile;
+    private final File iFile;
 
-    private Map<String, Integer> iColumns;
+    private final Map<String, Integer> iColumns;
 
     /**
+     * Creates a voucher template importer.
      *
-     * @param iFile
+     * @param iFile source Excel file
      */
     public SSVoucherTemplateImporter(File iFile) {
         this.iFile = iFile;
@@ -43,22 +43,16 @@ public class SSVoucherTemplateImporter {
     }
 
     /**
+     * Imports voucher templates from the configured file.
      *
-     * @throws SSImportException
-     * @throws IOException
+     * @throws SSImportException if import content is invalid
+     * @throws IOException if reading the file fails
      */
     public void Import()  throws IOException, SSImportException {
-        WorkbookSettings iSettings = new WorkbookSettings();
-
-        iSettings.setLocale(new Locale("sv", "SE"));
-        iSettings.setEncoding("windows-1252");
-        iSettings.setExcelDisplayLanguage("SE");
-        iSettings.setExcelRegionalSettings("SE");
-
-        List<SSVoucherTemplate> iVoucherTemplates = null;
+        List<SSVoucherTemplate> iVoucherTemplates;
 
         try {
-            Workbook iWorkbook = Workbook.getWorkbook(iFile, iSettings);
+            Workbook iWorkbook = SSExcelWorkbookReader.openWorkbook(iFile);
 
             // Empty workbook, ie nothing to import
             if (iWorkbook.getNumberOfSheets() == 0) {
@@ -66,21 +60,21 @@ public class SSVoucherTemplateImporter {
                         "vouchertemplateframe.import.nosheets");
             }
 
-            Sheet iSheet = iWorkbook.getSheet(0);
+            Sheet iSheet = iWorkbook.getSheetAt(0);
 
             iVoucherTemplates = importVouchers(new SSExcelSheet(iSheet));
 
             iWorkbook.close();
 
-        } catch (BiffException e) {
+        } catch (IOException e) {
             throw new SSImportException(e.getLocalizedMessage());
         }
         boolean iResult = showImportReport(iVoucherTemplates);
 
-        if (iVoucherTemplates != null && iResult) {
+        if (iResult) {
             for (SSVoucherTemplate iVoucherTemplate : iVoucherTemplates) {
-                if (!SSDB.getInstance().getVoucherTemplates().contains(iVoucherTemplate)) {
-                    SSDB.getInstance().addVoucherTemplate(iVoucherTemplate);
+                if (!se.swedsoft.bookkeeping.data.system.SSAccountingContext.getVoucherTemplates().contains(iVoucherTemplate)) {
+                    se.swedsoft.bookkeeping.data.system.SSAccountingContext.addVoucherTemplate(iVoucherTemplate);
                 }
 
             }
@@ -89,8 +83,9 @@ public class SSVoucherTemplateImporter {
     }
 
     /**
+     * Reads and validates column names from the header row.
      *
-     * @param iColumns
+     * @param iColumns header row
      */
     private void getColumnIndexes(SSExcelRow iColumns) {
 
@@ -100,7 +95,7 @@ public class SSVoucherTemplateImporter {
         for (SSExcelCell iColumn : iColumns.getCells()) {
             String iName = iColumn.getString();
 
-            if (iName != null && iName.length() > 0) {
+            if (iName != null && !iName.isEmpty()) {
                 if (iName.equalsIgnoreCase(SSVoucherTemplateExporter.BESKRIVNING)) {
                     this.iColumns.put(SSVoucherTemplateExporter.BESKRIVNING, iIndex);
                 } else if (iName.equalsIgnoreCase(SSVoucherTemplateExporter.KONTO)) {
@@ -120,9 +115,10 @@ public class SSVoucherTemplateImporter {
     }
 
     /**
+     * Imports voucher templates and rows from the given worksheet.
      *
-     * @param pSheet
-     * @return
+     * @param pSheet source sheet
+     * @return imported voucher templates
      */
     private List<SSVoucherTemplate> importVouchers(SSExcelSheet pSheet) {
 
@@ -133,7 +129,7 @@ public class SSVoucherTemplateImporter {
                     "vouchertemplateframe.import.norows");
         }
 
-        getColumnIndexes(iRows.get(0));
+        getColumnIndexes(iRows.getFirst());
 
         List<SSVoucherTemplate> iVoucherTemplates = new LinkedList<>();
 
@@ -156,7 +152,7 @@ public class SSVoucherTemplateImporter {
 
                 String iValue = iCell.getString();
 
-                if (iValue == null || iValue.trim().length() == 0) {
+                if (iValue == null || iValue.trim().isEmpty()) {
                     continue;
                 }
 
@@ -199,9 +195,10 @@ public class SSVoucherTemplateImporter {
     }
 
     /**
+     * Shows a summary dialog before import is applied.
      *
-     * @param iVoucherTemplates
-     * @return
+     * @param iVoucherTemplates templates queued for import
+     * @return {@code true} when user confirms import
      */
     private boolean showImportReport(List<SSVoucherTemplate> iVoucherTemplates) {
         SSImportReportDialog iDialog = new SSImportReportDialog(SSMainFrame.getInstance(),
@@ -226,19 +223,19 @@ public class SSVoucherTemplateImporter {
 
         iDialog.setText(sb.toString());
         iDialog.setSize(640, 480);
-        iDialog.setLocationRelativeTo(SSMainFrame.getInstance());
+        SSMainFrame iMainFrame = SSMainFrame.getInstance();
+        if (iMainFrame != null) {
+            iDialog.setLocationRelativeTo(iMainFrame);
+        }
 
         return iDialog.showDialog() == JOptionPane.OK_OPTION;
     }
 
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder();
-
-        sb.append("se.swedsoft.bookkeeping.importexport.excel.SSVoucherTemplateImporter");
-        sb.append("{iColumns=").append(iColumns);
-        sb.append(", iFile=").append(iFile);
-        sb.append('}');
-        return sb.toString();
+        return "se.swedsoft.bookkeeping.importexport.excel.SSVoucherTemplateImporter"
+                + "{iColumns=" + iColumns
+                + ", iFile=" + iFile
+                + '}';
     }
 }

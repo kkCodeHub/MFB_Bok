@@ -26,7 +26,7 @@ public class SSAboutPanel {    private static final Logger LOG = LoggerFactory.g
     private JButton iCloseButton;
 
     private JEditorPane iEditorPane;
-
+    private static final Dimension ABOUT_TEXT_SIZE = new Dimension(560, 340);
     /**
      *
      */
@@ -34,10 +34,13 @@ public class SSAboutPanel {    private static final Logger LOG = LoggerFactory.g
         String iText = SSBundle.getBundle().getString("aboutframe.abouttext");
 
         iEditorPane.setBackground(iPanel.getBackground());
+        iEditorPane.setPreferredSize(ABOUT_TEXT_SIZE);
+        iEditorPane.setMinimumSize(ABOUT_TEXT_SIZE);
 
         iText = iText.replace("{TITLE}", Version.APP_TITLE);
         iText = iText.replace("{VERSION}", Version.APP_VERSION);
         iText = iText.replace("{BUILD}", Version.APP_BUILD);
+
 
         iEditorPane.setText(iText);
 

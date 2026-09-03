@@ -2,6 +2,7 @@ package se.swedsoft.bookkeeping.gui.autodist;
 
 
 import se.swedsoft.bookkeeping.data.SSAutoDist;
+import se.swedsoft.bookkeeping.data.system.SSAccountingContext;
 import se.swedsoft.bookkeeping.data.system.SSDB;
 import se.swedsoft.bookkeeping.gui.SSMainFrame;
 import se.swedsoft.bookkeeping.gui.autodist.util.SSAutoDistTableModel;
@@ -249,21 +250,27 @@ public class SSAutoDistFrame extends SSDefaultTableFrame {
 
         if (iResponce == JOptionPane.YES_OPTION) {
             for (SSAutoDist iAutoDist : delete) {
-                SSDB.getInstance().deleteAutoDist(iAutoDist);
+                SSAccountingContext.deleteAutoDist(iAutoDist);
             }
         }
     }
 
     private SSAutoDist getAutoDist(SSAutoDist iAutoDist) {
-        return SSDB.getInstance().getAutoDist(iAutoDist).orElse(null);
+        return SSAccountingContext.getAutoDist(iAutoDist).orElse(null);
     }
 
     private List<SSAutoDist> getAutoDists(List<SSAutoDist> iAutoDists) {
-        return SSDB.getInstance().getAutoDists(iAutoDists);
+        return SSAccountingContext.getAutoDists(iAutoDists);
+    }
+
+    public static void fireTableDataChanged() {
+        if (cInstance != null) {
+            cInstance.updateFrame();
+        }
     }
 
     public void updateFrame() {
-        iModel.setObjects(SSDB.getInstance().getAutoDists());
+        iModel.setObjects(SSAccountingContext.getAutoDists());
     }
 
     public void actionPerformed(ActionEvent e) {

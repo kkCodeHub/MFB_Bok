@@ -10,6 +10,7 @@ import se.swedsoft.bookkeeping.gui.util.table.SSTableSearchable;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.*;
 
 
@@ -51,6 +52,8 @@ public class SSProduct implements SSTableSearchable, Serializable {
     private boolean iExpired;
     // Lagervara
     private boolean iStockGoods;
+    // Product can only be used with whole quantities (decimal part must be 0.0)
+    private boolean iOnlyWholeQuantity;
     // Enhet
     private SSUnit iUnit;
     // Vikt kg
@@ -90,8 +93,9 @@ public class SSProduct implements SSTableSearchable, Serializable {
         iFreight = new BigDecimal(0);
         iTaxCode = SSTaxCode.TAXRATE_1;
         iStockGoods = true;
+        iOnlyWholeQuantity = true;
 
-        SSNewCompany iCompany = SSDB.getInstance().getCurrentCompany();
+        SSNewCompany iCompany = se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.getCurrentCompany();
 
         if (iCompany != null) {
             iUnit = iCompany.getStandardUnit();
@@ -131,6 +135,7 @@ public class SSProduct implements SSTableSearchable, Serializable {
         iSupplierProductNr = iProduct.iSupplierProductNr;
         iExpired = iProduct.iExpired;
         iStockGoods = iProduct.iStockGoods;
+        iOnlyWholeQuantity = iProduct.iOnlyWholeQuantity;
         iUnit = iProduct.iUnit;
         iWeight = iProduct.iWeight;
         iVolume = iProduct.iVolume;
@@ -248,7 +253,7 @@ public class SSProduct implements SSTableSearchable, Serializable {
     }
 
     public Optional<SSNewProject> getProject(String iNumber) {
-        for (SSNewProject pProject : SSDB.getInstance().getProjects()) {
+        for (SSNewProject pProject : se.swedsoft.bookkeeping.data.system.SSProjectContext.getProjects()) {
             if (pProject.getNumber().equals(iNumber)) {
                 return Optional.of(pProject);
             }
@@ -266,7 +271,7 @@ public class SSProduct implements SSTableSearchable, Serializable {
     }
 
     public Optional<SSNewResultUnit> getResultUnit(String iNumber) {
-        for (SSNewResultUnit pResultUnit : SSDB.getInstance().getResultUnits()) {
+        for (SSNewResultUnit pResultUnit : se.swedsoft.bookkeeping.data.system.SSResultUnitContext.getResultUnits()) {
             if (pResultUnit.getNumber().equals(iNumber)) {
                 return Optional.of(pResultUnit);
             }
@@ -310,14 +315,14 @@ public class SSProduct implements SSTableSearchable, Serializable {
 
     // //////////////////////////////////////////////////
 
-    /**
-     *
-     * @return
-     */
-    public BigDecimal getSellingPrice() {
-        iUnitprice = iUnitprice.setScale(2, BigDecimal.ROUND_HALF_UP);
-        return iUnitprice;
-    }
+     /**
+      *
+      * @return
+      */
+     public BigDecimal getSellingPrice() {
+         iUnitprice = iUnitprice.setScale(2, RoundingMode.HALF_UP);
+         return iUnitprice;
+     }
 
     /**
      *
@@ -342,7 +347,7 @@ public class SSProduct implements SSTableSearchable, Serializable {
      * @return
      */
     public Optional<BigDecimal> getTaxRate() {
-        SSNewCompany iCompany = SSDB.getInstance().getCurrentCompany();
+        SSNewCompany iCompany = se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.getCurrentCompany();
 
         if (iTaxCode != null && iCompany != null) {
             return iCompany.getTaxRate(iTaxCode);
@@ -558,6 +563,24 @@ public class SSProduct implements SSTableSearchable, Serializable {
         this.iStockGoods = iStockGoods;
     }
 
+    /**
+     * Indicates if this product only accepts whole quantities.
+     *
+     * @return {@code true} if decimal quantities are not allowed for this product
+     */
+    public boolean isOnlyWholeQuantity() {
+        return iOnlyWholeQuantity;
+    }
+
+    /**
+     * Sets if this product only accepts whole quantities.
+     *
+     * @param iOnlyWholeQuantity {@code true} to require decimal part 0.0
+     */
+    public void setOnlyWholeQuantity(boolean iOnlyWholeQuantity) {
+        this.iOnlyWholeQuantity = iOnlyWholeQuantity;
+    }
+
     // //////////////////////////////////////////////////
 
     /**
@@ -727,6 +750,11 @@ public class SSProduct implements SSTableSearchable, Serializable {
         return false;
     }
 
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(iNumber);
+    }
+
     public String toString() {
         StringBuilder sb = new StringBuilder();
 
@@ -748,7 +776,7 @@ public class SSProduct implements SSTableSearchable, Serializable {
 
     public BigDecimal getProductRevenueForMonth(SSMonth iMonth) {
         Double iInvoiceSum = 0.0;
-        List<SSInvoice> iInvoices = SSDB.getInstance().getInvoices();
+        List<SSInvoice> iInvoices = se.swedsoft.bookkeeping.data.system.SSSalesContext.getInvoices();
 
         for (SSInvoice iInvoice : iInvoices) {
             if (iMonth.isDateInMonth(iInvoice.getLocalDate())) {
@@ -763,7 +791,7 @@ public class SSProduct implements SSTableSearchable, Serializable {
             }
         }
 
-        List<SSCreditInvoice> iCreditInvoices = SSDB.getInstance().getCreditInvoices();
+        List<SSCreditInvoice> iCreditInvoices = se.swedsoft.bookkeeping.data.system.SSSalesContext.getCreditInvoices();
         Double iCreditInvoiceSum = 0.0;
 
         for (SSCreditInvoice iCreditInvoice : iCreditInvoices) {

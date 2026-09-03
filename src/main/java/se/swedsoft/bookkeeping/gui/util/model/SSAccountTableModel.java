@@ -3,7 +3,8 @@ package se.swedsoft.bookkeeping.gui.util.model;
 
 import se.swedsoft.bookkeeping.data.SSAccount;
 import se.swedsoft.bookkeeping.data.SSNewAccountingYear;
-import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.data.system.SSAccountingContext;
+import se.swedsoft.bookkeeping.data.system.SSCompanyYearContext;
 import se.swedsoft.bookkeeping.gui.util.SSBundle;
 import se.swedsoft.bookkeeping.gui.util.table.model.SSTableColumn;
 import se.swedsoft.bookkeeping.gui.util.table.model.SSTableModel;
@@ -22,7 +23,7 @@ public class SSAccountTableModel extends SSTableModel<SSAccount> {
      * Default constructor.
      */
     public SSAccountTableModel() {
-        super(SSDB.getInstance().getAccounts());
+        super(SSAccountingContext.getAccounts());
     }
 
     /**
@@ -49,12 +50,12 @@ public class SSAccountTableModel extends SSTableModel<SSAccount> {
      */
     public static SSAccountTableModel getDropDownModel() {
         SSAccountTableModel iModel;
-        SSNewAccountingYear iAccountingYear = SSDB.getInstance().getCurrentYear();
+        SSNewAccountingYear iAccountingYear = SSCompanyYearContext.getCurrentYear();
 
         if (iAccountingYear == null) {
             iModel = new SSAccountTableModel();
         } else {
-            List<SSAccount> iAccounts = SSDB.getInstance().getCurrentYear().getActiveAccounts();
+            List<SSAccount> iAccounts = SSCompanyYearContext.getCurrentYear().getActiveAccounts();
 
             if (iAccounts == null) {
                 iModel = new SSAccountTableModel();
@@ -235,4 +236,3 @@ public class SSAccountTableModel extends SSTableModel<SSAccount> {
     };
 
 }
-

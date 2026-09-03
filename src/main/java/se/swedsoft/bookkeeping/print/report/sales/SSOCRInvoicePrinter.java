@@ -5,6 +5,7 @@ import se.swedsoft.bookkeeping.calc.SSOCRNumber;
 import se.swedsoft.bookkeeping.calc.math.SSInvoiceMath;
 import se.swedsoft.bookkeeping.data.SSInvoice;
 import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.data.system.SSSalesContext;
 import se.swedsoft.bookkeeping.gui.util.graphics.SSImage;
 
 import java.math.BigDecimal;
@@ -48,7 +49,7 @@ public class SSOCRInvoicePrinter extends SSInvoicePrinter {
 
         setMargins(0, 0, 0, 0);
 
-        /* SSNewCompany iCompany = SSDB.getInstance().getCurrentCompany();
+        /* SSNewCompany iCompany = se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.getCurrentCompany();
 
          String iOCRNumber = SSOCRNumber.getOCRNumber(iInvoice);
 
@@ -58,7 +59,7 @@ public class SSOCRInvoicePrinter extends SSInvoicePrinter {
         // iCodeRow.setReferenceNumber( iOCRNumber );
         // iCodeRow.setBankNumber     ( iCompany.getBankGiroNumber() );
         iCodeRow.setReferenceNumber(iInvoice.getOCRNumber());
-        iCodeRow.setBankNumber(SSDB.getInstance().getCurrentCompany().getBankGiroNumber());
+        iCodeRow.setBankNumber(se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.getCurrentCompany().getBankGiroNumber());
         iCodeRow.setValue(SSInvoiceMath.getTotalSum(iInvoice));
 
         addParameters();
@@ -71,7 +72,6 @@ public class SSOCRInvoicePrinter extends SSInvoicePrinter {
     @Override
     protected void addParameters() {
         super.addParameters();
-        addParameter("number", Integer.decode(iInvoice.getOCRNumber()));
 
         addParameter("ocrinvoice.coderow", iCodeRow.toString());
         addParameter("ocrinvoice.background", SSImage.getImage("OCRBackground"));

@@ -5,8 +5,9 @@ import se.swedsoft.bookkeeping.calc.SSResultCalculator;
 import se.swedsoft.bookkeeping.data.SSNewAccountingYear;
 import se.swedsoft.bookkeeping.data.SSNewProject;
 import se.swedsoft.bookkeeping.gui.util.SSBundle;
+import se.swedsoft.bookkeeping.util.SSDateUtil;
 
-import java.util.Date;
+import java.time.LocalDate;
 import java.util.ResourceBundle;
 
 
@@ -26,7 +27,7 @@ public class SSProjectResultPrinter extends SSResultPrinter {
      * @param pTo
      * @param pProject
      */
-    public SSProjectResultPrinter(Date pFrom, Date pTo, SSNewProject pProject) {
+    public SSProjectResultPrinter(LocalDate pFrom, LocalDate pTo, SSNewProject pProject) {
         super(pFrom, pTo, false, false);
         iProject = pProject;
 
@@ -38,13 +39,8 @@ public class SSProjectResultPrinter extends SSResultPrinter {
                 : SSBundle.getBundle().getString("resultreport.projectperiod.all"));
     }
 
-    /**
-     * @param pYearData The year
-     * @param pFrom
-     * @param pTo
-     * @param pProject
-     */
-    public SSProjectResultPrinter(SSNewAccountingYear pYearData, Date pFrom, Date pTo, SSNewProject pProject) {
+    public SSProjectResultPrinter(SSNewAccountingYear pYearData, LocalDate pFrom, LocalDate pTo,
+                                  SSNewProject pProject) {
         super(pYearData, pFrom, pTo, false, false);
         iProject = pProject;
 

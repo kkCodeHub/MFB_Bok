@@ -1,5 +1,6 @@
 package se.swedsoft.bookkeeping.gui;
 
+import org.fribok.bookkeeping.app.SSDBUiInitializer;
 import org.fribok.bookkeeping.app.Path;
 import se.swedsoft.bookkeeping.calc.math.SSInvoiceMath;
 import se.swedsoft.bookkeeping.calc.math.SSSupplierInvoiceMath;
@@ -117,10 +118,10 @@ public class SSMainMenu {    private static final Logger LOG = LoggerFactory.get
         loadActions();
 
         // Called when the year is changed
-        SSDB.getInstance().addPropertyChangeListener("YEAR"   , evt -> iMenuLoader.setEnabled("Year" , evt.getNewValue() != null));
+        SSCompanyYearContext.addPropertyChangeListener("YEAR"   , evt -> iMenuLoader.setEnabled("Year" , evt.getNewValue() != null));
 
         // Called when the company is changed
-        SSDB.getInstance().addPropertyChangeListener("COMPANY", evt -> {
+        SSCompanyYearContext.addPropertyChangeListener("COMPANY", evt -> {
 
                 if(evt.getNewValue() == null){
                     iMenuLoader.setEnabled("Company", false);
@@ -174,7 +175,7 @@ public class SSMainMenu {    private static final Logger LOG = LoggerFactory.get
 
         // Company settings
         // *****************************
-        iMenuLoader.addActionListener("filemenu.company.settings", e -> SSCompanyDialog.editCurrentDialog(iMainFrame, SSDB.getInstance().getCurrentCompany(), null));
+        iMenuLoader.addActionListener("filemenu.company.settings", e -> SSCompanyDialog.editCurrentDialog(iMainFrame, SSCompanyYearContext.getCurrentCompany(), null));
 
         // Account plans
         // *****************************
@@ -184,7 +185,7 @@ public class SSMainMenu {    private static final Logger LOG = LoggerFactory.get
         // *****************************
         iMenuLoader.addActionListener("filemenu.import.sie", e -> {
 
-                SSNewCompany iCurrentCompany = SSDB.getInstance().getCurrentCompany();
+                SSNewCompany iCurrentCompany = SSCompanyYearContext.getCurrentCompany();
                 SSFileChooser iFileChooser = SSSIEFileChooser.getInstance();
                 int iResponce = iFileChooser.showOpenDialog(iMainFrame);
                 boolean iShowDialog = false;
@@ -204,6 +205,17 @@ public class SSMainMenu {    private static final Logger LOG = LoggerFactory.get
                 }
                 if(iShowDialog)
                     new SSInformationDialog(iMainFrame, "sieimport.importdone");
+
+                if (iShowDialog) {
+                    SSNewAccountingYear iYear = SSCompanyYearContext.getCurrentYear();
+                    if (iYear != null) {
+                        SSAccountPlanDialog.editCurrentDialog(
+                                iMainFrame,
+                                iYear.getAccountPlan(),
+                                null,
+                                true);
+                    }
+                }
 
             });
 
@@ -285,7 +297,7 @@ public class SSMainMenu {    private static final Logger LOG = LoggerFactory.get
         // *****************************
         iMenuLoader.addActionListener("registermenu.accountplan", e -> {
 
-                SSNewAccountingYear yearData = SSDB.getInstance().getCurrentYear();
+                SSNewAccountingYear yearData = SSCompanyYearContext.getCurrentYear();
 
                 // Open warningdialog if no yeardata
                 if (yearData == null) {
@@ -489,7 +501,7 @@ public class SSMainMenu {    private static final Logger LOG = LoggerFactory.get
 
                 iDialog.setLocationRelativeTo(iMainFrame);
                 if(iDialog.showDialog() != JOptionPane.OK_OPTION) return;
-                final Date    iDate         = iDialog.getDate();
+                final LocalDate iDate         = iDialog.getLocalDate();
                 final boolean iDateSelected = iDialog.isDateSelected();
                 SSProgressDialog.runProgress(iMainFrame, () -> {
 
@@ -543,7 +555,7 @@ public class SSMainMenu {    private static final Logger LOG = LoggerFactory.get
         // *****************************
         iMenuLoader.addActionListener("reportmenu.vouchers", e -> {
 
-                SSNewAccountingYear yearData = SSDB.getInstance().getCurrentYear();
+                SSNewAccountingYear yearData = SSCompanyYearContext.getCurrentYear();
 
                 // Check so the yeardata isn't null
                 if (yearData == null) {
@@ -559,7 +571,7 @@ public class SSMainMenu {    private static final Logger LOG = LoggerFactory.get
         // *****************************
         iMenuLoader.addActionListener("reportmenu.startingamounts", e -> {
 
-                final SSNewAccountingYear iAccountingYear = SSDB.getInstance().getCurrentYear();
+                final SSNewAccountingYear iAccountingYear = SSCompanyYearContext.getCurrentYear();
                 // Check so the yeardata isn't null
                 if (iAccountingYear == null) {
                     SSNewAccountingYear.openWarningDialogNoYearData(iMainFrame);
@@ -579,7 +591,7 @@ public class SSMainMenu {    private static final Logger LOG = LoggerFactory.get
         // *****************************
         iMenuLoader.addActionListener("reportmenu.accountplan", e -> {
 
-                SSNewAccountingYear yearData = SSDB.getInstance().getCurrentYear();
+                SSNewAccountingYear yearData = SSCompanyYearContext.getCurrentYear();
 
                 // Check so the yeardata isn't null
                 if (yearData == null) {
@@ -601,7 +613,7 @@ public class SSMainMenu {    private static final Logger LOG = LoggerFactory.get
         // *****************************
         iMenuLoader.addActionListener("reportmenu.mainbook", e -> {
 
-                SSNewAccountingYear yearData = SSDB.getInstance().getCurrentYear();
+                SSNewAccountingYear yearData = SSCompanyYearContext.getCurrentYear();
 
                 // Check so the yeardata isn't null
                 if (yearData == null) {
@@ -616,14 +628,14 @@ public class SSMainMenu {    private static final Logger LOG = LoggerFactory.get
         // *****************************
         iMenuLoader.addActionListener("reportmenu.resultreport", e -> {
 
-                SSNewAccountingYear yearData = SSDB.getInstance().getCurrentYear();
+                SSNewAccountingYear yearData = SSCompanyYearContext.getCurrentYear();
 
                 // Check so the yeardata isn't null
                 if (yearData == null) {
                     SSNewAccountingYear.openWarningDialogNoYearData(iMainFrame);
                     return;
                 }
-                SSNewAccountingYear previousYearData = SSDB.getInstance().getPreviousYear().orElse(null);
+                SSNewAccountingYear previousYearData = SSCompanyYearContext.getPreviousYear().orElse(null);
 
                 SSReportFactory.buildResultReport(iMainFrame, bundle, yearData, previousYearData);
 
@@ -633,7 +645,7 @@ public class SSMainMenu {    private static final Logger LOG = LoggerFactory.get
         // *****************************
         iMenuLoader.addActionListener("reportmenu.projectresult", e -> {
 
-                SSNewAccountingYear iAccountingYear = SSDB.getInstance().getCurrentYear();
+                SSNewAccountingYear iAccountingYear = SSCompanyYearContext.getCurrentYear();
 
                 // Check so the yeardata isn't null
                 if (iAccountingYear == null) {
@@ -648,7 +660,7 @@ public class SSMainMenu {    private static final Logger LOG = LoggerFactory.get
         // *****************************
         iMenuLoader.addActionListener("reportmenu.resultunitresult", e -> {
 
-                SSNewAccountingYear iAccountingYear = SSDB.getInstance().getCurrentYear();
+                SSNewAccountingYear iAccountingYear = SSCompanyYearContext.getCurrentYear();
 
                 // Check so the yeardata isn't null
                 if (iAccountingYear == null) {
@@ -664,7 +676,7 @@ public class SSMainMenu {    private static final Logger LOG = LoggerFactory.get
         // *****************************
         iMenuLoader.addActionListener("reportmenu.budget", e -> {
 
-                SSNewAccountingYear yearData = SSDB.getInstance().getCurrentYear();
+                SSNewAccountingYear yearData = SSCompanyYearContext.getCurrentYear();
 
                 // Check so the yeardata isn't null
                 if (yearData == null) {
@@ -680,7 +692,7 @@ public class SSMainMenu {    private static final Logger LOG = LoggerFactory.get
         // *****************************
         iMenuLoader.addActionListener("reportmenu.balancereport", e -> {
 
-                SSNewAccountingYear yearData = SSDB.getInstance().getCurrentYear();
+                SSNewAccountingYear yearData = SSCompanyYearContext.getCurrentYear();
 
                 // Check so the yeardata isn't null
                 if (yearData == null) {
@@ -696,7 +708,7 @@ public class SSMainMenu {    private static final Logger LOG = LoggerFactory.get
         // *****************************
         iMenuLoader.addActionListener("reportmenu.vatreport2015", e -> {
 
-                SSNewAccountingYear iAccountingYear = SSDB.getInstance().getCurrentYear();
+                SSNewAccountingYear iAccountingYear = SSCompanyYearContext.getCurrentYear();
 
                 // Check so the yeardata isn't null
                 if (iAccountingYear == null) {
@@ -712,7 +724,7 @@ public class SSMainMenu {    private static final Logger LOG = LoggerFactory.get
         // *****************************
         iMenuLoader.addActionListener("reportmenu.accountdiagram", e -> {
 
-                SSNewAccountingYear yearData = SSDB.getInstance().getCurrentYear();
+                SSNewAccountingYear yearData = SSCompanyYearContext.getCurrentYear();
 
                 // Check so the yeardata isn't null
                 if (yearData == null) {
@@ -728,7 +740,7 @@ public class SSMainMenu {    private static final Logger LOG = LoggerFactory.get
         // *****************************
         iMenuLoader.addActionListener("reportmenu.simplestatement", e -> {
 
-                SSNewAccountingYear yearData = SSDB.getInstance().getCurrentYear();
+                SSNewAccountingYear yearData = SSCompanyYearContext.getCurrentYear();
 
                 // Check so the yeardata isn't null
                 if (yearData == null) {
@@ -742,7 +754,7 @@ public class SSMainMenu {    private static final Logger LOG = LoggerFactory.get
 
         iMenuLoader.addActionListener("reportmenu.ownreports", e -> {
 
-                SSNewAccountingYear yearData = SSDB.getInstance().getCurrentYear();
+                SSNewAccountingYear yearData = SSCompanyYearContext.getCurrentYear();
                 // Check so the yeardata isn't null
                 if (yearData == null) {
                     SSNewAccountingYear.openWarningDialogNoYearData(iMainFrame);
@@ -810,7 +822,7 @@ public class SSMainMenu {    private static final Logger LOG = LoggerFactory.get
         // *****************************
         iMenuLoader.addActionListener("reportmenu.salevalues",e -> {
 
-                SSNewAccountingYear yearData = SSDB.getInstance().getCurrentYear();
+                SSNewAccountingYear yearData = SSCompanyYearContext.getCurrentYear();
 
                 SSReportFactory.Salevalues(iMainFrame, bundle, yearData);
 
@@ -820,7 +832,7 @@ public class SSMainMenu {    private static final Logger LOG = LoggerFactory.get
         // *****************************
         iMenuLoader.addActionListener("reportmenu.purchasevalues",e -> {
 
-                SSNewAccountingYear yearData = SSDB.getInstance().getCurrentYear();
+                SSNewAccountingYear yearData = SSCompanyYearContext.getCurrentYear();
                 SSReportFactory.Purchasevalues(iMainFrame, bundle, yearData);
 
             });
@@ -858,7 +870,7 @@ public class SSMainMenu {    private static final Logger LOG = LoggerFactory.get
                 SSConfirmDialog iDialog = new SSConfirmDialog("helpmenu.compress.warning");
                 if(iDialog.openDialog(iMainFrame)==JOptionPane.OK_OPTION){
 
-                    SSDB.getInstance().shutdownCompact();
+                    SSSystemConfigContext.shutdownCompact();
                     System.exit(0);
                 }
 
@@ -881,14 +893,14 @@ public class SSMainMenu {    private static final Logger LOG = LoggerFactory.get
                     return;
 
                 SSFrameManager.getInstance().close();
-                SSDB.getInstance().dropTriggers();
+                SSEventTriggerSyncContext.dropTriggers();
 
                 SSInitDialog.runProgress(SSMainFrame.getInstance(),"Rensar transaktioner...", () -> {
                         LocalDate iCutoffDate = iDate;
 
                         SSStock iStock = new SSStock(true);
                         Map<String, Integer> iStockStatusStart = new HashMap<>();
-                        for(SSProduct iProduct : SSDB.getInstance().getProducts()){
+                        for(SSProduct iProduct : SSProductContext.getProducts()){
                             if(iProduct.isStockProduct())
                                 iStockStatusStart.put(iProduct.getNumber(), iStock.getQuantity(iProduct));
                         }
@@ -917,33 +929,33 @@ public class SSMainMenu {    private static final Logger LOG = LoggerFactory.get
                             if(iTender.getLocalDate().isBefore(iCutoffDate)) Repositories.tenders().delete(iTender);
                         }
 
-                        for(SSOrder iOrder : SSDB.getInstance().getOrders()){
-                            if(iOrder.getLocalDate().isBefore(iCutoffDate)) SSDB.getInstance().deleteOrder(iOrder);
+                        for(SSOrder iOrder : SSSalesContext.getOrders()){
+                            if(iOrder.getLocalDate().isBefore(iCutoffDate)) SSSalesContext.deleteOrder(iOrder);
                         }
 
-                        for(SSInvoice iInvoice : SSDB.getInstance().getInvoices()){
+                        for(SSInvoice iInvoice : SSSalesContext.getInvoices()){
                             if(iInvoice.getLocalDate().isBefore(iCutoffDate) && iSaldoMap.containsKey(iInvoice.getNumber())){
                                 BigDecimal iSaldo = iSaldoMap.get(iInvoice.getNumber());
-                                if(iSaldo.signum() == 0) SSDB.getInstance().deleteInvoice(iInvoice);
+                                if(iSaldo.signum() == 0) SSSalesContext.deleteInvoice(iInvoice);
                             }
                             else if(iInvoice.getLocalDate().isBefore(iCutoffDate)){
-                                SSDB.getInstance().deleteInvoice(iInvoice);
+                                SSSalesContext.deleteInvoice(iInvoice);
                             }
                         }
 
-                        for(SSCreditInvoice iCreditInvoice : SSDB.getInstance().getCreditInvoices()){
+                        for(SSCreditInvoice iCreditInvoice : SSSalesContext.getCreditInvoices()){
                             if(iCreditInvoice.getLocalDate().isBefore(iCutoffDate) && iSaldoMap.containsKey(iCreditInvoice.getCreditingNr())){
                                 BigDecimal iSaldo = iSaldoMap.get(iCreditInvoice.getCreditingNr());
-                                if(iSaldo.signum() == 0) SSDB.getInstance().deleteCreditInvoice(iCreditInvoice);
+                                if(iSaldo.signum() == 0) SSSalesContext.deleteCreditInvoice(iCreditInvoice);
                             }
                             else if(iCreditInvoice.getLocalDate().isBefore(iCutoffDate)){
-                                SSDB.getInstance().deleteCreditInvoice(iCreditInvoice);
+                                SSSalesContext.deleteCreditInvoice(iCreditInvoice);
                             }
                         }
 
-                        for(SSPeriodicInvoice iPeriodicInvoice : SSDB.getInstance().getPeriodicInvoices()){
+                        for(SSPeriodicInvoice iPeriodicInvoice : SSSalesContext.getPeriodicInvoices()){
                             if(iPeriodicInvoice.getLocalDate().isBefore(iCutoffDate) && iPeriodicInvoice.getNextLocalDate().isEmpty())
-                                SSDB.getInstance().deletePeriodicInvoice(iPeriodicInvoice);
+                                SSSalesContext.deletePeriodicInvoice(iPeriodicInvoice);
                         }
 
                         Map<Integer, BigDecimal> iPurchaseSaldoMap = SSSupplierInvoiceMath.getSaldos(iCutoffDate);
@@ -1008,12 +1020,12 @@ public class SSMainMenu {    private static final Logger LOG = LoggerFactory.get
                             }
                         }
 
-                        SSDB.getInstance().clearLists();
-                        SSDB.getInstance().init(false);
+                        SSEventTriggerSyncContext.clearCachedLists();
+                        SSDBUiInitializer.init(false);
 
                         iStock = new SSStock(true);
                         SSInventory iInventoryDone = new SSInventory();
-                        for(SSProduct iProduct : SSDB.getInstance().getProducts()){
+                        for(SSProduct iProduct : SSProductContext.getProducts()){
                             SSInventoryRow iRow = new SSInventoryRow();
                             iRow.setProduct(iProduct);
                             iRow.setStockQuantity(iStock.getQuantity(iProduct));
@@ -1025,7 +1037,7 @@ public class SSMainMenu {    private static final Logger LOG = LoggerFactory.get
                         iInventoryDone.setText("Lagerjustering vid transaktionsrensning");
                         Repositories.inventories().add(iInventoryDone);
 
-                        SSDB.getInstance().shutdownCompact();
+                        SSSystemConfigContext.shutdownCompact();
                         System.exit(0);
 
                     });

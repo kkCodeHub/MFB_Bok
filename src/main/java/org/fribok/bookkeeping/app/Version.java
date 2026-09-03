@@ -6,7 +6,7 @@ import java.util.ResourceBundle;
  * Class holding constants with version information.
  */
 public final class Version {
-    public final static String APP_TITLE = "Fribok";
+    public final static String APP_TITLE = "MFB Bokföring";
 
     public final static String APP_BUILD = buildDateTime();
     public final static String APP_VERSION = version();

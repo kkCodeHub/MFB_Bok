@@ -3,7 +3,7 @@ package se.swedsoft.bookkeeping.gui.autodist;
 
 import se.swedsoft.bookkeeping.data.SSAutoDist;
 import se.swedsoft.bookkeeping.data.SSAutoDistRow;
-import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.data.system.SSAccountingContext;
 import se.swedsoft.bookkeeping.gui.SSMainFrame;
 import se.swedsoft.bookkeeping.gui.autodist.panel.SSAutoDistPanel;
 import se.swedsoft.bookkeeping.gui.autodist.util.SSAutoDistTableModel;
@@ -52,7 +52,7 @@ public class SSAutoDistDialog {
 
                 SSAutoDist iAutoDist1 = iPanel.getAutoDist();
 
-                for (SSAutoDist iCurrentAutoDist : SSDB.getInstance().getAutoDists()) {
+                for (SSAutoDist iCurrentAutoDist : SSAccountingContext.getAutoDists()) {
                     if (iCurrentAutoDist.getNumber().equals(iAutoDist1.getNumber())) {
                         new SSErrorDialog(iMainFrame, "autodistframe.autodistaccexists");
                         return;
@@ -64,7 +64,8 @@ public class SSAutoDistDialog {
                         return;
                     }
                 }
-                SSDB.getInstance().addAutoDist(iAutoDist1);
+                SSAccountingContext.addAutoDist(iAutoDist1);
+                SSAutoDistFrame.fireTableDataChanged();
 
                 iDialog.closeDialog();
 
@@ -114,7 +115,7 @@ public class SSAutoDistDialog {
 
                 SSAutoDist iAutoDist1 = iPanel.getAutoDist();
 
-                for (SSAutoDist iCurrentAutoDist : SSDB.getInstance().getAutoDists()) {
+                for (SSAutoDist iCurrentAutoDist : SSAccountingContext.getAutoDists()) {
                     if (iCurrentAutoDist.getNumber().equals(iAutoDist1.getNumber())
                             && !iAutoDist1.getNumber().equals(iOriginal.getNumber())) {
                         new SSErrorDialog(iMainFrame, "autodistframe.autodistaccexists");
@@ -127,11 +128,8 @@ public class SSAutoDistDialog {
                         return;
                     }
                 }
-                SSDB.getInstance().updateAutoDist(iAutoDist1, iOriginal);
-
-                if (pModel != null) {
-                    pModel.fireTableDataChanged();
-                }
+                SSAccountingContext.updateAutoDist(iAutoDist1, iOriginal);
+                SSAutoDistFrame.fireTableDataChanged();
                 iDialog.closeDialog();
 
             };
@@ -180,7 +178,7 @@ public class SSAutoDistDialog {
 
                 SSAutoDist iAutoDist = iPanel.getAutoDist();
 
-                for (SSAutoDist iCurrentAutoDist : SSDB.getInstance().getAutoDists()) {
+                for (SSAutoDist iCurrentAutoDist : SSAccountingContext.getAutoDists()) {
                     if (iCurrentAutoDist.getNumber().equals(iAutoDist.getNumber())) {
                         new SSErrorDialog(iMainFrame, "autodistframe.autodistaccexists");
                         return;
@@ -192,7 +190,8 @@ public class SSAutoDistDialog {
                         return;
                     }
                 }
-                SSDB.getInstance().addAutoDist(iAutoDist);
+                SSAccountingContext.addAutoDist(iAutoDist);
+                SSAutoDistFrame.fireTableDataChanged();
 
                 iDialog.closeDialog();
 
@@ -219,3 +218,4 @@ public class SSAutoDistDialog {
         iDialog.setVisible();
     }
 }
+

@@ -2,6 +2,7 @@ package se.swedsoft.bookkeeping.gui.vouchertemplate.util;
 
 
 import se.swedsoft.bookkeeping.data.SSVoucherTemplate;
+import se.swedsoft.bookkeeping.data.system.SSAccountingContext;
 import se.swedsoft.bookkeeping.data.system.SSDB;
 import se.swedsoft.bookkeeping.gui.util.SSBundle;
 import se.swedsoft.bookkeeping.gui.util.table.model.SSTableColumn;
@@ -22,7 +23,7 @@ public class SSVoucherTemplateTableModel extends SSTableModel<SSVoucherTemplate>
      * Default constructor.
      */
     public SSVoucherTemplateTableModel() {
-        super(SSDB.getInstance().getVoucherTemplates());
+        super(SSAccountingContext.getVoucherTemplates());
     }
 
     /**

@@ -1,0 +1,89 @@
+{
+  "Verifikationer": [
+    {
+      "Datum": "2026-01-05",
+      "Beskrivning": "Inköp av kontorsmaterial",
+      "Rader": [
+        {
+          "Rad": 1,
+          "Konto": "6110",
+          "Debet": 1000.00
+        },
+        {
+          "Rad": 2,
+          "Konto": "2641",
+          "Debet": 250.00
+        },
+        {
+          "Rad": 3,
+          "Konto": "1930",
+          "Kredit": 1250.00
+        }
+      ]
+    },
+    {
+      "Datum": "2026-02-15",
+      "Beskrivning": "Försäljning 25%",
+      "Rader": [
+        {
+          "Rad": 1,
+          "Konto": "3001",
+          "Kredit": 4000.00
+        },
+        {
+          "Rad": 2,
+          "Konto": "2611",
+          "Kredit": 1000.00
+        },
+        {
+          "Rad": 3,
+          "Konto": "1930",
+          "Debet": 5000.00
+        }
+       ]
+    }
+   ],
+
+  "Fakturor": [
+    {
+      "Kund-id": 1,
+      "Rader": [
+        {
+          "Rad": 1,
+          "Produktnr": 1,
+          "Antal": 4
+        },
+        {
+          "Rad": 2,
+          "Produktnr": 2,
+          "Antal": 3
+        },
+        {
+          "Rad": 3,
+          "Produktnr": 3,
+          "Antal": 5
+        }
+       ]
+    },
+    {
+      "Kund-id": 2,
+      "Rader": [
+        {
+          "Rad": 1,
+          "Produktnr": 3,
+          "Antal": 4
+        },
+        {
+          "Rad": 2,
+          "Produktnr": 2,
+          "Antal": 3
+        },
+        {
+          "Rad": 3,
+          "Produktnr": 1,
+          "Antal": 2
+        }
+       ]
+    }
+   ]
+}

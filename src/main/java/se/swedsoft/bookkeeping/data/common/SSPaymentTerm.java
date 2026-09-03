@@ -2,11 +2,8 @@ package se.swedsoft.bookkeeping.data.common;
 
 
 import se.swedsoft.bookkeeping.gui.util.table.SSTableSearchable;
-import se.swedsoft.bookkeeping.util.SSDateUtil;
-
 import java.io.Serializable;
 import java.time.LocalDate;
-import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -24,6 +21,8 @@ public class SSPaymentTerm implements Serializable, SSTableSearchable {
     private String iName;
 
     private String iDescription;
+
+    private Integer iDays;
 
     /**
      * Constructor.
@@ -45,6 +44,7 @@ public class SSPaymentTerm implements Serializable, SSTableSearchable {
     public void dispose() {
         iName = null;
         iDescription = null;
+        iDays = null;
     }
 
     /**
@@ -84,11 +84,37 @@ public class SSPaymentTerm implements Serializable, SSTableSearchable {
     // //////////////////////////////////////////////////
 
     /**
-     * Decodes the name as integer
+     * Returns the configured number of days for this payment term.
      *
-     * @return
+     * @return number of days, or {@code null} when not explicitly set
+     */
+    public Integer getDays() {
+        return iDays;
+    }
+
+    /**
+     * Sets the configured number of days for this payment term.
+     *
+     * @param iDays number of days
+     */
+    public void setDays(Integer iDays) {
+        this.iDays = iDays;
+    }
+
+    // //////////////////////////////////////////////////
+
+    /**
+     * Returns the number of days for this payment term.
+     *
+     * <p>Primary source is the explicit {@code days} field. If missing, this method
+     * falls back to legacy behavior where the name was interpreted as a number.</p>
+     *
+     * @return number of days, never {@code null}
      */
     public Integer decodeValue() {
+        if (iDays != null) {
+            return iDays;
+        }
         try {
             return Integer.decode(iName);
         } catch (NumberFormatException e) {
@@ -99,33 +125,14 @@ public class SSPaymentTerm implements Serializable, SSTableSearchable {
     /**
      * Adds the decoded number of days to the given date.
      *
-     * <p>Note: The original implementation had a bug where the {@code iDate} parameter
-     * was ignored and the current date was used instead. This bug is preserved for
-     * backward compatibility.</p>
-     *
-     * @param iDate the date (ignored — current date is used due to legacy bug)
-     * @return a new date with days added
-     * @deprecated Use {@link #addDaysToLocalDate(LocalDate)} instead
-     */
-    @Deprecated
-    public Date addDaysToDate(Date iDate) {
-        return SSDateUtil.toDate(addDaysToLocalDate(LocalDate.now()));
-    }
-
-    /**
-     * Adds the decoded number of days to the given date.
-     *
-     * <p>Note: For backward compatibility with the legacy {@link #addDaysToDate(Date)},
-     * this uses the current date rather than the provided date. Callers should be aware
-     * of this bug if they rely on the input date.</p>
-     *
-     * @param iDate the date (ignored — current date is used due to legacy bug)
-     * @return a new LocalDate with days added to today
+     * @param iDate base date to add days to
+     * @return a new LocalDate with days added to the provided date
      */
     public LocalDate addDaysToLocalDate(LocalDate iDate) {
+        LocalDate iBaseDate = iDate != null ? iDate : LocalDate.now();
         int iDays = decodeValue();
 
-        return LocalDate.now().plusDays(iDays);
+        return iBaseDate.plusDays(iDays);
     }
 
     // //////////////////////////////////////////////////

@@ -3,7 +3,6 @@ package org.fribok.bookkeeping.data.util;
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.EncodeHintType;
 import com.google.zxing.MultiFormatWriter;
-import com.google.zxing.NotFoundException;
 import com.google.zxing.WriterException;
 import com.google.zxing.client.j2se.MatrixToImageWriter;
 import com.google.zxing.common.BitMatrix;
@@ -19,36 +18,35 @@ import org.slf4j.LoggerFactory;
 
 
 /**
-* Use zxing to create QR code of usingqr data for invoices. 
-*
-* $Id$
-*/
+ * Uses ZXing to create a QR code for invoice data.
+ * $Id$
+ */
 public class CreateQRCode {    private static final Logger LOG = LoggerFactory.getLogger(CreateQRCode.class);
 
     /**
+     * Creates a QR code image file.
      *
-     * @param uqrData
-     * @param charset
-     * @param iFile
-     * @param height
-     * @param width
+     * @param uqrData the QR payload
+     * @param iFile the output file
+     * @param height the image height
+     * @param width the image width
      */
     public static void createQRCode(final String uqrData, final File iFile, final int height, final int width) throws WriterException, UnsupportedEncodingException {
 
         Map<EncodeHintType, ErrorCorrectionLevel> encodeHintMap = new HashMap<>();
         encodeHintMap.put(EncodeHintType.ERROR_CORRECTION, ErrorCorrectionLevel.M);
 
-        // fixme! - We go UTF-8 here specifically (due to spec) from windows-1252, 
-        // but in general for v3 this should be changed all over 
+        // fixme! - We go UTF-8 here specifically (due to spec) from windows-1252,
+        // but in general for v3 this should be changed all over
         final String uqrEncoding = "UTF-8";
         LOG.info("Original UsingQR data: " + uqrData);
 
         BitMatrix matrix = new MultiFormatWriter().encode(new String(uqrData.getBytes(uqrEncoding), uqrEncoding), BarcodeFormat.QR_CODE, width, height, encodeHintMap);
 
-	try {
-	    MatrixToImageWriter.writeToFile(matrix, "png", iFile);
-	} catch (IOException ioe) {
-
+        try {
+            MatrixToImageWriter.writeToPath(matrix, "png", iFile.toPath());
+        } catch (IOException ioe) {
+                  LOG.error("Unexpected error", ioe);
 	}
 
     }

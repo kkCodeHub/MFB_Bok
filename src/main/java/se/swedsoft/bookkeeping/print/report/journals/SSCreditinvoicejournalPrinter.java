@@ -8,12 +8,12 @@ import se.swedsoft.bookkeeping.data.SSVoucherRow;
 import se.swedsoft.bookkeeping.gui.util.model.SSDefaultTableModel;
 import se.swedsoft.bookkeeping.print.SSPrinter;
 import se.swedsoft.bookkeeping.print.util.SSDefaultJasperDataSource;
+import se.swedsoft.bookkeeping.util.SSDateUtil;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.text.DateFormat;
 import java.util.Collections;
-import java.util.Comparator;
-import java.util.Date;
 import java.util.List;
 
 
@@ -37,7 +37,8 @@ public class SSCreditinvoicejournalPrinter extends SSPrinter {
      * @param iNumber
      * @param iDate
      */
-    public SSCreditinvoicejournalPrinter(List<SSCreditInvoice> iCreditInvoices, Integer iNumber, Date iDate) {
+    public SSCreditinvoicejournalPrinter(List<SSCreditInvoice> iCreditInvoices, Integer iNumber,
+            LocalDate iDate) {
         this.iCreditInvoices = iCreditInvoices;
         this.iNumber = iNumber;
 
@@ -47,7 +48,7 @@ public class SSCreditinvoicejournalPrinter extends SSPrinter {
         setSummary("journals/creditinvoicejournal.jrxml");
 
         addParameter("periodTitle", iBundle.getString("creditinvoicejournal.periodtitle"));
-        addParameter("periodText", iDate);
+        addParameter("periodText", iDate == null ? null : SSDateUtil.toDate(iDate));
     }
 
     /**

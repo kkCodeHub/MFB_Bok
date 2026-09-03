@@ -1,12 +1,18 @@
 package se.swedsoft.bookkeeping.gui.outdelivery.util;
 
 
+import se.swedsoft.bookkeeping.calc.math.SSProductQuantityValidator;
 import se.swedsoft.bookkeeping.data.SSInventory;
 import se.swedsoft.bookkeeping.data.SSOutdeliveryRow;
 import se.swedsoft.bookkeeping.data.SSProduct;
 import se.swedsoft.bookkeeping.gui.util.SSBundle;
+import se.swedsoft.bookkeeping.gui.util.SSQuantityPresentationUtil;
+import se.swedsoft.bookkeeping.gui.util.table.editors.SSBigDecimalCellEditor;
+import se.swedsoft.bookkeeping.gui.util.table.editors.SSBigDecimalCellRenderer;
 import se.swedsoft.bookkeeping.gui.util.table.model.SSEditableTableModel;
 import se.swedsoft.bookkeeping.gui.util.table.model.SSTableColumn;
+
+import java.math.BigDecimal;
 
 
 /**
@@ -95,17 +101,33 @@ public class SSOutdeliveryRowTableModel extends SSEditableTableModel<SSOutdelive
             SSBundle.getBundle().getString("outdeliveryrowtable.column.3")) {
         @Override
         public Object getValue(SSOutdeliveryRow iRow) {
-            return iRow.getChange();
+            return SSQuantityPresentationUtil.toDisplayQuantity(iRow.getChange());
         }
 
         @Override
         public void setValue(SSOutdeliveryRow iRow, Object iValue) {
-            iRow.setChange((Integer) iValue);
+            Integer iChangeTenths = SSQuantityPresentationUtil.toStoredTenths(iValue);
+
+            if (!SSProductQuantityValidator.isValidQuantity(iRow.getProduct(), iChangeTenths)) {
+                return;
+            }
+
+            iRow.setChange(iChangeTenths);
         }
 
         @Override
         public Class getColumnClass() {
-            return Integer.class;
+            return BigDecimal.class;
+        }
+
+        @Override
+        public SSBigDecimalCellRenderer getCellRenderer() {
+            return new SSBigDecimalCellRenderer(1);
+        }
+
+        @Override
+        public SSBigDecimalCellEditor getCellEditor() {
+            return new SSBigDecimalCellEditor(1);
         }
 
         @Override

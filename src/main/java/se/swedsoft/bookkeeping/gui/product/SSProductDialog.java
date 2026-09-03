@@ -2,7 +2,7 @@ package se.swedsoft.bookkeeping.gui.product;
 
 
 import se.swedsoft.bookkeeping.data.SSProduct;
-import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.data.system.SSProductContext;
 import se.swedsoft.bookkeeping.gui.SSMainFrame;
 import se.swedsoft.bookkeeping.gui.product.panel.SSProductPanel;
 import se.swedsoft.bookkeeping.gui.util.SSBundle;
@@ -52,7 +52,7 @@ public class SSProductDialog {
 
                 SSProduct iProduct = iPanel.getProduct();
 
-                List<SSProduct> iProducts = SSDB.getInstance().getProducts();
+                List<SSProduct> iProducts = SSProductContext.getProducts();
 
                 for (SSProduct pProduct : iProducts) {
                     if (iProduct.getNumber().equals(pProduct.getNumber())) {
@@ -62,11 +62,8 @@ public class SSProductDialog {
                     }
                 }
 
-                SSDB.getInstance().addProduct(iProduct);
-
-                if (pModel != null) {
-                    pModel.fireTableDataChanged();
-                }
+                SSProductContext.addProduct(iProduct);
+                SSProductFrame.fireTableDataChanged();
 
                 iDialog.closeDialog();
 
@@ -118,11 +115,8 @@ public class SSProductDialog {
 
                 SSProduct iProduct1 = iPanel.getProduct();
 
-                SSDB.getInstance().updateProduct(iProduct1);
-
-                if (pModel != null) {
-                    pModel.fireTableDataChanged();
-                }
+                SSProductContext.updateProduct(iProduct1);
+                SSProductFrame.fireTableDataChanged();
                 iDialog.closeDialog();
 
             };
@@ -176,7 +170,7 @@ public class SSProductDialog {
 
                 SSProduct iProduct1 = iPanel.getProduct();
 
-                List<SSProduct> iProducts = SSDB.getInstance().getProducts();
+                List<SSProduct> iProducts = SSProductContext.getProducts();
 
                 for (SSProduct pProduct : iProducts) {
                     if (iProduct1.getNumber().equals(pProduct.getNumber())) {
@@ -186,11 +180,8 @@ public class SSProductDialog {
                     }
                 }
 
-                SSDB.getInstance().addProduct(iProduct1);
-
-                if (pModel != null) {
-                    pModel.fireTableDataChanged();
-                }
+                SSProductContext.addProduct(iProduct1);
+                SSProductFrame.fireTableDataChanged();
 
                 iDialog.closeDialog();
 

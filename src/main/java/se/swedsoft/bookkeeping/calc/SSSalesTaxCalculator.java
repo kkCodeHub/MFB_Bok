@@ -8,8 +8,10 @@ import se.swedsoft.bookkeeping.data.SSAccount;
 import se.swedsoft.bookkeeping.data.SSNewAccountingYear;
 import se.swedsoft.bookkeeping.data.SSVoucher;
 import se.swedsoft.bookkeeping.gui.util.SSBundle;
+import se.swedsoft.bookkeeping.util.SSDateUtil;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
@@ -27,9 +29,9 @@ public class SSSalesTaxCalculator {    private static final Logger LOG = LoggerF
 
     private SSNewAccountingYear iAccountingYear;
 
-    private Date iDateFrom;
+    private LocalDate iDateFrom;
 
-    private Date iDateTo;
+    private LocalDate iDateTo;
 
     private List<SSVATReportGroup> iReportGroups;
 
@@ -41,10 +43,19 @@ public class SSSalesTaxCalculator {    private static final Logger LOG = LoggerF
      * @param pDateFrom
      * @param pDateTo
      */
-    public SSSalesTaxCalculator(SSNewAccountingYear pAccountingYear, Date pDateFrom, Date pDateTo) {
+    public SSSalesTaxCalculator(SSNewAccountingYear pAccountingYear, LocalDate pDateFrom,
+            LocalDate pDateTo) {
         iAccountingYear = pAccountingYear;
         iDateFrom = pDateFrom;
         iDateTo = pDateTo;
+    }
+
+    /**
+     * @deprecated Use {@link #SSSalesTaxCalculator(SSNewAccountingYear, LocalDate, LocalDate)}.
+     */
+    @Deprecated
+    public SSSalesTaxCalculator(SSNewAccountingYear pAccountingYear, Date pDateFrom, Date pDateTo) {
+        this(pAccountingYear, SSDateUtil.toLocalDate(pDateFrom), SSDateUtil.toLocalDate(pDateTo));
     }
 
     /**
@@ -75,110 +86,118 @@ public class SSSalesTaxCalculator {    private static final Logger LOG = LoggerF
 
             switch (iGroup.getGroup2()) {
 
-            case 11:
-                iSum = SSAccountMath.getSumByVATCodeForAccounts(creditMinusDebetSum, "MP1", "MP2", "MP3").add(
-                        SSAccountMath.getSumByVATCodeForAccounts(debetMinusCreditSum,
-                        "TFEU"));
-                break;
+                case 5: //11:
+                    iSum = SSAccountMath.getSumByVATCodeForAccounts(creditMinusDebetSum, "5_25", "5_12", "5_6").add(
+                            SSAccountMath.getSumByVATCodeForAccounts(debetMinusCreditSum, "21"));
+                    break;
 
-            case 12:
-                iSum = SSAccountMath.getSumByVATCodeForAccounts(creditMinusDebetSum, "MF");
-                break;
+                case 6: //12:
+                    iSum = SSAccountMath.getSumByVATCodeForAccounts(creditMinusDebetSum, "6_25", "6_12", "6_6");
+                    break;
 
-            case 13:
-                iSum = SSAccountMath.getSumByVATCodeForAccounts(creditMinusDebetSum,
-                        "MPFF");
-                break;
+                case 7: //13:
+                    iSum = SSAccountMath.getSumByVATCodeForAccounts(creditMinusDebetSum, "7_25", "7_12", "7_6");
+                    break;
 
-            case 14:
-                iSum = SSAccountMath.getSumByVATCodeForAccounts(creditMinusDebetSum,
-                        "MBVT");
-                break;
+                case 8: //14:
+                    iSum = SSAccountMath.getSumByVATCodeForAccounts(creditMinusDebetSum, "8");
+                    break;
 
-            case 15:
-                iSum = SSAccountMath.getSumByVATCodeForAccounts(creditMinusDebetSum,
-                        "MBBU");
-                break;
+                case 10: //15:
+                    iSum = SSAccountMath.getSumByVATCodeForAccounts(creditMinusDebetSum, "10");
+                    break;
 
-            case 21:
-                iSum = SSAccountMath.getSumByVATCodeForAccounts(creditMinusDebetSum, "E");
-                break;
+                case 11: //21:
+                    iSum = SSAccountMath.getSumByVATCodeForAccounts(creditMinusDebetSum, "11");
+                    break;
 
-            case 22:
-                iSum = SSAccountMath.getSumByVATCodeForAccounts(creditMinusDebetSum,
-                        "OTTU");
-                break;
+                case 12: //22:
+                    iSum = SSAccountMath.getSumByVATCodeForAccounts(creditMinusDebetSum, "12");
+                    break;
 
-            case 23:
-                iSum = SSAccountMath.getSumByVATCodeForAccounts(creditMinusDebetSum,
-                        "VTEU");
-                break;
+                case 20: //23:
+                    iSum = SSAccountMath.getSumByVATCodeForAccounts(creditMinusDebetSum, "20");
+                    break;
 
-            case 24:
-                iSum = SSAccountMath.getSumByVATCodeForAccounts(creditMinusDebetSum,
-                        "ÖVEU");
-                break;
+                case 21: //24:
+                    iSum = SSAccountMath.getSumByVATCodeForAccounts(creditMinusDebetSum, "21");
+                    break;
 
-            case 25:
-                iSum = SSAccountMath.getSumByVATCodeForAccounts(debetMinusCreditSum,
-                        "VFEU");
-                break;
+                case 22: //25:
+                    iSum = SSAccountMath.getSumByVATCodeForAccounts(debetMinusCreditSum, "22");
+                    break;
 
-            case 26:
-                iSum = SSAccountMath.getSumByVATCodeForAccounts(debetMinusCreditSum,
-                        "3VEU");
-                break;
+                case 23: //26:
+                    iSum = SSAccountMath.getSumByVATCodeForAccounts(debetMinusCreditSum, "23");
+                    break;
 
-            case 30:
-                iSum = SSAccountMath.getSumByVATCodeForAccounts(creditMinusDebetSum, "UVL");
-                break;
+                case 24: //30:
+                    iSum = SSAccountMath.getSumByVATCodeForAccounts(creditMinusDebetSum, "24");
+                    break;
 
-            case 31:
-                iSum = SSAccountMath.getSumByVATCodeForAccounts(debetMinusCreditSum, "IVL");
-                break;
+                case 30: //31:
+                    iSum = SSAccountMath.getSumByVATCodeForAccounts(debetMinusCreditSum, "30");
+                    break;
 
-            case 32:
-                iSum = SSAccountMath.getSumByVATCodeForAccounts(creditMinusDebetSum, "U1",
-                        "UVL");
-                break;
+                case 31: //32:
+                    iSum = SSAccountMath.getSumByVATCodeForAccounts(creditMinusDebetSum, "31");
+                    break;
 
-            case 33:
-                iSum = SSAccountMath.getSumByVATCodeForAccounts(creditMinusDebetSum, "U2");
-                break;
+                case 32: //33:
+                    iSum = SSAccountMath.getSumByVATCodeForAccounts(creditMinusDebetSum, "32");
+                    break;
 
-            case 34:
-                iSum = SSAccountMath.getSumByVATCodeForAccounts(creditMinusDebetSum, "U3");
-                break;
+                case 35: //34:
+                    iSum = SSAccountMath.getSumByVATCodeForAccounts(creditMinusDebetSum, "35");
+                    break;
 
-            case 35:
-                iSum = SSAccountMath.getSumByVATCodeForAccounts(creditMinusDebetSum, "UEU");
-                break;
+                case 36: //35:
+                    iSum = SSAccountMath.getSumByVATCodeForAccounts(creditMinusDebetSum, "36");
+                    break;
 
-            case 36:
-                iSum = SSAccountMath.getSumByVATCodeForAccounts(creditMinusDebetSum,
-                        "UTFU");
-                break;
+                case 37: //36:
+                    iSum = SSAccountMath.getSumByVATCodeForAccounts(creditMinusDebetSum, "37");
+                    break;
 
-            case 37:
-                iSum = SSAccountMath.getSumByVATCodeForAccounts(debetMinusCreditSum, "I",
-                        "IVL");
-                break;
+                case 38: //37:
+                    iSum = SSAccountMath.getSumByVATCodeForAccounts(debetMinusCreditSum, "38");
+                    break;
 
-            case 50:
-                iSum = SSAccountMath.getSumByVATCodeForAccounts(creditMinusDebetSum, "IBU", "IBU1", "IBU2", "IBU3");
-                break;
+                case 39:
+                    iSum = SSAccountMath.getSumByVATCodeForAccounts(debetMinusCreditSum, "39");
+                    break;
 
-            case 60:
-                iSum = SSAccountMath.getSumByVATCodeForAccounts(creditMinusDebetSum, "UI1");
-                break;
+                case 40:
+                    iSum = SSAccountMath.getSumByVATCodeForAccounts(debetMinusCreditSum, "40");
+                    break;
 
-            case 61:
-                iSum = SSAccountMath.getSumByVATCodeForAccounts(creditMinusDebetSum, "UI2");
-                break;
+                case 41:
+                    iSum = SSAccountMath.getSumByVATCodeForAccounts(debetMinusCreditSum, "41");
+                    break;
 
-            case 62:
-                iSum = SSAccountMath.getSumByVATCodeForAccounts(creditMinusDebetSum, "UI3");
-                break;
+                case 42:
+                    iSum = SSAccountMath.getSumByVATCodeForAccounts(debetMinusCreditSum, "42");
+                    break;
+
+                case 48:
+                    iSum = SSAccountMath.getSumByVATCodeForAccounts(debetMinusCreditSum, "48");
+                    break;
+
+                case 50:
+                    iSum = SSAccountMath.getSumByVATCodeForAccounts(creditMinusDebetSum, "50_25", "50_12", "50_6");
+                    break;
+
+                case 60:
+                    iSum = SSAccountMath.getSumByVATCodeForAccounts(creditMinusDebetSum, "60");
+                    break;
+
+                case 61:
+                    iSum = SSAccountMath.getSumByVATCodeForAccounts(creditMinusDebetSum, "61");
+                    break;
+
+                case 62:
+                    iSum = SSAccountMath.getSumByVATCodeForAccounts(creditMinusDebetSum, "62");
+                    break;
             }
             iGroup.setSum(iSum);
         }
@@ -188,16 +207,15 @@ public class SSSalesTaxCalculator {    private static final Logger LOG = LoggerF
 
             switch (iGroup.getGroup1()) {
             case 1:
-                iSum = SSAccountMath.getSumByVATCodeForAccounts(creditMinusDebetSum, "MP1",
-                        "MPFF");
+                iSum = SSAccountMath.getSumByVATCodeForAccounts(creditMinusDebetSum, "5_25");
                 break;
 
             case 2:
-                iSum = SSAccountMath.getSumByVATCodeForAccounts(creditMinusDebetSum, "MP2");
+                iSum = SSAccountMath.getSumByVATCodeForAccounts(creditMinusDebetSum, "5_12");
                 break;
 
             case 3:
-                iSum = SSAccountMath.getSumByVATCodeForAccounts(creditMinusDebetSum, "MP3");
+                iSum = SSAccountMath.getSumByVATCodeForAccounts(creditMinusDebetSum, "5_6");
                 break;
             }
 
@@ -205,18 +223,15 @@ public class SSSalesTaxCalculator {    private static final Logger LOG = LoggerF
 
             switch (iGroup.getGroup1()) {
             case 1:
-                iReported = SSAccountMath.getSumByVATCodeForAccounts(creditMinusDebetSum,
-                        "U1", "UVL");
+                iReported = SSAccountMath.getSumByVATCodeForAccounts(creditMinusDebetSum, "10");
                 break;
 
             case 2:
-                iReported = SSAccountMath.getSumByVATCodeForAccounts(creditMinusDebetSum,
-                        "U2");
+                iReported = SSAccountMath.getSumByVATCodeForAccounts(creditMinusDebetSum, "11");
                 break;
 
             case 3:
-                iReported = SSAccountMath.getSumByVATCodeForAccounts(creditMinusDebetSum,
-                        "U3");
+                iReported = SSAccountMath.getSumByVATCodeForAccounts(creditMinusDebetSum, "12");
                 break;
             }
 
@@ -250,28 +265,40 @@ public class SSSalesTaxCalculator {    private static final Logger LOG = LoggerF
         List<SSVATReportGroup> iReportGroups = new LinkedList<>();
 
         // Add the groups
+        iReportGroups.add(new SSVATReportGroup(1, 5)); //(1, 11));
+        iReportGroups.add(new SSVATReportGroup(1, 6)); //(1, 12));
+        iReportGroups.add(new SSVATReportGroup(1, 7)); //(1, 13));
+        iReportGroups.add(new SSVATReportGroup(1, 8)); //(1, 14));
+
+        iReportGroups.add(new SSVATReportGroup(1, 10)); //(1, 15));
         iReportGroups.add(new SSVATReportGroup(1, 11));
         iReportGroups.add(new SSVATReportGroup(1, 12));
-        iReportGroups.add(new SSVATReportGroup(1, 13));
-        iReportGroups.add(new SSVATReportGroup(1, 14));
-        iReportGroups.add(new SSVATReportGroup(1, 15));
 
-        iReportGroups.add(new SSVATReportGroup(2, 21));
-        iReportGroups.add(new SSVATReportGroup(2, 22));
-        iReportGroups.add(new SSVATReportGroup(2, 23));
-        iReportGroups.add(new SSVATReportGroup(2, 24));
-        iReportGroups.add(new SSVATReportGroup(2, 25));
-        iReportGroups.add(new SSVATReportGroup(2, 26));
+        iReportGroups.add(new SSVATReportGroup(2, 20)); //(2, 21));
+        iReportGroups.add(new SSVATReportGroup(2, 21)); //(2, 22));
+        iReportGroups.add(new SSVATReportGroup(2, 22)); //(2, 23));
+        iReportGroups.add(new SSVATReportGroup(2, 23)); //(2, 24));
+        iReportGroups.add(new SSVATReportGroup(2, 24)); //(2, 25));
 
-        iReportGroups.add(new SSVATReportGroup(3, 30));
-        iReportGroups.add(new SSVATReportGroup(3, 31));
+        iReportGroups.add(new SSVATReportGroup(3, 30)); //(3, 30));
+        iReportGroups.add(new SSVATReportGroup(3, 31)); //(3, 31));
+        iReportGroups.add(new SSVATReportGroup(3, 32)); //(4, 32));
 
-        iReportGroups.add(new SSVATReportGroup(4, 32));
-        iReportGroups.add(new SSVATReportGroup(4, 33));
-        iReportGroups.add(new SSVATReportGroup(4, 34));
         iReportGroups.add(new SSVATReportGroup(4, 35));
         iReportGroups.add(new SSVATReportGroup(4, 36));
         iReportGroups.add(new SSVATReportGroup(4, 37));
+        iReportGroups.add(new SSVATReportGroup(4, 38));
+        iReportGroups.add(new SSVATReportGroup(4, 39)); //(4, 33));
+        iReportGroups.add(new SSVATReportGroup(4, 40)); //(4, 34));
+        iReportGroups.add(new SSVATReportGroup(4, 41));
+        iReportGroups.add(new SSVATReportGroup(4, 42));
+
+        iReportGroups.add(new SSVATReportGroup(4, 48));
+
+        iReportGroups.add(new SSVATReportGroup(5, 50));
+        iReportGroups.add(new SSVATReportGroup(5, 60));
+        iReportGroups.add(new SSVATReportGroup(5, 61));
+        iReportGroups.add(new SSVATReportGroup(5, 62));
 
         return iReportGroups;
     }

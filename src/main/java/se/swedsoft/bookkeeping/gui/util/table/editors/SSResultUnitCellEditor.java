@@ -2,7 +2,7 @@ package se.swedsoft.bookkeeping.gui.util.table.editors;
 
 
 import se.swedsoft.bookkeeping.data.SSNewResultUnit;
-import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.data.system.SSResultUnitContext;
 import se.swedsoft.bookkeeping.gui.util.SSBundle;
 import se.swedsoft.bookkeeping.gui.util.components.SSTableComboBoxOld;
 import se.swedsoft.bookkeeping.gui.util.model.SSDefaultTableModel;
@@ -20,7 +20,7 @@ public class SSResultUnitCellEditor extends SSTableComboBoxOld.CellEditor<SSNewR
      */
     public SSResultUnitCellEditor() {
         SSDefaultTableModel<SSNewResultUnit> iModel = new SSDefaultTableModel<>(
-                SSDB.getInstance().getResultUnits()) {
+                SSResultUnitContext.getResultUnits()) {
             @Override
             public Class<?> getType() {
                 return SSNewResultUnit.class;

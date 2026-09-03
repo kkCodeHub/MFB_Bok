@@ -44,7 +44,7 @@ public abstract class SSPrinter {
     public SSPrinter() {
         iReport = new SSReport();
 
-        iReport.addParameter("company", SSDB.getInstance().getCurrentCompany().getName());
+        iReport.addParameter("company", se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.getCurrentCompany().getName());
         iReport.addParameter("reportdate", SSDateUtil.toDate(SSDateUtil.today()));
 
         iReport.addParameter("lastvoucher", SSVoucherMath.getMaxNumber());
@@ -297,6 +297,43 @@ public abstract class SSPrinter {
         iReport.addParameter("subtitle", getSubTitle());
         iReport.setModel(getModel());
         iReport.viewReport(iMainFrame);
+    }
+
+    /**
+     * Shows preview and invokes callback on first save/print action.
+     *
+     * @param iMainFrame owning frame
+     * @param iOnOutputAction callback run once on first output action
+     */
+    public void preview(SSMainFrame iMainFrame, Runnable iOnOutputAction) {
+        preview(iMainFrame, iOnOutputAction, null);
+    }
+
+    /**
+     * Shows preview and invokes callbacks for output actions.
+     *
+     * @param iMainFrame owning frame
+     * @param iOnOutputAction callback run once on first output action
+     * @param iOnEmailAction callback run when e-mail action is chosen
+     */
+    public void preview(SSMainFrame iMainFrame, Runnable iOnOutputAction, Runnable iOnEmailAction) {
+        preview(iMainFrame, iOnOutputAction, iOnEmailAction, iOnEmailAction != null);
+    }
+
+    /**
+     * Shows preview and invokes callbacks for output actions.
+     *
+     * @param iMainFrame owning frame
+     * @param iOnOutputAction callback run once on first output action
+     * @param iOnEmailAction callback run when e-mail action is chosen
+     * @param iShowEmailButton true if the e-mail button should be visible
+     */
+    public void preview(SSMainFrame iMainFrame, Runnable iOnOutputAction, Runnable iOnEmailAction,
+                        boolean iShowEmailButton) {
+        iReport.addParameter("title", getTitle());
+        iReport.addParameter("subtitle", getSubTitle());
+        iReport.setModel(getModel());
+        iReport.viewReport(iMainFrame, iOnOutputAction, iOnEmailAction, iShowEmailButton);
     }
 
     /**

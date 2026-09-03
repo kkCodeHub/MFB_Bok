@@ -48,6 +48,7 @@ Efter övergång till ny databasmodell finns inget krav på att kunna återläsa
 - `SSDBCustomerRepositoryTest` migrerad till JUnit 5 (`org.junit.jupiter.api.Test`).
 - Assertion för exception uppdaterad från JUnit 4-stil till `assertThrows(...)`.
 - Matchar projektets befintliga testsetup med `junit-jupiter` i `pom.xml`.
+- Valideringsunderlag för företagsinställningar dokumenterat i `doc/migration/COMPANY_SETTINGS_VALIDATION_MATRICES.md`.
 
 ### Principen
 ```

@@ -24,7 +24,7 @@ public class SSTenderMath extends SSSaleMath {
 
         // iTender.doAutoIncrecement();
 
-        SSNewCompany iCompany = SSDB.getInstance().getCurrentCompany();
+        SSNewCompany iCompany = se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.getCurrentCompany();
 
         if (iCompany != null) {
             iTender.setDelayInterest(iCompany.getDelayInterest());

@@ -1,11 +1,10 @@
 package se.swedsoft.bookkeeping.gui.creditinvoice;
 
 
-import se.swedsoft.bookkeeping.calc.math.SSCreditInvoiceMath;
-import se.swedsoft.bookkeeping.calc.math.SSInvoiceMath;
 import se.swedsoft.bookkeeping.data.SSCreditInvoice;
 import se.swedsoft.bookkeeping.data.system.SSDB;
 import se.swedsoft.bookkeeping.data.system.SSMail;
+import se.swedsoft.bookkeeping.data.system.SSSalesContext;
 import se.swedsoft.bookkeeping.gui.SSMainFrame;
 import se.swedsoft.bookkeeping.gui.creditinvoice.panel.SSCreditInvoiceSearchPanel;
 import se.swedsoft.bookkeeping.gui.creditinvoice.util.SSCreditInvoiceTableModel;
@@ -294,7 +293,7 @@ public class SSCreditInvoiceFrame extends SSDefaultTableFrame {
      *
      * @param delete
      */
-    
+
 
     private void deleteSelectedInvoice(List<SSCreditInvoice> delete) {
         if (delete.isEmpty()) {
@@ -307,24 +306,25 @@ public class SSCreditInvoiceFrame extends SSDefaultTableFrame {
 
         if (iResponce == JOptionPane.YES_OPTION) {
             for (SSCreditInvoice iCreditInvoice : delete) {
-                    if (SSInvoiceMath.iSaldoMap.containsKey(
-                            iCreditInvoice.getCreditingNr())) {
-                        SSInvoiceMath.iSaldoMap.put(iCreditInvoice.getCreditingNr(),
-                                SSInvoiceMath.iSaldoMap.get(iCreditInvoice.getCreditingNr()).add(
-                                SSCreditInvoiceMath.getTotalSum(iCreditInvoice)));
-                    }
-                    SSDB.getInstance().deleteCreditInvoice(iCreditInvoice);
+                SSSalesContext.deleteCreditInvoice(iCreditInvoice);
             }
+            updateFrame();
         }
 
     }
 
     private SSCreditInvoice getCreditInvoice(SSCreditInvoice iCreditInvoice) {
-        return SSDB.getInstance().getCreditInvoice(iCreditInvoice).orElse(null);
+        return SSSalesContext.getCreditInvoice(iCreditInvoice).orElse(null);
     }
 
     private List<SSCreditInvoice> getCreditInvoices(List<SSCreditInvoice> iCreditInvoices) {
-        return SSDB.getInstance().getCreditInvoices(iCreditInvoices);
+        return SSSalesContext.getCreditInvoices(iCreditInvoices);
+    }
+
+    public static void fireTableDataChanged() {
+        if (cInstance != null) {
+            cInstance.updateFrame();
+        }
     }
 
     public void updateFrame() {

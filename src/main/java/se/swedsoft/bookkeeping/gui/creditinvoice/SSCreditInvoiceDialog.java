@@ -6,6 +6,7 @@ import se.swedsoft.bookkeeping.calc.math.SSTenderMath;
 import se.swedsoft.bookkeeping.data.SSCreditInvoice;
 import se.swedsoft.bookkeeping.data.SSInvoice;
 import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.data.system.SSSalesContext;
 import se.swedsoft.bookkeeping.gui.SSMainFrame;
 import se.swedsoft.bookkeeping.gui.creditinvoice.dialog.SSSelectInvoiceDialog;
 import se.swedsoft.bookkeeping.gui.creditinvoice.panel.SSCreditInvoicePanel;
@@ -57,17 +58,17 @@ public class SSCreditInvoiceDialog {
 
                 SSCreditInvoice iInvoice1 = iPanel.getCreditInvoice();
 
-                SSDB.getInstance().updateCreditInvoice(iInvoice1);
+                SSSalesContext.updateCreditInvoice(iInvoice1);
 
                 if (iPanel.doSaveCustomerAndProducts()) {
                     SSOrderMath.addCustomerAndProducts(iInvoice1);
                 }
-
-                if (pModel != null) {
-                    pModel.fireTableDataChanged();
-                }
+                SSCreditInvoiceFrame.fireTableDataChanged();
                 if (SSInvoiceFrame.getInstance() != null) {
                     SSInvoiceFrame.getInstance().updateFrame();
+                }
+                if (SSCreditInvoiceFrame.getInstance() != null) {
+                    SSCreditInvoiceFrame.getInstance().updateFrame();
                 }
                 iPanel.dispose();
                 iDialog.closeDialog();
@@ -147,17 +148,17 @@ public class SSCreditInvoiceDialog {
 
                 SSCreditInvoice iInvoice = iPanel.getCreditInvoice();
 
-                SSDB.getInstance().addCreditInvoice(iInvoice);
+                SSSalesContext.addCreditInvoice(iInvoice);
 
                 if (iPanel.doSaveCustomerAndProducts()) {
                     SSTenderMath.addCustomerAndProducts(iInvoice);
                 }
-
-                if (pModel != null) {
-                    pModel.fireTableDataChanged();
-                }
+                SSCreditInvoiceFrame.fireTableDataChanged();
                 if (SSInvoiceFrame.getInstance() != null) {
                     SSInvoiceFrame.getInstance().updateFrame();
+                }
+                if (SSCreditInvoiceFrame.getInstance() != null) {
+                    SSCreditInvoiceFrame.getInstance().updateFrame();
                 }
                 iPanel.dispose();
                 iDialog.closeDialog();
@@ -224,17 +225,17 @@ public class SSCreditInvoiceDialog {
 
                 SSCreditInvoice iInvoice = iPanel.getCreditInvoice();
 
-                SSDB.getInstance().addCreditInvoice(iInvoice);
+                SSSalesContext.addCreditInvoice(iInvoice);
 
                 if (iPanel.doSaveCustomerAndProducts()) {
                     SSTenderMath.addCustomerAndProducts(iInvoice);
                 }
-
-                if (pModel != null) {
-                    pModel.fireTableDataChanged();
-                }
+                SSCreditInvoiceFrame.fireTableDataChanged();
                 if (SSInvoiceFrame.getInstance() != null) {
                     SSInvoiceFrame.getInstance().updateFrame();
+                }
+                if (SSCreditInvoiceFrame.getInstance() != null) {
+                    SSCreditInvoiceFrame.getInstance().updateFrame();
                 }
                 iPanel.dispose();
                 iDialog.closeDialog();

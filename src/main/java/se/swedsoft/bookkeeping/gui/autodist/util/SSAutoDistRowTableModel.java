@@ -5,7 +5,7 @@ import se.swedsoft.bookkeeping.data.SSAccount;
 import se.swedsoft.bookkeeping.data.SSAutoDistRow;
 import se.swedsoft.bookkeeping.data.SSNewProject;
 import se.swedsoft.bookkeeping.data.SSNewResultUnit;
-import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.data.system.SSAccountingContext;
 import se.swedsoft.bookkeeping.gui.util.SSBundle;
 import se.swedsoft.bookkeeping.gui.util.table.model.SSTableColumn;
 import se.swedsoft.bookkeeping.gui.util.table.model.SSTableModel;
@@ -67,7 +67,7 @@ public class SSAutoDistRowTableModel extends SSTableModel<SSAutoDistRow> {
             SSBundle.getBundle().getString("autodistrowtable.column.1")) {
         @Override
         public Object getValue(SSAutoDistRow iAutoDistRow) {
-            SSAccount iAccount = iAutoDistRow.getAccount(SSDB.getInstance().getAccounts());
+            SSAccount iAccount = iAutoDistRow.getAccount(SSAccountingContext.getAccounts());
 
             return iAccount != null ? iAccount : iAutoDistRow.getAccountNr();
         }
@@ -102,7 +102,7 @@ public class SSAutoDistRowTableModel extends SSTableModel<SSAutoDistRow> {
             SSBundle.getBundle().getString("autodistrowtable.column.2")) {
         @Override
         public Object getValue(SSAutoDistRow iAutoDistRow) {
-            SSAccount iAccount = iAutoDistRow.getAccount(SSDB.getInstance().getAccounts());
+            SSAccount iAccount = iAutoDistRow.getAccount(SSAccountingContext.getAccounts());
 
             return  iAccount != null ? iAccount.getDescription() : null;
         }
@@ -304,4 +304,5 @@ public class SSAutoDistRowTableModel extends SSTableModel<SSAutoDistRow> {
         return sb.toString();
     }
 }
+
 

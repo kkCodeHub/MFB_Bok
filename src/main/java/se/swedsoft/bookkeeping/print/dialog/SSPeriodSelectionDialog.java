@@ -5,10 +5,12 @@ import se.swedsoft.bookkeeping.gui.SSMainFrame;
 import se.swedsoft.bookkeeping.gui.util.SSButtonPanel;
 import se.swedsoft.bookkeeping.gui.util.datechooser.SSDateChooser;
 import se.swedsoft.bookkeeping.gui.util.dialogs.SSDialog;
+import se.swedsoft.bookkeeping.util.SSDateUtil;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.time.LocalDate;
 import java.util.Date;
 
 
@@ -43,36 +45,33 @@ public class SSPeriodSelectionDialog extends SSDialog {
     }
 
     /**
-     *
-     * @return
+     * @return the end date as a {@link LocalDate}
      */
-    public Date getTo() {
-        return iTo.getDate();
+    public LocalDate getLocalTo() {
+        return iTo.getLocalDate();
     }
 
     /**
-     *
-     * @param to
+     * @param to the end date
      */
-    public void setTo(Date to) {
-        iTo.setDate(to);
+    public void setLocalTo(LocalDate to) {
+        iTo.setLocalDate(to);
     }
 
     /**
-     *
-     * @return
+     * @return the start date as a {@link LocalDate}
      */
-    public Date getFrom() {
-        return iFrom.getDate();
+    public LocalDate getLocalFrom() {
+        return iFrom.getLocalDate();
     }
 
     /**
-     *
-     * @param from
+     * @param from the start date
      */
-    public void setFrom(Date from) {
-        iFrom.setDate(from);
+    public void setLocalFrom(LocalDate from) {
+        iFrom.setLocalDate(from);
     }
+
 
     @Override
     public String toString() {

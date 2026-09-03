@@ -1,12 +1,12 @@
 package se.swedsoft.bookkeeping.importexport.excel.util;
 
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Row;
 
-import jxl.Cell;
-import jxl.Sheet;
-
+import java.math.BigDecimal;
 import java.util.LinkedList;
 import java.util.List;
-
+import java.util.Date;
 
 /**
  * Date: 2006-feb-14
@@ -16,19 +16,22 @@ public class SSExcelRow {
 
     private int iRow;
 
-    private Sheet iSheet;
+    private Row iRow_POI;
 
-    public SSExcelRow(Sheet pSheet, int pRow) {
-        iSheet = pSheet;
-        iRow = pRow;
+    public SSExcelRow(Row pRow, int pRowNum) {
+        iRow_POI = pRow;
+        iRow = pRowNum;
     }
 
     public List<SSExcelCell> getCells() {
         List<SSExcelCell> iList = new LinkedList<>();
 
-        int iColumn = 0;
+        if (iRow_POI == null) {
+            return iList;
+        }
 
-        for (Cell iCell: iSheet.getRow(iRow)) {
+        int iColumn = 0;
+        for (Cell iCell : iRow_POI) {
             iList.add(new SSExcelCell(iCell, iRow, iColumn));
             iColumn++;
         }
@@ -36,14 +39,13 @@ public class SSExcelRow {
     }
 
     public boolean empty() {
-        Cell[] iRows = iSheet.getRow(iRow);
-
-        if (iRows.length == 0) {
+        if (iRow_POI == null) {
             return true;
         }
 
-        for (Cell iCell : iRows) {
-            if (iCell.getContents() != null && iCell.getContents().length() > 0) {
+        for (Cell iCell : iRow_POI) {
+            String content = SSExcelCell.formatCellValue(iCell);
+            if (content != null && !content.isEmpty()) {
                 return false;
             }
         }
@@ -64,7 +66,14 @@ public class SSExcelRow {
      * @return
      */
     public String getString(int pColumn) {
-        return iSheet.getCell(pColumn, iRow).getContents();
+        if (iRow_POI == null) {
+            return "";
+        }
+        Cell iCell = iRow_POI.getCell(pColumn);
+        if (iCell == null) {
+            return "";
+        }
+        return SSExcelCell.formatCellValue(iCell);
     }
 
     /**
@@ -93,13 +102,45 @@ public class SSExcelRow {
         }
     }
 
+    /**
+     *
+     * @param pColumn
+     * @return
+     */
+    public Date getDate(int pColumn) {
+        if (iRow_POI == null) {
+            return null;
+        }
+        Cell iCell = iRow_POI.getCell(pColumn);
+        if (iCell == null) {
+            return null;
+        }
+        return new SSExcelCell(iCell, iRow, pColumn).getDate();
+    }
+
+    /**
+     *
+     * @param pColumn
+     * @return
+     */
+    public java.util.Optional<BigDecimal> getBigDecimal(int pColumn) {
+        if (iRow_POI == null) {
+            return java.util.Optional.empty();
+        }
+        Cell iCell = iRow_POI.getCell(pColumn);
+        if (iCell == null) {
+            return java.util.Optional.empty();
+        }
+        return new SSExcelCell(iCell, iRow, pColumn).getBigDecimal();
+    }
+
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder();
 
         sb.append("se.swedsoft.bookkeeping.importexport.excel.util.SSExcelRow");
         sb.append("{iRow=").append(iRow);
-        sb.append(", iSheet=").append(iSheet);
+        sb.append(", iRow_POI=").append(iRow_POI);
         sb.append('}');
         return sb.toString();
     }

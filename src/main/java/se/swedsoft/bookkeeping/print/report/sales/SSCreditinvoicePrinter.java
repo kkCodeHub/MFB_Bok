@@ -9,8 +9,10 @@ import se.swedsoft.bookkeeping.data.SSNewCompany;
 import se.swedsoft.bookkeeping.data.base.SSSaleRow;
 import se.swedsoft.bookkeeping.data.common.SSTaxCode;
 import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.data.system.SSSalesContext;
 import se.swedsoft.bookkeeping.gui.util.model.SSDefaultTableModel;
 import se.swedsoft.bookkeeping.print.SSPrinter;
+import se.swedsoft.bookkeeping.print.util.SSQuantityPrintUtil;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -76,10 +78,10 @@ public class SSCreditinvoicePrinter extends SSPrinter {
      *
      */
     private void addParameters() {
-        SSNewCompany iCompany = SSDB.getInstance().getCurrentCompany();
+        SSNewCompany iCompany = se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.getCurrentCompany();
 
         SSCustomer iCustomer = iCreditInvoice.getCustomer(
-                SSDB.getInstance().getCustomers());
+                SSSalesContext.getCustomers());
 
         // Company parameters
         SSSalePrinterUtils.addParametersForCompany(iCompany, this);
@@ -161,7 +163,7 @@ public class SSCreditinvoicePrinter extends SSPrinter {
         addParameter("creditinvoice.rounding", iRounding);
         addParameter("creditinvoice.totalsum", iTotalSum);
 
-        // QR-code 
+        // QR-code
         DateTimeFormatter iFormat = DateTimeFormatter.ofPattern("yyyyMMdd");
         final StringBuilder uqrData = new StringBuilder();
 
@@ -169,7 +171,7 @@ public class SSCreditinvoicePrinter extends SSPrinter {
         uqrData.append("\"nme\": \"");
         uqrData.append(iCompany.getName());
         // fixme! - cc: iCompany.getAddress().getCountry() -> CountyCode
-        uqrData.append("\", \"cc\": \"SE\""); 
+        uqrData.append("\", \"cc\": \"SE\"");
         uqrData.append(", \"cid\": \"");
         uqrData.append(iCompany.getCorporateID());
         uqrData.append("\", \"iref\": \"");
@@ -191,7 +193,7 @@ public class SSCreditinvoicePrinter extends SSPrinter {
         uqrData.append(", \"vl\": ");
         uqrData.append(iTaxSum.get(SSTaxCode.TAXRATE_3).setScale(2, RoundingMode.HALF_UP).negate());
         uqrData.append(", \"cur\": \"");
-        uqrData.append(iCreditInvoice.getCurrency()); 
+        uqrData.append(iCreditInvoice.getCurrency());
         uqrData.append("\", ");
         uqrData.append("\"adr\": \"");
         uqrData.append(iCompany.getAddress().getZipCode());
@@ -200,7 +202,7 @@ public class SSCreditinvoicePrinter extends SSPrinter {
         uqrData.append("\"");
         uqrData.append("}");
 
-        SSSalePrinterUtils.addParameterForQRCode(uqrData.toString(), this);
+        SSSalePrinterUtils.addParameterForSwishImage(iCompany, this);
     }
 
     /**
@@ -287,7 +289,7 @@ public class SSCreditinvoicePrinter extends SSPrinter {
                         break;
 
                     case 2:
-                        value = iRow.getQuantity();
+                        value = SSQuantityPrintUtil.toDisplay(iRow.getQuantity());
                         break;
 
                     case 3:

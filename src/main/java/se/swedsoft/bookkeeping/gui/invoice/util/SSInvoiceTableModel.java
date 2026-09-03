@@ -5,6 +5,7 @@ import se.swedsoft.bookkeeping.calc.math.SSInvoiceMath;
 import se.swedsoft.bookkeeping.data.SSInvoice;
 import se.swedsoft.bookkeeping.data.common.SSCurrency;
 import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.data.system.SSSalesContext;
 import se.swedsoft.bookkeeping.gui.util.SSBundle;
 import se.swedsoft.bookkeeping.gui.util.graphics.SSIcon;
 import se.swedsoft.bookkeeping.gui.util.table.model.SSTableColumn;
@@ -28,7 +29,7 @@ public class SSInvoiceTableModel extends SSTableModel<SSInvoice> {
      * Default constructor.
      */
     public SSInvoiceTableModel() {
-        super(SSDB.getInstance().getInvoices());
+        super(SSSalesContext.getInvoices());
     }
 
     /**
@@ -54,7 +55,7 @@ public class SSInvoiceTableModel extends SSTableModel<SSInvoice> {
      * @return
      */
     public static SSInvoiceTableModel getDropDownModel() {
-        return getDropDownModel(SSDB.getInstance().getInvoices());
+        return getDropDownModel(SSSalesContext.getInvoices());
     }
 
     /**
@@ -79,9 +80,19 @@ public class SSInvoiceTableModel extends SSTableModel<SSInvoice> {
             "") {
         @Override
         public Object getValue(SSInvoice iInvoice) {
-            return iInvoice.isPrinted()
-                    ? SSIcon.getIcon("ICON_PROPERTIES16", SSIcon.IconState.NORMAL)
-                    : null;
+            if (iInvoice.isCancelled()) {
+                return SSIcon.getIcon("ICON_DELETE16", SSIcon.IconState.NORMAL);
+            }
+            if (iInvoice.isPrinted() && iInvoice.isEntered()) {
+                return SSIcon.getIcon("ICON_PROPERTIES16", SSIcon.IconState.NORMAL);
+            }
+            if (iInvoice.isPrinted() && !iInvoice.isEntered()) {
+                return SSIcon.getIcon("ICON_PRINTED16", SSIcon.IconState.NORMAL);
+            }
+            if (iInvoice.isEntered() && !iInvoice.isPrinted()) {
+                return SSIcon.getIcon("ICON_ENTERED16", SSIcon.IconState.NORMAL);
+            }
+            return null;
         }
 
         @Override

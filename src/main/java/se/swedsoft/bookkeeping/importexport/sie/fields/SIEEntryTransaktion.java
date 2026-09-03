@@ -91,7 +91,7 @@ public class SIEEntryTransaktion implements SIEEntry {
      * @throws SSImportException
      */
     public boolean importEntry(SSVoucher iVoucher, SSSIEImporter iImporter, SIEReader iReader, SSNewAccountingYear iCurrentYearData) throws SSImportException {
-        // SSNewAccountingYear iCurrentYearData  = SSDB.getInstance().getCurrentYear();
+        // SSNewAccountingYear iCurrentYearData  = se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.getCurrentYear();
 
         // #TRANS kontonr {objectlista} belopp [transdat] [transtext] [kvantitet]
         if (!iReader.hasFields(STRING, INT, ARRAY, FLOAT)) {
@@ -139,7 +139,7 @@ public class SIEEntryTransaktion implements SIEEntry {
             }
             // Projekt, #DIM 6
             if (iDimension == 6) {
-                iProject = SSProjectMath.getProject(SSDB.getInstance().getProjects(), iNum).orElse(null);
+                iProject = SSProjectMath.getProject(se.swedsoft.bookkeeping.data.system.SSProjectContext.getProjects(), iNum).orElse(null);
 
                 // if(iProject == null)
                 // throw new RuntimeException("Project not defined: " + iNum);

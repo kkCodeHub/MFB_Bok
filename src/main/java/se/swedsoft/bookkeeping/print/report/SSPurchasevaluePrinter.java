@@ -9,6 +9,7 @@ import se.swedsoft.bookkeeping.gui.util.model.SSDefaultTableModel;
 import se.swedsoft.bookkeeping.print.SSPrinter;
 import se.swedsoft.bookkeeping.util.SSDateUtil;
 
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
 
@@ -30,12 +31,11 @@ public class SSPurchasevaluePrinter extends SSPrinter {
      * @param iTo
 
      */
-    public SSPurchasevaluePrinter(Date iFrom, Date iTo) {
-        this.iFrom = iFrom;
-        this.iTo = iTo;
+    public SSPurchasevaluePrinter(LocalDate iFrom, LocalDate iTo) {
+        this.iFrom = SSDateUtil.toDate(iFrom);
+        this.iTo = SSDateUtil.toDate(iTo);
 
-        iMonths = SSMonth.splitYearIntoMonths(
-                SSDateUtil.toLocalDate(iFrom), SSDateUtil.toLocalDate(iTo));
+        iMonths = SSMonth.splitYearIntoMonths(iFrom, iTo);
 
         setPageHeader("header_period.jrxml");
         setColumnHeader("purchasevalues.jrxml");
@@ -79,12 +79,12 @@ public class SSPurchasevaluePrinter extends SSPrinter {
                     break;
 
                 case 1:
-                    value = SSDB.getInstance().getCurrentCompany().getPurchaseOrderValueForMonth(
+                    value = se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.getCurrentCompany().getPurchaseOrderValueForMonth(
                             iMonth);
                     break;
 
                 case 2:
-                    value = SSDB.getInstance().getCurrentCompany().getSupplierInvoiceValueForMonth(
+                    value = se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.getCurrentCompany().getSupplierInvoiceValueForMonth(
                             iMonth);
                     break;
                 }

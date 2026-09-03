@@ -86,6 +86,10 @@ public class SSMainFrame extends JFrame {    private static final Logger LOG = L
             @Override
             public void windowClosing(WindowEvent e) {
                 saveSizeAndLocation();
+                // EXIT_ON_CLOSE triggers System.exit() which runs shutdown hooks.
+                // Explicitly call System.exit here to guarantee JVM termination even
+                // if non-daemon threads (e.g. HSQLDB heartbeat) would otherwise block.
+                System.exit(0);
             }
         });
 
@@ -100,7 +104,7 @@ public class SSMainFrame extends JFrame {    private static final Logger LOG = L
 
         iDesktop = new JDesktopPane(); // new SSDesktopPane( SSImage.getImage("BACKGROUND") );
         iStatusBar = getStatusBar();
-
+        iDesktop.setBackground(Color.WHITE);
         add(iDesktop, BorderLayout.CENTER);
         add(iStatusBar, BorderLayout.SOUTH);
 

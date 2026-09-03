@@ -26,7 +26,7 @@ public class SSSupplierdebtPrinter extends SSPrinter {
      *
      * @param iDate
      */
-    public SSSupplierdebtPrinter(Date iDate) {
+    public SSSupplierdebtPrinter(LocalDate iDate) {
         this(iDate, Repositories.supplierInvoices().findAll());
     }
 
@@ -35,10 +35,8 @@ public class SSSupplierdebtPrinter extends SSPrinter {
      * @param iDate
      * @param iInvoices
      */
-    public SSSupplierdebtPrinter(Date iDate, List<SSSupplierInvoice> iInvoices) {
-        LocalDate localDate = SSDateUtil.toLocalDate(iDate);
-
-        iSaldos = SSSupplierInvoiceMath.getSaldo(iInvoices, localDate);
+    public SSSupplierdebtPrinter(LocalDate iDate, List<SSSupplierInvoice> iInvoices) {
+        iSaldos = SSSupplierInvoiceMath.getSaldo(iInvoices, iDate);
 
         setPageHeader("header_period.jrxml");
         setColumnHeader("supplierdebt.jrxml");
@@ -46,7 +44,7 @@ public class SSSupplierdebtPrinter extends SSPrinter {
         setSummary("supplierdebt.jrxml");
 
         addParameter("periodTitle", iBundle.getString("supplierdebtreport.periodtitle"));
-        addParameter("periodText", iDate);
+        addParameter("periodText", SSDateUtil.toDate(iDate));
     }
 
     /**

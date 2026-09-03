@@ -1,10 +1,8 @@
 package se.swedsoft.bookkeeping.importexport.excel;
 
 
-import jxl.Sheet;
-import jxl.Workbook;
-import jxl.WorkbookSettings;
-import jxl.read.biff.BiffException;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -17,6 +15,7 @@ import se.swedsoft.bookkeeping.data.common.SSDefaultAccount;
 import se.swedsoft.bookkeeping.data.common.SSTaxCode;
 import se.swedsoft.bookkeeping.data.common.SSUnit;
 import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.data.system.SSProductContext;
 import se.swedsoft.bookkeeping.gui.SSMainFrame;
 import se.swedsoft.bookkeeping.gui.util.SSBundle;
 import se.swedsoft.bookkeeping.gui.util.dialogs.SSInitDialog;
@@ -24,6 +23,7 @@ import se.swedsoft.bookkeeping.importexport.dialog.SSImportReportDialog;
 import se.swedsoft.bookkeeping.importexport.excel.util.SSExcelCell;
 import se.swedsoft.bookkeeping.importexport.excel.util.SSExcelRow;
 import se.swedsoft.bookkeeping.importexport.excel.util.SSExcelSheet;
+import se.swedsoft.bookkeeping.importexport.excel.util.SSExcelWorkbookReader;
 import se.swedsoft.bookkeeping.importexport.util.SSImportException;
 
 import javax.swing.*;
@@ -33,6 +33,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.util.*;
@@ -48,13 +49,28 @@ import org.slf4j.LoggerFactory;
 public class SSProductImporter {    private static final Logger LOG = LoggerFactory.getLogger(SSProductImporter.class);
 
 
-    private File iFile;
+    private final File iFile;
 
-    private Map<String, Integer> iColumns;
+    private final Map<String, Integer> iColumns;
+
+    static Integer parseQuantityToTenths(String iValue) {
+        if (iValue == null) {
+            return null;
+        }
+
+        String iNormalized = iValue.trim().replace(',', '.');
+        if (iNormalized.length() == 0) {
+            return null;
+        }
+
+        BigDecimal iDecimal = new BigDecimal(iNormalized);
+        return iDecimal.movePointRight(1).setScale(0, RoundingMode.HALF_UP).intValue();
+    }
 
     /**
+     * Creates a product importer.
      *
-     * @param iFile
+     * @param iFile source Excel file
      */
     public SSProductImporter(File iFile) {
         this.iFile = iFile;
@@ -62,31 +78,25 @@ public class SSProductImporter {    private static final Logger LOG = LoggerFact
     }
 
     /**
+     * Imports products from the configured file.
      *
-     * @throws IOException
-     * @throws SSImportException
+     * @throws IOException if reading the file fails
+     * @throws SSImportException if import content is invalid
      */
     public void doImport() throws IOException, SSImportException {
-        WorkbookSettings iSettings = new WorkbookSettings();
-
-        iSettings.setLocale(new Locale("sv", "SE"));
-        iSettings.setEncoding("windows-1252");
-        iSettings.setExcelDisplayLanguage("SE");
-        iSettings.setExcelRegionalSettings("SE");
-
-        List<SSProduct> iProducts = null;
+        List<SSProduct> iProducts;
 
         try {
-            Workbook iWorkbook = Workbook.getWorkbook(iFile, iSettings);
+            Workbook iWorkbook = SSExcelWorkbookReader.openWorkbook(iFile);
 
-            Sheet iSheet = iWorkbook.getSheet(0);
+            Sheet iSheet = iWorkbook.getSheetAt(0);
 
             iProducts = importProducts(new SSExcelSheet(iSheet));
 
             // iWorkbook.write();
             iWorkbook.close();
 
-        } catch (BiffException e) {
+        } catch (IOException e) {
             throw new SSImportException(e.getLocalizedMessage());
         }
         final List<SSProduct> iNewProducts = new LinkedList<>(iProducts);
@@ -95,12 +105,12 @@ public class SSProductImporter {    private static final Logger LOG = LoggerFact
         SSInitDialog.runProgress(SSMainFrame.getInstance(), "Importerar produkter",
                 () -> {
 
-                        if (iNewProducts != null && iResult) {
-                            List<SSProduct> iExistingProducts = SSDB.getInstance().getProducts();
+                        if (iResult) {
+                            List<SSProduct> iExistingProducts = SSProductContext.getProducts();
 
                             for (SSProduct iProduct : iNewProducts) {
                                 if (!iExistingProducts.contains(iProduct)) {
-                                    SSDB.getInstance().addProduct(iProduct);
+                                    SSProductContext.addProduct(iProduct);
                                 }
                             }
                         }
@@ -110,8 +120,9 @@ public class SSProductImporter {    private static final Logger LOG = LoggerFact
     }
 
     /**
+     * Reads and validates column names from the header row.
      *
-     * @param iColumns
+     * @param iColumns header row
      */
     private void getColumnIndexes(SSExcelRow iColumns) {
 
@@ -121,7 +132,7 @@ public class SSProductImporter {    private static final Logger LOG = LoggerFact
         for (SSExcelCell iColumn : iColumns.getCells()) {
             String iName = iColumn.getString();
 
-            if (iName != null && iName.length() > 0) {
+            if (iName != null && !iName.isEmpty()) {
                 if (iName.equalsIgnoreCase(SSProductExporter.BESKRIVNING)) {
                     this.iColumns.put(SSProductExporter.BESKRIVNING, iIndex);
                 } else if (iName.equalsIgnoreCase(SSProductExporter.PRODUKTNUMMER)) {
@@ -166,9 +177,10 @@ public class SSProductImporter {    private static final Logger LOG = LoggerFact
     }
 
     /**
+     * Imports products from the provided worksheet.
      *
-     * @param iSheet
-     * @return
+     * @param iSheet source sheet
+     * @return imported products
      */
     private List<SSProduct> importProducts(SSExcelSheet iSheet) {
 
@@ -178,7 +190,7 @@ public class SSProductImporter {    private static final Logger LOG = LoggerFact
             throw new SSImportException(SSBundle.getBundle(), "productframe.import.norows");
         }
 
-        getColumnIndexes(iRows.get(0));
+        getColumnIndexes(iRows.getFirst());
 
         List<SSProduct> iProducts = new LinkedList<>();
 
@@ -266,16 +278,13 @@ public class SSProductImporter {    private static final Logger LOG = LoggerFact
                         iProduct.setStockPrice((BigDecimal) iFormat.parse(iValue));
                     }
 
-                } catch (ParseException e) {
-                    LOG.error("Unexpected error", e);
-                    throw new SSImportException(e.getLocalizedMessage());
-                } catch (NumberFormatException e) {
+                } catch (ParseException | NumberFormatException e) {
                     LOG.error("Unexpected error", e);
                     throw new SSImportException(e.getLocalizedMessage());
                 }
 
             }
-            if (iProduct.getNumber() != null && iProduct.getNumber().length() > 0) {
+            if (iProduct.getNumber() != null && !iProduct.getNumber().isEmpty()) {
                 iProducts.add(iProduct);
             }
         }
@@ -283,9 +292,10 @@ public class SSProductImporter {    private static final Logger LOG = LoggerFact
     }
 
     /**
+     * Shows a summary dialog before import is applied.
      *
-     * @param iProducts
-     * @return
+     * @param iProducts products queued for import
+     * @return {@code true} when user confirms import
      */
     private boolean showImportReport(List<SSProduct> iProducts) {
         SSImportReportDialog iDialog = new SSImportReportDialog(SSMainFrame.getInstance(),
@@ -355,7 +365,10 @@ public class SSProductImporter {    private static final Logger LOG = LoggerFact
 
         iDialog.setText(sb.toString());
         iDialog.setSize(640, 480);
-        iDialog.setLocationRelativeTo(SSMainFrame.getInstance());
+        SSMainFrame iMainFrame = SSMainFrame.getInstance();
+        if (iMainFrame != null) {
+            iDialog.setLocationRelativeTo(iMainFrame);
+        }
 
         return iDialog.showDialog() == JOptionPane.OK_OPTION;
     }
@@ -387,8 +400,8 @@ public class SSProductImporter {    private static final Logger LOG = LoggerFact
 
                 if (iProductNode.getNodeType() == Node.ELEMENT_NODE) {
 
-                    NodeList iTextProductAttList = null;
-                    String iValue = null;
+                    NodeList iTextProductAttList;
+                    String iValue;
                     Element iProductElement = (Element) iProductNode;
 
                     NodeList iProductAttList = iProductElement.getElementsByTagName(
@@ -532,7 +545,7 @@ public class SSProductImporter {    private static final Logger LOG = LoggerFact
                         iValue = iTextProductAttList.item(0) == null
                                 ? null
                                 : iTextProductAttList.item(0).getNodeValue().trim();
-                        iProduct.setExpired(iValue != null && Boolean.valueOf(iValue));
+                        iProduct.setExpired(Boolean.parseBoolean(iValue));
                     }
 
                     iProductAttList = iProductElement.getElementsByTagName("StockProduct");
@@ -542,7 +555,7 @@ public class SSProductImporter {    private static final Logger LOG = LoggerFact
                         iValue = iTextProductAttList.item(0) == null
                                 ? null
                                 : iTextProductAttList.item(0).getNodeValue().trim();
-                        iProduct.setStockProduct(iValue != null && Boolean.valueOf(iValue));
+                        iProduct.setStockProduct(Boolean.parseBoolean(iValue));
                     }
 
                     iProductAttList = iProductElement.getElementsByTagName(
@@ -574,8 +587,7 @@ public class SSProductImporter {    private static final Logger LOG = LoggerFact
                         iValue = iTextProductAttList.item(0) == null
                                 ? null
                                 : iTextProductAttList.item(0).getNodeValue().trim();
-                        iProduct.setOrdercount(
-                                iValue == null ? null : Integer.parseInt(iValue));
+                        iProduct.setOrdercount(parseQuantityToTenths(iValue));
                     }
 
                     iProductAttList = iProductElement.getElementsByTagName(
@@ -607,7 +619,7 @@ public class SSProductImporter {    private static final Logger LOG = LoggerFact
                         iValue = iTextProductAttList.item(0) == null
                                 ? null
                                 : iTextProductAttList.item(0).getNodeValue().trim();
-                        iProduct.setDescription(new Locale("en"), iValue);
+                        iProduct.setDescription(Locale.forLanguageTag("en"), iValue);
                     }
 
                     iProductAttList = iProductElement.getElementsByTagName("Detail");
@@ -624,12 +636,12 @@ public class SSProductImporter {    private static final Logger LOG = LoggerFact
                         if (iRowNode.getNodeType() == Node.ELEMENT_NODE) {
                             Element iRowElement = (Element) iRowNode;
 
-                            NodeList iTextRowAttList = null;
+                            NodeList iTextRowAttList;
                             NodeList iRowAttList = iRowElement.getElementsByTagName(
                                     "IncludedProductNo");
                             Element iFirstRowAttElement = (Element) iRowAttList.item(0);
 
-                            if (iFirstProductAttElement != null) {
+                            if (iFirstRowAttElement != null) {
                                 iTextRowAttList = iFirstRowAttElement.getChildNodes();
                                 iValue = iTextRowAttList.item(0) == null
                                         ? null
@@ -639,13 +651,12 @@ public class SSProductImporter {    private static final Logger LOG = LoggerFact
 
                             iRowAttList = iRowElement.getElementsByTagName("RowQuantity");
                             iFirstRowAttElement = (Element) iRowAttList.item(0);
-                            if (iFirstProductAttElement != null) {
+                            if (iFirstRowAttElement != null) {
                                 iTextRowAttList = iFirstRowAttElement.getChildNodes();
                                 iValue = iTextRowAttList.item(0) == null
                                         ? null
                                         : iTextRowAttList.item(0).getNodeValue().trim();
-                                iRow.setQuantity(
-                                        iValue == null ? null : Integer.parseInt(iValue));
+                                iRow.setQuantity(parseQuantityToTenths(iValue));
                             }
 
                             if (iRow.getProductNr() != null) {
@@ -661,27 +672,23 @@ public class SSProductImporter {    private static final Logger LOG = LoggerFact
                     iProducts.add(iProduct);
                 }
             }
-            List<SSProduct> iExistingProducts = SSDB.getInstance().getProducts();
+            List<SSProduct> iExistingProducts = se.swedsoft.bookkeeping.data.system.SSProductContext.getProducts();
 
             for (SSProduct pProduct : iProducts) {
                 if (iExistingProducts.contains(pProduct)) {
-                    SSDB.getInstance().updateProduct(pProduct);
+                    SSProductContext.updateProduct(pProduct);
                 } else {
-                    SSDB.getInstance().addProduct(pProduct);
+                    SSProductContext.addProduct(pProduct);
                 }
             }
 
-        } catch (ParserConfigurationException e) {
-            throw new SSImportException(e.getMessage());
-        } catch (SAXException e) {
-            throw new SSImportException(e.getMessage());
-        } catch (IOException e) {
+        } catch (ParserConfigurationException | SAXException | IOException e) {
             throw new SSImportException(e.getMessage());
         }
     }
 
     private SSProduct getProduct(String iNumber) {
-        List<SSProduct> iProducts = SSDB.getInstance().getProducts();
+        List<SSProduct> iProducts = SSProductContext.getProducts();
 
         for (SSProduct iProduct : iProducts) {
             if (iProduct.getNumber().equals(iNumber)) {
@@ -692,7 +699,7 @@ public class SSProductImporter {    private static final Logger LOG = LoggerFact
     }
 
     private SSSupplier getSupplier(String iNumber) {
-        for (SSSupplier iSupplier : SSDB.getInstance().getSuppliers()) {
+        for (SSSupplier iSupplier : se.swedsoft.bookkeeping.data.system.SSPurchaseContext.getSuppliers()) {
             if (iSupplier.getNumber().equals(iNumber)) {
                 return iSupplier;
             }
@@ -702,12 +709,9 @@ public class SSProductImporter {    private static final Logger LOG = LoggerFact
 
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder();
-
-        sb.append("se.swedsoft.bookkeeping.importexport.excel.SSProductImporter");
-        sb.append("{iColumns=").append(iColumns);
-        sb.append(", iFile=").append(iFile);
-        sb.append('}');
-        return sb.toString();
+        return "se.swedsoft.bookkeeping.importexport.excel.SSProductImporter"
+                + "{iColumns=" + iColumns
+                + ", iFile=" + iFile
+                + '}';
     }
 }

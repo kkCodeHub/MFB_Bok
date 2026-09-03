@@ -2,6 +2,11 @@
 
 Detta dokument sammanfattar exakt var vi står i tvåstegs-migreringen och vad som är nästa praktiska steg.
 
+> **Statusuppdatering 2026-05-19 (V2-only cutover):**
+> - Runtime är låst till schema V2 (`create_tables_v2.sql`).
+> - Repository-fabriken (`Repositories`) instansierar enbart `V2*Repository`.
+> - Kvarvarande `persistence/legacy`-källor är avvecklade ur build via compiler-exclude och används inte i runtime-path.
+
 ## Målbild för Steg 2
 
 - Ersätta serialiseringsbaserad persistens (`OBJECT`-kolumner) med normaliserat relationsschema.
@@ -41,9 +46,9 @@ Detta dokument sammanfattar exakt var vi står i tvåstegs-migreringen och vad s
 
 ## Kvar till Steg 2.3
 
-- `SSDB` använder fortfarande V1-lagring (serialisering/OBJECT).
-- `create_tables_v2.sql` är ännu inte inkopplad i runtime-boot.
-- CRUD-paths måste flyttas tabell för tabell till V2.
+- Full regressionskörning (`mvn clean test`) efter V2-only-cutover.
+- Slutlig städning av kvarvarande arkiverad legacy-kod/dokumentation.
+- Avstämning av alla återstående CRUD-paths mot V2-repositories i integrationstest.
 
 Följ `doc/migration/STEP2_3_EXECUTION_PLAN.md` för konkret arbetsordning.
 

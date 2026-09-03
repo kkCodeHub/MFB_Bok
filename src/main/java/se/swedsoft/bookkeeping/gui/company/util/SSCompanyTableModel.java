@@ -2,7 +2,7 @@ package se.swedsoft.bookkeeping.gui.company.util;
 
 
 import se.swedsoft.bookkeeping.data.SSNewCompany;
-import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.data.system.SSCompanyYearContext;
 import se.swedsoft.bookkeeping.gui.util.model.SSDefaultTableModel;
 
 
@@ -30,7 +30,7 @@ public class SSCompanyTableModel extends SSDefaultTableModel<SSNewCompany> {
 
         switch (columnIndex) {
         case 0:
-            return iCompany.equals(SSDB.getInstance().getCurrentCompany());
+            return iCompany.equals(SSCompanyYearContext.getCurrentCompany());
 
         case 1:
             return iCompany.getName();
@@ -55,4 +55,3 @@ public class SSCompanyTableModel extends SSDefaultTableModel<SSNewCompany> {
         return super.getColumnClass(columnIndex);
     }
 }
-

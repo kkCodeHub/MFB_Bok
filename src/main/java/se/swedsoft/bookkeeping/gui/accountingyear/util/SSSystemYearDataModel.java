@@ -2,6 +2,7 @@ package se.swedsoft.bookkeeping.gui.accountingyear.util;
 
 
 import se.swedsoft.bookkeeping.data.SSNewAccountingYear;
+import se.swedsoft.bookkeeping.data.system.SSAccountingContext;
 import se.swedsoft.bookkeeping.data.system.SSDB;
 import se.swedsoft.bookkeeping.data.system.SSSystemYear;
 import se.swedsoft.bookkeeping.gui.util.SSBundle;
@@ -42,7 +43,7 @@ public class SSSystemYearDataModel extends SSDefaultTableModel<SSNewAccountingYe
 
         switch (columnIndex) {
         case 0:
-            value = year.equals(SSDB.getInstance().getCurrentYear());
+            value = year.equals(SSAccountingContext.getCurrentYear());
             break;
 
         case 1:

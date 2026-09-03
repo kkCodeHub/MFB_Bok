@@ -7,6 +7,8 @@ import se.swedsoft.bookkeeping.data.*;
 import se.swedsoft.bookkeeping.data.base.SSSaleRow;
 import se.swedsoft.bookkeeping.data.common.*;
 import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.data.system.SSMasterdataContext;
+import se.swedsoft.bookkeeping.data.system.SSSalesContext;
 import se.swedsoft.bookkeeping.gui.SSMainFrame;
 import se.swedsoft.bookkeeping.gui.company.panel.SSAdressPanel;
 import se.swedsoft.bookkeeping.gui.company.panel.SSDefaultAccountPanel;
@@ -32,7 +34,7 @@ import se.swedsoft.bookkeeping.gui.util.table.actions.SSTraversalAction;
 import se.swedsoft.bookkeeping.gui.util.table.editors.SSTaxCodeCellEditor;
 import se.swedsoft.bookkeeping.gui.util.table.editors.SSTaxCodeCellRenderer;
 import se.swedsoft.bookkeeping.gui.util.table.model.SSTableColumn;
-import se.swedsoft.bookkeeping.gui.voucher.util.SSVoucherRowTableModelOld;
+import se.swedsoft.bookkeeping.gui.voucher.util.SSVoucherRowTableModel;
 import se.swedsoft.bookkeeping.util.SSDateUtil;
 
 import javax.swing.*;
@@ -45,6 +47,7 @@ import java.awt.event.*;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.*;
@@ -133,7 +136,7 @@ public class SSInvoicePanel {
 
     private SSTable iVoucherTable;
 
-    private SSVoucherRowTableModelOld iVoucherTableModel;
+    private SSVoucherRowTableModel iVoucherTableModel;
 
     private SSDateChooser iPaymentDay;
 
@@ -146,6 +149,12 @@ public class SSInvoicePanel {
     private JTextField iOCRNumber;
 
     private SSInputVerifier iInputVerifier;
+    private boolean iReadOnlyMode;
+    private boolean iKonteringPossibleMode;
+    private boolean iDueDateManuallyOverridden;
+    private boolean iUpdatingInvoiceFields;
+    private boolean iUpdatingDueDateField;
+    private boolean iVoucherGenerated;
 
     // protected JTabbedPane iTabbedPane;
     private JCheckBox iUseInvoiceForDelivery;
@@ -181,11 +190,15 @@ public class SSInvoicePanel {
         iModel.setupTable(iTable);
 
         iModel.addTableModelListener(e -> updateSumFields());
-        iVoucherTableModel = new SSVoucherRowTableModelOld(false, true);
-
-        iVoucherTable.setModel(iVoucherTableModel);
-
-        SSVoucherRowTableModelOld.setupTable(iVoucherTable, iVoucherTableModel);
+        iVoucherTableModel = new SSVoucherRowTableModel();
+        iVoucherTableModel.addColumn(SSVoucherRowTableModel.COLUMN_ACCOUNT, true);
+        iVoucherTableModel.addColumn(SSVoucherRowTableModel.COLUMN_DESCRIPTION, true);
+        iVoucherTableModel.addColumn(SSVoucherRowTableModel.COLUMN_DEBET, true);
+        iVoucherTableModel.addColumn(SSVoucherRowTableModel.COLUMN_CREDIT, true);
+        iVoucherTableModel.addColumn(SSVoucherRowTableModel.COLUMN_PROJECT, true);
+        iVoucherTableModel.addColumn(SSVoucherRowTableModel.COLUMN_RESULTUNIT, true);
+        iVoucherTableModel.setReadOnlyMode(true);
+        iVoucherTableModel.setupTable(iVoucherTable, true);
 
         iCustomer.setModel(SSCustomerTableModel.getDropDownModel());
         iCustomer.setSearchColumns(0, 1);
@@ -197,7 +210,6 @@ public class SSInvoicePanel {
                 if (selected != null) {
                     iModel.setCustomer(selected);
                     iInvoice.setCustomer(selected);
-                    iInvoice.setDueDate();
                     iInvoice.setCurrencyRate(
                             selected.getInvoiceCurrency() == null
                                     ? new BigDecimal(1)
@@ -212,6 +224,7 @@ public class SSInvoicePanel {
                         }
                     }
                     setInvoice(iInvoice);
+                    updateDueDateFromInvoiceDateAndPaymentTerm();
                 }
             }
         });
@@ -295,11 +308,12 @@ public class SSInvoicePanel {
         iPaymentTerm.getComboBox().addSelectionListener(
                 new SSSelectionListener<>() {
             public void selected(SSPaymentTerm selected) {
-                if (selected != null) {
-                    iPaymentDay.setLocalDate(selected.addDaysToLocalDate(SSDateUtil.today()));
-                }
+                updateDueDateFromInvoiceDateAndPaymentTerm();
             }
         });
+
+        iDate.addChangeListener(e -> updateDueDateFromInvoiceDateAndPaymentTerm());
+        iPaymentDay.addChangeListener(e -> handleManualDueDateChange());
 
         iTaxRate1.addPropertyChangeListener("value", evt -> {
 
@@ -343,7 +357,7 @@ public class SSInvoicePanel {
         iCurrencyCalculatorButton.addActionListener(
                 e -> {
 
-                        SSCurrency iCompanyCurrency = SSDB.getInstance().getCurrentCompany().getCurrency();
+                        SSCurrency iCompanyCurrency = se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.getCurrentCompany().getCurrency();
                         SSCurrency iCurrentCurrency = iCurrency.getSelected();
 
                         if (iCompanyCurrency == null || iCurrentCurrency == null) {
@@ -359,7 +373,11 @@ public class SSInvoicePanel {
 
                 SSVoucher iVoucher = iInvoice.generateVoucher();
 
-                iVoucherTableModel.setVoucher(iVoucher);
+                iVoucherTableModel.setVoucher(iVoucher, false);
+                iVoucherGenerated = true;
+                if (iKonteringPossibleMode) {
+                    iButtonPanel.getOkButton().setEnabled(true);
+                }
 
             });
         SSButtonGroup iGroup = new SSButtonGroup(true);
@@ -374,11 +392,75 @@ public class SSInvoicePanel {
             public void updated(SSInputVerifier iVerifier, boolean iValid) {
                 // JComponent iCurrent = iVerifier.getCurrentComponent();
 
-                iButtonPanel.getOkButton().setEnabled(iValid);
+                iButtonPanel.getOkButton().setEnabled(iValid && !iReadOnlyMode);
             }
         });
         iSavecustomerandproducts.setSelected(true);
+        iEntered.setEnabled(false);
+        iPrinted.setEnabled(false);
         addKeyListeners();
+    }
+
+    private void checkAndDisableUpdateButton() {
+        if (iInvoice != null && (iInvoice.isEntered() || iInvoice.isCancelled())) {
+            iRefreshVoucher.setEnabled(false);
+        } else {
+            iRefreshVoucher.setEnabled(true);
+        }
+    }
+
+    private void updateDueDateFromInvoiceDateAndPaymentTerm() {
+        if (iUpdatingInvoiceFields) {
+            return;
+        }
+        iDueDateManuallyOverridden = false;
+        setDueDateField(calculateDueDate(iDate.getLocalDate(), getCurrentPaymentTerm()));
+    }
+
+    private LocalDate calculateDueDate(LocalDate pInvoiceDate, SSPaymentTerm pPaymentTerm) {
+        if (iInvoice != null && iInvoice.getType() == SSInvoiceType.CASH) {
+            return SSMasterdataContext.getPaymentTerm("Kontant")
+                    .map(iCashTerm -> iCashTerm.addDaysToLocalDate(pInvoiceDate))
+                    .orElse(pInvoiceDate);
+        }
+        if (pPaymentTerm != null) {
+            return pPaymentTerm.addDaysToLocalDate(pInvoiceDate);
+        }
+        return pInvoiceDate;
+    }
+
+    private void setDueDateField(LocalDate pDueDate) {
+        iUpdatingDueDateField = true;
+        try {
+            iPaymentDay.setLocalDate(pDueDate);
+        } finally {
+            iUpdatingDueDateField = false;
+        }
+    }
+
+    private void handleManualDueDateChange() {
+        if (iUpdatingInvoiceFields || iUpdatingDueDateField) {
+            return;
+        }
+        iDueDateManuallyOverridden = true;
+    }
+
+    private SSPaymentTerm getCurrentPaymentTerm() {
+        Object value = iPaymentTerm.getComboBox().getValue();
+        return value instanceof SSPaymentTerm ? (SSPaymentTerm) value : null;
+    }
+
+    private void setDisplayedDueDate(SSInvoice pInvoice) {
+        LocalDate invoiceDate = iDate.getLocalDate();
+        SSPaymentTerm paymentTerm = pInvoice.getPaymentTerm() != null
+                ? pInvoice.getPaymentTerm()
+                : getCurrentPaymentTerm();
+        LocalDate dueDate = pInvoice.getLocalDueDate();
+        if (dueDate == null) {
+            dueDate = calculateDueDate(invoiceDate, paymentTerm);
+        }
+        iDueDateManuallyOverridden = false;
+        setDueDateField(dueDate);
     }
 
     public void dispose() {
@@ -418,6 +500,7 @@ public class SSInvoicePanel {
         for (PropertyChangeListener iPropertyChangeListener : iPropertyChangeListeners) {
             iTaxRate1.removePropertyChangeListener(iPropertyChangeListener);
         }
+
         iTaxRate1.removeAll();
         iTaxRate1 = null;
         iPropertyChangeListeners = iTaxRate2.getPropertyChangeListeners();
@@ -525,94 +608,148 @@ public class SSInvoicePanel {
         iButtonPanel.addCancelActionListener(pActionListener);
     }
 
+    public boolean isReadOnlyMode() {
+        return iReadOnlyMode;
+    }
+
+    public void setReadOnlyMode(boolean pReadOnlyMode) {
+        iKonteringPossibleMode = false;
+        iReadOnlyMode = pReadOnlyMode;
+
+        setEditableState(iPanel, !pReadOnlyMode);
+        iButtonPanel.getCancelButton().setEnabled(true);
+        iButtonPanel.getOkButton().setEnabled(!pReadOnlyMode && isValid());
+        iEntered.setEnabled(false);
+        iPrinted.setEnabled(false);
+    }
+
+    public void setKonteringPossibleMode() {
+        iKonteringPossibleMode = true;
+        iReadOnlyMode = true;
+
+        setEditableState(iPanel, false);
+        iButtonPanel.getCancelButton().setEnabled(true);
+        iButtonPanel.getOkButton().setEnabled(false);
+        checkAndDisableUpdateButton();
+    }
+
+    private void setEditableState(Component pComponent, boolean pEnabled) {
+        if (pComponent == null) {
+            return;
+        }
+
+        if (pComponent instanceof JTextField
+                || pComponent instanceof JTextArea
+                || pComponent instanceof JCheckBox
+                || pComponent instanceof JComboBox
+                || pComponent instanceof JTable
+                || pComponent instanceof AbstractButton) {
+            pComponent.setEnabled(pEnabled);
+        }
+
+        if (pComponent instanceof Container) {
+            for (Component iChild : ((Container) pComponent).getComponents()) {
+                setEditableState(iChild, pEnabled);
+            }
+        }
+    }
+
     /**
      * @param pOrder
      */
     public void setInvoice(SSInvoice pOrder) {
-        iInvoice = pOrder;
+        iUpdatingInvoiceFields = true;
+        try {
+            iInvoice = pOrder;
 
-        iVoucherTableModel.setVoucher(iInvoice.getVoucher());
+            iVoucherTableModel.setVoucher(iInvoice.getVoucher(), false);
 
-        iModel.setObjects(iInvoice.getRows());
+            iModel.setObjects(iInvoice.getRows());
 
-        // Fakturatnummer
-        iNumber.setValue(iInvoice.getNumber());
-        // Ordernummer
-        iOrders.setText(getOrderNumbers(iInvoice));
-        // Offertdatum
-        iDate.setLocalDate(iInvoice.getLocalDate());
-        // Erat ordernummer
-        iYourOrderNumber.setText(iInvoice.getYourOrderNumber());
-        // Kund nummer
-        iCustomer.setText(iInvoice.getCustomerNr());
-        for (SSCustomer pCustomer : SSDB.getInstance().getCustomers()) {
-            if (pCustomer.getNumber().equals(iCustomer.getText())) {
-                iModel.setCustomer(pCustomer);
+            // Fakturatnummer
+            iNumber.setValue(iInvoice.getNumber());
+            // Ordernummer
+            iOrders.setText(getOrderNumbers(iInvoice));
+            // Offertdatum
+            iDate.setLocalDate(iInvoice.getLocalDate());
+            // Erat ordernummer
+            iYourOrderNumber.setText(iInvoice.getYourOrderNumber());
+            // Kund nummer
+            iCustomer.setText(iInvoice.getCustomerNr());
+            for (SSCustomer pCustomer : SSSalesContext.getCustomers()) {
+                if (pCustomer.getNumber().equals(iCustomer.getText())) {
+                    iModel.setCustomer(pCustomer);
+                }
             }
+            // Kund namn
+            iCustomerName.setText(iInvoice.getCustomerName());
+            // Vår kontaktperson:
+            iOurContactPerson.setText(iInvoice.getOurContactPerson());
+            // Er kontaktperson:
+            iYourContactPerson.setText(iInvoice.getYourContactPerson());
+            // Dröjsmålsränta
+            iDelayInterest.setValue(iInvoice.getDelayInterest());
+            // OCR Nummer
+            iOCRNumber.setText(iInvoice.getOCRNumber());
+
+            // Valuta
+            iCurrency.setSelected(iInvoice.getCurrency());
+            // Valutakurs
+            iCurrencyRate.setValue(iInvoice.getCurrencyRate());
+            // Betalningsvilkor
+            iPaymentTerm.setSelected(iInvoice.getPaymentTerm(), false);
+            // Förfallodag
+            setDisplayedDueDate(iInvoice);
+            // Leveransvilkor
+            iDeliveryTerm.setSelected(iInvoice.getDeliveryTerm());
+            // Leveranssätt
+            iDeliveryWay.setSelected(iInvoice.getDeliveryWay());
+
+            // Momsfritt
+            iTaxFree.setSelected(iInvoice.getTaxFree());
+            // Momssats 1
+            iTaxRate1.setValue(iInvoice.getTaxRate1());
+            // Momssats 2
+            iTaxRate2.setValue(iInvoice.getTaxRate2());
+            // Momssats 3
+            iTaxRate3.setValue(iInvoice.getTaxRate3());
+            // EU-försäljning varor
+            iEuSaleCommodity.setSelected(iInvoice.getEuSaleCommodity());
+            // EU-försäljning trepart varor
+            iEuSaleYhirdPartCommodity.setSelected(iInvoice.getEuSaleThirdPartCommodity());
+            // Offerttext
+            iText.setText(iInvoice.getText());
+
+            // Fakturaadress
+            iInvoiceAddress.setAdress(iInvoice.getInvoiceAddress());
+            // Leveransadress
+            iDeliveryAddress.setAdress(iInvoice.getDeliveryAddress());
+            // Standard konton
+            iDefaultAccounts.setDefaultAccounts(iInvoice.getDefaultAccounts());
+            // Bokförd
+            iEntered.setSelected(iInvoice.isEntered());
+            // Utskriven
+            iPrinted.setSelected(iInvoice.isPrinted());
+            // Lagerför
+            isStockInfluencing.setSelected(iInvoice.isStockInfluencing());
+            // Räntefakturerad
+            iInterestInvoiced.setSelected(iInvoice.isInterestInvoiced());
+
+            updateSumFields();
+            updateTaxTexts();
+
+            iUseInvoiceForDelivery.setSelected(
+                    iInvoice.getDeliveryAddress().equals(iInvoice.getInvoiceAddress()));
+
+            iDeliveryAddress.setEnabled(!iUseInvoiceForDelivery.isSelected());
+
+            iInputVerifier.update();
+             
+            iVoucherGenerated = false;
+            checkAndDisableUpdateButton();
+        } finally {
+            iUpdatingInvoiceFields = false;
         }
-        // Kund namn
-        iCustomerName.setText(iInvoice.getCustomerName());
-        // Vår kontaktperson:
-        iOurContactPerson.setText(iInvoice.getOurContactPerson());
-        // Er kontaktperson:
-        iYourContactPerson.setText(iInvoice.getYourContactPerson());
-        // Dröjsmålsränta
-        iDelayInterest.setValue(iInvoice.getDelayInterest());
-        // OCR Nummer
-        iOCRNumber.setText(iInvoice.getOCRNumber());
-
-        // Valuta
-        iCurrency.setSelected(iInvoice.getCurrency());
-        // Valutakurs
-        iCurrencyRate.setValue(iInvoice.getCurrencyRate());
-        // Betalningsvilkor
-        iPaymentTerm.setSelected(iInvoice.getPaymentTerm(), true);
-        // Förfallodag
-        iPaymentDay.setLocalDate(iInvoice.getLocalDueDate());
-        // Leveransvilkor
-        iDeliveryTerm.setSelected(iInvoice.getDeliveryTerm());
-        // Leveranssätt
-        iDeliveryWay.setSelected(iInvoice.getDeliveryWay());
-
-        // Momsfritt
-        iTaxFree.setSelected(iInvoice.getTaxFree());
-        // Momssats 1
-        iTaxRate1.setValue(iInvoice.getTaxRate1());
-        // Momssats 2
-        iTaxRate2.setValue(iInvoice.getTaxRate2());
-        // Momssats 3
-        iTaxRate3.setValue(iInvoice.getTaxRate3());
-        // EU-försäljning varor
-        iEuSaleCommodity.setSelected(iInvoice.getEuSaleCommodity());
-        // EU-försäljning trepart varor
-        iEuSaleYhirdPartCommodity.setSelected(iInvoice.getEuSaleThirdPartCommodity());
-        // Offerttext
-        iText.setText(iInvoice.getText());
-
-        // Fakturaadress
-        iInvoiceAddress.setAdress(iInvoice.getInvoiceAddress());
-        // Leveransadress
-        iDeliveryAddress.setAdress(iInvoice.getDeliveryAddress());
-        // Standard konton
-        iDefaultAccounts.setDefaultAccounts(iInvoice.getDefaultAccounts());
-        // Bokförd
-        iEntered.setSelected(iInvoice.isEntered());
-        // Utskriven
-        iPrinted.setSelected(iInvoice.isPrinted());
-        // Lagerför
-        isStockInfluencing.setSelected(iInvoice.isStockInfluencing());
-        // Räntefakturerad
-        iInterestInvoiced.setSelected(iInvoice.isInterestInvoiced());
-
-        updateSumFields();
-        updateTaxTexts();
-
-        iUseInvoiceForDelivery.setSelected(
-                iInvoice.getDeliveryAddress().equals(iInvoice.getInvoiceAddress()));
-
-        iDeliveryAddress.setEnabled(!iUseInvoiceForDelivery.isSelected());
-
-        iInputVerifier.update();
     }
 
     /**
@@ -666,17 +803,15 @@ public class SSInvoicePanel {
 
         // Standard konton
         iInvoice.setDefaultAccounts(iDefaultAccounts.getDefaultAccounts());
-        // Bokförd
-        iInvoice.setEntered(iEntered.isSelected());
-        // Utskriven
-        iInvoice.setPrinted(iPrinted.isSelected());
         // Lagerför
         iInvoice.setStockInfluencing(isStockInfluencing.isSelected());
         // Räntefakturerad
         iInvoice.setInterestInvoiced(iInterestInvoiced.isSelected());
 
-        // Generera verifikationen
-        iInvoice.generateVoucher();
+        // Only generate voucher if not already generated (via Update button)
+        if (!iVoucherGenerated) {
+            iInvoice.generateVoucher();
+        }
 
         // Fakturaadress
         iInvoice.setInvoiceAddress(iInvoiceAddress.getAddress());
@@ -698,6 +833,13 @@ public class SSInvoicePanel {
      */
     public boolean doSaveCustomerAndProducts() {
         return iSavecustomerandproducts.isSelected();
+    }
+
+    /**
+     * @return true if voucher has been generated via the Update button
+     */
+    public boolean isVoucherGenerated() {
+        return iVoucherGenerated;
     }
 
     /**
@@ -797,7 +939,7 @@ public class SSInvoicePanel {
         iTaxSum1.setValue(iTaxSum.get(SSTaxCode.TAXRATE_1));
         iTaxSum2.setValue(iTaxSum.get(SSTaxCode.TAXRATE_2));
         iTaxSum3.setValue(iTaxSum.get(SSTaxCode.TAXRATE_3));
-        if (!SSDB.getInstance().getCurrentCompany().isRoundingOff()) {
+        if (!se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.getCurrentCompany().isRoundingOff()) {
             iRoundingSum.setValue(iRounding);
         }
         this.iTotalSum.setValue(iTotalSum);

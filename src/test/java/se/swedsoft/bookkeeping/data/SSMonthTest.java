@@ -3,8 +3,6 @@ package se.swedsoft.bookkeeping.data;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
-import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -13,18 +11,6 @@ import static org.assertj.core.api.Assertions.assertThat;
  * Tests for {@link SSMonth}.
  */
 class SSMonthTest {
-
-    private static Date makeDate(int year, int month, int day) {
-        Calendar cal = Calendar.getInstance();
-        cal.set(Calendar.YEAR, year);
-        cal.set(Calendar.MONTH, month - 1);
-        cal.set(Calendar.DAY_OF_MONTH, day);
-        cal.set(Calendar.HOUR_OF_DAY, 0);
-        cal.set(Calendar.MINUTE, 0);
-        cal.set(Calendar.SECOND, 0);
-        cal.set(Calendar.MILLISECOND, 0);
-        return cal.getTime();
-    }
 
     // ---- Constructors and getters ----
 
@@ -99,21 +85,21 @@ class SSMonthTest {
     void isDateInMonthReturnsTrueForSameMonth() {
         SSMonth month = new SSMonth(LocalDate.of(2024, 6, 1));
 
-        assertThat(month.isDateInMonth(makeDate(2024, 6, 15))).isTrue();
+        assertThat(month.isDateInMonth(LocalDate.of(2024, 6, 15))).isTrue();
     }
 
     @Test
     void isDateInMonthReturnsFalseForDifferentMonth() {
         SSMonth month = new SSMonth(LocalDate.of(2024, 6, 1));
 
-        assertThat(month.isDateInMonth(makeDate(2024, 7, 15))).isFalse();
+        assertThat(month.isDateInMonth(LocalDate.of(2024, 7, 15))).isFalse();
     }
 
     @Test
     void isDateInMonthReturnsFalseForDifferentYear() {
         SSMonth month = new SSMonth(LocalDate.of(2024, 6, 1));
 
-        assertThat(month.isDateInMonth(makeDate(2025, 6, 15))).isFalse();
+        assertThat(month.isDateInMonth(LocalDate.of(2025, 6, 15))).isFalse();
     }
 
     // ---- equals and hashCode ----
@@ -218,20 +204,4 @@ class SSMonthTest {
         assertThat(months).hasSize(12);
     }
 
-    @Test
-    void compatibilityDateConstructorEqualsLocalDateConstructor() {
-        SSMonth fromDate = new SSMonth(makeDate(2024, 6, 1), makeDate(2024, 6, 30));
-        SSMonth fromLocalDate = new SSMonth(LocalDate.of(2024, 6, 1), LocalDate.of(2024, 6, 30));
-
-        assertThat(fromDate).isEqualTo(fromLocalDate);
-        assertThat(fromDate.hashCode()).isEqualTo(fromLocalDate.hashCode());
-    }
-
-    void compatibilityDateAccessorsMirrorLocalDateAccessors() {
-        SSMonth month = new SSMonth(LocalDate.of(2024, 6, 1), LocalDate.of(2024, 6, 30));
-
-        assertThat(month.getFrom()).isEqualTo(makeDate(2024, 6, 1));
-        assertThat(month.getDate()).isEqualTo(makeDate(2024, 6, 1));
-        assertThat(month.getTo()).isEqualTo(makeDate(2024, 6, 30));
-    }
 }

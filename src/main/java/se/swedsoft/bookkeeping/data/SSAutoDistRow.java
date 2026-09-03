@@ -172,7 +172,7 @@ public class SSAutoDistRow implements SSTableSearchable, Serializable {
     // //////////////////////////////////////////////////
 
     public SSAccount getAccount() {
-        return getAccount(SSDB.getInstance().getAccounts());
+        return getAccount(se.swedsoft.bookkeeping.data.system.SSAccountingContext.getAccounts());
     }
 
     public void setAccount(SSAccount iAccount) {
@@ -200,7 +200,7 @@ public class SSAutoDistRow implements SSTableSearchable, Serializable {
     // //////////////////////////////////////////////////
 
     public SSNewProject getProject() {
-        return getProject(SSDB.getInstance().getProjects());
+        return getProject(se.swedsoft.bookkeeping.data.system.SSProjectContext.getProjects());
     }
 
     public SSNewProject getProject(List<SSNewProject> iProjects) {
@@ -223,7 +223,7 @@ public class SSAutoDistRow implements SSTableSearchable, Serializable {
     // //////////////////////////////////////////////////
 
     public SSNewResultUnit getResultUnit() {
-        return getResultUnit(SSDB.getInstance().getResultUnits());
+        return getResultUnit(se.swedsoft.bookkeeping.data.system.SSResultUnitContext.getResultUnits());
 
     }
 

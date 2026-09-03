@@ -10,6 +10,7 @@ import se.swedsoft.bookkeeping.gui.util.model.SSDefaultTableModel;
 import se.swedsoft.bookkeeping.persistence.Repositories;
 import se.swedsoft.bookkeeping.print.SSPrinter;
 import se.swedsoft.bookkeeping.print.util.SSDefaultJasperDataSource;
+import se.swedsoft.bookkeeping.print.util.SSQuantityPrintUtil;
 
 import java.text.DateFormat;
 import java.util.Collections;
@@ -164,15 +165,17 @@ public class SSInventoryListPrinter extends SSPrinter {
                         break;
 
                     case 2:
-                        value = iRow.getStockQuantity();
+                        value = SSQuantityPrintUtil.toDisplay(iRow.getStockQuantity());
                         break;
 
                     case 3:
-                        value = iRow.getInventoryQuantity().orElse(null);
+                        value = iRow.getInventoryQuantity()
+                                .map(SSQuantityPrintUtil::toDisplay)
+                                .orElse(null);
                         break;
 
                     case 4:
-                        value = iRow.getChange();
+                        value = SSQuantityPrintUtil.toDisplay(iRow.getChange());
                         break;
 
                     }

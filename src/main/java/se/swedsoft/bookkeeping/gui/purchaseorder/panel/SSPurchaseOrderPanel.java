@@ -9,6 +9,7 @@ import se.swedsoft.bookkeeping.data.common.SSDeliveryTerm;
 import se.swedsoft.bookkeeping.data.common.SSDeliveryWay;
 import se.swedsoft.bookkeeping.data.common.SSPaymentTerm;
 import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.data.system.SSPurchaseContext;
 import se.swedsoft.bookkeeping.gui.SSMainFrame;
 import se.swedsoft.bookkeeping.gui.company.panel.SSAdressPanel;
 import se.swedsoft.bookkeeping.gui.company.panel.SSDefaultAccountPanel;
@@ -107,6 +108,7 @@ public class SSPurchaseOrderPanel {
         iTable.setColorReadOnly(true);
         iTable.setColumnSortingEnabled(false);
         iTable.setSingleSelect();
+        iTable.setSelectionForeground(Color.BLACK);
 
         iModel = new SSPurchaseOrderRowTableModel();
         iModel.addColumn(SSPurchaseOrderRowTableModel.COLUMN_PRODUCT, true);
@@ -271,7 +273,7 @@ public class SSPurchaseOrderPanel {
 
         // Kund nummer
         iSupplier.setSelected(
-                iPurchaseOrder.getSupplier(SSDB.getInstance().getSuppliers()));
+                iPurchaseOrder.getSupplier(SSPurchaseContext.getSuppliers()));
         // Kund namn
         iSupplierName.setText(iPurchaseOrder.getSupplierName());
         // Vår kontaktperson:

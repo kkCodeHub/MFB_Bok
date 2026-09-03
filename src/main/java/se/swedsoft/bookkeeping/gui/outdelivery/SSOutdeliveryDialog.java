@@ -50,9 +50,7 @@ public class SSOutdeliveryDialog {
 
                 Repositories.outdeliveries().add(iOutdelivery1);
 
-                if (pModel != null) {
-                    pModel.fireTableDataChanged();
-                }
+                SSOutdeliveryFrame.fireTableDataChanged();
 
                 iDialog.closeDialog();
 
@@ -73,9 +71,7 @@ public class SSOutdeliveryDialog {
 
                 Repositories.outdeliveries().add(iOutdelivery1);
 
-                if (pModel != null) {
-                    pModel.fireTableDataChanged();
-                }
+                SSOutdeliveryFrame.fireTableDataChanged();
 
                 iDialog.closeDialog();
             }
@@ -106,9 +102,7 @@ public class SSOutdeliveryDialog {
 
                 Repositories.outdeliveries().update(iOutdelivery1);
 
-                if (pModel != null) {
-                    pModel.fireTableDataChanged();
-                }
+                SSOutdeliveryFrame.fireTableDataChanged();
                 iDialog.closeDialog();
 
             });
@@ -132,9 +126,7 @@ public class SSOutdeliveryDialog {
 
                 Repositories.outdeliveries().update(iOutdelivery1);
 
-                if (pModel != null) {
-                    pModel.fireTableDataChanged();
-                }
+                SSOutdeliveryFrame.fireTableDataChanged();
                 iDialog.closeDialog();
             }
         });
@@ -168,9 +160,7 @@ public class SSOutdeliveryDialog {
 
                 Repositories.outdeliveries().add(iOutdelivery1);
 
-                if (pModel != null) {
-                    pModel.fireTableDataChanged();
-                }
+                SSOutdeliveryFrame.fireTableDataChanged();
 
                 iDialog.closeDialog();
 
@@ -191,9 +181,7 @@ public class SSOutdeliveryDialog {
 
                 Repositories.outdeliveries().add(iOutdelivery1);
 
-                if (pModel != null) {
-                    pModel.fireTableDataChanged();
-                }
+                SSOutdeliveryFrame.fireTableDataChanged();
 
                 iDialog.closeDialog();
             }

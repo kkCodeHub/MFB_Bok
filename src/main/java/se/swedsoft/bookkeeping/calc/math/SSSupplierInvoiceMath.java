@@ -251,35 +251,6 @@ public class SSSupplierInvoiceMath {
         return iSaldos;
     }
 
-    /**
-     * Returns all invoices and saldos up to and including the specified date
-     *
-     * @param iInvoices The invoices
-     * @param iDate The end date
-     *
-     * @return map of the invoices and their saldo
-     */
-
-    /* public static Map<SSSupplierInvoice, BigDecimal> getSaldo(List<SSSupplierInvoice> iInvoices, Date iDate) {
-     Map<SSSupplierInvoice, BigDecimal> iSaldos = new HashMap<>();
-
-     // Ceil the date so the before and after comparisions will be correct
-     iDate = SSDateMath.ceil(iDate);
-
-     // Loop through the invoices
-     for (SSSupplierInvoice iInvoice : iInvoices) {
-     Date iCurrent = iInvoice.getDate();
-
-     // Only put invoices that is added before the specified date
-     if( iCurrent.before(iDate)){
-     BigDecimal iSaldo = getSaldo(iInvoice, iDate);
-
-     iSaldos.put(iInvoice, iSaldo);
-     }
-     }
-     return iSaldos;
-     } */
-
     public static Map<SSSupplierInvoice, BigDecimal> getSaldo(List<SSSupplierInvoice> iInvoices, Date iDate) {
         return getSaldo(iInvoices, SSDateUtil.toLocalDate(iDate));
     }
@@ -311,8 +282,6 @@ public class SSSupplierInvoiceMath {
                 }
 
                 iSaldos.put(iInvoice, iSum.setScale(2, RoundingMode.HALF_UP));
-                // BigDecimal iSaldo = getSaldo(iInvoice, iDate);
-                // iSaldos.put(iInvoice, iSaldo.setScale(2, RoundingMode.HALF_UP));
             }
         }
         return iSaldos;
@@ -540,7 +509,7 @@ public class SSSupplierInvoiceMath {
         Map<String, Integer> iSupplierInvoiceCount = new HashMap<>();
         List<String> iParcelProducts = new LinkedList<>();
         List<SSProduct> iProducts = new LinkedList<>(
-                SSDB.getInstance().getProducts());
+                se.swedsoft.bookkeeping.data.system.SSProductContext.getProducts());
 
         for (SSProduct iProduct : iProducts) {
             if (iProduct.isParcel() && iProduct.getNumber() != null) {

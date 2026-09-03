@@ -1,13 +1,19 @@
 package se.swedsoft.bookkeeping.gui.inventory.util;
 
 
+import se.swedsoft.bookkeeping.calc.math.SSProductQuantityValidator;
 import se.swedsoft.bookkeeping.data.SSInventory;
 import se.swedsoft.bookkeeping.data.SSInventoryRow;
 import se.swedsoft.bookkeeping.data.SSProduct;
 import se.swedsoft.bookkeeping.data.SSStock;
 import se.swedsoft.bookkeeping.gui.util.SSBundle;
+import se.swedsoft.bookkeeping.gui.util.SSQuantityPresentationUtil;
+import se.swedsoft.bookkeeping.gui.util.table.editors.SSBigDecimalCellEditor;
+import se.swedsoft.bookkeeping.gui.util.table.editors.SSBigDecimalCellRenderer;
 import se.swedsoft.bookkeeping.gui.util.table.model.SSEditableTableModel;
 import se.swedsoft.bookkeeping.gui.util.table.model.SSTableColumn;
+
+import java.math.BigDecimal;
 
 
 /**
@@ -113,17 +119,34 @@ public class SSInventoryRowTableModel extends SSEditableTableModel<SSInventoryRo
             SSBundle.getBundle().getString("inventoryrowtable.column.3")) {
         @Override
         public Object getValue(SSInventoryRow iRow) {
-            return iRow.getInventoryQuantity().orElse(null);
+            return SSQuantityPresentationUtil.toDisplayQuantity(
+                    iRow.getInventoryQuantity().orElse(null));
         }
 
         @Override
         public void setValue(SSInventoryRow iRow, Object iValue) {
-            iRow.setInventoryQuantity((Integer) iValue);
+            Integer iQuantityTenths = SSQuantityPresentationUtil.toStoredTenths(iValue);
+
+            if (!SSProductQuantityValidator.isValidQuantity(iRow.getProduct(), iQuantityTenths)) {
+                return;
+            }
+
+            iRow.setInventoryQuantity(iQuantityTenths);
         }
 
         @Override
         public Class getColumnClass() {
-            return Integer.class;
+            return BigDecimal.class;
+        }
+
+        @Override
+        public SSBigDecimalCellRenderer getCellRenderer() {
+            return new SSBigDecimalCellRenderer(1);
+        }
+
+        @Override
+        public SSBigDecimalCellEditor getCellEditor() {
+            return new SSBigDecimalCellEditor(1);
         }
 
         @Override
@@ -148,7 +171,7 @@ public class SSInventoryRowTableModel extends SSEditableTableModel<SSInventoryRo
                 iRow.setStockQuantity(iQuantity);
             }
 
-            return iQuantity;
+            return SSQuantityPresentationUtil.toDisplayQuantity(iQuantity);
         }
 
         @Override
@@ -157,7 +180,12 @@ public class SSInventoryRowTableModel extends SSEditableTableModel<SSInventoryRo
 
         @Override
         public Class getColumnClass() {
-            return Integer.class;
+            return BigDecimal.class;
+        }
+
+        @Override
+        public SSBigDecimalCellRenderer getCellRenderer() {
+            return new SSBigDecimalCellRenderer(1);
         }
 
         @Override
@@ -173,17 +201,33 @@ public class SSInventoryRowTableModel extends SSEditableTableModel<SSInventoryRo
             SSBundle.getBundle().getString("inventoryrowtable.column.5")) {
         @Override
         public Object getValue(SSInventoryRow iRow) {
-            return iRow.getChange();
+            return SSQuantityPresentationUtil.toDisplayQuantity(iRow.getChange());
         }
 
         @Override
         public void setValue(SSInventoryRow iRow, Object iValue) {
-            iRow.setChange((Integer) iValue);
+            Integer iChangeTenths = SSQuantityPresentationUtil.toStoredTenths(iValue);
+
+            if (!SSProductQuantityValidator.isValidQuantity(iRow.getProduct(), iChangeTenths)) {
+                return;
+            }
+
+            iRow.setChange(iChangeTenths);
         }
 
         @Override
         public Class getColumnClass() {
-            return Integer.class;
+            return BigDecimal.class;
+        }
+
+        @Override
+        public SSBigDecimalCellRenderer getCellRenderer() {
+            return new SSBigDecimalCellRenderer(1);
+        }
+
+        @Override
+        public SSBigDecimalCellEditor getCellEditor() {
+            return new SSBigDecimalCellEditor(1);
         }
 
         @Override

@@ -19,31 +19,31 @@ public class SSPurchaseOrderMath {
     private SSPurchaseOrderMath() {}
 
     /*
-     * @param iSale
-     * @param pFrom
-     * @param pTo
-     * @return
+     * Returns true if the purchase order's date falls within [pFrom, pTo] inclusive.
+     *
+     * @param iPurchaseOrder the purchase order to test
+     * @param pFrom          the start of the period
+     * @param pTo            the end of the period
+     * @return true if within the period
      */
-    public static boolean inPeriod(SSPurchaseOrder iPurchaseOrder, Date pFrom, Date pTo) {
+    public static boolean inPeriod(SSPurchaseOrder iPurchaseOrder, LocalDate pFrom, LocalDate pTo) {
         LocalDate iDate = iPurchaseOrder.getLocalDate();
-        LocalDate iFrom = SSDateUtil.toLocalDate(pFrom);
-        LocalDate iTo = SSDateUtil.toLocalDate(pTo);
 
-        return iDate != null && iFrom != null && iTo != null
-                && !iDate.isBefore(iFrom) && !iDate.isAfter(iTo);
+        return iDate != null && pFrom != null && pTo != null
+                && !iDate.isBefore(pFrom) && !iDate.isAfter(pTo);
     }
 
     /**
+     * Returns true if the purchase order's date is on or before pTo.
      *
-     * @param iPurchaseOrder
-     * @param pTo
-     * @return
+     * @param iPurchaseOrder the purchase order to test
+     * @param pTo            the upper bound
+     * @return true if within the period
      */
-    public static boolean inPeriod(SSPurchaseOrder iPurchaseOrder, Date pTo) {
+    public static boolean inPeriod(SSPurchaseOrder iPurchaseOrder, LocalDate pTo) {
         LocalDate iDate = iPurchaseOrder.getLocalDate();
-        LocalDate iTo = SSDateUtil.toLocalDate(pTo);
 
-        return iDate != null && iTo != null && !iDate.isAfter(iTo);
+        return iDate != null && pTo != null && !iDate.isAfter(pTo);
     }
 
     /**
@@ -186,7 +186,7 @@ public class SSPurchaseOrderMath {
         Map<String, Integer> iPurchaseOrderCount = new HashMap<>();
         List<String> iParcelProducts = new LinkedList<>();
         List<SSProduct> iProducts = new LinkedList<>(
-                SSDB.getInstance().getProducts());
+                se.swedsoft.bookkeeping.data.system.SSProductContext.getProducts());
 
         for (SSProduct iProduct : iProducts) {
             if (iProduct.isParcel() && iProduct.getNumber() != null) {

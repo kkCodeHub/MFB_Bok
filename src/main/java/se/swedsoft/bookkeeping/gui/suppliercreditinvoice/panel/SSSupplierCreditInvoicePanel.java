@@ -4,7 +4,7 @@ package se.swedsoft.bookkeeping.gui.suppliercreditinvoice.panel;
 import se.swedsoft.bookkeeping.calc.math.SSSupplierInvoiceMath;
 import se.swedsoft.bookkeeping.data.*;
 import se.swedsoft.bookkeeping.data.common.SSCurrency;
-import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.data.system.SSPurchaseContext;
 import se.swedsoft.bookkeeping.persistence.Repositories;
 import se.swedsoft.bookkeeping.gui.SSMainFrame;
 import se.swedsoft.bookkeeping.gui.company.panel.SSDefaultAccountPanel;
@@ -24,7 +24,7 @@ import se.swedsoft.bookkeeping.gui.util.model.SSCurrencyTableModel;
 import se.swedsoft.bookkeeping.gui.util.table.SSTable;
 import se.swedsoft.bookkeeping.gui.util.table.actions.SSDeleteAction;
 import se.swedsoft.bookkeeping.gui.util.table.actions.SSTraversalAction;
-import se.swedsoft.bookkeeping.gui.voucher.util.SSVoucherRowTableModelOld;
+import se.swedsoft.bookkeeping.gui.voucher.util.SSVoucherRowTableModel;
 
 import javax.swing.*;
 import javax.swing.event.TableModelEvent;
@@ -78,7 +78,7 @@ public class SSSupplierCreditInvoicePanel {
 
     private SSTable iVoucherTable;
 
-    private SSVoucherRowTableModelOld iVoucherTableModel;
+    private SSVoucherRowTableModel iVoucherTableModel;
 
     private JButton iRefreshVoucher;
 
@@ -92,7 +92,7 @@ public class SSSupplierCreditInvoicePanel {
 
     private SSTable iCorrectionTable;
 
-    private SSVoucherRowTableModelOld  iCorrectionTableModel;
+    private SSVoucherRowTableModel iCorrectionTableModel;
 
     private JCheckBox isStockInfluencing;
 
@@ -108,6 +108,7 @@ public class SSSupplierCreditInvoicePanel {
         iTable.setColorReadOnly(true);
         iTable.setColumnSortingEnabled(false);
         iTable.setSingleSelect();
+        iTable.setSelectionForeground(Color.BLACK);
 
         iModel = new SSSupplierInvoiceRowTableModel();
         iModel.addColumn(SSSupplierInvoiceRowTableModel.COLUMN_PRODUCT, true);
@@ -123,22 +124,22 @@ public class SSSupplierCreditInvoicePanel {
         iModel.setupTable(iTable);
 
         iModel.addTableModelListener(e -> updateSumFields());
-        iVoucherTableModel = new SSVoucherRowTableModelOld(false, true);
+        iVoucherTableModel = new SSVoucherRowTableModel();
+        iVoucherTableModel.addColumn(SSVoucherRowTableModel.COLUMN_ACCOUNT, true);
+        iVoucherTableModel.addColumn(SSVoucherRowTableModel.COLUMN_DESCRIPTION, true);
+        iVoucherTableModel.addColumn(SSVoucherRowTableModel.COLUMN_DEBET, true);
+        iVoucherTableModel.addColumn(SSVoucherRowTableModel.COLUMN_CREDIT, true);
+        iVoucherTableModel.addColumn(SSVoucherRowTableModel.COLUMN_PROJECT, true);
+        iVoucherTableModel.addColumn(SSVoucherRowTableModel.COLUMN_RESULTUNIT, true);
+        iVoucherTableModel.setReadOnlyMode(true);
+        iVoucherTableModel.setupTable(iVoucherTable, true);
 
-        iVoucherTable.setModel(iVoucherTableModel);
-
-        SSVoucherRowTableModelOld.setupTable(iVoucherTable, iVoucherTableModel);
-
-        iCorrectionTableModel = new SSVoucherRowTableModelOld(false, false) {
-            @Override
-            public int getColumnCount() {
-                // Hide the project and result unit columns
-                return 4;
-            }
-        };
-        iCorrectionTable.setModel(iCorrectionTableModel);
-
-        SSVoucherRowTableModelOld.setupTable(iCorrectionTable, iCorrectionTableModel);
+        iCorrectionTableModel = new SSVoucherRowTableModel();
+        iCorrectionTableModel.addColumn(SSVoucherRowTableModel.COLUMN_ACCOUNT, true);
+        iCorrectionTableModel.addColumn(SSVoucherRowTableModel.COLUMN_DESCRIPTION, true);
+        iCorrectionTableModel.addColumn(SSVoucherRowTableModel.COLUMN_DEBET, true);
+        iCorrectionTableModel.addColumn(SSVoucherRowTableModel.COLUMN_CREDIT, true);
+        iCorrectionTableModel.setupTable(iCorrectionTable, true);
 
         new SSDeleteAction(iCorrectionTable) {
             @Override
@@ -254,7 +255,7 @@ public class SSSupplierCreditInvoicePanel {
 
                 SSVoucher iVoucher = iSupplierCreditInvoice.generateVoucher();
 
-                iVoucherTableModel.setVoucher(iVoucher);
+                iVoucherTableModel.setVoucher(iVoucher, false);
 
             });
 
@@ -477,11 +478,11 @@ public class SSSupplierCreditInvoicePanel {
     public void setCreditSupplierInvoice(SSSupplierCreditInvoice iSSSupplierInvoice) {
         iSupplierCreditInvoice = iSSSupplierInvoice;
 
-        List<SSSupplier> iSuppliers = SSDB.getInstance().getSuppliers();
+        List<SSSupplier> iSuppliers = SSPurchaseContext.getSuppliers();
         List<SSSupplierInvoice   > iSupplierInvoices = Repositories.supplierInvoices().findAll();
 
-        iVoucherTableModel.setVoucher(iSSSupplierInvoice.getVoucher());
-        iCorrectionTableModel.setVoucher(iSSSupplierInvoice.getCorrection());
+        iVoucherTableModel.setVoucher(iSSSupplierInvoice.getVoucher(), false);
+        iCorrectionTableModel.setVoucher(iSSSupplierInvoice.getCorrection(), false);
 
         iModel.setObjects(iSupplierCreditInvoice.getRows());
 

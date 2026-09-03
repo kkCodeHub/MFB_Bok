@@ -6,12 +6,16 @@ import se.swedsoft.bookkeeping.data.SSAccount;
 import se.swedsoft.bookkeeping.data.SSProduct;
 import se.swedsoft.bookkeeping.data.SSStock;
 import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.data.system.SSProductContext;
 import se.swedsoft.bookkeeping.gui.util.SSBundle;
 import se.swedsoft.bookkeeping.gui.util.model.SSDefaultTableModel;
 import se.swedsoft.bookkeeping.print.SSPrinter;
 import se.swedsoft.bookkeeping.print.util.SSDefaultJasperDataSource;
+import se.swedsoft.bookkeeping.print.util.SSQuantityPrintUtil;
+import se.swedsoft.bookkeeping.util.SSDateUtil;
 
 import java.text.DateFormat;
+import java.time.LocalDate;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
@@ -37,7 +41,7 @@ public class SSStockAccountPrinter extends SSPrinter {
      */
     public SSStockAccountPrinter() {
         // Get all orders
-        iProducts = SSProductMath.getStockProducts(SSDB.getInstance().getProducts());
+        iProducts = SSProductMath.getStockProducts(SSProductContext.getProducts());
         iStock = new SSStock();
         iDate = null;
 
@@ -52,20 +56,17 @@ public class SSStockAccountPrinter extends SSPrinter {
      *
      * @param iDate
      */
-    public SSStockAccountPrinter(Date iDate) {
+    public SSStockAccountPrinter(LocalDate iDate) {
         // Get all orders
-        iProducts = SSProductMath.getStockProducts(SSDB.getInstance().getProducts());
+        iProducts = SSProductMath.getStockProducts(SSProductContext.getProducts());
         iStock = new SSStock();
-        this.iDate = iDate;
+        this.iDate = SSDateUtil.toDate(iDate);
 
-        iStock.update(iDate);
+        iStock.update(this.iDate);
 
         addParameter("periodTitle",
                 SSBundle.getBundle().getString("stockvaluereport.periodtitle"));
-        addParameter("periodText", iDate);
-
-        setPageHeader("header_period.jrxml");
-        setColumnHeader("stockaccount.jrxml");
+        addParameter("periodText", this.iDate);
         setDetail("stockaccount.jrxml");
     }
 
@@ -109,23 +110,23 @@ public class SSStockAccountPrinter extends SSPrinter {
                     break;
 
                 case 2:
-                    value = iProduct.getOrderpoint();
+                    value = SSQuantityPrintUtil.toDisplay(iProduct.getOrderpoint());
                     break;
 
                 case 3:
-                    value = iProduct.getOrdercount();
+                    value = SSQuantityPrintUtil.toDisplay(iProduct.getOrdercount());
                     break;
 
                 case 4:
-                    value = iStock.getQuantity(iProduct);
+                    value = SSQuantityPrintUtil.toDisplay(iStock.getQuantity(iProduct));
                     break;
 
                 case 5:
-                    value = iStock.getReserved(iProduct);
+                    value = SSQuantityPrintUtil.toDisplay(iStock.getReserved(iProduct));
                     break;
 
                 case 6:
-                    value = iStock.getOrdered(iProduct);
+                    value = SSQuantityPrintUtil.toDisplay(iStock.getOrdered(iProduct));
                     break;
                 }
 

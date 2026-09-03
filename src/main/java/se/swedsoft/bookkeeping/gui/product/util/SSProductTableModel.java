@@ -4,10 +4,12 @@ package se.swedsoft.bookkeeping.gui.product.util;
 import se.swedsoft.bookkeeping.data.SSProduct;
 import se.swedsoft.bookkeeping.data.SSStock;
 import se.swedsoft.bookkeeping.data.common.SSUnit;
-import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.data.system.SSProductContext;
 import se.swedsoft.bookkeeping.gui.util.SSBundle;
+import se.swedsoft.bookkeeping.gui.util.SSQuantityPresentationUtil;
 import se.swedsoft.bookkeeping.gui.util.graphics.SSIcon;
 import se.swedsoft.bookkeeping.gui.util.table.SSTable;
+import se.swedsoft.bookkeeping.gui.util.table.editors.SSBigDecimalCellRenderer;
 import se.swedsoft.bookkeeping.gui.util.table.model.SSTableColumn;
 import se.swedsoft.bookkeeping.gui.util.table.model.SSTableModel;
 
@@ -29,7 +31,7 @@ public class SSProductTableModel extends SSTableModel<SSProduct> {
      * Default constructor.
      */
     public SSProductTableModel() {
-        super(SSDB.getInstance().getProducts());
+        super(SSProductContext.getProducts());
     }
 
     /**
@@ -77,7 +79,7 @@ public class SSProductTableModel extends SSTableModel<SSProduct> {
      * @return
      */
     public static SSProductTableModel getDropDownModel() {
-        return getDropDownModel(SSDB.getInstance().getProducts());
+        return getDropDownModel(SSProductContext.getProducts());
     }
 
     /**
@@ -270,7 +272,7 @@ public class SSProductTableModel extends SSTableModel<SSProduct> {
                     return null;
                 }
 
-                return iStock.getQuantity(iProduct);
+                return SSQuantityPresentationUtil.toDisplayQuantity(iStock.getQuantity(iProduct));
             }
 
             @Override
@@ -278,7 +280,12 @@ public class SSProductTableModel extends SSTableModel<SSProduct> {
 
             @Override
             public Class<?> getColumnClass() {
-                return Integer.class;
+                return BigDecimal.class;
+            }
+
+            @Override
+            public SSBigDecimalCellRenderer getCellRenderer() {
+                return new SSBigDecimalCellRenderer(1);
             }
 
             @Override
@@ -297,7 +304,7 @@ public class SSProductTableModel extends SSTableModel<SSProduct> {
                     return null;
                 }
 
-                return iStock.getAvaiable(iProduct);
+                return SSQuantityPresentationUtil.toDisplayQuantity(iStock.getAvaiable(iProduct));
             }
 
             @Override
@@ -305,7 +312,12 @@ public class SSProductTableModel extends SSTableModel<SSProduct> {
 
             @Override
             public Class<?> getColumnClass() {
-                return Integer.class;
+                return BigDecimal.class;
+            }
+
+            @Override
+            public SSBigDecimalCellRenderer getCellRenderer() {
+                return new SSBigDecimalCellRenderer(1);
             }
 
             @Override

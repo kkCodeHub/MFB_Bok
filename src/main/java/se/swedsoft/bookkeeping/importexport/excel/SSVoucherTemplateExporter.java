@@ -1,10 +1,11 @@
 package se.swedsoft.bookkeeping.importexport.excel;
 
-
-import jxl.Workbook;
-import jxl.WorkbookSettings;
-import jxl.format.Colour;
-import jxl.write.*;
+import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.Font;
+import org.apache.poi.ss.usermodel.IndexedColors;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import se.swedsoft.bookkeeping.data.SSVoucherTemplate;
 import se.swedsoft.bookkeeping.data.system.SSDB;
 import se.swedsoft.bookkeeping.importexport.excel.util.SSWritableExcelRow;
@@ -13,12 +14,11 @@ import se.swedsoft.bookkeeping.importexport.util.SSExportException;
 import se.swedsoft.bookkeeping.importexport.util.SSImportException;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.List;
-import java.util.Locale;
 
 import static se.swedsoft.bookkeeping.data.SSVoucherTemplate.SSVoucherTemplateRow;
-
 
 /**
  * User: Andreas Lago
@@ -33,22 +33,24 @@ public class SSVoucherTemplateExporter {
     public static final String DEBET = "Debet";
     public static final String KREDIT = "Kredit";
 
-    private File iFile;
-    private List<SSVoucherTemplate> iVouchers;
+    private final File iFile;
+    private final List<SSVoucherTemplate> iVouchers;
 
     /**
+     * Creates an exporter that uses all voucher templates from the database.
      *
-     * @param iFile
+     * @param iFile destination Excel file
      */
     public SSVoucherTemplateExporter(File iFile) {
         this.iFile = iFile;
-        iVouchers = SSDB.getInstance().getVoucherTemplates();
+        iVouchers = se.swedsoft.bookkeeping.data.system.SSAccountingContext.getVoucherTemplates();
     }
 
     /**
+     * Creates an exporter with an explicit voucher template list.
      *
-     * @param iFile
-     * @param iVouchers
+     * @param iFile destination Excel file
+     * @param iVouchers voucher templates to export
      */
     public SSVoucherTemplateExporter(File iFile, List<SSVoucherTemplate> iVouchers) {
         this.iFile = iFile;
@@ -56,38 +58,34 @@ public class SSVoucherTemplateExporter {
     }
 
     /**
+     * Exports voucher templates to Excel format.
      *
-     * @throws IOException
-     * @throws SSImportException
-     * @throws SSExportException
+     * @throws IOException if writing to disk fails
+     * @throws SSExportException if workbook export fails
      */
-    public void export()  throws IOException, SSExportException {
-        WorkbookSettings iSettings = new WorkbookSettings();
-
-        iSettings.setLocale(new Locale("sv", "SE"));
-        iSettings.setEncoding("windows-1252");
-        iSettings.setExcelDisplayLanguage("SE");
-        iSettings.setExcelRegionalSettings("SE");
+    public void export() throws IOException, SSExportException {
         try {
-            WritableWorkbook iWorkbook = Workbook.createWorkbook(iFile, iSettings);
+            Workbook iWorkbook = new XSSFWorkbook();
 
-            WritableSheet iSheet = iWorkbook.createSheet("Konteringmallar", 0);
+            Sheet iSheet = iWorkbook.createSheet("Konteringmallar");
 
-            writeVoucherTemplates(new SSWritableExcelSheet(iSheet));
+            writeVoucherTemplates(new SSWritableExcelSheet(iSheet), iWorkbook);
 
-            iWorkbook.write();
+            try (FileOutputStream iOutput = new FileOutputStream(iFile)) {
+                iWorkbook.write(iOutput);
+            }
             iWorkbook.close();
 
-        } catch (WriteException e) {
+        } catch (IOException e) {
             throw new SSExportException(e.getLocalizedMessage());
         }
-
     }
 
     /**
+     * Calculates required row count for template export.
      *
-     * @param iVouchers
-     * @return
+     * @param iVouchers voucher templates to count rows for
+     * @return number of output rows excluding header padding
      */
     private int getNumRows(List<SSVoucherTemplate> iVouchers) {
         int count = 0;
@@ -99,28 +97,32 @@ public class SSVoucherTemplateExporter {
     }
 
     /**
+     * Writes voucher templates and rows to the worksheet.
      *
-     * @param pSheet
-     * @throws WriteException
+     * @param pSheet writable destination sheet
+     * @throws SSExportException if writing to workbook fails
      */
-    private void writeVoucherTemplates(SSWritableExcelSheet pSheet) throws WriteException {
+    private void writeVoucherTemplates(SSWritableExcelSheet pSheet, Workbook iWorkbook)
+            throws SSExportException {
 
         List<SSWritableExcelRow> iRows = pSheet.getRows(getNumRows(iVouchers) + 4);
 
-        WritableCellFormat iCellFormat = new WritableCellFormat();
+        CellStyle iCellFormat = iWorkbook.createCellStyle();
+        iCellFormat.setFillForegroundColor(IndexedColors.GREY_25_PERCENT.getIndex());
+        iCellFormat.setFillPattern(org.apache.poi.ss.usermodel.FillPatternType.SOLID_FOREGROUND);
 
-        iCellFormat.setBackground(Colour.GRAY_25);
+        SSWritableExcelRow iHeaderRow = iRows.getFirst();
+        iHeaderRow.setString(0, BESKRIVNING, iCellFormat);
+        iHeaderRow.setString(1, KONTO, iCellFormat);
+        iHeaderRow.setString(2, DEBET, iCellFormat);
+        iHeaderRow.setString(3, KREDIT, iCellFormat);
 
-        iRows.get(0).setString(0, BESKRIVNING, iCellFormat);
-        iRows.get(0).setString(1, KONTO, iCellFormat);
-        iRows.get(0).setString(2, DEBET, iCellFormat);
-        iRows.get(0).setString(3, KREDIT, iCellFormat);
+        CellStyle iCellFont = iWorkbook.createCellStyle();
+        Font iFont = iWorkbook.createFont();
+        iFont.setFontName("Arial");
+        iFont.setBold(true);
 
-        iCellFormat = new WritableCellFormat();
-        WritableFont iFont = new WritableFont(WritableFont.ARIAL,
-                WritableFont.DEFAULT_POINT_SIZE, WritableFont.BOLD);
-
-        iCellFormat.setFont(iFont);
+        iCellFont.setFont(iFont);
 
         int iRowIndex = 1;
 
@@ -128,7 +130,7 @@ public class SSVoucherTemplateExporter {
             iRowIndex++;
             SSWritableExcelRow iRow = iRows.get(iRowIndex);
 
-            iRow.setString(0, iVoucher.getDescription(), iCellFormat);
+            iRow.setString(0, iVoucher.getDescription(), iCellFont);
 
             for (SSVoucherTemplateRow iVoucherRow : iVoucher.getRows()) {
                 iRowIndex++;
@@ -143,12 +145,9 @@ public class SSVoucherTemplateExporter {
 
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder();
-
-        sb.append("se.swedsoft.bookkeeping.importexport.excel.SSVoucherTemplateExporter");
-        sb.append("{iFile=").append(iFile);
-        sb.append(", iVouchers=").append(iVouchers);
-        sb.append('}');
-        return sb.toString();
+        return "se.swedsoft.bookkeeping.importexport.excel.SSVoucherTemplateExporter"
+                + "{iFile=" + iFile
+                + ", iVouchers=" + iVouchers
+                + '}';
     }
 }

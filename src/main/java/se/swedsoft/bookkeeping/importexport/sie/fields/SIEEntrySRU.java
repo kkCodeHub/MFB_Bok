@@ -12,6 +12,8 @@ import se.swedsoft.bookkeeping.importexport.sie.util.SIEReader;
 import se.swedsoft.bookkeeping.importexport.sie.util.SIEWriter;
 import se.swedsoft.bookkeeping.importexport.util.SSExportException;
 import se.swedsoft.bookkeeping.importexport.util.SSImportException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 /**
@@ -20,6 +22,8 @@ import se.swedsoft.bookkeeping.importexport.util.SSImportException;
  *
  */
 public class SIEEntrySRU implements SIEEntry {
+
+    private static final Logger LOG = LoggerFactory.getLogger(SIEEntrySRU.class);
 
     /**
      * Imports the entry
@@ -45,19 +49,19 @@ public class SIEEntrySRU implements SIEEntry {
 
         SSAccount iAccount = iAccountPlan.getAccount(iAccountNumber);
 
-        // read the account description
-        if (!iReader.hasNext()) {
-            throw new SSImportException(
-                    SSBundleString.getString("sieexport.expectedbutfound.value", line));
-        }
-
         if (iAccount == null) {
             throw new RuntimeException("Missing account for srucode " + iAccountNumber);
         }
 
+        // read the SRU code if present
+        if (!iReader.hasNext()) {
+            LOG.debug("SRU code missing for account " + iAccountNumber + ": " + line);
+            return true;
+        }
+
         iAccount.setSRUCode(iReader.next());
 
-        // SSDB.getInstance().updateAccountingYear(iYearData);
+        // se.swedsoft.bookkeeping.data.system.SSAccountingContext.updateAccountingYear(iYearData);
         return true;
     }
 

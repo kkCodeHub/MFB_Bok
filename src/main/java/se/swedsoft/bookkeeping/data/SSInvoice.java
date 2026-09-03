@@ -7,14 +7,16 @@ import se.swedsoft.bookkeeping.calc.util.SSAutoIncrement;
 import se.swedsoft.bookkeeping.data.base.SSSale;
 import se.swedsoft.bookkeeping.data.base.SSSaleRow;
 import se.swedsoft.bookkeeping.data.common.SSDefaultAccount;
+import se.swedsoft.bookkeeping.data.common.SSInvoiceLifecycleStatus;
 import se.swedsoft.bookkeeping.data.common.SSInvoiceType;
+import se.swedsoft.bookkeeping.data.common.SSPaymentTerm;
 import se.swedsoft.bookkeeping.data.common.SSTaxCode;
 import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.data.system.SSMasterdataContext;
 import se.swedsoft.bookkeeping.gui.util.SSBundle;
 import se.swedsoft.bookkeeping.util.SSDateUtil;
 
 import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.*;
@@ -44,6 +46,8 @@ public class SSInvoice extends SSSale {
 
     // Bokförd
     protected boolean iEntered;
+    // Makulerad
+    protected boolean iCancelled;
     // Antal påminnelser
     protected int iNumReminders;
     // Räntefakturerad
@@ -52,6 +56,7 @@ public class SSInvoice extends SSSale {
     private boolean iStockInfluencing;
 
     private String iOrderNumbers;
+    private String iJournalNumbers;
 
     // //////////////////////////////////////////////////
 
@@ -63,13 +68,15 @@ public class SSInvoice extends SSSale {
         iCurrencyRate = new BigDecimal(1);
         iVoucher = new SSVoucher();
         iOCRNumber = null;
-        iOrderNumbers = "Fakturan har inga ordrar";
+//        iOrderNumbers = "Fakturan har inga ordrar";
+        iOrderNumbers = SSBundle.getBundle().getString("invoiceframe.invoiceNoOrders");
         iPrinted = false;
+        iCancelled = false;
         iInterestInvoiced = false;
         iStockInfluencing = true;
         iNumReminders = 0;
         if (iPaymentTerm != null) {
-            iPaymentDay = SSDateUtil.toLocalDate(iPaymentTerm.addDaysToDate(SSDateUtil.toDate(SSDateUtil.today())));
+            iPaymentDay = iPaymentTerm.addDaysToLocalDate(SSDateUtil.today());
         }
     }
 
@@ -91,8 +98,11 @@ public class SSInvoice extends SSSale {
         this();
 
         iType = iInvoiceType;
+        if (iType == SSInvoiceType.CASH) {
+            getCashPaymentTerm().ifPresent(this::setPaymentTerm);
+        }
 
-        SSNewCompany iCompany = SSDB.getInstance().getCurrentCompany();
+        SSNewCompany iCompany = se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.getCurrentCompany();
 
         if (iCompany != null) {
             setDelayInterest(iCompany.getDelayInterest());
@@ -123,7 +133,7 @@ public class SSInvoice extends SSSale {
         iDate = SSDateUtil.today();
         iRows = new LinkedList<>();
 
-        SSNewCompany iCompany = SSDB.getInstance().getCurrentCompany();
+        SSNewCompany iCompany = se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.getCurrentCompany();
 
         if (iCompany != null) {
             iText = iCompany.getStandardText(SSStandardText.Customerinvoice).orElse(null);
@@ -144,11 +154,13 @@ public class SSInvoice extends SSSale {
         iYourOrderNumber = iInvoice.iYourOrderNumber;
         iType = iInvoice.iType;
         iEntered = iInvoice.iEntered;
+        iCancelled = iInvoice.iCancelled;
         iStockInfluencing = iInvoice.iStockInfluencing;
         iInterestInvoiced = iInvoice.iInterestInvoiced;
         iNumReminders = iInvoice.iNumReminders;
         iOCRNumber = iInvoice.iOCRNumber;
         iOrderNumbers = iInvoice.iOrderNumbers;
+        iJournalNumbers = iInvoice.iJournalNumbers;
         iVoucher = new SSVoucher(iInvoice.iVoucher);
     }
 
@@ -159,9 +171,13 @@ public class SSInvoice extends SSSale {
      */
     @Override
     public void doAutoIncrecement() {
-        int iNumber = SSDB.getInstance().getAutoIncrement().orElse(new SSAutoIncrement()).getNumber("invoice");
+        SSNewCompany iCurrentCompany = se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.getCurrentCompany();
+        SSAutoIncrement iAutoIncrement = iCurrentCompany != null && iCurrentCompany.getAutoIncrement() != null
+                ? iCurrentCompany.getAutoIncrement()
+                : new SSAutoIncrement();
+        int iNumber = iAutoIncrement.getNumber("invoice");
 
-        for (SSInvoice iInvoice: SSDB.getInstance().getInvoices()) {
+        for (SSInvoice iInvoice: se.swedsoft.bookkeeping.data.system.SSSalesContext.getInvoices()) {
 
             if (iInvoice.getNumber() != null && iInvoice.getNumber() > iNumber) {
                 iNumber = iInvoice.getNumber();
@@ -212,24 +228,6 @@ public class SSInvoice extends SSSale {
     // //////////////////////////////////////////////////
 
     /**
-     *
-     * @return
-     */
-    @Deprecated
-    public Date getDueDate() {
-        return SSDateUtil.toDate(iPaymentDay);
-    }
-
-    /**
-     *
-     * @param iPaymentDay
-     */
-    @Deprecated
-    public void setDueDate(Date iPaymentDay) {
-        this.iPaymentDay = SSDateUtil.toLocalDate(iPaymentDay);
-    }
-
-    /**
      * @return the due date as a LocalDate
      */
     public LocalDate getLocalDueDate() {
@@ -247,11 +245,24 @@ public class SSInvoice extends SSSale {
      * Set the duedate depending on the invoice date and the payment term
      */
     public void setDueDate() {
+        if (getType() == SSInvoiceType.CASH) {
+            Optional<SSPaymentTerm> iCashPaymentTerm = getCashPaymentTerm();
+            if (iCashPaymentTerm.isPresent()) {
+                iPaymentDay = iDate.plusDays(iCashPaymentTerm.get().decodeValue());
+            } else {
+                iPaymentDay = iDate;
+            }
+            return;
+        }
         if (iPaymentTerm != null) {
             iPaymentDay = iDate.plusDays(iPaymentTerm.decodeValue());
         } else {
             iPaymentDay = iDate;
         }
+    }
+
+    private Optional<SSPaymentTerm> getCashPaymentTerm() {
+        return SSMasterdataContext.getPaymentTerm("Kontant");
     }
 
     // //////////////////////////////////////////////////
@@ -346,6 +357,57 @@ public class SSInvoice extends SSSale {
 
     // //////////////////////////////////////////////////
 
+    /**
+     *
+     * @return
+     */
+    public boolean isCancelled() {
+        return iCancelled;
+    }
+
+    /**
+     *
+     * @param iCancelled
+     */
+    public void setCancelled(boolean iCancelled) {
+        this.iCancelled = iCancelled;
+    }
+
+    /**
+     *
+     */
+    public void setCancelled() {
+        iCancelled = true;
+    }
+
+    /**
+     *
+     */
+    public void clearCancelled() {
+        iCancelled = false;
+    }
+
+    /**
+     * Returns the current persisted invoice lifecycle status.
+     *
+     * @return the status for the current invoice
+     */
+    public SSInvoiceLifecycleStatus getLifecycleStatus() {
+        return iCancelled ? SSInvoiceLifecycleStatus.CANCELLED : SSInvoiceLifecycleStatus.NORMAL;
+    }
+
+    /**
+     * Resolves lifecycle status when physical delete state is known by caller logic.
+     *
+     * @param iPhysicallyDeleted true when invoice is already physically deleted from storage
+     * @return lifecycle status including physical deletion state
+     */
+    public SSInvoiceLifecycleStatus getLifecycleStatus(boolean iPhysicallyDeleted) {
+        return iPhysicallyDeleted ? SSInvoiceLifecycleStatus.PHYSICALLY_DELETED : getLifecycleStatus();
+    }
+
+    // //////////////////////////////////////////////////
+
     public String getOrderNumbers() {
         return iOrderNumbers;
     }
@@ -363,6 +425,14 @@ public class SSInvoice extends SSSale {
         iOrdersForInvoice = iOrdersForInvoice.substring(0,
                 iOrdersForInvoice.lastIndexOf(", "));
         iOrderNumbers = iOrdersForInvoice;
+    }
+
+    public String getJournalNumbers() {
+        return iJournalNumbers;
+    }
+
+    public void setJournalNumbers(String iJournalNumbers) {
+        this.iJournalNumbers = iJournalNumbers;
     }
 
     /**
@@ -471,7 +541,7 @@ public class SSInvoice extends SSSale {
         String iDescription = SSBundle.getBundle().getString(
                 "invoiceframe.voucherdescription");
 
-        SSAccountPlan iAccountPlan = SSDB.getInstance().getCurrentAccountPlan();
+        SSAccountPlan iAccountPlan = se.swedsoft.bookkeeping.data.system.SSAccountingContext.getCurrentAccountPlan();
 
         iVoucher = new SSVoucher();
         iVoucher.setLocalDate(SSDateUtil.today());
@@ -497,7 +567,7 @@ public class SSInvoice extends SSSale {
         }
 
         // Add the rounding
-        if (!SSDB.getInstance().getCurrentCompany().isRoundingOff()) {
+        if (!se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.getCurrentCompany().isRoundingOff()) {
             iVoucher.addVoucherRow(
                     getDefaultAccount(iAccountPlan, SSDefaultAccount.Rounding).orElse(null),
                     iRoundingSum.negate());
@@ -522,9 +592,9 @@ public class SSInvoice extends SSSale {
 
             iVoucherRow.setCredit(iRow.getSum().orElse(null));
             iVoucherRow.setAccount(iRow.getAccount(iAccountPlan.getAccounts()));
-            iVoucherRow.setProject(iRow.getProject(SSDB.getInstance().getProjects()));
+            iVoucherRow.setProject(iRow.getProject(se.swedsoft.bookkeeping.data.system.SSProjectContext.getProjects()));
             iVoucherRow.setResultUnit(
-                    iRow.getResultUnit(SSDB.getInstance().getResultUnits()));
+                    iRow.getResultUnit(se.swedsoft.bookkeeping.data.system.SSResultUnitContext.getResultUnits()));
             if (iVoucherRow.getAccountNr() != null) {
                 iVoucher.addVoucherRow(iVoucherRow);
             }
@@ -551,6 +621,14 @@ public class SSInvoice extends SSSale {
 
         iVoucher = SSVoucherMath.compress(iVoucher);
 
+        // Filter out rows with 0.00 debet and 0.00 credit
+        iVoucher.getRows().removeIf(row -> {
+            BigDecimal debet = row.getDebet();
+            BigDecimal credit = row.getCredit();
+            return (debet == null || debet.compareTo(BigDecimal.ZERO) == 0) &&
+                   (credit == null || credit.compareTo(BigDecimal.ZERO) == 0);
+        });
+
         return iVoucher;
     }
 
@@ -568,10 +646,12 @@ public class SSInvoice extends SSSale {
         sb.append("se.swedsoft.bookkeeping.data.SSInvoice");
         sb.append("{iCurrencyRate=").append(iCurrencyRate);
         sb.append(", iEntered=").append(iEntered);
+        sb.append(", iCancelled=").append(iCancelled);
         sb.append(", iInterestInvoiced=").append(iInterestInvoiced);
         sb.append(", iNumReminders=").append(iNumReminders);
         sb.append(", iOCRNumber='").append(iOCRNumber).append('\'');
         sb.append(", iOrderNumbers='").append(iOrderNumbers).append('\'');
+        sb.append(", iJournalNumbers='").append(iJournalNumbers).append('\'');
         sb.append(", iPaymentDay=").append(iPaymentDay);
         sb.append(", iStockInfluencing=").append(iStockInfluencing);
         sb.append(", iType=").append(iType);
@@ -581,24 +661,4 @@ public class SSInvoice extends SSSale {
         return sb.toString();
     }
 
-    /**
-     * Custom deserialization to handle backward compatibility.
-     * Pre-migration serialized streams stored {@code iPaymentDay} as
-     * {@code java.util.Date}.  This method reads it as a raw object and converts
-     * via {@link SSDateUtil#readLocalDate(Object)}.
-     */
-    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
-        ObjectInputStream.GetField fields = in.readFields();
-        iType = (SSInvoiceType) fields.get("iType", null);
-        iCurrencyRate = (BigDecimal) fields.get("iCurrencyRate", null);
-        iPaymentDay = SSDateUtil.readLocalDate(fields.get("iPaymentDay", null));
-        iVoucher = (SSVoucher) fields.get("iVoucher", null);
-        iYourOrderNumber = (String) fields.get("iYourOrderNumber", null);
-        iOCRNumber = (String) fields.get("iOCRNumber", null);
-        iEntered = fields.get("iEntered", false);
-        iNumReminders = fields.get("iNumReminders", 0);
-        iInterestInvoiced = fields.get("iInterestInvoiced", false);
-        iStockInfluencing = fields.get("iStockInfluencing", false);
-        iOrderNumbers = (String) fields.get("iOrderNumbers", null);
-    }
 }

@@ -1,6 +1,7 @@
 package se.swedsoft.bookkeeping.gui.company;
 
 
+import org.fribok.bookkeeping.app.SSDBUiInitializer;
 import se.swedsoft.bookkeeping.data.SSNewCompany;
 import se.swedsoft.bookkeeping.data.system.*;
 import se.swedsoft.bookkeeping.gui.SSMainFrame;
@@ -53,12 +54,9 @@ public class SSCompanyDialog {
 
         iCompany.setId(pCompany.getId());
 
-        SSDB.getInstance().updateCompany(iCompany);
+        SSCompanyYearContext.updateCompany(iCompany);
 
         if (SSCompanyFrame.getInstance() != null) {
-            if (pModel != null) {
-                pModel.fireTableDataChanged();
-            }
             SSCompanyFrame.getInstance().updateFrame();
         }
     }
@@ -94,12 +92,9 @@ public class SSCompanyDialog {
 
         iCompany.setId(pCompany.getId());
 
-        SSDB.getInstance().updateCompany(iCompany);
+        SSCompanyYearContext.updateCompany(iCompany);
 
         if (SSCompanyFrame.getInstance() != null) {
-            if (pModel != null) {
-                pModel.fireTableDataChanged();
-            }
             SSCompanyFrame.getInstance().updateFrame();
         }
     }
@@ -133,7 +128,7 @@ public class SSCompanyDialog {
         }
         SSNewCompany iCompany = iDialog.getCompany();
 
-        SSDB.getInstance().addCompany(iCompany);
+        SSCompanyYearContext.addCompany(iCompany);
         SSCompanyFrame.getInstance().updateFrame();
 
         SSQueryDialog iQDialog = new SSQueryDialog(iMainFrame, SSBundle.getBundle(),
@@ -141,13 +136,14 @@ public class SSCompanyDialog {
 
         if (iQDialog.getResponce() == JOptionPane.YES_OPTION) {
             // Sätt det valda företaget som nuvarande företag
-            SSDB.getInstance().setCurrentCompany(iCompany);
-            SSDB.getInstance().init(true);
+            SSCompanyYearContext.setCurrentCompany(iCompany);
+            SSDBUiInitializer.init(true);
             SSDBConfig.setCompanyId(iCompany.getId());
 
-            SSDB.getInstance().setCurrentYear(null);
-
-            pModel.fireTableDataChanged();
+            SSCompanyYearContext.setCurrentYear(null);
+            if (SSCompanyFrame.getInstance() != null) {
+                SSCompanyFrame.getInstance().updateFrame();
+            }
 
             // Stäng alla fönster
             SSFrameManager.getInstance().close();
@@ -155,7 +151,9 @@ public class SSCompanyDialog {
             SSAccountingYearFrame.showFrame(iMainFrame, 500, 300, true);
 
         } else {
-            pModel.fireTableDataChanged();
+            if (SSCompanyFrame.getInstance() != null) {
+                SSCompanyFrame.getInstance().updateFrame();
+            }
         }
         iDialog.closeDialog();
     }

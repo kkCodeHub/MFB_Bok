@@ -18,11 +18,10 @@ public class SSAccountPlanType implements SSTableSearchable, Serializable {
 
     static final long serialVersionUID = 1L;
     private static final Map<String, SSAccountPlanType> iAccountPlanTypes = new HashMap<>();
+    private static final String DEFAULT_TYPE_NAME = "EUBAS97";
 
     // Account plan types are few and stable; hardcoding is acceptable here.
     static {
-        iAccountPlanTypes.put("BAS95", new SSAccountPlanType("BAS95", "BAS95.xml"));
-        iAccountPlanTypes.put("BAS96", new SSAccountPlanType("BAS96", "BAS96.xml"));
         iAccountPlanTypes.put("EUBAS97", new SSAccountPlanType("EUBAS97", "EUBAS97.xml"));
     }
 
@@ -43,6 +42,15 @@ public class SSAccountPlanType implements SSTableSearchable, Serializable {
      */
     public static SSAccountPlanType get(String name) {
         return iAccountPlanTypes.get(name);
+    }
+
+    /**
+     * Returns the default account plan type.
+     *
+     * @return the default account plan type
+     */
+    public static SSAccountPlanType getDefault() {
+        return iAccountPlanTypes.get(DEFAULT_TYPE_NAME);
     }
 
     // non-static below
@@ -82,7 +90,7 @@ public class SSAccountPlanType implements SSTableSearchable, Serializable {
      */
     public String getSchema() {
         if (schema == null) {
-            schema = "BAS95.xml";
+            schema = "EUBAS97.xml";
         }
         return schema;
     }

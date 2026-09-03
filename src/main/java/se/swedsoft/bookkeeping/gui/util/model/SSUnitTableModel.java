@@ -2,7 +2,7 @@ package se.swedsoft.bookkeeping.gui.util.model;
 
 
 import se.swedsoft.bookkeeping.data.common.SSUnit;
-import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.data.system.SSMasterdataContext;
 import se.swedsoft.bookkeeping.gui.util.SSBundle;
 import se.swedsoft.bookkeeping.gui.util.components.SSEditableTableComboBox;
 import se.swedsoft.bookkeeping.gui.util.dialogs.SSNameDescriptionDialog;
@@ -24,7 +24,7 @@ public class SSUnitTableModel extends SSTableModel<SSUnit> {
      * Default constructor.
      */
     public SSUnitTableModel() {
-        super(SSDB.getInstance().getUnits());
+        super(SSMasterdataContext.getUnits());
     }
 
     /**
@@ -129,7 +129,7 @@ public class SSUnitTableModel extends SSTableModel<SSUnit> {
                     iUnit.setName(iDialog.getName());
                     iUnit.setDescription(iDialog.getDescription());
 
-                    SSDB.getInstance().addUnit(iUnit);
+                    SSMasterdataContext.addUnit(iUnit);
                     return iUnit;
                 }
                 return null;
@@ -145,12 +145,12 @@ public class SSUnitTableModel extends SSTableModel<SSUnit> {
                 if (iDialog.showDialog() == JOptionPane.OK_OPTION) {
                     iSelected.setName(iDialog.getName());
                     iSelected.setDescription(iDialog.getDescription());
-                    SSDB.getInstance().updateUnit(iSelected);
+                    SSMasterdataContext.updateUnit(iSelected);
                 }
             }
 
             public void deleteAction(SSUnit iSelected) {
-                SSDB.getInstance().deleteUnit(iSelected);
+                SSMasterdataContext.deleteUnit(iSelected);
             }
         };
     }

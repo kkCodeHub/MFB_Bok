@@ -1,50 +1,44 @@
 package se.swedsoft.bookkeeping.importexport.excel.util;
 
-
-import jxl.write.Label;
-import jxl.write.Number;
-import jxl.write.WritableSheet;
-import jxl.write.WriteException;
-import jxl.write.biff.RowsExceededException;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Row;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 
 /**
  * Date: 2006-feb-14
  * Time: 11:57:23
  */
-public class SSWritableExcelCell {    private static final Logger LOG = LoggerFactory.getLogger(SSWritableExcelCell.class);
-
+public class SSWritableExcelCell {
+    private static final Logger LOG = LoggerFactory.getLogger(SSWritableExcelCell.class);
 
     private int iRow;
 
     private int iColumn;
 
-    private WritableSheet iSheet;
+    private Row iRow_POI;
 
     /**
      *
-     * @param pSheet
      * @param pRow
+     * @param pRow2
      * @param pColumn
      */
-    public SSWritableExcelCell(WritableSheet pSheet, int pRow, int pColumn) {
-        iSheet = pSheet;
-        iRow = pRow;
+    public SSWritableExcelCell(Row pRow, int pRow2, int pColumn) {
+        iRow_POI = pRow;
+        iRow = pRow2;
         iColumn = pColumn;
-
     }
 
     /**
      *
      * @param pValue
-     * @throws WriteException
      */
-    public void setString(String pValue) throws WriteException {
+    public void setString(String pValue) {
         try {
-            iSheet.addCell(new Label(iColumn, iRow, pValue));
-        } catch (RowsExceededException e) {
+            Cell iCell = iRow_POI.createCell(iColumn);
+            iCell.setCellValue(pValue == null ? "" : pValue);
+        } catch (RuntimeException e) {
             LOG.error("Unexpected error", e);
         }
     }
@@ -52,12 +46,14 @@ public class SSWritableExcelCell {    private static final Logger LOG = LoggerFa
     /**
      *
      * @param pValue
-     * @throws WriteException
      */
-    public void setInteger(Integer pValue) throws WriteException {
+    public void setInteger(Integer pValue) {
         try {
-            iSheet.addCell(new Number(iColumn, iRow, pValue));
-        } catch (RowsExceededException e) {
+            Cell iCell = iRow_POI.createCell(iColumn);
+            if (pValue != null) {
+                iCell.setCellValue(pValue.doubleValue());
+            }
+        } catch (RuntimeException e) {
             LOG.error("Unexpected error", e);
         }
     }
@@ -65,12 +61,14 @@ public class SSWritableExcelCell {    private static final Logger LOG = LoggerFa
     /**
      *
      * @param pValue
-     * @throws WriteException
      */
-    public void setDouble(Double pValue) throws WriteException {
+    public void setDouble(Double pValue) {
         try {
-            iSheet.addCell(new Number(iColumn, iRow, pValue));
-        } catch (RowsExceededException e) {
+            Cell iCell = iRow_POI.createCell(iColumn);
+            if (pValue != null) {
+                iCell.setCellValue(pValue);
+            }
+        } catch (RuntimeException e) {
             LOG.error("Unexpected error", e);
         }
     }
@@ -98,7 +96,7 @@ public class SSWritableExcelCell {    private static final Logger LOG = LoggerFa
         sb.append("se.swedsoft.bookkeeping.importexport.excel.util.SSWritableExcelCell");
         sb.append("{iColumn=").append(iColumn);
         sb.append(", iRow=").append(iRow);
-        sb.append(", iSheet=").append(iSheet);
+        sb.append(", iRow_POI=").append(iRow_POI);
         sb.append('}');
         return sb.toString();
     }

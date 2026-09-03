@@ -27,7 +27,7 @@ public class SSStartingAmountPrinter extends SSPrinter {
      *
      */
     public SSStartingAmountPrinter() {
-        this(SSDB.getInstance().getCurrentYear());
+        this(se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.getCurrentYear());
     }
 
     /**

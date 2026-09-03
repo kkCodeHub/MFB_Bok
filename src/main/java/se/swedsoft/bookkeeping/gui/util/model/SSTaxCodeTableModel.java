@@ -3,7 +3,7 @@ package se.swedsoft.bookkeeping.gui.util.model;
 
 import se.swedsoft.bookkeeping.data.SSNewCompany;
 import se.swedsoft.bookkeeping.data.common.SSTaxCode;
-import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.data.system.SSCompanyYearContext;
 import se.swedsoft.bookkeeping.gui.util.table.model.SSTableColumn;
 import se.swedsoft.bookkeeping.gui.util.table.model.SSTableModel;
 
@@ -32,7 +32,7 @@ public class SSTaxCodeTableModel extends SSTableModel<SSTaxCode> {
         super(SSTaxCode.values());
         iValues = new HashMap<>();
 
-        SSNewCompany iCompany = SSDB.getInstance().getCurrentCompany();
+        SSNewCompany iCompany = SSCompanyYearContext.getCurrentCompany();
 
         if (iCompany != null) {
             iValues.put(SSTaxCode.TAXRATE_0, new BigDecimal(0));

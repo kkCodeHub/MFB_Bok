@@ -7,7 +7,7 @@ package se.swedsoft.bookkeeping.gui.budget;
 
 import se.swedsoft.bookkeeping.data.SSBudget;
 import se.swedsoft.bookkeeping.data.SSNewAccountingYear;
-import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.data.system.SSAccountingContext;
 import se.swedsoft.bookkeeping.gui.SSMainFrame;
 import se.swedsoft.bookkeeping.gui.budget.panel.SSBudgetMainPanel;
 import se.swedsoft.bookkeeping.gui.util.SSBundle;
@@ -16,12 +16,11 @@ import se.swedsoft.bookkeeping.gui.util.dialogs.SSProgressDialog;
 import se.swedsoft.bookkeeping.gui.util.dialogs.SSQueryDialog;
 import se.swedsoft.bookkeeping.gui.util.frame.SSDefaultTableFrame;
 import se.swedsoft.bookkeeping.print.report.SSBudgetPrinter;
-import se.swedsoft.bookkeeping.util.SSDateUtil;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.Date;
+import java.time.LocalDate;
 
 
 /**
@@ -65,7 +64,7 @@ public class SSBudgetFrame extends SSDefaultTableFrame {
     private SSBudgetFrame(SSMainFrame pMainFrame, int pWidth, int pHeight) {
         super(pMainFrame, SSBundle.getBundle().getString("budgetframe.title"), pWidth,
                 pHeight);
-        iAccountingYear = SSDB.getInstance().getCurrentYear();
+        iAccountingYear = SSAccountingContext.getCurrentYear();
         // iBudgetMainPanel.setBudget(iAccountingYear.getBudget());
         addCloseListener(
                 e -> {
@@ -79,7 +78,7 @@ public class SSBudgetFrame extends SSDefaultTableFrame {
                                 return;
                             }
                             iAccountingYear.setBudget(iBudgetMainPanel.getBudget());
-                            SSDB.getInstance().updateAccountingYear(iAccountingYear);
+                            SSAccountingContext.updateAccountingYear(iAccountingYear);
                         }
 
                     });
@@ -101,7 +100,7 @@ public class SSBudgetFrame extends SSDefaultTableFrame {
                 e -> {
 
                         iAccountingYear.setBudget(iBudgetMainPanel.getBudget());
-                        SSDB.getInstance().updateAccountingYear(iAccountingYear);
+                        SSAccountingContext.updateAccountingYear(iAccountingYear);
 
                         cInstance = null;
                         setVisible(false);
@@ -129,10 +128,8 @@ public class SSBudgetFrame extends SSDefaultTableFrame {
 
                         final SSMainFrame iMainFrame = getMainFrame();
 
-                        final Date iFrom = SSDateUtil.toDate(
-                                SSDB.getInstance().getCurrentYear().getLocalFrom());
-                        final Date iTo = SSDateUtil.toDate(
-                                SSDB.getInstance().getCurrentYear().getLocalTo());
+                        final LocalDate iFrom = SSAccountingContext.getCurrentYear().getLocalFrom();
+                        final LocalDate iTo = SSAccountingContext.getCurrentYear().getLocalTo();
 
                         SSProgressDialog.runProgress(iMainFrame, () -> {
 
@@ -157,7 +154,7 @@ public class SSBudgetFrame extends SSDefaultTableFrame {
      */
     @Override
     public JComponent getMainContent() {
-        SSBudget iBudget = new SSBudget(SSDB.getInstance().getCurrentYear().getBudget());
+        SSBudget iBudget = new SSBudget(SSAccountingContext.getCurrentYear().getBudget());
 
         iBudgetMainPanel = new SSBudgetMainPanel(iBudget);
 

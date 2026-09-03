@@ -30,6 +30,12 @@ public class SSAccountPlan implements Serializable, Cloneable, SSTableSearchable
     // The assesment year
     private String iAssessementYear;
 
+    // Path to the Excel source (resource path for defaults, file name for imported plans)
+    private String iExcelPath;
+
+    // Marks bundled default plans
+    private boolean iDefaultPlan;
+
     // the type of account plan
     private SSAccountPlanType iType;
 
@@ -51,7 +57,7 @@ public class SSAccountPlan implements Serializable, Cloneable, SSTableSearchable
      */
     public SSAccountPlan() {
         iAccounts = new LinkedList<>();
-        iType = SSAccountPlanType.get("BAS95");
+        iType = SSAccountPlanType.getDefault();
     }
 
     /**
@@ -95,10 +101,13 @@ public class SSAccountPlan implements Serializable, Cloneable, SSTableSearchable
      */
     public void copyFrom(SSAccountPlan pAccountPlan) {
 
+        iId = pAccountPlan.iId;
         iName = pAccountPlan.iName;
         iType = pAccountPlan.iType;
         iBaseName = pAccountPlan.iBaseName;
         iAssessementYear = pAccountPlan.iAssessementYear;
+        iExcelPath = pAccountPlan.iExcelPath;
+        iDefaultPlan = pAccountPlan.iDefaultPlan;
         iAccounts = new LinkedList<>();
 
         for (SSAccount iAccount : pAccountPlan.getAccounts()) {
@@ -169,7 +178,7 @@ public class SSAccountPlan implements Serializable, Cloneable, SSTableSearchable
      */
     public SSAccountPlanType getType() {
         if (iType == null) {
-            iType = SSAccountPlanType.get("BAS95");
+            iType = SSAccountPlanType.getDefault();
         }
         return iType;
     }
@@ -212,6 +221,48 @@ public class SSAccountPlan implements Serializable, Cloneable, SSTableSearchable
 
     /**
      *
+     * @return The Excel source path.
+     */
+    public String getExcelPath() {
+        return iExcelPath;
+    }
+
+    /**
+     *
+     * @param iExcelPath
+     */
+    public void setExcelPath(String iExcelPath) {
+        this.iExcelPath = iExcelPath;
+    }
+
+    /**
+     *
+     * @return True if this is a bundled default plan.
+     */
+    public boolean isDefaultPlan() {
+        return iDefaultPlan;
+    }
+
+    /**
+     *
+     * @param iDefaultPlan
+     */
+    public void setDefaultPlan(boolean iDefaultPlan) {
+        this.iDefaultPlan = iDefaultPlan;
+    }
+
+    /**
+     *
+     * @return True if this plan is backed by an Excel template file.
+     */
+    public boolean isTemplatePlan() {
+        return iDefaultPlan || iExcelPath != null;
+    }
+
+    // /////////////////////////////////////////////////////////////////////////
+
+    /**
+     *
      * @return The acoounts
      */
     public List<SSAccount> getAccounts() {
@@ -227,9 +278,18 @@ public class SSAccountPlan implements Serializable, Cloneable, SSTableSearchable
      * @param iAccounts
      */
     public void setAccounts(List<SSAccount> iAccounts) {
-        this.iAccounts = iAccounts;
+        this.iAccounts = new LinkedList<>();
 
-        Collections.sort(iAccounts, (o1, o2) -> o1.getNumber() - o2.getNumber());
+        if (iAccounts != null) {
+            for (SSAccount iAccount : iAccounts) {
+                if (iAccount != null) {
+                    this.iAccounts.add(iAccount);
+                }
+            }
+        }
+
+        Collections.sort(this.iAccounts,
+                Comparator.comparing(SSAccount::getNumber, Comparator.nullsLast(Integer::compareTo)));
 
         iActiveAccounts = null;
         iAccountMap = null;
@@ -396,3 +456,4 @@ public class SSAccountPlan implements Serializable, Cloneable, SSTableSearchable
     }
 
 }
+

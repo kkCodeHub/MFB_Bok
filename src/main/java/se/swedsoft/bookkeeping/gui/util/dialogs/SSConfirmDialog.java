@@ -38,6 +38,7 @@ public class SSConfirmDialog {
      * @param pBundleName
      * @param pMessageFormat
      */
+    @SafeVarargs
     public SSConfirmDialog(String pBundleName, Object... pMessageFormat) {
         iTitle = SSBundle.getBundle().getString(pBundleName + ".title");
         iMessage = String.format(SSBundle.getBundle().getString(pBundleName + ".message"),

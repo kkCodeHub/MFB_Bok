@@ -12,9 +12,11 @@ import se.swedsoft.bookkeeping.gui.util.SSBundle;
 import se.swedsoft.bookkeeping.gui.util.SSButtonPanel;
 import se.swedsoft.bookkeeping.gui.util.SSInputVerifier;
 import se.swedsoft.bookkeeping.gui.util.components.SSTableComboBox;
+import se.swedsoft.bookkeeping.gui.util.dialogs.SSErrorDialog;
 import se.swedsoft.bookkeeping.gui.util.dialogs.SSQueryDialog;
 import se.swedsoft.bookkeeping.gui.util.graphics.SSIcon;
 import se.swedsoft.bookkeeping.gui.util.table.SSTable;
+import se.swedsoft.bookkeeping.importexport.excel.SSAccountPlanLoader;
 
 import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
@@ -25,6 +27,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.io.IOException;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -172,7 +175,7 @@ public class SSAccountPlanPanel {
                             return;
                         }
 
-                        SSAccountPlan iSelected = iDialog.geAccountPlan();
+                        SSAccountPlan iSelected = resolveImportSourceAccountPlan(iMainFrame, iDialog.geAccountPlan());
 
                         if (iSelected != null) {
                             getAccountPlan();
@@ -311,6 +314,24 @@ public class SSAccountPlanPanel {
     public void setShowBase(boolean iShowBase) {
         iBase.setVisible(iShowBase);
         iBaseLabel.setVisible(iShowBase);
+    }
+
+    public void setSuggestedName(boolean pSuggestedName) {
+    }
+
+    private SSAccountPlan resolveImportSourceAccountPlan(SSMainFrame iMainFrame, SSAccountPlan iSelected) {
+        if (iSelected == null) {
+            return null;
+        }
+        if (!iSelected.isTemplatePlan()) {
+            return iSelected;
+        }
+        try {
+            return SSAccountPlanLoader.loadPlan(iSelected);
+        } catch (IOException e) {
+            SSErrorDialog.showDialog(iMainFrame, "", e.getLocalizedMessage());
+            return null;
+        }
     }
 
     public boolean isValid() {

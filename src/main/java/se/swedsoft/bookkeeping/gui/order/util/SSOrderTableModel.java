@@ -5,6 +5,7 @@ import se.swedsoft.bookkeeping.calc.math.SSOrderMath;
 import se.swedsoft.bookkeeping.data.SSOrder;
 import se.swedsoft.bookkeeping.data.common.SSCurrency;
 import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.data.system.SSSalesContext;
 import se.swedsoft.bookkeeping.gui.util.SSBundle;
 import se.swedsoft.bookkeeping.gui.util.graphics.SSIcon;
 import se.swedsoft.bookkeeping.gui.util.table.model.SSTableColumn;
@@ -28,7 +29,7 @@ public class SSOrderTableModel extends SSTableModel<SSOrder> {
      * Default constructor.
      */
     public SSOrderTableModel() {
-        super(SSDB.getInstance().getOrders());
+        super(SSSalesContext.getOrders());
     }
 
     /**
@@ -317,7 +318,7 @@ public class SSOrderTableModel extends SSTableModel<SSOrder> {
      * @return
      */
     public static SSOrderTableModel getDropdownModel(boolean iOrdersWithoutInvoice) {
-        List<SSOrder> iOrders = SSDB.getInstance().getOrders();
+        List<SSOrder> iOrders = SSSalesContext.getOrders();
 
         if (iOrdersWithoutInvoice) {
             iOrders = SSOrderMath.getOrdersWithoutInvoice(iOrders);

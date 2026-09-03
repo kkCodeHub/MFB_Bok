@@ -3,11 +3,14 @@ package se.swedsoft.bookkeeping.gui.product.util;
 
 import se.swedsoft.bookkeeping.data.SSProduct;
 import se.swedsoft.bookkeeping.data.SSProductRow;
-import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.data.system.SSProductContext;
+import se.swedsoft.bookkeeping.calc.math.SSProductQuantityValidator;
 import se.swedsoft.bookkeeping.gui.util.SSBundle;
+import se.swedsoft.bookkeeping.gui.util.SSQuantityPresentationUtil;
 import se.swedsoft.bookkeeping.gui.util.components.SSTableComboBoxOld;
 import se.swedsoft.bookkeeping.gui.util.model.SSDefaultTableModel;
 import se.swedsoft.bookkeeping.gui.util.table.SSTable;
+import se.swedsoft.bookkeeping.gui.util.table.editors.SSBigDecimalCellEditor;
 import se.swedsoft.bookkeeping.gui.util.table.editors.SSBigDecimalCellRenderer;
 import se.swedsoft.bookkeeping.gui.util.table.editors.SSDefaultTableCellRenderer;
 
@@ -70,7 +73,7 @@ public class SSProductRowTableModel extends SSDefaultTableModel<SSProductRow> {
      */
     public Object getValueAt(int rowIndex, int columnIndex) {
         SSProductRow iRow = getObject(rowIndex);
-        SSProduct    iProduct = iRow.getProduct(SSDB.getInstance().getProducts());
+        SSProduct    iProduct = iRow.getProduct(SSProductContext.getProducts());
 
         Object value = null;
 
@@ -84,7 +87,7 @@ public class SSProductRowTableModel extends SSDefaultTableModel<SSProductRow> {
             break;
 
         case 2:
-            value = iRow.getQuantity();
+            value = SSQuantityPresentationUtil.toDisplayQuantity(iRow.getQuantity());
             break;
 
         case 3:
@@ -109,7 +112,14 @@ public class SSProductRowTableModel extends SSDefaultTableModel<SSProductRow> {
             break;
 
         case 2:
-            iRow.setQuantity((Integer) aValue);
+            Integer iQuantityTenths = SSQuantityPresentationUtil.toStoredTenths(aValue);
+            SSProduct iProduct = iRow.getProduct(SSProductContext.getProducts());
+
+            if (!SSProductQuantityValidator.isValidQuantity(iProduct, iQuantityTenths)) {
+                return;
+            }
+
+            iRow.setQuantity(iQuantityTenths);
             break;
 
         case 3:
@@ -138,7 +148,7 @@ public class SSProductRowTableModel extends SSDefaultTableModel<SSProductRow> {
             return String.class;
 
         case 2:
-            return Integer.class;
+            return BigDecimal.class;
 
         case 3:
             return String.class;
@@ -149,7 +159,7 @@ public class SSProductRowTableModel extends SSDefaultTableModel<SSProductRow> {
     @Override
     public boolean isCellEditable(int rowIndex, int columnIndex) {
         SSProduct iProduct = getObject(rowIndex).getProduct(
-                SSDB.getInstance().getProducts());
+                SSProductContext.getProducts());
 
         return (columnIndex == 0) || (iProduct != null && (columnIndex != 3));
     }
@@ -191,10 +201,11 @@ public class SSProductRowTableModel extends SSDefaultTableModel<SSProductRow> {
         iTable.getColumnModel().getColumn(2).setPreferredWidth(70);
         iTable.getColumnModel().getColumn(3).setPreferredWidth(70);
 
-        iTable.setDefaultRenderer(BigDecimal.class, new SSBigDecimalCellRenderer(2));
+        iTable.setDefaultRenderer(BigDecimal.class, new SSBigDecimalCellRenderer(1));
+        iTable.setDefaultEditor(BigDecimal.class, new SSBigDecimalCellEditor(1));
 
         iTable.setDefaultEditor(SSProduct.class,
-                new SSProductEditor(SSDB.getInstance().getProducts(), iProduct));
+                new SSProductEditor(SSProductContext.getProducts(), iProduct));
         iTable.setDefaultRenderer(SSProduct.class, new SSProductRenderer());
     }
 

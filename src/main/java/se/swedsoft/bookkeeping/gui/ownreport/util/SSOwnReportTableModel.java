@@ -2,7 +2,7 @@ package se.swedsoft.bookkeeping.gui.ownreport.util;
 
 
 import se.swedsoft.bookkeeping.data.SSOwnReport;
-import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.data.system.SSOwnReportContext;
 import se.swedsoft.bookkeeping.gui.util.SSBundle;
 import se.swedsoft.bookkeeping.gui.util.table.model.SSTableColumn;
 import se.swedsoft.bookkeeping.gui.util.table.model.SSTableModel;
@@ -21,7 +21,7 @@ public class SSOwnReportTableModel extends SSTableModel<SSOwnReport> {
      * Default constructor.
      */
     public SSOwnReportTableModel() {
-        this(SSDB.getInstance().getOwnReports());
+        this(SSOwnReportContext.getOwnReports());
 
     }
 

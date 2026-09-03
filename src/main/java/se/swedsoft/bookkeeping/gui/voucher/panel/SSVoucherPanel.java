@@ -3,7 +3,7 @@ package se.swedsoft.bookkeeping.gui.voucher.panel;
 
 import se.swedsoft.bookkeeping.calc.math.SSVoucherMath;
 import se.swedsoft.bookkeeping.data.*;
-import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.data.system.SSAccountingContext;
 import se.swedsoft.bookkeeping.data.util.SSConfig;
 import se.swedsoft.bookkeeping.gui.SSMainFrame;
 import se.swedsoft.bookkeeping.gui.util.SSBundle;
@@ -71,7 +71,6 @@ public class SSVoucherPanel implements TableModelListener, ListSelectionListener
     // The current voucher
     protected SSVoucher iVoucher;
 
-    // protected SSVoucherRowTableModelOld iModel;
 
     protected SSVoucherRowTableModel iModel;
 
@@ -93,7 +92,6 @@ public class SSVoucherPanel implements TableModelListener, ListSelectionListener
      */
     public SSVoucherPanel(final SSDialog  iDialog) {
         iVoucher = null;
-        // iModel     =  new SSVoucherRowTableModelOld(false, false);
         iModel = new SSVoucherRowTableModel();
         iModel.addColumn(SSVoucherRowTableModel.COLUMN_ACCOUNT, true);
         iModel.addColumn(SSVoucherRowTableModel.COLUMN_DESCRIPTION, true);
@@ -134,9 +132,6 @@ public class SSVoucherPanel implements TableModelListener, ListSelectionListener
         iDescription.addSelectionListener(new SSSelectionListener<>() {
             public void selected(SSVoucherTemplate template) {
                 if (template != null) {
-                    // Remove empty rows.
-                    // iVoucher.trim();
-
                     template.addToVoucher(iVoucher);
 
                     iModel.fireTableDataChanged();
@@ -218,8 +213,8 @@ public class SSVoucherPanel implements TableModelListener, ListSelectionListener
                             SSVoucherRow iRow = iModel.getObject(iTable.getSelectedRow());
 
                             if (iRow.getAccount() != null) {
-                                List<SSVoucher> iVouchers = SSDB.getInstance().getVouchers();
-                                SSNewAccountingYear iYear = SSDB.getInstance().getCurrentYear();
+                                List<SSVoucher> iVouchers = SSAccountingContext.getVouchers();
+                                SSNewAccountingYear iYear = SSAccountingContext.getCurrentYear();
                                 BigDecimal iInbalanceSum = iYear.getInBalance(iRow.getAccount());
                                 BigDecimal iDebetSum = new BigDecimal(0);
                                 BigDecimal iCreditSum = new BigDecimal(0);
@@ -291,7 +286,6 @@ public class SSVoucherPanel implements TableModelListener, ListSelectionListener
             }
         });
 
-        // iMarkRowButton.setVisible( ! iNewVoucher   );
         iMarkRowButton.addActionListener(e -> {
 
                 SSVoucherRow iSelected = iModel.getSelectedRow(iTable);
@@ -308,7 +302,6 @@ public class SSVoucherPanel implements TableModelListener, ListSelectionListener
 
             });
 
-        // iDeleteRowButton.setVisible(  iNewVoucher   );
         iDeleteRowButton.addActionListener(
                 e -> {
 
@@ -411,7 +404,7 @@ public class SSVoucherPanel implements TableModelListener, ListSelectionListener
 
     private SSAutoDist getAutoDistForAccount(SSVoucherRow iVoucherRow) {
         if (iVoucherRow.getAccountNr() != null) {
-            for (SSAutoDist iAutoDist : SSDB.getInstance().getAutoDists()) {
+            for (SSAutoDist iAutoDist : SSAccountingContext.getAutoDists()) {
                 if (iAutoDist.getNumber().equals(iVoucherRow.getAccountNr())) {
                     return iAutoDist;
                 }
@@ -518,7 +511,6 @@ public class SSVoucherPanel implements TableModelListener, ListSelectionListener
         }
         iVoucher.setVoucherRows(iRows);
         iModel.setObjects(iVoucher.getRows());
-        // doAutoDistributionForRows(iAutoDist);
     }
 
     /**
@@ -543,7 +535,6 @@ public class SSVoucherPanel implements TableModelListener, ListSelectionListener
         iModel.setObjects(iVoucher.getRows(), iEditing);
         iModel.setupTable(iTable, true);
 
-        // SSVoucherRowTableModelOld.setupTable(iTable, iModel);
 
         iDescription.setText(pVoucher.getDescription());
         iNumber.setValue(pVoucher.getNumber());
@@ -662,16 +653,6 @@ public class SSVoucherPanel implements TableModelListener, ListSelectionListener
         }
     }
 
-    /**
-     *
-     * @return The selected row
-
-     protected SSVoucherRow getSelectedRow(){
-     int selected = iTable.getSelectedRow();
-
-     return selected < 0 ? null : iModel.getObject(selected);
-     }
-     */
 
     /**
      *
@@ -684,24 +665,6 @@ public class SSVoucherPanel implements TableModelListener, ListSelectionListener
                 JOptionPane.QUESTION_MESSAGE);
     }
 
-    /**
-     *  Deletes the selected voucher row
-
-     private void deleteSelectedRow(){
-     SSVoucherRow iSelected = getSelectedRow();
-
-     SSQueryDialog dialog = new SSQueryDialog( SSMainFrame.getInstance(), "voucherframe.deleterow", iSelected.toString() );
-
-     if(  dialog.getResponce() != JOptionPane.YES_OPTION ) return;
-
-     if(! iModel.canDeleteRow(iSelected) ){
-     new SSErrorDialog(SSMainFrame.getInstance(), "voucherframe.cannotdeleterow");
-     } else {
-     iModel.deleteRow(iSelected);
-     iModel.fireTableDataChanged();
-     }
-     }
-     */
 
     public void tableChanged(TableModelEvent e) {
         if (iVoucher == null) {
@@ -753,6 +716,16 @@ public class SSVoucherPanel implements TableModelListener, ListSelectionListener
 
     public void updateAccounts() {
         iModel.setupTable(iTable);
+        updateVoucherTemplates();
+    }
+
+    /**
+     * Refreshes the voucher template dropdown from the database.
+     */
+    public void updateVoucherTemplates() {
+        iDescription.setModel(SSVoucherTemplateTableModel.getDropDownModel());
+        iDescription.setSearchColumns(0);
+        iDescription.setAllowCustomValues(true);
     }
 
     @Override
@@ -786,3 +759,4 @@ public class SSVoucherPanel implements TableModelListener, ListSelectionListener
         return sb.toString();
     }
 }
+

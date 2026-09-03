@@ -75,6 +75,7 @@ public class SSInventoryPanel {
                 new SSProductCellEditor(SSProductMath.getNormalProducts(), false));
 
         iTable.setColorReadOnly(true);
+        iTable.setSelectionForeground(Color.BLACK);
 
         iDate.addChangeListener(e -> {
 

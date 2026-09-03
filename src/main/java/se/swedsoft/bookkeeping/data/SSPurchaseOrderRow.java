@@ -22,6 +22,8 @@ import java.util.Optional;
 public class SSPurchaseOrderRow implements Serializable {
 
     private static final long serialVersionUID = 4891634413753480921L;
+    private static final int TENTHS_SCALE = 1;
+    private static final int DEFAULT_QUANTITY_TENTHS = 10;
 
     // Produktnummer
     private String iProductNr;
@@ -197,7 +199,7 @@ public class SSPurchaseOrderRow implements Serializable {
      * @return
      */
     public SSProduct getProduct() {
-        return getProduct(SSDB.getInstance().getProducts());
+        return getProduct(se.swedsoft.bookkeeping.data.system.SSProductContext.getProducts());
     }
 
     /**
@@ -231,7 +233,7 @@ public class SSPurchaseOrderRow implements Serializable {
             iUnit = iProduct.getUnit();
             iSupplierArticleNr = iProduct.getSupplierProductNr();
             iAccountNr = iProduct.getDefaultAccount(SSDefaultAccount.Purchases);
-            iQuantity = 1;
+            iQuantity = DEFAULT_QUANTITY_TENTHS;
         }
     }
 
@@ -276,7 +278,8 @@ public class SSPurchaseOrderRow implements Serializable {
             return Optional.empty();
         }
 
-        return Optional.of(iUnitprice.multiply(new BigDecimal(iQuantity)));
+        BigDecimal iDecimalQuantity = BigDecimal.valueOf(iQuantity, TENTHS_SCALE);
+        return Optional.of(iUnitprice.multiply(iDecimalQuantity));
     }
 
     @Override

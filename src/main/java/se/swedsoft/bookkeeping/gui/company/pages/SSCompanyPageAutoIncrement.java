@@ -9,6 +9,8 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.util.ArrayList;
+import java.util.List;
 
 
 /**
@@ -31,6 +33,7 @@ public class SSCompanyPageAutoIncrement extends SSCompanyPage implements ChangeL
     private JSpinner iInpayment;
     private JSpinner iCreditInvoice;
     private JSpinner iPurchaseOrder;
+    private JComponent iFirstInvalidComponent;
 
     /**
      *
@@ -229,6 +232,38 @@ public class SSCompanyPageAutoIncrement extends SSCompanyPage implements ChangeL
                 }
             }
         });
+    }
+
+    @Override
+    public List<String> validatePage() {
+        List<String> iErrors = new ArrayList<>();
+        iFirstInvalidComponent = null;
+
+        validateSpinner(iErrors, iTender, "Auto increment: Tender");
+        validateSpinner(iErrors, iOrder, "Auto increment: Order");
+        validateSpinner(iErrors, iInvoice, "Auto increment: Invoice");
+        validateSpinner(iErrors, iCreditInvoice, "Auto increment: Credit invoice");
+        validateSpinner(iErrors, iInpayment, "Auto increment: Inpayment");
+        validateSpinner(iErrors, iPurchaseOrder, "Auto increment: Purchase order");
+        validateSpinner(iErrors, iSupplierInvoice, "Auto increment: Supplier invoice");
+        validateSpinner(iErrors, iSupplierCreditInvoice, "Auto increment: Supplier credit invoice");
+        validateSpinner(iErrors, iOutpayment, "Auto increment: Outpayment");
+        return iErrors;
+    }
+
+    @Override
+    public JComponent getFirstInvalidComponent() {
+        return iFirstInvalidComponent;
+    }
+
+    private void validateSpinner(List<String> iErrors, JSpinner iSpinner, String iLabel) {
+        int iValue = ((Number) iSpinner.getValue()).intValue();
+        if (iValue < 0) {
+            iErrors.add(iLabel + " must be 0 or greater.");
+            if (iFirstInvalidComponent == null) {
+                iFirstInvalidComponent = iSpinner;
+            }
+        }
     }
 
     @Override

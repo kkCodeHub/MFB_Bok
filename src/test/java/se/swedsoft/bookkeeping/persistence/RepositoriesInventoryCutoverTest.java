@@ -1,9 +1,8 @@
 package se.swedsoft.bookkeeping.persistence;
 
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import se.swedsoft.bookkeeping.data.system.SSDB;
-import se.swedsoft.bookkeeping.persistence.legacy.SSDBCustomerRepository;
+import se.swedsoft.bookkeeping.persistence.v2.V2CustomerRepository;
 import se.swedsoft.bookkeeping.persistence.v2.V2InventoryRepository;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -11,27 +10,19 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * Verifies Slice P cutover wiring for the inventory domain.
  */
-class RepositoriesInventoryCutoverTest {
-
-    @AfterEach
-    void clearSchemaFlag() {
-        System.clearProperty("fribok.schema.version");
-    }
+class RepositoriesInventoryCutoverTest extends AbstractCutoverTest {
 
     @Test
-    void initUsesV2InventoryRepositoryInV1Mode() {
-        System.clearProperty("fribok.schema.version");
-
+    void initUsesV2InventoryRepository() {
         Repositories.init(SSDB.getInstance());
 
-        assertThat(Repositories.isSchemaV2()).isFalse();
+        assertThat(Repositories.isSchemaV2()).isTrue();
         assertThat(Repositories.inventories()).isInstanceOf(V2InventoryRepository.class);
-        assertThat(Repositories.customers()).isInstanceOf(SSDBCustomerRepository.class);
+        assertThat(Repositories.customers()).isInstanceOf(V2CustomerRepository.class);
     }
 
     @Test
-    void initUsesV2InventoryRepositoryInV2Mode() {
-        System.setProperty("fribok.schema.version", "v2");
+    void initStillUsesV2InventoryRepository() {
 
         Repositories.init(SSDB.getInstance());
 

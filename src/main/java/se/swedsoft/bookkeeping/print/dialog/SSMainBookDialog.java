@@ -15,10 +15,12 @@ import se.swedsoft.bookkeeping.gui.util.components.SSTableComboBox;
 import se.swedsoft.bookkeeping.gui.util.datechooser.SSDateChooser;
 import se.swedsoft.bookkeeping.gui.util.dialogs.SSDialog;
 import se.swedsoft.bookkeeping.gui.util.model.SSAccountTableModel;
+import se.swedsoft.bookkeeping.util.SSDateUtil;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.time.LocalDate;
 import java.util.Date;
 
 
@@ -65,9 +67,9 @@ public class SSMainBookDialog extends SSDialog {
         iToAccount.setSearchColumns(0);
 
         iFromAccount.setSelected(
-                SSAccountMath.getFirstAccount(SSDB.getInstance().getAccounts()));
+                SSAccountMath.getFirstAccount(se.swedsoft.bookkeeping.data.system.SSAccountingContext.getAccounts()));
         iToAccount.setSelected(
-                SSAccountMath.getLastAccount(SSDB.getInstance().getAccounts()));
+                SSAccountMath.getLastAccount(se.swedsoft.bookkeeping.data.system.SSAccountingContext.getAccounts()));
 
         iCheckProject.addActionListener(this);
         iCheckResultunit.addActionListener(this);
@@ -76,19 +78,35 @@ public class SSMainBookDialog extends SSDialog {
     }
 
     /**
+     * Sets the start date.
      *
-     * @param pDateFrom
+     * @param pDateFrom the start date
      */
-    public void setDateFrom(Date pDateFrom) {
-        iFromDate.setDate(pDateFrom);
+    public void setLocalDateFrom(LocalDate pDateFrom) {
+        iFromDate.setLocalDate(pDateFrom);
     }
 
     /**
+     * Sets the end date.
      *
-     * @param pDateTo
+     * @param pDateTo the end date
      */
-    public void setDateTo(Date pDateTo) {
-        iToDate.setDate(pDateTo);
+    public void setLocalDateTo(LocalDate pDateTo) {
+        iToDate.setLocalDate(pDateTo);
+    }
+
+    /**
+     * @return the start date as a {@link LocalDate}
+     */
+    public LocalDate getLocalDateFrom() {
+        return iFromDate.getLocalDate();
+    }
+
+    /**
+     * @return the end date as a {@link LocalDate}
+     */
+    public LocalDate getLocalDateTo() {
+        return iToDate.getLocalDate();
     }
 
     /**
@@ -106,22 +124,6 @@ public class SSMainBookDialog extends SSDialog {
     public SSAccount getAccountTo() {
 
         return iToAccount.getSelected();
-    }
-
-    /**
-     *
-     * @return
-     */
-    public Date getDateFrom() {
-        return iFromDate.getDate();
-    }
-
-    /**
-     *
-     * @return
-     */
-    public Date getDateTo() {
-        return iToDate.getDate();
     }
 
     /**

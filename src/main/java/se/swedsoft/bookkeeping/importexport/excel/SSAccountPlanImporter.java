@@ -1,198 +1,137 @@
 package se.swedsoft.bookkeeping.importexport.excel;
 
-
-import jxl.Sheet;
-import jxl.Workbook;
-import jxl.WorkbookSettings;
-import jxl.read.biff.BiffException;
-import se.swedsoft.bookkeeping.data.SSAccount;
+import org.fribok.bookkeeping.app.Path;
 import se.swedsoft.bookkeeping.data.SSAccountPlan;
-import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.data.system.SSAccountingContext;
 import se.swedsoft.bookkeeping.gui.SSMainFrame;
 import se.swedsoft.bookkeeping.gui.util.SSBundle;
 import se.swedsoft.bookkeeping.gui.util.dialogs.SSErrorDialog;
-import se.swedsoft.bookkeeping.importexport.excel.util.SSExcelCell;
-import se.swedsoft.bookkeeping.importexport.excel.util.SSExcelRow;
-import se.swedsoft.bookkeeping.importexport.excel.util.SSExcelSheet;
 import se.swedsoft.bookkeeping.importexport.util.SSImportException;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Locale;
 import java.util.ResourceBundle;
 
-
 /**
- * Date: 2006-feb-13
- * Time: 16:43:09
+ * Imports account plans from Excel.
  */
 public class SSAccountPlanImporter {
 
-    private static final ResourceBundle cBundle = SSBundle.getBundle();
+    private static final ResourceBundle BUNDLE = SSBundle.getBundle();
 
-    private static String cName = cBundle.getString("importaccountplan.field_name");
-    private static String cType = cBundle.getString("importaccountplan.field_type");
-    private static String cYear = cBundle.getString("importaccountplan.field_year");
-    private static String cStart = cBundle.getString("importaccountplan.field_start");
-
-    private File iFile;
+    private final File iFile;
 
     /**
+     * Creates an account plan importer.
      *
-     * @param iFile
+     * @param iFile source Excel file
      */
     public SSAccountPlanImporter(File iFile) {
         this.iFile = iFile;
     }
-    
+
     /**
+     * Imports an account plan from the configured file.
      *
-     * @throws IOException
-     * @throws SSImportException
+     * @throws IOException if reading the file fails
+     * @throws SSImportException if import content is invalid
      */
     public void doImport() throws IOException, SSImportException {
         doImport(iFile);
     }
-    
+
     /**
-     * Statisk metod för att ladda en kontoplan från fil
-     * @param iFile excel-fil
-     * @throws IOException
+     * Imports an account plan from a file.
+     *
+     * @param file source Excel file
+     * @throws IOException if reading the file fails
+     * @throws SSImportException if import content is invalid
      */
-    public static void doImport(File iFile) throws IOException {
-        doImport(new FileInputStream(iFile));
+    public static void doImport(File file) throws IOException, SSImportException {
+        validateImportLocation(file);
+        SSAccountPlan accountPlan = SSAccountPlanLoader.readPlan(file);
+        validateFileNameAgainstPlanName(file == null ? null : file.getName(), accountPlan);
+        storeImportedPlan(accountPlan, file.getName());
     }
-    
+
     /**
-     * Statisk metod för att ladda en kontoplan från InputStream
-     * @param iInputStream streamat excel-ark med kontoplanen
-     * @throws IOException
+     * Imports an account plan from a stream.
+     *
+     * @param inputStream source Excel stream
+     * @throws IOException if reading the stream fails
+     * @throws SSImportException if import content is invalid
      */
-    public static void doImport(InputStream iInputStream) throws IOException {
-        WorkbookSettings iSettings = new WorkbookSettings();
+    public static void doImport(InputStream inputStream) throws IOException, SSImportException {
+        SSAccountPlan accountPlan = SSAccountPlanLoader.readPlan(inputStream);
+        storeImportedPlan(accountPlan, null);
+    }
 
-        iSettings.setLocale(new Locale("sv", "SE"));
-        iSettings.setEncoding("windows-1252");
-        iSettings.setExcelDisplayLanguage("SE");
-        iSettings.setExcelRegionalSettings("SE");
+    /**
+     * Loads an account plan from its Excel template without storing it.
+     *
+     * @param templatePlan template account plan
+     * @return the loaded plan or null
+     * @throws IOException if reading the file fails
+     */
+    public static SSAccountPlan loadPlan(SSAccountPlan templatePlan) throws IOException {
+        return SSAccountPlanLoader.loadPlan(templatePlan);
+    }
 
-        SSAccountPlan iAccountPlan = new SSAccountPlan();
-
-        try {
-            Workbook iWorkbook = Workbook.getWorkbook(iInputStream, iSettings);
-
-            // Empty workbook, ie nothing to import
-            if (iWorkbook.getNumberOfSheets() == 0) {
-                throw new SSImportException(cBundle, "importaccountplan.nosheets");
-            }
-
-            Sheet iSheet = iWorkbook.getSheet(0);
-
-            readAccountPlan(new SSExcelSheet(iSheet), iAccountPlan);
-
-            iWorkbook.close();
-
-        } catch (BiffException e) {
-            throw new SSImportException(e.getLocalizedMessage());
+    private static void storeImportedPlan(SSAccountPlan accountPlan, String excelPath) {
+        if (accountPlan == null) {
+            return;
         }
-        for (SSAccountPlan pAccountPlan : SSDB.getInstance().getAccountPlans()) {
-            if (iAccountPlan.getName().equals(pAccountPlan.getName())) {
+
+        for (SSAccountPlan existing : SSAccountingContext.getAccountPlans()) {
+            if (accountPlan.getName() != null && accountPlan.getName().equals(existing.getName())) {
                 new SSErrorDialog(SSMainFrame.getInstance(), "accountplanframe.duplicate",
-                        iAccountPlan.getName());
+                        accountPlan.getName());
                 return;
             }
         }
-        // Store the account plan.
-        SSDB.getInstance().addAccountPlan(iAccountPlan);
+
+        accountPlan.setExcelPath(excelPath);
+        accountPlan.setDefaultPlan(false);
+        SSAccountingContext.addAccountPlan(accountPlan);
     }
 
-    /**
-     *
-     * @param pSheet
-     * @param pAccountPlan
-     */
-    private static void readAccountPlan(SSExcelSheet pSheet, SSAccountPlan pAccountPlan) {
-        int iRowStart = Integer.MAX_VALUE;
-
-        for (SSExcelRow iRow : pSheet.getRows()) {
-
-            // Skip empty rows
-            if (iRow.empty()) {
-                continue;
-            }
-
-            String c = iRow.getString(0);
-
-            // Name
-            if (c.startsWith(cName)) {
-                pAccountPlan.setName(iRow.getString(1));
-                continue;
-            }
-            // Type
-            if (c.startsWith(cType)) {
-                pAccountPlan.setType(iRow.getString(1));
-                continue;
-            }
-            // Assessment year
-            if (c.startsWith(cYear)) {
-                pAccountPlan.setAssessementYear(iRow.getString(1));
-                continue;
-            }
-            // Account offset
-            if (c.startsWith(cStart)) {
-                iRowStart = iRow.getInteger(1);
-                continue;
-            }
-
-            if (iRow.getRow() < iRowStart - 1) {
-                continue;
-            }
-
-            SSAccount iAccount = new SSAccount();
-
-            for (SSExcelCell iCell : iRow.getCells()) {
-
-                switch (iCell.getColumn()) {
-                case 0:
-                    iAccount.setNumber(iCell.getInteger());
-                    break;
-
-                case 1:
-                    iAccount.setDescription(iCell.getString());
-                    break;
-
-                case 2:
-                    iAccount.setVATCode(iCell.getString());
-                    break;
-
-                case 3:
-                    iAccount.setSRUCode(iCell.getString());
-                    break;
-
-                case 4:
-                    iAccount.setReportCode(iCell.getString());
-                    break;
-                }
-
-            }
-            pAccountPlan.addAccount(iAccount);
-
+    public static void validateFileNameAgainstPlanName(String fileName, SSAccountPlan accountPlan) {
+        if (fileName == null || accountPlan == null || accountPlan.getName() == null) {
+            return;
         }
 
-        if (pAccountPlan.getAccounts().isEmpty()) {
-            throw new SSImportException(cBundle, "importaccountplan.fileempty");
+        int dotIndex = fileName.lastIndexOf('.');
+        String baseName = dotIndex > 0 ? fileName.substring(0, dotIndex) : fileName;
+
+        int startIndex = 0;
+        while (startIndex < baseName.length() && Character.isDigit(baseName.charAt(startIndex))) {
+            startIndex++;
+        }
+        baseName = baseName.substring(startIndex);
+
+        if (!baseName.equals(accountPlan.getName())) {
+            throw new SSImportException(BUNDLE, "importaccountplan.fileempty");
+        }
+    }
+
+    private static void validateImportLocation(File file) throws IOException {
+        if (file == null) {
+            return;
+        }
+
+        File expectedDir = Path.get(Path.USER_DATA).getCanonicalFile();
+        File selectedFile = file.getCanonicalFile();
+        File parent = selectedFile.getParentFile();
+        if (parent == null || !parent.equals(expectedDir)) {
+            throw new SSImportException(BUNDLE, "importaccountplan.wrongplace", selectedFile.getPath());
         }
     }
 
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder();
-
-        sb.append("se.swedsoft.bookkeeping.importexport.excel.SSAccountPlanImporter");
-        sb.append("{iFile=").append(iFile);
-        sb.append('}');
-        return sb.toString();
+        return "se.swedsoft.bookkeeping.importexport.excel.SSAccountPlanImporter"
+                + "{iFile=" + iFile
+                + '}';
     }
 }

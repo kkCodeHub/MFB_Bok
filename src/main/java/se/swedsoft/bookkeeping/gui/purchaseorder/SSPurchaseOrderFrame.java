@@ -4,8 +4,9 @@ package se.swedsoft.bookkeeping.gui.purchaseorder;
 import se.swedsoft.bookkeeping.data.SSOrder;
 import se.swedsoft.bookkeeping.data.SSPurchaseOrder;
 import se.swedsoft.bookkeeping.data.SSSupplierInvoice;
-import se.swedsoft.bookkeeping.data.system.SSDB;
 import se.swedsoft.bookkeeping.data.system.SSMail;
+import se.swedsoft.bookkeeping.data.system.SSPurchaseContext;
+import se.swedsoft.bookkeeping.data.system.SSSalesContext;
 import se.swedsoft.bookkeeping.gui.SSMainFrame;
 import se.swedsoft.bookkeeping.gui.purchaseorder.panel.SSPurchaseOrderSearchPanel;
 import se.swedsoft.bookkeeping.gui.purchaseorder.util.SSPurchaseOrderTableModel;
@@ -66,6 +67,8 @@ public class SSPurchaseOrderFrame extends SSDefaultTableFrame {
     private JTabbedPane iTabbedPane;
 
     private SSTable iTable;
+
+    private JScrollPane iTableScrollPane;
 
     private SSPurchaseOrderTableModel iModel;
 
@@ -308,6 +311,8 @@ public class SSPurchaseOrderFrame extends SSDefaultTableFrame {
         iTabbedPane.addChangeListener(e -> iSearchPanel.ApplyFilter(Repositories.purchaseOrders().findAll()));
         // setFilterIndex(0);
 
+        iTableScrollPane = new JScrollPane(iTable);
+
         JPanel iPanel = new JPanel();
 
         iSearchPanel = new SSPurchaseOrderSearchPanel(iModel);
@@ -327,8 +332,21 @@ public class SSPurchaseOrderFrame extends SSDefaultTableFrame {
     public void setFilterIndex(int index, List<SSPurchaseOrder> iOrders) {
         JPanel iPanel = (JPanel) iTabbedPane.getComponentAt(index);
 
-        iPanel.removeAll();
-        iPanel.add(new JScrollPane(iTable), BorderLayout.CENTER);
+        // Move the shared scroll pane to the selected tab panel, if needed.
+        if (iTableScrollPane.getParent() != iPanel) {
+            Container iOldParent = iTableScrollPane.getParent();
+
+            if (iOldParent != null) {
+                iOldParent.remove(iTableScrollPane);
+                if (iOldParent instanceof JComponent) {
+                    ((JComponent) iOldParent).revalidate();
+                }
+            }
+            iPanel.removeAll();
+            iPanel.add(iTableScrollPane, BorderLayout.CENTER);
+            iPanel.revalidate();
+            iPanel.repaint();
+        }
 
         List<SSPurchaseOrder> iFiltered = Collections.emptyList();
 
@@ -353,6 +371,7 @@ public class SSPurchaseOrderFrame extends SSDefaultTableFrame {
             break;
         }
         iModel.setObjects(iFiltered);
+        iTabbedPane.revalidate();
         iTabbedPane.repaint();
     }
 
@@ -402,10 +421,10 @@ public class SSPurchaseOrderFrame extends SSDefaultTableFrame {
 
         if (iResponce == JOptionPane.YES_OPTION) {
             for (SSPurchaseOrder iPurchaseOrder : delete) {
-                for (SSOrder iOrder : SSDB.getInstance().getOrders()) {
+                for (SSOrder iOrder : SSSalesContext.getOrders()) {
                     if (iOrder.hasPurchaseOrder(iPurchaseOrder)) {
                         iOrder.setPurchaseOrder(null);
-                        SSDB.getInstance().updateOrder(iOrder);
+                        SSSalesContext.updateOrder(iOrder);
                     }
                 }
                 Repositories.purchaseOrders().delete(iPurchaseOrder);
@@ -427,6 +446,12 @@ public class SSPurchaseOrderFrame extends SSDefaultTableFrame {
 
     private List<SSPurchaseOrder> getPurchaseOrders(List<SSPurchaseOrder> iPurchaseOrders) {
         return Repositories.purchaseOrders().findAll(iPurchaseOrders);
+    }
+
+    public static void fireTableDataChanged() {
+        if (cInstance != null) {
+            cInstance.updateFrame();
+        }
     }
 
     public void updateFrame() {

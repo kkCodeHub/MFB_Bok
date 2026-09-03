@@ -1,16 +1,17 @@
 package org.fribok.bookkeeping;
 
 import com.jgoodies.looks.plastic.Plastic3DLookAndFeel;
-import com.jgoodies.looks.plastic.PlasticLookAndFeel;
 import com.jgoodies.looks.FontPolicy;
 import com.jgoodies.looks.FontPolicies;
 import com.jgoodies.looks.FontSet;
 import com.jgoodies.looks.FontSets;
 
+import org.fribok.bookkeeping.api.CompanyApiServer;
 import org.fribok.bookkeeping.app.Path;
+import org.fribok.bookkeeping.app.SSDBUiInitializer;
 import org.fribok.bookkeeping.app.Version;
-import se.swedsoft.bookkeeping.data.system.SSDB;
-import se.swedsoft.bookkeeping.persistence.Repositories;
+import se.swedsoft.bookkeeping.data.system.SSCompanyYearContext;
+import se.swedsoft.bookkeeping.data.system.SSSystemConfigContext;
 import se.swedsoft.bookkeeping.data.util.SSConfig;
 import se.swedsoft.bookkeeping.gui.SSMainFrame;
 import se.swedsoft.bookkeeping.gui.util.frame.SSFrameManager;
@@ -19,6 +20,7 @@ import se.swedsoft.bookkeeping.gui.util.graphics.SSIcon;
 import javax.swing.*;
 import java.awt.Font;
 import java.io.File;
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -40,13 +42,21 @@ public class Bookkeeping {    private static final Logger LOG = LoggerFactory.ge
     /**
      *
      */
-    private static void startupDatabase() {
+    private static boolean loadHsqldbDriver() {
         try {
-            Class.forName("org.hsqldb.jdbcDriver");
+            Class.forName("org.hsqldb.jdbc.JDBCDriver");
+            return true;
         } catch (ClassNotFoundException e) {
             LOG.info("ERROR: failed to load HSQLDB JDBC driver.");
             LOG.error("Unexpected error", e);
-            return;
+            return false;
+        }
+    }
+
+    private static boolean startupDatabase() {
+        LOG.info("KK StartupDatabase, Bookkeeping.java 57");
+        if (!loadHsqldbDriver()) {
+            return false;
         }
 
         try {
@@ -54,11 +64,12 @@ public class Bookkeeping {    private static final Logger LOG = LoggerFactory.ge
             Connection iConnection = DriverManager.getConnection(
                     "jdbc:hsqldb:file:" + dbDir.getAbsolutePath() + File.separator + "JFSDB", "sa", "");
 
-            SSDB.getInstance().startupLocal(iConnection);
-            Repositories.init(SSDB.getInstance());
+            SSSystemConfigContext.startupLocal(iConnection);
+            return true;
 
         } catch (SQLException e) {
             LOG.error("Failed to start local database", e);
+            return false;
         }
     }
 
@@ -156,7 +167,33 @@ public class Bookkeeping {    private static final Logger LOG = LoggerFactory.ge
 
         UIManager.put("InternalFrame.icon", SSIcon.getIcon("ICON_FRAME"));
         UIManager.put("InternalFrame.inactiveIcon", SSIcon.getIcon("ICON_FRAME"));
-        startupDatabase();
+        if (!startupDatabase()) {
+            LOG.error("Startup aborted because the local database could not be initialized.");
+            if (!java.awt.GraphicsEnvironment.isHeadless()) {
+                JOptionPane.showMessageDialog(
+                        null,
+                        "Kunde inte starta den lokala databasen. Kontrollera loggen och datakatalogen.",
+                        "Databasfel",
+                        JOptionPane.ERROR_MESSAGE);
+            }
+            return;
+        }
+
+        CompanyApiServer apiServer;
+        try {
+            apiServer = CompanyApiServer.start(SSSystemConfigContext.getDatabase().getConnection());
+        } catch (IOException | RuntimeException e) {
+            LOG.error("Startup aborted because the API server could not be initialized.", e);
+            if (!java.awt.GraphicsEnvironment.isHeadless()) {
+                JOptionPane.showMessageDialog(
+                        null,
+                        "Kunde inte starta API-servern. Kontrollera loggen och portinställningarna.",
+                        "API-fel",
+                        JOptionPane.ERROR_MESSAGE);
+            }
+            SSSystemConfigContext.shutdown();
+            return;
+        }
 
         // Display the main frame.
         iMainFrame.setVisible(true);
@@ -164,12 +201,14 @@ public class Bookkeeping {    private static final Logger LOG = LoggerFactory.ge
         // Only display the company iMainFrame if there are no companies defined.
         // I would prefer to only open the select company iMainFrame if there are no companies.
         // But Fredrik and Joakim wants it to displayed every time.
-        if ((Boolean) SSConfig.getInstance().get("companyframe.showatstart", true)) {
+        if ((Boolean) SSConfig.getInstance().get("companyframe.showatstart", true)
+                || SSCompanyYearContext.getCurrentCompany() == null) {
             iMainFrame.showCompanyFrame();
         }
 
-        SSDB.getInstance().init(true);
+        SSDBUiInitializer.init(true);
 
+        CompanyApiServer finalApiServer = apiServer;
         // Perhaps add some type of shut down hook.
         Runtime.getRuntime().addShutdownHook(
                 new Thread(
@@ -178,7 +217,8 @@ public class Bookkeeping {    private static final Logger LOG = LoggerFactory.ge
                                 SSFrameManager.getInstance().storeAllFrames();
 
                                 iRunning = false;
-                                SSDB.getInstance().shutdown();
+                                finalApiServer.stop();
+                                SSSystemConfigContext.shutdown();
 
                             }));
     }

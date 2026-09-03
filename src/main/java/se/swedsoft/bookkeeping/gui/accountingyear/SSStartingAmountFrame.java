@@ -9,7 +9,8 @@ import se.swedsoft.bookkeeping.calc.SSBalanceCalculator;
 import se.swedsoft.bookkeeping.calc.math.SSAccountMath;
 import se.swedsoft.bookkeeping.data.SSAccount;
 import se.swedsoft.bookkeeping.data.SSNewAccountingYear;
-import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.data.system.SSAccountingContext;
+import se.swedsoft.bookkeeping.data.system.SSCompanyYearContext;
 import se.swedsoft.bookkeeping.gui.SSMainFrame;
 import se.swedsoft.bookkeeping.gui.accountingyear.panel.SSStartingAmountPanel;
 import se.swedsoft.bookkeeping.gui.util.SSBundle;
@@ -74,7 +75,7 @@ public class SSStartingAmountFrame extends SSDefaultTableFrame {
         super(pMainFrame, SSBundle.getBundle().getString("startingammountframe.title"),
                 width, height);
 
-        iAccountingYear = SSDB.getInstance().getCurrentYear();
+        iAccountingYear = SSAccountingContext.getCurrentYear();
 
         iStartingAmountPanel.setInBalance(iAccountingYear.getInBalance(),
                 SSAccountMath.getBalanceAccounts(iAccountingYear));
@@ -90,7 +91,7 @@ public class SSStartingAmountFrame extends SSDefaultTableFrame {
                                 return;
                             }
                             iAccountingYear.setInBalance(iStartingAmountPanel.getInBalance());
-                            SSDB.getInstance().updateAccountingYear(iAccountingYear);
+                            SSAccountingContext.updateAccountingYear(iAccountingYear);
                         }
 
                     });
@@ -112,7 +113,7 @@ public class SSStartingAmountFrame extends SSDefaultTableFrame {
                 e -> {
 
                         iAccountingYear.setInBalance(iStartingAmountPanel.getInBalance());
-                        SSDB.getInstance().updateAccountingYear(iAccountingYear);
+                        SSAccountingContext.updateAccountingYear(iAccountingYear);
                         cInstance = null;
                         setVisible(false);
 
@@ -223,7 +224,7 @@ public class SSStartingAmountFrame extends SSDefaultTableFrame {
         SSProgressDialog.runProgress(getMainFrame(),
                 () -> {
 
-                        SSNewAccountingYear iAccountingYear = SSDB.getInstance().getCurrentYear();
+                        SSNewAccountingYear iAccountingYear = SSAccountingContext.getCurrentYear();
 
                         Date iFrom = SSDateUtil.toDate(iAccountingYear.getLocalFrom());
                         Date iTo = SSDateUtil.toDate(iAccountingYear.getLocalTo());
@@ -239,7 +240,7 @@ public class SSStartingAmountFrame extends SSDefaultTableFrame {
      *
      */
     private void importFromLastYearBalanceReport() {
-        SSNewAccountingYear iPreviousYear = SSDB.getInstance().getPreviousYear().orElse(null);
+        SSNewAccountingYear iPreviousYear = SSCompanyYearContext.getPreviousYear().orElse(null);
 
         // If nothing selected, return
         if (iPreviousYear == null) {
@@ -282,3 +283,4 @@ public class SSStartingAmountFrame extends SSDefaultTableFrame {
         return sb.toString();
     }
 }
+

@@ -3,6 +3,7 @@ package se.swedsoft.bookkeeping.gui.accountplans.util;
 
 import se.swedsoft.bookkeeping.data.SSAccountPlan;
 import se.swedsoft.bookkeeping.data.SSAccountPlanType;
+import se.swedsoft.bookkeeping.data.system.SSAccountingContext;
 import se.swedsoft.bookkeeping.data.system.SSDB;
 import se.swedsoft.bookkeeping.gui.util.SSBundle;
 import se.swedsoft.bookkeeping.gui.util.table.model.SSTableColumn;
@@ -19,7 +20,7 @@ public class SSAccountPlanTableModel extends SSTableModel<SSAccountPlan> {
      * Default constructor.
      */
     public SSAccountPlanTableModel() {
-        super(SSDB.getInstance().getAccountPlans());
+        super(SSAccountingContext.getAccountPlans());
     }
 
     /**
@@ -122,5 +123,54 @@ public class SSAccountPlanTableModel extends SSTableModel<SSAccountPlan> {
         }
     };
 
-}
+    /**
+     * Defaultplan
+     */
+    public static SSTableColumn<SSAccountPlan> COLUMN_DEFAULTPLAN = new SSTableColumn<>(
+            SSBundle.getBundle().getString("accountplantable.column.4")) {
+        @Override
+        public Object getValue(SSAccountPlan iAccountPlan) {
+            return iAccountPlan.isDefaultPlan();
+        }
 
+        @Override
+        public void setValue(SSAccountPlan iAccountPlan, Object iValue) {
+        }
+
+        @Override
+        public Class getColumnClass() {
+            return Boolean.class;
+        }
+
+        @Override
+        public int getDefaultWidth() {
+            return 90;
+        }
+    };
+
+    /**
+     * Excel-sökväg
+     */
+    public static SSTableColumn<SSAccountPlan> COLUMN_EXCELPATH = new SSTableColumn<>(
+            SSBundle.getBundle().getString("accountplantable.column.5")) {
+        @Override
+        public Object getValue(SSAccountPlan iAccountPlan) {
+            return iAccountPlan.getExcelPath();
+        }
+
+        @Override
+        public void setValue(SSAccountPlan iAccountPlan, Object iValue) {
+        }
+
+        @Override
+        public Class getColumnClass() {
+            return String.class;
+        }
+
+        @Override
+        public int getDefaultWidth() {
+            return 240;
+        }
+    };
+
+}
