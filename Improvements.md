@@ -1,66 +1,86 @@
-# Fribok — Förbättrings- och förenklingsförslag
+# Fribok — Förbättringslista (ny genomgång 2026-09-05)
+
+Den här listan ersätter tidigare version och prioriterar kvarvarande arbete.
 
 ## 🔴 Kritiska problem
 
-### 1. SSDB → GUI: Cirkulärt beroende
-`SSDB.java` (datapaketet) importerar 20+ GUI-klasser (`SSInvoiceFrame`, `SSVoucherFrame`, etc.). Datapaketet beror på GUI-paketet — gör det omöjligt att använda domänlagret fristående. Bryt beroendet med events/callbacks.
+### 1. SpotBugs är inte körbar i nuvarande miljö
+`mvn spotbugs:check` faller med `Unsupported class file major version 69` (Java 25), vilket gör att den statiska buggrapporteringen saknas helt.
 
-### 2. SSInvoice.generateVoucher() — 85 rader affärslogik i domänmodellen
-Metoden anropar persistens, beräkningslager och GUI-resurser direkt inifrån domänklassen. Bör flyttas till en separat `SSVoucherGeneratorService`.
-
-### 3. SSReportFactory — God-klass (98 KB, 2069 rader, 56 statiska metoder)
-Varje metod kombinerar tre ansvarsområden: (a) dialog-visning, (b) datahämtning, (c) rapportgenerering. Bör delas upp i domänspecifika factories:
-- `SSAccountingReportFactory` — voucher, balance, result, budget, VAT
-- `SSSalesReportFactory` — faktura, order, kredit + e-post
-- `SSPurchaseReportFactory` — leverantörsfaktura, inköpsorder
-- `SSInventoryReportFactory` — lager, leveranser
-- `SSJournalReportFactory` — alla journaler
-
-Dessutom är ~45 av 56 metoder identiska boilerplate som kan ersättas med en generisk hjälpmetod.
+**Rekommenderad åtgärd**
+- Lås analyskörning till JDK 21 (samma som projektets mål), eller
+- uppgradera SpotBugs/ASM-kedjan så Java 25 stöds.
 
 ---
 
 ## 🟠 Höga problem
 
-### 4. SSInvoice importerar SSBundle (GUI-resurser)
-Domänmodell beroende på GUI-lager. Eliminera genom att skicka lokaliserade strängar som parametrar.
+### 2. SSReportFactory är fortfarande en god-klass
+Klassen är fortsatt mycket stor och bär både UI-flöden och rapportlogik. Checkstyle-varningar och tomma if-satser finns kvar (t.ex. `if (isProjectSelected) {}` och `if (isDateSelected) {}`).
 
-### 5. Beräkningsklasser beroende av global state
-`SSVoucherMath`, `SSResultCalculator`, `SSInvoiceMath` importerar `SSDB` och anropar `SSCompanyYearContext.getCurrentYear()` statiskt. Gör beräkningarna till rena funktioner som tar data som parametrar.
+**Rekommenderad åtgärd**
+- Dela upp i mindre factories per rapportdomän.
+- Ta bort tomma villkor och extrahera gemensam boilerplate.
 
-### 6. Dödkod
-- Tomma if-satser i SSReportFactory (rad ~138, ~932): `if (isProjectSelected) {}` — ingen logik
-- `SSResultPrinter.getSummaryGroup()` returnerar alltid `-1` — metoden är overksam
-- `lockString` konstrueras men används aldrig (SSReportFactory)
+### 3. SSDB har kvar lagerkoppling mot GUI
+`SSDB` importerar fortfarande GUI-klasser (`SSMainFrame`, `SSErrorDialog`), vilket försvårar ren testbarhet och separering av datalager.
+
+**Rekommenderad åtgärd**
+- Flytta GUI-återkoppling till notifierings-/eventlager utanför `SSDB`.
+
+### 4. SSInvoice.generateVoucher() blandar domän och infrastruktur
+Metoden är stor och hämtar både GUI-resurs (`SSBundle`) och global kontext (`SSAccountingContext`, `SSCompanyYearContext`) direkt.
+
+**Rekommenderad åtgärd**
+- Flytta voucher-byggandet till dedikerad tjänst med inparametrar i stället för global state.
+
+### 5. Breda `catch (Exception)` finns kvar i produktionskod
+Det finns kvar i bland annat `SSDB`, `V2CompanyRepository`, `AccountPlanSnapshot`, `SSVoucherExporter`, `SSSupplierExporter`.
+
+**Rekommenderad åtgärd**
+- Smalna av till specifika undantag per kodväg.
 
 ---
 
 ## 🟡 Medelprioritet
 
-### 7. switch(columnIndex) i ~50 printer-klasser
-Alla printer-klasser upprepar identiska `switch`-block med hårda heltalsindex för kolumnmappning. Kan abstraheras med en `ColumnMapper<T>` strategi i basklassen.
+### 6. Stor stilskuld i imports och formattering
+Kodbasen har mycket wildcard-importer (567 träffar i `src/main/java`) samt flera checkstyle-varningar (line length, namngivning, tabbar, trailing whitespace).
 
-### 8. SSCompanyYearContext — halvmigrering
-Vissa metoder delegerar till `Repositories.*`, andra fortfarande till `SSDB.getInstance()`. Slutför migreringen.
+**Rekommenderad åtgärd**
+- Rensa per paket i batchar (börja med `print/*` och `util/*` där varningar koncentreras).
 
-### 9. Saknade enhetstester
+### 7. Mycket stora kärnklasser bör brytas upp stegvis
+Exempel: `SSReportFactory`, `SSDB`, `V2CompanyRepository`, `SSInvoicePanel`.
 
-| Komponent | Risk |
-|---|---|
-| `SSReportFactory` — 56 metoder | Hög |
-| `SSDB` | Hög |
-| `SSInvoice.generateVoucher()` | Hög |
-| `SSResultCalculator`, `SSBalanceCalculator` | Medel |
+**Rekommenderad åtgärd**
+- Sätt maxstorlek per klass/metod för ny kod och bryt upp de största i kontrollerade delsteg.
+
+### 8. Aktiv TODO/FIXME-skuld finns kvar
+Kommentarflaggor (`TODO/FIXME/XXX`) finns fortfarande i huvudkod.
+
+**Rekommenderad åtgärd**
+- Koppla varje flagga till issue eller åtgärda direkt.
 
 ---
 
 ## 🟢 Lågprioritet
 
-### 10. Namnkonvention i SSReportFactory
-Mix av `buildXxxReport()`, `XxxReport()`, `XxxList()`, `XxxJournal()` — standardisera till `buildXxxReport()`.
+### 9. Oanvänd kod kan städas
+`SSResourceBundle` har inga referenser i kod eller tester.
 
-### 11. V2RepositoryHelpers
-Konstruktorn är `public` men klassen ska vara icke-instantierbar. Gör konstruktorn `private`.
+**Rekommenderad åtgärd**
+- Ta bort eller återintroducera den via tydlig användning.
 
-### 12. Hårdkodad svenska i källkod
-`SSInvoice` rad 65: `iOrderNumbers = "Fakturan har inga ordrar"` — flytta till resursbuntar.
+### 10. Projektroten innehåller temporära analys-/loggfiler
+Flera `*.txt`/`*.log` i roten är historiska körresultat och skapar brus.
+
+**Rekommenderad åtgärd**
+- Arkivera utanför repo eller rensa och uppdatera `.gitignore`.
+
+---
+
+## Åtgärdade eller förbättrade punkter jämfört med tidigare lista
+
+- Tidigare hårdkodad svensk fallbacktext i `SSInvoice` är flyttad till bundle-nyckel.
+- Området kring V2-migrering har avancerat enligt `CHANGELOG.md` (flera legacy-shims och migreringssteg slutförda).
