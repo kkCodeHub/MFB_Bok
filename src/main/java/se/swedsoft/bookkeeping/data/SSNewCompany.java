@@ -14,7 +14,6 @@ import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.List;
@@ -30,7 +29,7 @@ import org.slf4j.LoggerFactory;
  * @author Roger Björnstedt
  * <p>This is the supported company representation in active V2 code paths.</p>
  */
-public class SSNewCompany implements Serializable {    private static final Logger LOG = LoggerFactory.getLogger(SSNewCompany.class);
+public class SSNewCompany  {    private static final Logger LOG = LoggerFactory.getLogger(SSNewCompany.class);
 
 
     // Constant for serialization versioning.

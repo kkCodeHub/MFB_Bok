@@ -5,7 +5,6 @@ import se.swedsoft.bookkeeping.calc.math.SSSupplierInvoiceMath;
 import se.swedsoft.bookkeeping.data.common.SSCurrency;
 import se.swedsoft.bookkeeping.gui.util.table.SSTableSearchable;
 
-import java.io.Serializable;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.List;
@@ -17,7 +16,7 @@ import java.util.Optional;
  * Date: 2006-apr-07
  * Time: 10:57:04
  */
-public class SSOutpaymentRow implements SSTableSearchable, Serializable {
+public class SSOutpaymentRow implements SSTableSearchable {
 
     // Constant for serialization versioning.
     static final long serialVersionUID = 1L;

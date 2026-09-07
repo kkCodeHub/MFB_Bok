@@ -2,6 +2,7 @@ package se.swedsoft.bookkeeping.data;
 
 import org.junit.jupiter.api.Test;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -290,5 +291,10 @@ class SSVoucherRowTest {
         String result = row.toString();
 
         assertThat(result).startsWith("-");
+    }
+
+    @Test
+    void voucherRowIsNotSerializable() {
+        assertThat(Serializable.class.isAssignableFrom(SSVoucherRow.class)).isFalse();
     }
 }

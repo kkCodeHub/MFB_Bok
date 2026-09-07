@@ -5,7 +5,6 @@ import se.swedsoft.bookkeeping.data.common.SSDefaultAccount;
 import se.swedsoft.bookkeeping.data.common.SSUnit;
 import se.swedsoft.bookkeeping.data.system.SSDB;
 
-import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Locale;
@@ -19,7 +18,7 @@ import java.util.Optional;
  *
  * Rad för inköpsorder
  */
-public class SSPurchaseOrderRow implements Serializable {
+public class SSPurchaseOrderRow  {
 
     private static final long serialVersionUID = 4891634413753480921L;
     private static final int TENTHS_SCALE = 1;

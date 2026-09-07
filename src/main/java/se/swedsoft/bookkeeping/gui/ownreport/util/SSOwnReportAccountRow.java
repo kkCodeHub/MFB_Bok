@@ -7,7 +7,6 @@ import se.swedsoft.bookkeeping.data.SSNewAccountingYear;
 import se.swedsoft.bookkeeping.data.system.SSCompanyYearContext;
 import se.swedsoft.bookkeeping.util.SSDateUtil;
 
-import java.io.Serializable;
 import java.math.BigDecimal;
 import java.math.MathContext;
 import java.util.Date;
@@ -22,7 +21,7 @@ import java.util.Map;
  * Time: 16:36:45
  */
 
-public class SSOwnReportAccountRow implements Serializable {
+public class SSOwnReportAccountRow  {
 
     static final long serialVersionUID = 1L;
 

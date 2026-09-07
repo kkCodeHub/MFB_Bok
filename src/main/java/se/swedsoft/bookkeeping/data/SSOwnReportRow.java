@@ -5,7 +5,6 @@ import se.swedsoft.bookkeeping.data.common.SSHeadingType;
 import se.swedsoft.bookkeeping.gui.ownreport.util.SSOwnReportAccountRow;
 import se.swedsoft.bookkeeping.gui.util.table.SSTableSearchable;
 
-import java.io.Serializable;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -16,7 +15,7 @@ import java.util.List;
  * Time: 15:37:54
  */
 
-public class SSOwnReportRow implements SSTableSearchable, Serializable {
+public class SSOwnReportRow implements SSTableSearchable {
 
     static final long serialVersionUID = 1L;
 

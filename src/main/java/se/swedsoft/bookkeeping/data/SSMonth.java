@@ -1,7 +1,6 @@
 package se.swedsoft.bookkeeping.data;
 
 
-import java.io.Serializable;
 import java.text.DateFormatSymbols;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -14,7 +13,7 @@ import java.util.List;
  * Date: 2006-jan-27
  * Time: 11:48:46
  */
-public class SSMonth  implements Serializable {
+public class SSMonth   {
 
     // Constant for serialization versioning.
     static final long serialVersionUID = 1L;

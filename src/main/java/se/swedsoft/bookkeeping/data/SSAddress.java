@@ -5,14 +5,13 @@
 package se.swedsoft.bookkeeping.data;
 
 
-import java.io.Serializable;
 import java.util.Objects;
 
 
 /**
  * @author Roger Björnstedt
  */
-public class SSAddress implements Serializable {
+public class SSAddress  {
 
     // Constant for serialization versioning.
     static final long serialVersionUID = 1L;

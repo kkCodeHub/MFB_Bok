@@ -8,7 +8,6 @@ import se.swedsoft.bookkeeping.gui.util.table.SSTableSearchable;
 import se.swedsoft.bookkeeping.persistence.Repositories;
 
 import java.io.IOException;
-import java.io.Serializable;
 import java.math.BigDecimal;
 import se.swedsoft.bookkeeping.util.SSDateUtil;
 
@@ -24,7 +23,7 @@ import java.util.Optional;
  *
  * Inköpsorder
  */
-public class SSPurchaseOrder implements SSTableSearchable, Serializable {
+public class SSPurchaseOrder implements SSTableSearchable {
 
     private static final long serialVersionUID = 6529008747056659550L;
 

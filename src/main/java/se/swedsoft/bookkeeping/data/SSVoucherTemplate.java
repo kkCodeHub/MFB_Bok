@@ -5,9 +5,6 @@ import se.swedsoft.bookkeeping.data.system.SSDB;
 import se.swedsoft.bookkeeping.gui.util.table.SSTableSearchable;
 import se.swedsoft.bookkeeping.util.SSDateUtil;
 
-import java.io.IOException;
-import java.io.ObjectOutputStream;
-import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Date;
@@ -21,10 +18,7 @@ import java.util.List;
  *
  * @author Roger Björnstedt
  */
-public class SSVoucherTemplate implements Serializable, SSTableSearchable {
-
-    // Constant for serialization versioning.
-    static final long serialVersionUID = 1L;
+public class SSVoucherTemplate implements SSTableSearchable {
 
     //
     private String iDescription;
@@ -185,10 +179,7 @@ public class SSVoucherTemplate implements Serializable, SSTableSearchable {
     /**
      *
      */
-    public static final class SSVoucherTemplateRow implements Serializable {
-
-        // Constant for serialization versioning.
-        static final long serialVersionUID = 1L;
+    public static final class SSVoucherTemplateRow {
 
         private Integer iAccountNr;
 
@@ -294,18 +285,6 @@ public class SSVoucherTemplate implements Serializable, SSTableSearchable {
         public void setAccount(SSAccount iAccount) {
             this.iAccount = iAccount;
             iAccountNr = iAccount == null ? null : iAccount.getNumber();
-        }
-
-        // //////////////////////////////////////////////////////////////////
-
-        /**
-         *
-         * @param out
-         * @throws IOException
-         */
-        private void writeObject(ObjectOutputStream out) throws IOException {
-            iAccount = null;
-            out.defaultWriteObject();
         }
 
     }

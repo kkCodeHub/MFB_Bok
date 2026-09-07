@@ -84,3 +84,7 @@ Flera `*.txt`/`*.log` i roten är historiska körresultat och skapar brus.
 
 - Tidigare hårdkodad svensk fallbacktext i `SSInvoice` är flyttad till bundle-nyckel.
 - Området kring V2-migrering har avancerat enligt `CHANGELOG.md` (flera legacy-shims och migreringssteg slutförda).
+- Java-objektserialisering för `SSVoucherRow` är borttagen (ingen bakåtkompatibilitet för serialiserade `SSVoucherRow`-strömmar).
+- Serialiseringsbaserad "unsaved changes"-jämförelse i `SSAccountPlanDialog` är ersatt med explicit fältjämförelse.
+- Java-objektserialisering och bakåtkompatibel deserialisering för `SSInventory` är borttagen (ingen bakåtkompatibilitet för äldre serialiserade `SSInventory`-strömmar).
+- Java-objektserialisering för `SSVoucherTemplate` och `SSVoucherTemplateRow` är borttagen (ingen bakåtkompatibilitet för äldre serialiserade template-strömmar).

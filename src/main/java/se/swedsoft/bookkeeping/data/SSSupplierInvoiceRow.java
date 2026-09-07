@@ -6,7 +6,6 @@ import se.swedsoft.bookkeeping.data.common.SSUnit;
 import se.swedsoft.bookkeeping.data.system.SSDB;
 import se.swedsoft.bookkeeping.gui.util.table.SSTableSearchable;
 
-import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
@@ -17,7 +16,7 @@ import java.util.Optional;
  * Date: 2006-jun-12
  * Time: 14:51:21
  */
-public class SSSupplierInvoiceRow  implements SSTableSearchable, Serializable {
+public class SSSupplierInvoiceRow  implements SSTableSearchable {
 
     // Constant for serialization versioning.
     private static final long serialVersionUID = 1L;

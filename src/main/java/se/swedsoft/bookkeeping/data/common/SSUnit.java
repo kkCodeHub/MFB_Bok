@@ -5,7 +5,6 @@ import se.swedsoft.bookkeeping.data.system.SSDB;
 import se.swedsoft.bookkeeping.gui.util.SSBundle;
 import se.swedsoft.bookkeeping.gui.util.table.SSTableSearchable;
 
-import java.io.Serializable;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
@@ -16,7 +15,7 @@ import java.util.Optional;
  * Date: 2006-mar-20
  * Time: 16:00:24
  */
-public class SSUnit implements Serializable, SSTableSearchable {
+public class SSUnit implements SSTableSearchable {
 
     // Constant for serialization versioning.
     static final long serialVersionUID = 1L;

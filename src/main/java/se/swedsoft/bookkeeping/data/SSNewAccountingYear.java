@@ -14,7 +14,6 @@ import se.swedsoft.bookkeeping.util.SSDateUtil;
 import javax.swing.*;
 import java.io.IOException;
 import java.io.Serial;
-import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -27,7 +26,7 @@ import java.util.*;
  *
  * <p>This is the supported accounting-year representation in active V2 code paths.</p>
  */
-public class SSNewAccountingYear implements Serializable, SSTableSearchable {
+public class SSNewAccountingYear implements SSTableSearchable {
 
     // / Constant for serialization versioning.
     @Serial

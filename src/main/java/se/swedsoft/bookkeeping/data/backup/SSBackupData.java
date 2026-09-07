@@ -1,7 +1,6 @@
 package se.swedsoft.bookkeeping.data.backup;
 
 
-import java.io.Serializable;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -10,7 +9,7 @@ import java.util.List;
  * Date: 2006-mar-03
  * Time: 09:54:57
  */
-public class SSBackupData implements Serializable {
+public class SSBackupData  {
 
     static final long serialVersionUID = 1L;
 

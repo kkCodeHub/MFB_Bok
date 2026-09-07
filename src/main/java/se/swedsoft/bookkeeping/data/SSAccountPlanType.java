@@ -3,7 +3,6 @@ package se.swedsoft.bookkeeping.data;
 
 import se.swedsoft.bookkeeping.gui.util.table.SSTableSearchable;
 
-import java.io.Serializable;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -14,7 +13,7 @@ import java.util.Map;
  * Date: 2006-feb-15
  * @version $Id$
  */
-public class SSAccountPlanType implements SSTableSearchable, Serializable {
+public class SSAccountPlanType implements SSTableSearchable {
 
     static final long serialVersionUID = 1L;
     private static final Map<String, SSAccountPlanType> iAccountPlanTypes = new HashMap<>();

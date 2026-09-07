@@ -7,7 +7,6 @@ import se.swedsoft.bookkeeping.data.system.SSDB;
 import se.swedsoft.bookkeeping.gui.util.table.SSTableSearchable;
 import se.swedsoft.bookkeeping.util.SSDateUtil;
 
-import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.*;
@@ -18,7 +17,7 @@ import java.util.*;
  * Date: 2006-mar-24
  * Time: 15:51:50
  */
-public abstract class SSSale implements SSTableSearchable, Serializable {
+public abstract class SSSale implements SSTableSearchable {
 
     // Constant for serialization versioning.
     static final long serialVersionUID = 1L;

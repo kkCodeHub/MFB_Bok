@@ -3,7 +3,6 @@ package se.swedsoft.bookkeeping.data.system;
 
 import se.swedsoft.bookkeeping.data.SSAccountPlan;
 
-import java.io.Serializable;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -12,7 +11,7 @@ import java.util.List;
  * Date: 2006-feb-24
  * Time: 15:58:36
  */
-public class SSSystemData implements Serializable {
+public class SSSystemData  {
 
     // Constant for serialization versioning.
     static final long serialVersionUID = 1L;

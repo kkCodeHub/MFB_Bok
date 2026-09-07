@@ -4,7 +4,6 @@ package se.swedsoft.bookkeeping.data;
 import se.swedsoft.bookkeeping.data.system.SSDB;
 import se.swedsoft.bookkeeping.gui.util.table.SSTableSearchable;
 
-import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.List;
 
@@ -14,7 +13,7 @@ import java.util.List;
  * Date: 2007-mar-22
  * Time: 10:52:13
  */
-public class SSAutoDistRow implements SSTableSearchable, Serializable {
+public class SSAutoDistRow implements SSTableSearchable {
 
     // Constant for serialization versioning.
     static final long serialVersionUID = 1L;

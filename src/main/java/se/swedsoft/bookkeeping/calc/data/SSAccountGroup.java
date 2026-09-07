@@ -4,7 +4,6 @@ package se.swedsoft.bookkeeping.calc.data;
 import se.swedsoft.bookkeeping.data.SSAccount;
 import se.swedsoft.bookkeeping.gui.util.SSBundle;
 
-import java.io.Serializable;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ResourceBundle;
@@ -14,7 +13,7 @@ import java.util.ResourceBundle;
  * Date: 2006-feb-27
  * Time: 16:01:52
  */
-public class SSAccountGroup implements Serializable {
+public class SSAccountGroup  {
 
     private static ResourceBundle cBundle = SSBundle.getBundle();
 

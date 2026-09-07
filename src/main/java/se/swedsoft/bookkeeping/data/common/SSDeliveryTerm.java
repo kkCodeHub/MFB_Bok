@@ -3,7 +3,6 @@ package se.swedsoft.bookkeeping.data.common;
 
 import se.swedsoft.bookkeeping.gui.util.table.SSTableSearchable;
 
-import java.io.Serializable;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -13,7 +12,7 @@ import java.util.List;
  * Date: 2006-mar-20
  * Time: 16:00:24
  */
-public class SSDeliveryTerm implements Serializable, SSTableSearchable {
+public class SSDeliveryTerm implements SSTableSearchable {
 
     // Constant for serialization versioning.
     static final long serialVersionUID = 1L;

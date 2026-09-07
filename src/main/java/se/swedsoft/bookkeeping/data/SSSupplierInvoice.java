@@ -14,7 +14,6 @@ import se.swedsoft.bookkeeping.persistence.Repositories;
 import se.swedsoft.bookkeeping.util.SSDateUtil;
 
 import java.io.IOException;
-import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.*;
@@ -28,7 +27,7 @@ import java.util.Optional;
  *
  * Leverantörsfaktura
  */
-public class SSSupplierInvoice implements SSTableSearchable, Serializable {
+public class SSSupplierInvoice implements SSTableSearchable {
     // Constant for serialization versioning.
     static final long serialVersionUID = 1L;
 

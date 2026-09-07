@@ -1,6 +1,7 @@
 package se.swedsoft.bookkeeping.gui.accountplans;
 
 import org.fribok.bookkeeping.app.Path;
+import se.swedsoft.bookkeeping.data.SSAccount;
 import se.swedsoft.bookkeeping.data.SSAccountPlan;
 import se.swedsoft.bookkeeping.data.SSNewAccountingYear;
 import se.swedsoft.bookkeeping.data.system.SSAccountingContext;
@@ -20,13 +21,10 @@ import java.awt.*;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.io.ObjectOutputStream;
-import java.io.UncheckedIOException;
-import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.ResourceBundle;
 
 public class SSAccountPlanDialog {
@@ -70,7 +68,7 @@ public class SSAccountPlanDialog {
 
         panel.setAccountPlan(new SSAccountPlan(iAccountPlan));
         panel.setShowBase(false);
-        final byte[] initialState = serializeAccountPlan(panel.getAccountPlan());
+        final SSAccountPlan initialState = createAccountPlanSnapshot(panel.getAccountPlan());
 
         ActionListener saveAction = e -> {
             SSAccountPlan workingCopy = panel.getAccountPlan();
@@ -131,7 +129,7 @@ public class SSAccountPlanDialog {
         workingCopy.setDefaultPlan(false);
         panel.setAccountPlan(workingCopy);
         panel.setShowBase(true);
-        final byte[] initialState = serializeAccountPlan(panel.getAccountPlan());
+        final SSAccountPlan initialState = createAccountPlanSnapshot(panel.getAccountPlan());
 
         ActionListener saveAction = e -> {
             SSAccountPlan accountPlan = panel.getAccountPlan();
@@ -189,7 +187,7 @@ public class SSAccountPlanDialog {
 
         panel.setAccountPlan(new SSAccountPlan(iAccountPlan));
         panel.setShowBase(false);
-        final byte[] initialState = serializeAccountPlan(panel.getAccountPlan());
+        final SSAccountPlan initialState = createAccountPlanSnapshot(panel.getAccountPlan());
 
         ActionListener saveAction = e -> {
             SSAccountPlan copy = panel.getAccountPlan();
@@ -236,18 +234,85 @@ public class SSAccountPlanDialog {
         editCurrentDialog(iMainFrame, iAccountPlan, false);
     }
 
-    private static boolean hasUnsavedChanges(SSAccountPlan accountPlan, byte[] initialState) {
-        return !Arrays.equals(initialState, serializeAccountPlan(accountPlan));
+    private static boolean hasUnsavedChanges(SSAccountPlan accountPlan, SSAccountPlan initialState) {
+        return !isSameAccountPlan(initialState, accountPlan);
     }
 
-    private static byte[] serializeAccountPlan(SSAccountPlan accountPlan) {
-        try (ByteArrayOutputStream output = new ByteArrayOutputStream();
-             ObjectOutputStream serializer = new ObjectOutputStream(output)) {
-            serializer.writeObject(accountPlan);
-            serializer.flush();
-            return output.toByteArray();
-        } catch (IOException e) {
-            throw new UncheckedIOException("Failed to serialize account plan state", e);
+    private static SSAccountPlan createAccountPlanSnapshot(SSAccountPlan accountPlan) {
+        return accountPlan == null ? null : new SSAccountPlan(accountPlan);
+    }
+
+    private static boolean isSameAccountPlan(SSAccountPlan left, SSAccountPlan right) {
+        if (left == right) {
+            return true;
         }
+        if (left == null || right == null) {
+            return false;
+        }
+
+        if (!Objects.equals(left.getName(), right.getName())) {
+            return false;
+        }
+        if (!Objects.equals(left.getBaseName(), right.getBaseName())) {
+            return false;
+        }
+        if (!Objects.equals(left.getAssessementYear(), right.getAssessementYear())) {
+            return false;
+        }
+        if (!Objects.equals(left.getExcelPath(), right.getExcelPath())) {
+            return false;
+        }
+        if (left.isDefaultPlan() != right.isDefaultPlan()) {
+            return false;
+        }
+
+        String leftType = left.getType() == null ? null : left.getType().getName();
+        String rightType = right.getType() == null ? null : right.getType().getName();
+        if (!Objects.equals(leftType, rightType)) {
+            return false;
+        }
+
+        List<SSAccount> leftAccounts = left.getAccounts();
+        List<SSAccount> rightAccounts = right.getAccounts();
+        if (leftAccounts.size() != rightAccounts.size()) {
+            return false;
+        }
+
+        for (int i = 0; i < leftAccounts.size(); i++) {
+            SSAccount leftAccount = leftAccounts.get(i);
+            SSAccount rightAccount = rightAccounts.get(i);
+
+            if (leftAccount == rightAccount) {
+                continue;
+            }
+            if (leftAccount == null || rightAccount == null) {
+                return false;
+            }
+            if (!Objects.equals(leftAccount.getNumber(), rightAccount.getNumber())) {
+                return false;
+            }
+            if (!Objects.equals(leftAccount.getDescription(), rightAccount.getDescription())) {
+                return false;
+            }
+            if (!Objects.equals(leftAccount.getVATCode(), rightAccount.getVATCode())) {
+                return false;
+            }
+            if (!Objects.equals(leftAccount.getSRUCode(), rightAccount.getSRUCode())) {
+                return false;
+            }
+            if (!Objects.equals(leftAccount.getReportCode(), rightAccount.getReportCode())) {
+                return false;
+            }
+            if (leftAccount.isActive() != rightAccount.isActive()) {
+                return false;
+            }
+            if (leftAccount.isProjectRequired() != rightAccount.isProjectRequired()) {
+                return false;
+            }
+            if (leftAccount.isResultUnitRequired() != rightAccount.isResultUnitRequired()) {
+                return false;
+            }
+        }
+        return true;
     }
 }

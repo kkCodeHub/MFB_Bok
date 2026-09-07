@@ -1,7 +1,6 @@
 package se.swedsoft.bookkeeping.data;
 
 
-import java.io.Serializable;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -11,7 +10,7 @@ import java.util.List;
  * Date: 2007-nov-22
  * Time: 16:47:12
  */
-public class SSOwnReport implements Serializable {
+public class SSOwnReport  {
 
     static final long serialVersionUID = 1L;
 

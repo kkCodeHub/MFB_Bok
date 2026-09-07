@@ -3,7 +3,6 @@ package se.swedsoft.bookkeeping.data.util;
 import org.fribok.bookkeeping.data.util.ConnectionSecurity;
 import se.swedsoft.bookkeeping.util.SSUtil;
 
-import java.io.Serializable;
 import java.net.URI;
 import java.net.URISyntaxException;
 
@@ -16,7 +15,7 @@ import java.net.URISyntaxException;
  * @author jensli
  * @author ljo
  */
-public class SSMailServer implements Serializable {
+public class SSMailServer  {
     private final String name;
     private final String username;
     private final String password;

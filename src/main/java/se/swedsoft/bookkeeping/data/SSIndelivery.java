@@ -4,7 +4,6 @@ package se.swedsoft.bookkeeping.data;
 import se.swedsoft.bookkeeping.persistence.Repositories;
 import se.swedsoft.bookkeeping.util.SSDateUtil;
 
-import java.io.Serializable;
 import java.time.LocalDate;
 import java.util.Date;
 import java.util.LinkedList;
@@ -16,7 +15,7 @@ import java.util.List;
  * Date: 2006-sep-25
  * Time: 09:31:58
  */
-public class SSIndelivery implements Serializable {
+public class SSIndelivery  {
 
     private static final long serialVersionUID = -5537699296769492741L;
 

@@ -3,7 +3,6 @@ package se.swedsoft.bookkeeping.data;
 
 import se.swedsoft.bookkeeping.data.system.SSDB;
 
-import java.io.Serializable;
 import java.util.List;
 
 
@@ -12,7 +11,7 @@ import java.util.List;
  * Date: 2006-sep-27
  * Time: 15:02:20
  */
-public class SSIndeliveryRow implements Serializable {
+public class SSIndeliveryRow  {
 
     private static final long serialVersionUID = -9210187383331088946L;
 

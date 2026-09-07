@@ -11,7 +11,6 @@ import se.swedsoft.bookkeeping.data.SSNewAccountingYear;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.Serializable;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
@@ -24,7 +23,7 @@ import org.slf4j.LoggerFactory;
  * Date: 2006-feb-27
  * Time: 12:48:13
  */
-public class SSAccountSchema implements Serializable {    private static final Logger LOG = LoggerFactory.getLogger(SSAccountSchema.class);
+public class SSAccountSchema  {    private static final Logger LOG = LoggerFactory.getLogger(SSAccountSchema.class);
 
 
     private final List<SSAccountGroup> iResultGroups;

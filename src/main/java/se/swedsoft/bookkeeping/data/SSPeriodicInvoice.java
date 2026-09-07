@@ -10,7 +10,6 @@ import se.swedsoft.bookkeeping.gui.util.SSBundle;
 import se.swedsoft.bookkeeping.util.SSDateUtil;
 
 import java.io.IOException;
-import java.io.Serializable;
 import java.text.DateFormat;
 import java.time.LocalDate;
 import java.util.*;
@@ -22,7 +21,7 @@ import java.util.Optional;
  * Date: 2006-aug-11
  * Time: 09:10:23
  */
-public class SSPeriodicInvoice implements Serializable {
+public class SSPeriodicInvoice  {
 
     private static final long serialVersionUID = 4800991425088361649L;
 
@@ -531,11 +530,21 @@ public class SSPeriodicInvoice implements Serializable {
         }
     }
 
+    @Override
     public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
         if (!(obj instanceof SSPeriodicInvoice)) {
             return false;
         }
-        return iNumber.equals(((SSPeriodicInvoice) obj).iNumber);
+        SSPeriodicInvoice other = (SSPeriodicInvoice) obj;
+        return Objects.equals(iNumber, other.iNumber);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(iNumber);
     }
 
     @Override

@@ -8,7 +8,6 @@ import se.swedsoft.bookkeeping.data.common.SSUnit;
 import se.swedsoft.bookkeeping.data.system.SSDB;
 import se.swedsoft.bookkeeping.gui.util.table.SSTableSearchable;
 
-import java.io.Serializable;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.*;
@@ -19,7 +18,7 @@ import java.util.*;
  * Date: 2006-mar-20
  * Time: 14:45:08
  */
-public class SSProduct implements SSTableSearchable, Serializable {
+public class SSProduct implements SSTableSearchable {
 
     // Constant for serialization versioning.
     static final long serialVersionUID = 1L;

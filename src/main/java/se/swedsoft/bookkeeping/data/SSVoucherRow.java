@@ -8,9 +8,6 @@ package se.swedsoft.bookkeeping.data;
 import se.swedsoft.bookkeeping.data.system.SSDB;
 import se.swedsoft.bookkeeping.util.SSDateUtil;
 
-import java.io.IOException;
-import java.io.ObjectOutputStream;
-import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
@@ -18,10 +15,7 @@ import java.util.List;
 
 /**
  */
-public class SSVoucherRow implements Serializable, Cloneable {
-
-    // Constant for serialization versioning.
-    static final long serialVersionUID = 1L;
+public class SSVoucherRow implements Cloneable {
 
     private Integer iAccountNr;
 
@@ -441,18 +435,6 @@ public class SSVoucherRow implements Serializable, Cloneable {
         this.iResultUnit = iResultUnit;
         iResultUnitNumber = iResultUnit == null ? null : iResultUnit.getNumber();
 
-    }
-
-    /**
-     *
-     * @param out
-     * @throws IOException
-     */
-    private void writeObject(ObjectOutputStream out) throws IOException {
-        iAccount = null;
-        iProject = null;
-        iResultUnit = null;
-        out.defaultWriteObject();
     }
 
     // //////////////////////////////////////////////////////////////////

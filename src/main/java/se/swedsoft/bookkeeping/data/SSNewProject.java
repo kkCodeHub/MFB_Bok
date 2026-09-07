@@ -10,7 +10,6 @@ import se.swedsoft.bookkeeping.data.system.SSDB;
 import se.swedsoft.bookkeeping.gui.util.table.SSTableSearchable;
 import se.swedsoft.bookkeeping.util.SSDateUtil;
 
-import java.io.Serializable;
 import java.math.BigDecimal;
 import java.text.DateFormat;
 import java.time.LocalDate;
@@ -23,7 +22,7 @@ import java.util.List;
  *
  * <p>This is the supported project representation in active V2 code paths.</p>
  */
-public class SSNewProject implements Serializable, SSTableSearchable {
+public class SSNewProject implements SSTableSearchable {
 
     // Constant for serialization versioning.
     static final long serialVersionUID = 1L;

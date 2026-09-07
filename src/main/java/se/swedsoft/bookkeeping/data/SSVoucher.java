@@ -8,7 +8,6 @@ package se.swedsoft.bookkeeping.data;
 import se.swedsoft.bookkeeping.calc.math.SSVoucherMath;
 import se.swedsoft.bookkeeping.gui.util.table.SSTableSearchable;
 
-import java.io.Serializable;
 import java.math.BigDecimal;
 import java.text.DateFormat;
 import java.time.LocalDate;
@@ -19,7 +18,7 @@ import java.util.List;
 
 /**
  */
-public class SSVoucher implements Serializable, Cloneable, SSTableSearchable {
+public class SSVoucher implements Cloneable, SSTableSearchable {
 
     /**
      * Constant for serialization versioning.

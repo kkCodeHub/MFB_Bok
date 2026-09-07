@@ -7,7 +7,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.Properties;
 
@@ -16,7 +15,7 @@ import java.util.Properties;
  * Date: 2006-mar-03
  * Time: 09:03:45
  */
-public class SSBackup implements Serializable {
+public class SSBackup  {
 
     static final long serialVersionUID = 1L;
     private static final String KEY_FILENAME = "filename";

@@ -4,7 +4,6 @@ package se.swedsoft.bookkeeping.data.common;
 import se.swedsoft.bookkeeping.data.SSAccount;
 import se.swedsoft.bookkeeping.data.SSAccountPlan;
 
-import java.io.Serializable;
 import java.util.List;
 import java.util.Optional;
 
@@ -13,7 +12,7 @@ import java.util.Optional;
  * $Id$
  *
  */
-public enum SSDefaultAccount implements Serializable {
+public enum SSDefaultAccount  {
     // Kundfodran
     CustomerClaim(1510),
     // Inbetalning

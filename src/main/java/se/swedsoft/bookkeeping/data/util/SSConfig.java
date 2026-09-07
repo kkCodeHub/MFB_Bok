@@ -9,7 +9,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -22,7 +21,7 @@ import org.slf4j.LoggerFactory;
  * Time: 09:11:46
  * @version $Id$
  */
-public class SSConfig implements Serializable {    private static final Logger LOG = LoggerFactory.getLogger(SSConfig.class);
+public class SSConfig  {    private static final Logger LOG = LoggerFactory.getLogger(SSConfig.class);
 
 
     // / Constant for serialization versioning.

@@ -3,7 +3,6 @@ package se.swedsoft.bookkeeping.data.system;
 
 import se.swedsoft.bookkeeping.data.SSNewCompany;
 
-import java.io.Serializable;
 import java.rmi.server.UID;
 import java.util.LinkedList;
 import java.util.List;
@@ -17,7 +16,7 @@ import java.util.Optional;
  * Contains the information for each company
  *
  */
-public class SSSystemCompany implements Serializable {
+public class SSSystemCompany  {
 
     // Constant for serialization versioning.
     static final long serialVersionUID = 1L;
@@ -184,11 +183,13 @@ public class SSSystemCompany implements Serializable {
 
             return iID.equals(iSystemCompany.iID);
         }
+/*
         if (other instanceof SSNewCompany) {
             SSNewCompany iCompany = (SSNewCompany) other;
 
             return iID.equals(iCompany.getId());
         }
+*/
         return false;
     }
 

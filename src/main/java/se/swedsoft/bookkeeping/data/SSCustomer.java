@@ -9,7 +9,6 @@ import se.swedsoft.bookkeeping.data.common.SSPaymentTerm;
 import se.swedsoft.bookkeeping.data.system.SSDB;
 import se.swedsoft.bookkeeping.gui.util.table.SSTableSearchable;
 
-import java.io.Serializable;
 import java.math.BigDecimal;
 
 
@@ -18,7 +17,7 @@ import java.math.BigDecimal;
  * Date: 2006-mar-22
  * Time: 15:07:47
  */
-public class SSCustomer implements Serializable, SSTableSearchable {
+public class SSCustomer implements SSTableSearchable {
 
     // Constant for serialization versioning.
     static final long serialVersionUID = 1L;

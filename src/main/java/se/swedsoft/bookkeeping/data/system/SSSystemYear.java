@@ -6,7 +6,6 @@ import se.swedsoft.bookkeeping.data.SSNewAccountingYear;
 import se.swedsoft.bookkeeping.gui.util.table.SSTableSearchable;
 import se.swedsoft.bookkeeping.util.SSDateUtil;
 
-import java.io.Serializable;
 import java.rmi.server.UID;
 import java.text.DateFormat;
 import java.time.LocalDate;
@@ -18,7 +17,7 @@ import java.util.Date;
  *
  *  Virual yeardata
  */
-public class SSSystemYear implements Serializable, SSTableSearchable {
+public class SSSystemYear implements SSTableSearchable {
 
     // Constant for serialization versioning.
     static final long serialVersionUID = 1L;
@@ -202,9 +201,11 @@ public class SSSystemYear implements Serializable, SSTableSearchable {
         if (other instanceof SSSystemYear) {
             return iID.equals(((SSSystemYear) other).iID);
         }
+/*
         if (other instanceof SSNewAccountingYear) {
             return iID.equals(((SSNewAccountingYear) other).getId());
         }
+*/
         return false;
     }
 

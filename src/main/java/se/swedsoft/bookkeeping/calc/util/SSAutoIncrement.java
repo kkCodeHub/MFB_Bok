@@ -1,7 +1,6 @@
 package se.swedsoft.bookkeeping.calc.util;
 
 
-import java.io.Serializable;
 import java.util.HashMap;
 
 
@@ -10,7 +9,7 @@ import java.util.HashMap;
  * Date: 2006-jun-05
  * Time: 11:39:37
  */
-public class SSAutoIncrement implements Serializable {
+public class SSAutoIncrement  {
 
     private static final long serialVersionUID = 8382640246746989054L;
 

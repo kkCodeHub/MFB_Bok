@@ -4,11 +4,7 @@ package se.swedsoft.bookkeeping.data;
 import se.swedsoft.bookkeeping.persistence.Repositories;
 import se.swedsoft.bookkeeping.util.SSDateUtil;
 
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.Serializable;
 import java.time.LocalDate;
-import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -18,9 +14,7 @@ import java.util.List;
  * Date: 2006-sep-18
  * Time: 14:50:29
  */
-public class SSInventory implements Serializable {
-
-    private static final long serialVersionUID = 5324014159041899233L;
+public class SSInventory {
 
     private Integer iNumber;
 
@@ -206,28 +200,6 @@ public class SSInventory implements Serializable {
         sb.append(", iText='").append(iText).append('\'');
         sb.append('}');
         return sb.toString();
-    }
-
-    /**
-     * Custom deserialization to handle backward compatibility.
-     * Pre-migration serialized streams stored {@code iDate} as {@code java.util.Date}.
-     * This method reads it as a raw object and converts via
-     * {@link SSDateUtil#readLocalDate(Object)}.
-     */
-    @SuppressWarnings("unchecked")
-    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
-        ObjectInputStream.GetField fields = in.readFields();
-        iNumber = (Integer) fields.get("iNumber", null);
-        Object rawDate = fields.get("iDate", null);
-        if (rawDate instanceof LocalDate) {
-            iDate = (LocalDate) rawDate;
-        } else if (rawDate instanceof Date) {
-            iDate = SSDateUtil.toLocalDate((Date) rawDate);
-        } else {
-            iDate = null;
-        }
-        iText = (String) fields.get("iText", null);
-        iRows = (List<SSInventoryRow>) fields.get("iRows", null);
     }
 
 }

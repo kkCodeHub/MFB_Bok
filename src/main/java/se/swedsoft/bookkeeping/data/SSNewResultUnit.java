@@ -9,7 +9,6 @@ import se.swedsoft.bookkeeping.data.base.SSSaleRow;
 import se.swedsoft.bookkeeping.data.system.SSDB;
 import se.swedsoft.bookkeeping.gui.util.table.SSTableSearchable;
 
-import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.List;
 
@@ -24,7 +23,7 @@ import java.util.List;
  * @author Roger Björnstedt
  * <p>This is the supported result-unit representation in active V2 code paths.</p>
  */
-public class SSNewResultUnit implements Serializable, SSTableSearchable {
+public class SSNewResultUnit implements SSTableSearchable {
 
     /**
      * Constant for serialization versioning.

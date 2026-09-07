@@ -7,13 +7,12 @@ package se.swedsoft.bookkeeping.data;
 
 import se.swedsoft.bookkeeping.gui.util.table.SSTableSearchable;
 
-import java.io.Serializable;
 
 
 /**
  * Accounts
  */
-public class SSAccount implements Serializable, Cloneable, SSTableSearchable {
+public class SSAccount implements Cloneable, SSTableSearchable {
 
     // / Constant for serialization versioning.
     static final long serialVersionUID = 1L;

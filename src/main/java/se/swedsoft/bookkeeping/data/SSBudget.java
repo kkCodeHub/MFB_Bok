@@ -5,7 +5,6 @@ import se.swedsoft.bookkeeping.calc.math.SSAccountMath;
 import se.swedsoft.bookkeeping.util.SSDateUtil;
 
 import java.io.IOException;
-import java.io.Serializable;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.DateFormat;
@@ -19,7 +18,7 @@ import java.util.Optional;
  * Date: 2006-jan-27
  * Time: 10:58:42
  */
-public class SSBudget implements Serializable {
+public class SSBudget  {
 
     /**
      * Constant for serialization versioning.
