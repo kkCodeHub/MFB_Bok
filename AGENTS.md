@@ -74,7 +74,7 @@ No CI workflow is currently committed under `.github/workflows/` in this reposit
 - Update dependencies via Maven Properties pattern
 
 ## IDE Integration
-- Commit IntelliJ files (`.ipr`, `.iml`) for IDEA users
+- For IntelliJ `.idea` projects, commit only shared project settings and exclude user-local IDE files
 - Use Maven tool window for lifecycle, imports and code completion
 - Enable auto-import for Maven changes
 - Generate Eclipse config via `mvn eclipse:eclipse` if needed
@@ -132,6 +132,6 @@ Launch main application via Maven
 
 ## Agent Best Practices
 - Use `apply_patch` for file edits; prefer Read/Glob/Grep for file operations
-- Use Bash for git and build commands; avoid destructive or irreversible operations
+- Use the project's standard shell for git and build commands (PowerShell on Windows, Bash on Linux/macOS), and avoid destructive or irreversible operations
 - Parallelize independent tool calls; chain dependent commands sequentially
 - Default to ASCII and follow existing conventions; ask questions only when blocked
