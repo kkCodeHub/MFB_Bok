@@ -4,12 +4,12 @@ package se.swedsoft.bookkeeping.data.common;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
-import org.fribok.bookkeeping.app.Path;
 import se.swedsoft.bookkeeping.gui.util.SSBundle;
 import se.swedsoft.bookkeeping.gui.util.table.SSTableSearchable;
 
 import java.io.IOException;
-import java.util.LinkedList;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.io.InputStream;
@@ -116,42 +116,48 @@ public class SSVATCode implements SSTableSearchable {    private static final Lo
 
     public static SSVATCode VAT_NULL = new SSVATCode();
 
-    private static List<SSVATCode> iValues;
+    private static final List<SSVATCode> iValues = loadValues();
+
+    private static List<SSVATCode> loadValues() {
+        List<SSVATCode> iLoadedValues = new ArrayList<>();
+
+        try (InputStream istream = SSVATCode.class.getResourceAsStream("/vatcodes.xml")) {
+            if (istream == null) {
+                LOG.warn("Missing VAT codes resource: /vatcodes.xml");
+                return Collections.emptyList();
+            }
+
+            NodeList iNodes = DocumentBuilderFactory.newInstance()
+                    .newDocumentBuilder()
+                    .parse(istream)
+                    .getDocumentElement()
+                    .getElementsByTagName("vatcode");
+
+            for (int i = 0; i < iNodes.getLength(); i++) {
+                Node iNode = iNodes.item(i);
+
+                String iName = iNode.getAttributes().getNamedItem("name").getNodeValue();
+                String iDescription = iNode.getAttributes().getNamedItem("description").getNodeValue();
+
+                SSVATCode iVatCode = new SSVATCode();
+
+                iVatCode.iName = iName;
+                iVatCode.iDescription = iDescription;
+
+                iLoadedValues.add(iVatCode);
+            }
+        } catch (IOException | ParserConfigurationException | SAXException ex) {
+            LOG.error("Unexpected error", ex);
+        }
+
+        return Collections.unmodifiableList(iLoadedValues);
+    }
 
     /**
      *
      * @return the vat codes
      */
     public static List<SSVATCode> getValues() {
-        if (iValues == null) {
-            iValues = new LinkedList<>();
-
-            try {
-                InputStream istream = SSVATCode.class.getResourceAsStream("/vatcodes.xml");
-
-                NodeList iNodes = DocumentBuilderFactory.newInstance()
-                        .newDocumentBuilder()
-                        .parse(istream)
-                        .getDocumentElement()
-                        .getElementsByTagName("vatcode");
-
-                for (int i = 0; i < iNodes.getLength(); i++) {
-                    Node iNode = iNodes.item(i);
-
-                    String iName = iNode.getAttributes().getNamedItem("name").getNodeValue();
-                    String iDescription = iNode.getAttributes().getNamedItem("description").getNodeValue();
-
-                    SSVATCode iVatCode = new SSVATCode();
-
-                    iVatCode.iName = iName;
-                    iVatCode.iDescription = iDescription;
-
-                    iValues.add(iVatCode);
-                }
-            } catch (IOException | ParserConfigurationException | SAXException ex) {
-                LOG.error("Unexpected error", ex);
-            }
-        }
         return iValues;
     }
 
@@ -173,4 +179,3 @@ public class SSVATCode implements SSTableSearchable {    private static final Lo
     }
 
 }
-

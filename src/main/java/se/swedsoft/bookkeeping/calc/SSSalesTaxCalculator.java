@@ -82,7 +82,6 @@ public class SSSalesTaxCalculator {    private static final Logger LOG = LoggerF
 
         for (SSVATReportGroup iGroup : iReportGroups) {
             BigDecimal iSum = null;
-	    // fixme! - Lägga till momskoderna för importmoms - kod (ruta): IBU (50), UI1 (60) , UI2 (61) , UI3 (62)
 
             switch (iGroup.getGroup2()) {
 

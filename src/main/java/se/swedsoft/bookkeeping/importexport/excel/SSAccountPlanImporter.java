@@ -49,11 +49,14 @@ public class SSAccountPlanImporter {
      * @throws SSImportException if import content is invalid
      */
     public static void doImport(File file) throws IOException, SSImportException {
-        validateImportLocation(file);
-        SSAccountPlan accountPlan = SSAccountPlanLoader.readPlan(file);
-        validateFileNameAgainstPlanName(file == null ? null : file.getName(), accountPlan);
-        storeImportedPlan(accountPlan, file.getName());
-    }
+         if (file == null) {
+             throw new NullPointerException("file");
+         }
+         validateImportLocation(file);
+         SSAccountPlan accountPlan = SSAccountPlanLoader.readPlan(file);
+         validateFileNameAgainstPlanName(file.getName(), accountPlan);
+         storeImportedPlan(accountPlan, file.getName());
+     }
 
     /**
      * Imports an account plan from a stream.

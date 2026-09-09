@@ -86,9 +86,9 @@
         <artifactId>jpackage-maven-plugin</artifactId>
         <version>${jpackage.maven.plugin.version}</version>
         <configuration>
-          <name>Fribok</name>
+          <name>MFB BOK</name>
           <appVersion>${jpackage.appVersion}</appVersion>
-          <vendor>Fribok</vendor>
+          <vendor>MFB Bokföring</vendor>
           <destination>${project.basedir}/dist</destination>
           <input>${project.build.directory}</input>
           <mainJar>${project.build.finalName}-jar-with-dependencies.jar</mainJar>
@@ -195,7 +195,7 @@
       <plugin>
         <groupId>com.github.spotbugs</groupId>
         <artifactId>spotbugs-maven-plugin</artifactId>
-        <version>4.8.6.6</version>
+        <version>4.10.3.0</version>
         <configuration>
           <effort>Default</effort>
           <threshold>High</threshold>
@@ -396,7 +396,7 @@
       <plugin>
         <groupId>com.github.spotbugs</groupId>
         <artifactId>spotbugs-maven-plugin</artifactId>
-        <version>4.8.6.6</version>
+        <version>4.10.3.0</version>
       </plugin>
       <plugin>
         <artifactId>maven-checkstyle-plugin</artifactId>

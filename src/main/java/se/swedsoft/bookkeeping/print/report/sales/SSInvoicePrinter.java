@@ -102,7 +102,7 @@ public class SSInvoicePrinter extends SSPrinter {
         addParameter("date", SSDateUtil.toDate(iInvoice.getLocalDate()));
         addParameter("text", iInvoice.getText());
         if (getClass().equals(SSInvoicePrinter.class)) {
-            int iCustomerInvoiceTextbox = iCompany == null ? 0 : iCompany.getCustomerInvoiceTextbox();
+            int iCustomerInvoiceTextbox = iCompany.getCustomerInvoiceTextbox();
             boolean iLiten = iCustomerInvoiceTextbox == 0;
             boolean iMellan = iCustomerInvoiceTextbox == 1;
             boolean iStor = iCustomerInvoiceTextbox == 2;
