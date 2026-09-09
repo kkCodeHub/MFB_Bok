@@ -2,6 +2,9 @@ target/
 dist/
 .codenomad/
 .classpath
+.analysis.classpath
+/Hypercare_checklista.txt
+/MODERNIZATION.md
 new_directory/
 .project
 .settings/
@@ -11,3 +14,7 @@ new_directory/
 /checkstyle_fresh.log
 /dependency-reduced-pom.xml
 /Databas HSQLDB uppgarderad till version 2.docx
+archived/
+/CHANGELOG.md
+/INSTALL
+/README
