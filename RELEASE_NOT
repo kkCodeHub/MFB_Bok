@@ -1,0 +1,44 @@
+﻿Som utvecklingsverktyg har Intellij.IDEA 2026.1.4 använts. Projektet är utvecklat som ett .IDEA-projekt.
+Skapad JAR-fil enbart testad på Windows. Java 21 eller nyare krävs.
+Modifieringar, ändringar och tillägg gjorda med stöd av GitHubCopilot.
+
+Version 0.0.1a:
+
+Databas HSQLDB uppgraderad till version 2.7.2.
+Databasen normaliserad i stället för att spara som serialiserade objekt.
+Varje företag sparas i eget schema i databasen.
+Generella tabeller ligger i schemat PUBLIC.
+Nya databasen är inte kompatibel med äldre varianter.
+Inläsning av SIE-filer, Kunder, Leverantörer, Produkter och annat kan göras.
+
+Diverse plugins i POM.xml uppdaterade.
+
+SSDB kraftigt reducerad.
+Repositories och context infört för databaskommunikation.
+TriggerHandlers infört.
+
+Skapade produkters antal kan väljas att kunna hanteras med 1 decimal eller som heltal.
+
+QR-kod för Swish + ledtext kan läggas in på faktura via företagsinställningar.
+
+Anslutning till e-post-server uppdaterat, TLSv1.3 infört. Anslutning testas och certifikat sparas.
+
+Momskoder anpassade till rutors numrering på skatteverkets momsredovisning.
+Nya SRU-koder, anpassade för senaste BAS kontoplaner (undantag för koder beroende av plus/minus-resultat).
+
+Registrering av utskriven/sparad/mailad faktura justerad. Faktura kan visas som preview utan att registreras som utskriven.
+Val att skicka faktura med e-post flyttad till meny för förhandsvisning av faktura.
+Enskild faktura kan bokföras via flik 4 Kontering. Registreras då som bokförd.
+Fakturajournal exkluderar redan bokförd faktura för vald period.
+Enbart sist skapade faktura kan raderas om inte bokförd eller utskriven.
+Tidigare skapade fakturor kan inte raderas. Om tidigare skapad faktura inte utskriven eller bokförd
+kan den makuleras och ligger då kvar i tabellen och blir markerad som makulerad.
+Om sist skapade faktura raderas kan näst sista skapade faktura raderas om den inte utskriven eller bokförd.
+Syfte med denna fakturahantering är att det inte ska skapas hål i fakturanumreringen av revisionstekniska skäl.
+Ikoner i tabell för kundfakturor modifierade enligt:
+Ikon 1. Utskriven faktura.
+Ikon 2. Bokförd faktura.
+Ikon 3. Utskriven och bokförd faktura.
+Ikon 4. Makulerad faktura.
+
+Diverse översyn och justeringar av kod och rapporter.

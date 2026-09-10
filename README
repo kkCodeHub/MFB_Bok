@@ -1,0 +1,32 @@
+MFB Bokföring är ett projekt för ett Open Source bokföringsprogram utvecklat i Java.
+Programvaran omfattar försäljning, inköp, lager och bokföring.
+MFB Bokföring är en utveckling (fork) av den fria programvaran Fribok.
+Utveckling av MFB Bokföring har också inspirerats av den fria programvaran Bokfri.
+
+Se filen `COPYING` för villkoren för kopiering och licensiering.
+
+För att köra:
+Java version 21 eller senare måste vara installerad.
+$ java -jar target/mfb_bok-x.y.x-jar-with-dependencies.jar.
+(x.y.z varierar beroende på version).
+Kommandot ovan måste för närvarande köras från projektets rotkatalog.
+Programmet kan också startas genom att dubbelklicka på filnamnet (förutsätter rätt inställning i windows).
+Programmet är enbart testkört på Windows 10.
+
+MFB Bokföring är inte kompatibel med databaser skapade med Fribok.
+Filer skapade med Fribok som SIE och excel-filer för kunder leverantörer, produkter och annat kan
+vanligtvis läsas in av MFB Bokföring.
+
+Programvaran är utvecklad för användning i Sverige. Det finns inga anpassningar för andra lagstiftningsområden.
+
+Nedladdning av JAR-fil och källkod för MFB Bokföring kommer efter lansering finnas på https://github.com/kkCodeHub/MFB_Bok.
+Den primära källkodskatalogen finns i "src/main/java".
+
+Utveckling av MFB Bokföring har gjorts med IntelliJ IDEA 2026.1.4 och utvecklat som ett .IDEA-projekt.
+JDK 21 eller nyare krävs.
+
+Program och källkod för Fribok finns på http://sourceforge.net/projects/jfsaccounting.
+Program och källkod för Bokfri finns på https://bokfri.viblo.se.
+
+
+
