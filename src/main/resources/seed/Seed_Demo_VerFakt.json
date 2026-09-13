@@ -46,6 +46,7 @@
 
   "Fakturor": [
     {
+      "Fakturadatum": "2026-07-24",
       "Kund-id": 1,
       "Rader": [
         {
@@ -66,7 +67,9 @@
        ]
     },
     {
+      "Fakturadatum": "2026-08-15",
       "Kund-id": 2,
+      "Betalningsvillkor": "30 dagar",
       "Rader": [
         {
           "Rad": 1,
@@ -82,6 +85,22 @@
           "Rad": 3,
           "Produktnr": 1,
           "Antal": 2
+        }
+       ]
+    },
+    {
+      "Kund-id": 1,
+      "Betalningsvillkor": "10 dagar",
+      "Rader": [
+        {
+          "Rad": 1,
+          "Produktnr": 1,
+          "Antal": 5
+        },
+        {
+          "Rad": 2,
+          "Produktnr": 4,
+          "Antal": 2.5
         }
        ]
     }

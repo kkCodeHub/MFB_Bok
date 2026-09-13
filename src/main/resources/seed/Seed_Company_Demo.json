@@ -1,8 +1,17 @@
 {
   "Företag": {
     "Företagsnamn": "Demoföretaget AB",
+    "Organisationsnummer": "555555-5555",
     "Logotyp": "src/main/resources/seed/Demologo.png",
+    "Dröjsmålsränta": "8",
+    "Påminnelseavgift": "60",
+    "Adress.Namn": "Demoföretaget AB",
+    "Adress.Adress 1": "Demogatan 1",
+    "Adress.Postnummer": "123 45",
+    "Adress.Postort": "Demostad",
     "Kontaktperson": "Demo Demosson",
+    "SWISH": "src/main/resources/seed/DemoföretagetABSwish-QR-small.png",
+    "Ledtext swish": "Ange fakturanummer",
     "Bokföringsår": {
       "Från": "2026-01-01",
       "Till": "2026-12-31"

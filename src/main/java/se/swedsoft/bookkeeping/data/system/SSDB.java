@@ -1,7 +1,6 @@
 package se.swedsoft.bookkeeping.data.system;
 
 
-import com.fasterxml.jackson.databind.JsonNode;
 import org.fribok.bookkeeping.app.Path;
 import se.swedsoft.bookkeeping.calc.math.*;
 import se.swedsoft.bookkeeping.data.*;
@@ -14,15 +13,12 @@ import se.swedsoft.bookkeeping.importexport.excel.SSAccountPlanDefaultResourceDi
 import se.swedsoft.bookkeeping.importexport.excel.SSAccountPlanImporter;
 import se.swedsoft.bookkeeping.importexport.excel.SSAccountPlanLoader;
 import se.swedsoft.bookkeeping.importexport.util.SSImportException;
-import se.swedsoft.bookkeeping.util.SSUtil;
 import se.swedsoft.bookkeeping.data.system.trigger.SSTriggerSchemaService;
 
 import java.beans.PropertyChangeListener;
 import java.io.*;
-import java.math.BigDecimal;
 import java.sql.*;
 import java.util.*;
-import java.util.Optional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,10 +33,6 @@ public class SSDB {
     private static final String DEMO_SCHEMA_NAME = "co_0";
     private static final String DEMO_COMPANY_NAME = "Demoföretaget";
     private static final String SEED_STATE_TABLE = "PUBLIC.tbl_seed_state";
-    private static final String SEED_PUBLIC_FILE = "seed/Seed_Public.json";
-    private static final String SEED_COMPANY_FILE = "seed/Seed_Company_Demo.json";
-    private static final String SEED_VER_FAKT_FILE = "seed/Seed_Demo_VerFakt.json";
-
     private static SSDB cInstance;
 
     public static final Object iSyncObject = new Object();
@@ -74,6 +66,7 @@ public class SSDB {
 
     private final SSDBEventBus iEventBus = new SSDBEventBus();
     private final SSTriggerSchemaService iTriggerSchemaService;
+    private final SSSeedService iSeedService;
 
     private Connection iConnection;
 
@@ -86,6 +79,7 @@ public class SSDB {
 
     private SSDB() {
         iTriggerSchemaService = new SSTriggerSchemaService(() -> iConnection);
+        iSeedService = new SSSeedService();
     }
 
     public void startupLocal(Connection pConnection) throws SQLException {
@@ -96,7 +90,13 @@ public class SSDB {
         Repositories.init(this);
         checkImportDefaultAccountPlans();
         ensureCatalogBootstrapForCurrentSchema();
-        ensureDemoSeedIsRun();
+        iSeedService.runDemoSeedIfNeeded(iConnection, schemaName -> {
+            try {
+                setSchema(schemaName);
+            } catch (SQLException e) {
+                throw new IllegalStateException("Failed to set schema " + schemaName, e);
+            }
+        }, this::setCurrentCompany);
         validateSchemaContract();
         iTriggerSchemaService.rebuildLocalTriggers();
         initializeCurrentCompanyAndYear();
@@ -113,8 +113,6 @@ public class SSDB {
         iCurrentYear = null;
         clearCachedLists();
 
-        // V2-only mode: force schema selection to V2 for all runtimes/tests.
-        String iDetectedSchemaVersion = SCHEMA_V2;
         System.setProperty(SCHEMA_VERSION_PROPERTY, SCHEMA_V2);
     }
 
@@ -146,7 +144,8 @@ public class SSDB {
         }
 
         if (iCurrentYear == null && iCurrentCompany != null) {
-            Optional<SSNewAccountingYear> iDemoYear = getAccountingYearByRangeV2(
+            Optional<SSNewAccountingYear> iDemoYear = iSeedService.getAccountingYearByRangeV2(
+                    iConnection,
                     iCurrentCompany,
                     java.time.LocalDate.of(2025, 1, 1),
                     java.time.LocalDate.of(2025, 12, 31));
@@ -158,372 +157,6 @@ public class SSDB {
                         .max(Comparator.comparing(SSNewAccountingYear::getLocalTo))
                         .ifPresent(this::openYear);
             }
-        }
-    }
-
-    private void seedDemoEntitiesFromJson() {
-        try {
-            setSchema(DEMO_SCHEMA_NAME);
-            JsonNode seedRoot = SSJsonSeedDataLoader.loadSeedFile("seed/Seed_Demo.json");
-            seedCustomers(seedRoot);
-            seedSuppliers(seedRoot);
-            seedProducts(seedRoot);
-            LOG.info("Successfully seeded demo customers, suppliers and products");
-        } catch (IOException e) {
-            throw new IllegalStateException("Failed to read seed/Seed_Demo.json", e);
-        } catch (SQLException e) {
-            throw new IllegalStateException("Failed to set schema " + DEMO_SCHEMA_NAME + " for demo seed", e);
-        }
-        seedVouchersAndInvoicesFromJson();
-    }
-
-    private void seedVouchersAndInvoicesFromJson() {
-        try {
-            JsonNode seedRoot = SSJsonSeedDataLoader.loadSeedFile(SEED_VER_FAKT_FILE);
-            seedVouchers(seedRoot);
-            seedInvoices(seedRoot);
-            LOG.info("Successfully seeded demo vouchers and invoices from {}", SEED_VER_FAKT_FILE);
-        } catch (IOException e) {
-            LOG.warn("Could not read seed file '{}': {}", SEED_VER_FAKT_FILE, e.getMessage());
-        }
-    }
-
-    /**
-     * Seeds vouchers from the "Verifikationer" array in the given JSON node.
-     * The voucher date is adjusted to the accounting year if the year part does not match.
-     * If no accounting year exists, vouchers are skipped.
-     *
-     * @param seedRoot the parsed JSON root
-     */
-    private void seedVouchers(JsonNode seedRoot) {
-        List<SSNewAccountingYear> years = loadYearsForCompany(iCurrentCompany);
-        if (years.isEmpty()) {
-            LOG.warn("No accounting years found for company '{}'; skipping voucher seed",
-                    iCurrentCompany != null ? iCurrentCompany.getName() : "null");
-            return;
-        }
-        SSNewAccountingYear seedYear = years.stream()
-                .filter(y -> y.getLocalTo() != null)
-                .max((a, b) -> a.getLocalTo().compareTo(b.getLocalTo()))
-                .orElse(years.get(0));
-
-        for (JsonNode verNode : SSJsonSeedDataLoader.getArrayObjects(seedRoot, "Verifikationer")) {
-            try {
-                java.time.LocalDate rawDate = requiredDate(verNode, "Datum");
-                java.time.LocalDate voucherDate = adjustDateToYear(rawDate, seedYear);
-
-                SSVoucher voucher = new SSVoucher();
-                voucher.setLocalDate(voucherDate);
-                voucher.setDescription(requiredText(verNode, "Beskrivning"));
-
-                for (JsonNode rowNode : SSJsonSeedDataLoader.getArrayObjects(verNode, "Rader")) {
-                    SSVoucherRow row = new SSVoucherRow();
-                    row.setAccountNr(rowNode.has("Konto") ? rowNode.get("Konto").asInt() : null);
-                    row.setDebet(optionalBigDecimal(rowNode, "Debet"));
-                    row.setCredit(optionalBigDecimal(rowNode, "Kredit"));
-                    voucher.addVoucherRow(row);
-                }
-
-                Repositories.vouchers().addWithAutoNumber(voucher);
-            } catch (Exception e) {
-                LOG.warn("Skipping voucher '{}': {}",
-                        SSJsonSeedDataLoader.getStringFieldOrNull(verNode, "Beskrivning"), e.getMessage());
-            }
-        }
-    }
-
-    /**
-     * Seeds invoices from the "Fakturor" array in the given JSON node.
-     * Customer and product positions are 1-based row numbers in their respective tables.
-     * Invoice date uses the accounting year's start year with today's month and day.
-     * Payment term is the second entry in tbl_paymentterm.
-     * Duplicates are accepted; each seed run creates new invoices with auto-assigned numbers.
-     *
-     * @param seedRoot the parsed JSON root
-     */
-    private void seedInvoices(JsonNode seedRoot) {
-        List<SSCustomer> customers = Repositories.customers().findAll();
-        List<SSProduct> products = Repositories.products().findAll();
-
-        List<se.swedsoft.bookkeeping.data.common.SSPaymentTerm> paymentTerms =
-                Repositories.paymentTerms().findAll();
-        se.swedsoft.bookkeeping.data.common.SSPaymentTerm paymentTerm =
-                paymentTerms.size() >= 2 ? paymentTerms.get(1)
-                : !paymentTerms.isEmpty() ? paymentTerms.get(0)
-                : null;
-
-        List<SSNewAccountingYear> years = loadYearsForCompany(iCurrentCompany);
-        SSNewAccountingYear seedYear = years.stream()
-                .filter(y -> y.getLocalTo() != null)
-                .max((a, b) -> a.getLocalTo().compareTo(b.getLocalTo()))
-                .orElse(years.isEmpty() ? null : years.get(0));
-
-        java.time.LocalDate invoiceDate = buildInvoiceDate(seedYear);
-        java.time.LocalDate dueDate = paymentTerm != null
-                ? paymentTerm.addDaysToLocalDate(invoiceDate)
-                : invoiceDate;
-
-        for (JsonNode fakturaNode : SSJsonSeedDataLoader.getArrayObjects(seedRoot, "Fakturor")) {
-            try {
-                int customerPos = fakturaNode.get("Kund-id").asInt();
-                if (customerPos < 1 || customerPos > customers.size()) {
-                    LOG.warn("Skipping invoice: Kund-id {} out of range (available customers: {})",
-                            customerPos, customers.size());
-                    continue;
-                }
-                SSCustomer customer = customers.get(customerPos - 1);
-
-                SSInvoice invoice = new SSInvoice(se.swedsoft.bookkeeping.data.common.SSInvoiceType.NORMAL);
-                invoice.setVoucher(null);
-                invoice.setLocalDate(invoiceDate);
-                invoice.setLocalDueDate(dueDate);
-                invoice.setPaymentTerm(paymentTerm);
-                invoice.setCustomerNr(customer.getNumber());
-                invoice.setCustomerName(customer.getName());
-                invoice.setOurContactPerson(customer.getOurContactPerson());
-                invoice.setYourContactPerson(customer.getYourContactPerson());
-                invoice.setInvoiceAddress(customer.getInvoiceAddress());
-                invoice.setDeliveryAddress(customer.getDeliveryAddress());
-
-                for (JsonNode rowNode : SSJsonSeedDataLoader.getArrayObjects(fakturaNode, "Rader")) {
-                    int productPos = rowNode.get("Produktnr").asInt();
-                    if (productPos < 1 || productPos > products.size()) {
-                        LOG.warn("Skipping invoice row: Produktnr {} out of range (available products: {})",
-                                productPos, products.size());
-                        continue;
-                    }
-                    SSProduct product = products.get(productPos - 1);
-                    se.swedsoft.bookkeeping.data.base.SSSaleRow row =
-                            new se.swedsoft.bookkeeping.data.base.SSSaleRow(product);
-                    row.setQuantity(rowNode.get("Antal").asInt() * 10);
-                    invoice.getRows().add(row);
-                }
-
-                if (!invoice.getRows().isEmpty()) {
-                    Repositories.invoices().add(invoice);
-                }
-            } catch (Exception e) {
-                LOG.warn("Skipping invoice node: {}", e.getMessage());
-            }
-        }
-    }
-
-    /**
-     * Adjusts the year part of the given date to match the accounting year's start year.
-     * Month and day are preserved. If the resulting date is invalid (e.g. Feb 29 in a non-leap year),
-     * the day is clamped to the first of the month.
-     *
-     * @param date the original date
-     * @param year the target accounting year
-     * @return a date within the accounting year
-     */
-    private java.time.LocalDate adjustDateToYear(java.time.LocalDate date, SSNewAccountingYear year) {
-        if (year == null || year.getLocalFrom() == null) {
-            return date;
-        }
-        int targetYear = year.getLocalFrom().getYear();
-        if (date.getYear() == targetYear) {
-            return date;
-        }
-        try {
-            return java.time.LocalDate.of(targetYear, date.getMonthValue(), date.getDayOfMonth());
-        } catch (java.time.DateTimeException e) {
-            return java.time.LocalDate.of(targetYear, date.getMonthValue(), 1);
-        }
-    }
-
-    /**
-     * Builds the invoice date using the accounting year's start year combined with
-     * today's month and day. Falls back to today if no accounting year is available.
-     *
-     * @param year the accounting year to derive the year component from
-     * @return the computed invoice date
-     */
-    private java.time.LocalDate buildInvoiceDate(SSNewAccountingYear year) {
-        java.time.LocalDate today = java.time.LocalDate.now();
-        if (year == null || year.getLocalFrom() == null) {
-            return today;
-        }
-        int targetYear = year.getLocalFrom().getYear();
-        try {
-            return java.time.LocalDate.of(targetYear, today.getMonthValue(), today.getDayOfMonth());
-        } catch (java.time.DateTimeException e) {
-            return java.time.LocalDate.of(targetYear, today.getMonthValue(), 1);
-        }
-    }
-
-    /**
-     * Reads an optional BigDecimal field from the given JSON node.
-     * Returns {@code null} if the field is absent or unparseable.
-     *
-     * @param node      the JSON object node
-     * @param fieldName the field to read
-     * @return the value as BigDecimal, or {@code null}
-     */
-    private BigDecimal optionalBigDecimal(JsonNode node, String fieldName) {
-        if (node == null || !node.has(fieldName)) {
-            return null;
-        }
-        String raw = node.get(fieldName).asText();
-        try {
-            return new BigDecimal(raw.replace(',', '.'));
-        } catch (NumberFormatException e) {
-            return null;
-        }
-    }
-
-    private void seedCustomers(JsonNode seedRoot) {
-        for (JsonNode customerNode : SSJsonSeedDataLoader.getArrayObjects(seedRoot, "Kunder")) {
-            String number = requiredText(customerNode, "Kund-id");
-            Optional<SSCustomer> existingCustomer = Repositories.customers().findByNumber(number);
-            SSCustomer customer = existingCustomer.orElseGet(SSCustomer::new);
-            customer.setNumber(number);
-            customer.setName(requiredText(customerNode, "Namn"));
-            customer.setYourContactPerson(optionalText(customerNode, "Er kontaktperson"));
-            customer.setEMail(optionalText(customerNode, "E-post"));
-            applyInvoiceAddress(customer, customerNode);
-
-            if (existingCustomer.isPresent()) {
-                Repositories.customers().update(customer);
-            } else {
-                Repositories.customers().add(customer);
-            }
-        }
-    }
-
-    private void seedSuppliers(JsonNode seedRoot) {
-        for (JsonNode supplierNode : SSJsonSeedDataLoader.getArrayObjects(seedRoot, "Leverantörer")) {
-            String number = requiredText(supplierNode, "Leverantörs-id");
-            SSSupplier probe = new SSSupplier();
-            probe.setNumber(number);
-            Optional<SSSupplier> existingSupplier = Repositories.suppliers().findBySupplier(probe);
-            SSSupplier supplier = existingSupplier.orElseGet(SSSupplier::new);
-            supplier.setNumber(number);
-            supplier.setName(requiredText(supplierNode, "Namn"));
-            supplier.setYourContact(optionalText(supplierNode, "Er kontaktperson"));
-            supplier.setEMail(optionalText(supplierNode, "E-post"));
-            applySupplierAddress(supplier, supplierNode);
-
-            if (existingSupplier.isPresent()) {
-                Repositories.suppliers().update(supplier);
-            } else {
-                Repositories.suppliers().add(supplier);
-            }
-        }
-    }
-
-    private void seedProducts(JsonNode seedRoot) {
-        for (JsonNode productNode : SSJsonSeedDataLoader.getArrayObjects(seedRoot, "Produkter")) {
-            String number = requiredText(productNode, "Produktnummer");
-            Optional<SSProduct> existingProduct = Repositories.products().findByNumber(number);
-            SSProduct product = existingProduct.orElseGet(SSProduct::new);
-            product.setNumber(number);
-            product.setDescription(requiredText(productNode, "Beskrivning"));
-            product.setSellingPrice(requiredBigDecimal(productNode, "Försäljningspris"));
-
-            if (existingProduct.isPresent()) {
-                Repositories.products().update(product);
-            } else {
-                Repositories.products().add(product);
-            }
-        }
-    }
-
-    private void applyInvoiceAddress(SSCustomer customer, JsonNode node) {
-        SSAddress address = customer.getInvoiceAddress();
-        if (address == null) {
-            address = new SSAddress();
-            customer.setInvoiceAddress(address);
-        }
-        boolean hasAddress = false;
-        String address1 = optionalText(node, "Adress 1");
-        String address2 = optionalText(node, "Adress 2");
-        String zipCode = optionalText(node, "Postnummer");
-        String city = optionalText(node, "Ort");
-        String country = optionalText(node, "Land");
-        String name = optionalText(node, "Adressnamn");
-
-        if (name != null) {
-            address.setName(name);
-            hasAddress = true;
-        }
-        if (address1 != null) {
-            address.setAddress1(address1);
-            hasAddress = true;
-        }
-        if (address2 != null) {
-            address.setAddress2(address2);
-            hasAddress = true;
-        }
-        if (zipCode != null) {
-            address.setZipCode(zipCode);
-            hasAddress = true;
-        }
-        if (city != null) {
-            address.setCity(city);
-            hasAddress = true;
-        }
-        if (country != null) {
-            address.setCountry(country);
-            hasAddress = true;
-        }
-        if (!hasAddress) {
-            customer.setInvoiceAddress(address);
-        }
-    }
-
-    private void applySupplierAddress(SSSupplier supplier, JsonNode node) {
-        SSAddress address = supplier.getAddress();
-        if (address == null) {
-            address = new SSAddress();
-            supplier.setAddress(address);
-        }
-        boolean hasAddress = false;
-        String address1 = optionalText(node, "Adress 1");
-        String address2 = optionalText(node, "Adress 2");
-        String zipCode = optionalText(node, "Postnummer");
-        String city = optionalText(node, "Ort");
-        String country = optionalText(node, "Land");
-        String name = optionalText(node, "Adressnamn");
-
-        if (name != null) {
-            address.setName(name);
-            hasAddress = true;
-        }
-        if (address1 != null) {
-            address.setAddress1(address1);
-            hasAddress = true;
-        }
-        if (address2 != null) {
-            address.setAddress2(address2);
-            hasAddress = true;
-        }
-        if (zipCode != null) {
-            address.setZipCode(zipCode);
-            hasAddress = true;
-        }
-        if (city != null) {
-            address.setCity(city);
-            hasAddress = true;
-        }
-        if (country != null) {
-            address.setCountry(country);
-            hasAddress = true;
-        }
-        if (!hasAddress) {
-            supplier.setAddress(address);
-        }
-    }
-
-    private BigDecimal requiredBigDecimal(JsonNode node, String fieldName) {
-        if (node == null || !node.has(fieldName)) {
-            throw new IllegalStateException("Missing decimal field '" + fieldName + "' in seed JSON.");
-        }
-        String raw = node.get(fieldName).asText();
-        try {
-            return new BigDecimal(raw.replace(',', '.'));
-        } catch (NumberFormatException e) {
-            throw new IllegalStateException("Invalid decimal '" + raw + "' in field '" + fieldName + "'.", e);
         }
     }
 
@@ -641,278 +274,6 @@ public class SSDB {
             initializeCurrentCompanyAndYear();
             logStartupV2Mode();
 
-        } catch (SQLException e) {
-            LOG.error("Unexpected error", e);
-        }
-    }
-
-    private void ensureDemoSeedIsRun() {
-        try {
-            if (iConnection == null || iConnection.isClosed()) {
-                return;
-            }
-
-            boolean seedDone = isSeedAlreadyDone();
-            if (seedDone) {
-                return;
-            }
-
-            Optional<String> demoSchemaName = loadActiveCatalogSchemaName();
-            if (!demoSchemaName.isPresent() || !demoSchemaName.get().equals(DEMO_SCHEMA_NAME)) {
-                return;
-            }
-
-            // Seed PUBLIC schema tables first (Currency, Unit, PaymentTerm, DeliveryTerm, DeliveryWay)
-            seedPublicTables();
-
-            // Then seed demo company + year + account plan in co_0 from JSON
-            seedDemoCompanyAndAccountingYear();
-
-            // Seed demo customers, suppliers and products from JSON.
-            seedDemoEntitiesFromJson();
-
-            setSeedDone(true);
-            iConnection.commit();
-        } catch (SQLException e) {
-            LOG.error("Unexpected error during demo seed", e);
-            try {
-                iConnection.rollback();
-            } catch (SQLException ignored) {}
-        } catch (Exception e) {
-            LOG.error("Unexpected error during JSON seeding", e);
-            try {
-                iConnection.rollback();
-            } catch (SQLException ignored) {}
-        }
-    }
-
-    private boolean isSeedAlreadyDone() throws SQLException {
-        try (PreparedStatement iStatement = iConnection.prepareStatement(
-                "SELECT seed_done FROM " + SEED_STATE_TABLE)) {
-            try (ResultSet iResultSet = iStatement.executeQuery()) {
-                if (iResultSet.next()) {
-                    return iResultSet.getBoolean("seed_done");
-                }
-            }
-        }
-        return false;
-    }
-
-    private Optional<SSNewAccountingYear> getAccountingYearByRangeV2(
-            SSNewCompany iCompany,
-            java.time.LocalDate iFrom,
-            java.time.LocalDate iTo) {
-        if (iCompany == null || iFrom == null || iTo == null || iConnection == null) {
-            return Optional.empty();
-        }
-
-        try (PreparedStatement iStatement = iConnection.prepareStatement(
-                "SELECT * FROM tbl_accountingyear WHERE companyid=? AND from_date=? AND to_date=?")) {
-            iStatement.setObject(1, iCompany.getId());
-            iStatement.setObject(2, java.sql.Date.valueOf(iFrom));
-            iStatement.setObject(3, java.sql.Date.valueOf(iTo));
-
-            try (ResultSet iResultSet = iStatement.executeQuery()) {
-                if (iResultSet.next()) {
-                    return Optional.of(Repositories.accountingYears().mapAccountingYear(iResultSet));
-                }
-                return Optional.empty();
-            }
-        } catch (SQLException e) {
-            LOG.error("Unexpected error", e);
-            return Optional.empty();
-        }
-    }
-
-    private void seedDemoCompanyAndAccountingYear() {
-        try {
-            setSchema(DEMO_SCHEMA_NAME);
-            JsonNode seedRoot = SSJsonSeedDataLoader.loadSeedFile(SEED_COMPANY_FILE);
-            JsonNode companyNode = requiredObject(seedRoot, "Företag");
-
-            SSNewCompany seededCompany = ensureDemoCompanyInCo0(companyNode);
-            setCurrentCompany(seededCompany);
-
-            JsonNode yearNode = requiredObject(companyNode, "Bokföringsår");
-            java.time.LocalDate fromDate = requiredDate(yearNode, "Från");
-            java.time.LocalDate toDate = requiredDate(yearNode, "Till");
-            if (toDate.isBefore(fromDate)) {
-                throw new IllegalStateException("Invalid Bokföringsår in " + SEED_COMPANY_FILE + ": Till before Från.");
-            }
-
-            if (getAccountingYearByRangeV2(seededCompany, fromDate, toDate).isPresent()) {
-                return;
-            }
-
-            SSAccountPlan templatePlan = resolveSeedAccountPlan(companyNode);
-            SSAccountPlan yearPlan = createSeedYearPlan(templatePlan, seededCompany.getName(), fromDate);
-
-            SSNewAccountingYear accountingYear = new SSNewAccountingYear();
-            accountingYear.setLocalFrom(fromDate);
-            accountingYear.setLocalTo(toDate);
-            accountingYear.setAccountPlan(yearPlan);
-            Repositories.accountingYears().add(accountingYear);
-        } catch (IOException e) {
-            throw new IllegalStateException("Failed to read " + SEED_COMPANY_FILE, e);
-        } catch (SQLException e) {
-            throw new IllegalStateException("Failed to seed demo company/year in schema " + DEMO_SCHEMA_NAME, e);
-        }
-    }
-
-    private SSNewCompany ensureDemoCompanyInCo0(JsonNode companyNode) throws SQLException {
-        String companyName = requiredText(companyNode, "Företagsnamn");
-        String contactPerson = optionalText(companyNode, "Kontaktperson");
-        String logotype = optionalText(companyNode, "Logotyp");
-
-        SSNewCompany template = new SSNewCompany();
-        template.setName(companyName);
-        template.setContactPerson(contactPerson);
-        template.setLogotype(logotype);
-
-        return Repositories.companies().ensureCompanyInSchema(DEMO_SCHEMA_NAME, template);
-    }
-
-    private SSAccountPlan resolveSeedAccountPlan(JsonNode companyNode) throws IOException {
-        String requestedPlanName = requiredText(companyNode, "Kontoplan");
-        List<SSAccountPlan> availablePlans = new LinkedList<>(Repositories.accountPlans().findAll());
-        availablePlans.sort(Comparator.comparing(SSAccountPlan::getId, Comparator.nullsLast(Integer::compareTo)));
-
-        SSAccountPlan selectedPlan = null;
-        for (SSAccountPlan plan : availablePlans) {
-            if (plan != null && requestedPlanName.equals(plan.getName())) {
-                selectedPlan = plan;
-                break;
-            }
-        }
-        if (selectedPlan == null && !availablePlans.isEmpty()) {
-            selectedPlan = availablePlans.get(0);
-            LOG.warn("Requested account plan '{}' not found. Falling back to first available plan '{}'.",
-                    requestedPlanName, selectedPlan.getName());
-        }
-        if (selectedPlan == null) {
-            throw new IllegalStateException("No account plans found in PUBLIC.tbl_accountplan. Seed cannot continue.");
-        }
-        if (selectedPlan.isTemplatePlan()) {
-            return SSAccountPlanLoader.loadPlan(selectedPlan);
-        }
-        return selectedPlan;
-    }
-
-    private SSAccountPlan createSeedYearPlan(SSAccountPlan templatePlan, String companyName, java.time.LocalDate fromDate) {
-        SSAccountPlan yearPlan = new SSAccountPlan(templatePlan);
-        int startYear = fromDate.getYear();
-        String safeCompanyName = companyName == null ? "" : companyName.trim();
-
-        String planName = safeCompanyName.isEmpty()
-                ? Integer.toString(startYear)
-                : safeCompanyName + " " + startYear;
-        yearPlan.setName(planName);
-        yearPlan.setExcelPath(null);
-        yearPlan.setDefaultPlan(false);
-
-        String baseName = templatePlan.getName();
-        if (baseName == null || baseName.trim().isEmpty()) {
-            baseName = planName;
-        }
-        yearPlan.setBaseName(baseName);
-        return yearPlan;
-    }
-
-    private JsonNode requiredObject(JsonNode node, String fieldName) {
-        if (node == null || !node.has(fieldName) || !node.get(fieldName).isObject()) {
-            throw new IllegalStateException("Missing object field '" + fieldName + "' in seed JSON.");
-        }
-        return node.get(fieldName);
-    }
-
-    private String requiredText(JsonNode node, String fieldName) {
-        String value = optionalText(node, fieldName);
-        if (value == null || value.isEmpty()) {
-            throw new IllegalStateException("Missing text field '" + fieldName + "' in seed JSON.");
-        }
-        return value;
-    }
-
-    private String optionalText(JsonNode node, String fieldName) {
-        String value = SSJsonSeedDataLoader.getStringFieldOrNull(node, fieldName);
-        return value == null ? null : value.trim();
-    }
-
-    private java.time.LocalDate requiredDate(JsonNode node, String fieldName) {
-        String raw = requiredText(node, fieldName);
-        try {
-            return java.time.LocalDate.parse(raw);
-        } catch (Exception e) {
-            throw new IllegalStateException("Invalid date '" + raw + "' in field '" + fieldName + "'.", e);
-        }
-    }
-
-    private void executeSqlScriptResource(String iResourcePath) {
-        String iCurrentStatement = null;
-        try {
-            String q = SSUtil.readResourceToString(iResourcePath);
-            StringBuilder scriptBuilder = new StringBuilder();
-
-            for (String line : q.split("\\r?\\n")) {
-                if (!line.trim().startsWith("--")) {
-                    scriptBuilder.append(line).append('\n');
-                }
-            }
-
-            for (String statement : scriptBuilder.toString().split(";")) {
-                String trimmed = statement.trim();
-                if (trimmed.isEmpty()) {
-                    continue;
-                }
-                iCurrentStatement = trimmed;
-                try (PreparedStatement iStatement = iConnection.prepareStatement(trimmed)) {
-                    iStatement.executeUpdate();
-                }
-            }
-
-            iConnection.commit();
-            LOG.info("Executed SQL seed script: {}", iResourcePath);
-        } catch (Exception e) {
-            LOG.error("Failed SQL seed script '{}' near statement: {}", iResourcePath, iCurrentStatement, e);
-            try {
-                iConnection.rollback();
-            } catch (SQLException ignored) {}
-            throw new IllegalStateException(
-                    "Failed SQL seed script '" + iResourcePath + "' near statement: " + iCurrentStatement,
-                    e);
-        }
-    }
-
-    private void logV2DemoSeedSummary() {
-        try (PreparedStatement iStatement = iConnection.prepareStatement(
-                "SELECT c.name AS cname, " +
-                        "(SELECT COUNT(*) FROM tbl_customer cu WHERE cu.companyid=c.id) AS customer_count, " +
-                        "(SELECT COUNT(*) FROM tbl_product p WHERE p.companyid=c.id) AS product_count, " +
-                        "(SELECT COUNT(*) FROM tbl_supplier s WHERE s.companyid=c.id) AS supplier_count, " +
-                        "(SELECT COUNT(*) FROM tbl_accountingyear y WHERE y.companyid=c.id AND y.from_date=? AND y.to_date=?) AS year_count, " +
-                        "(SELECT COUNT(*) FROM tbl_voucher v JOIN tbl_accountingyear y2 ON y2.id=v.yearid WHERE y2.companyid=c.id AND y2.from_date=? AND y2.to_date=?) AS voucher_count " +
-                        "FROM tbl_company c WHERE c.name=?")) {
-            java.sql.Date iFrom = java.sql.Date.valueOf(java.time.LocalDate.of(2024, 1, 1));
-            java.sql.Date iTo = java.sql.Date.valueOf(java.time.LocalDate.of(2024, 12, 31));
-            iStatement.setObject(1, iFrom);
-            iStatement.setObject(2, iTo);
-            iStatement.setObject(3, iFrom);
-            iStatement.setObject(4, iTo);
-//            iStatement.setObject(5, "DemofÃƒÆ’Ã‚Â¶retaget");
-            iStatement.setObject(5, "Demoföretaget");
-
-            try (ResultSet iResultSet = iStatement.executeQuery()) {
-                if (iResultSet.next()) {
-                    LOG.info(
-                            "V2 demo seed complete: company='{}', year=2025, years={}, customers={}, products={}, suppliers={}, vouchers={}",
-                            iResultSet.getString("cname"),
-                            iResultSet.getInt("year_count"),
-                            iResultSet.getInt("customer_count"),
-                            iResultSet.getInt("product_count"),
-                            iResultSet.getInt("supplier_count"),
-                            iResultSet.getInt("voucher_count"));
-                }
-            }
         } catch (SQLException e) {
             LOG.error("Unexpected error", e);
         }
@@ -1136,10 +497,6 @@ public class SSDB {
         return Repositories.accountingYears().findForCompany(iCompany);
     }
 
-    public Optional<SSNewAccountingYear> getPreviousYear() {
-        return Repositories.accountingYears().findPrevious();
-    }
-
     /**
      *
      * Adds a property listerner to the database, the avaiable properties is:
@@ -1176,19 +533,6 @@ public class SSDB {
         return iVouchers;
     }
 
-    /**
-     * Retuns the account plan for the current year
-     *
-     * @return the acoount plan for the current year
-     */
-    public SSAccountPlan findCurrentAccountPlan() {
-
-        if (iCurrentYear != null) {
-            return iCurrentYear.getAccountPlan();
-        }
-        return new SSAccountPlan("Default");
-    }
-
     private void failIfLegacySingleSchemaDatabase() throws SQLException {
         if (iConnection == null || iConnection.isClosed()) {
             return;
@@ -1221,6 +565,18 @@ public class SSDB {
             try (ResultSet iResultSet = iStatement.executeQuery()) {
                 return iResultSet.next();
             }
+        }
+    }
+
+    private Optional<String> loadActiveCatalogSchemaName() throws SQLException {
+        try (PreparedStatement iStatement = iConnection.prepareStatement(
+                "SELECT schema_name FROM PUBLIC.tbl_company_catalog WHERE is_active=TRUE "
+                        + "ORDER BY catalog_id FETCH FIRST 1 ROWS ONLY");
+             ResultSet iResultSet = iStatement.executeQuery()) {
+            if (iResultSet.next()) {
+                return Optional.ofNullable(iResultSet.getString("schema_name"));
+            }
+            return Optional.empty();
         }
     }
 
@@ -1347,26 +703,6 @@ public class SSDB {
                     iInsert.executeUpdate();
                 }
             }
-        }
-    }
-
-    private void setSeedDone(boolean seedDone) throws SQLException {
-        try (PreparedStatement iUpdate = iConnection.prepareStatement(
-                "UPDATE " + SEED_STATE_TABLE + " SET seed_done=?")) {
-            iUpdate.setBoolean(1, seedDone);
-            iUpdate.executeUpdate();
-        }
-    }
-
-    private Optional<String> loadActiveCatalogSchemaName() throws SQLException {
-        try (PreparedStatement iStatement = iConnection.prepareStatement(
-                "SELECT schema_name FROM PUBLIC.tbl_company_catalog WHERE is_active=TRUE "
-                        + "ORDER BY catalog_id FETCH FIRST 1 ROWS ONLY");
-             ResultSet iResultSet = iStatement.executeQuery()) {
-            if (iResultSet.next()) {
-                return Optional.ofNullable(iResultSet.getString("schema_name"));
-            }
-            return Optional.empty();
         }
     }
 
@@ -1860,103 +1196,6 @@ public class SSDB {
     }
 
     // /////////////////////////////////////////////////////////////////////////////
-
-    private void seedPublicTables() throws SQLException {
-        try {
-            setSchema("PUBLIC");
-            JsonNode seedData = SSJsonSeedDataLoader.loadSeedFile(SEED_PUBLIC_FILE);
-
-            seedCurrencies(seedData);
-            seedUnits(seedData);
-            seedPaymentTerms(seedData);
-            seedDeliveryTerms(seedData);
-            seedDeliveryWays(seedData);
-
-            LOG.info("Successfully seeded PUBLIC schema tables");
-        } catch (IOException e) {
-            LOG.error("Failed to load Seed_Public.json", e);
-            throw new IllegalStateException("Cannot load seed data for PUBLIC tables", e);
-        }
-    }
-
-    private void seedCurrencies(JsonNode seedData) {
-        List<JsonNode> currencies = SSJsonSeedDataLoader.getArrayObjects(seedData, "Valuta");
-        for (JsonNode currency : currencies) {
-            String code = requiredText(currency, "Kod");
-            String description = optionalText(currency, "Beskrivning");
-
-            SSCurrency ssCurrency = new SSCurrency(code, description);
-            if (Repositories.currencies().findByCode(code).isPresent()) {
-                Repositories.currencies().update(ssCurrency);
-            } else {
-                Repositories.currencies().add(ssCurrency);
-            }
-        }
-    }
-
-    private void seedUnits(JsonNode seedData) {
-        List<JsonNode> units = SSJsonSeedDataLoader.getArrayObjects(seedData, "Standardenhet");
-        for (JsonNode unit : units) {
-            String name = requiredText(unit, "Namn");
-            String description = optionalText(unit, "Beskrivning");
-
-            SSUnit ssUnit = new SSUnit(name, description);
-            if (Repositories.units().findByName(name).isPresent()) {
-                Repositories.units().update(ssUnit);
-            } else {
-                Repositories.units().add(ssUnit);
-            }
-        }
-    }
-
-    private void seedPaymentTerms(JsonNode seedData) {
-        List<JsonNode> terms = SSJsonSeedDataLoader.getArrayObjects(seedData, "Betalningsvillkor");
-        for (JsonNode term : terms) {
-            String name = requiredText(term, "Namn");
-            String description = optionalText(term, "Beskrivning");
-            Integer days = term.has("Dagar") && !term.get("Dagar").isNull()
-                    ? term.get("Dagar").asInt()
-                    : null;
-
-            SSPaymentTerm ssPaymentTerm = new SSPaymentTerm(name, description);
-            ssPaymentTerm.setDays(days);
-            if (Repositories.paymentTerms().findByName(name).isPresent()) {
-                Repositories.paymentTerms().update(ssPaymentTerm);
-            } else {
-                Repositories.paymentTerms().add(ssPaymentTerm);
-            }
-        }
-    }
-
-    private void seedDeliveryTerms(JsonNode seedData) {
-        List<JsonNode> terms = SSJsonSeedDataLoader.getArrayObjects(seedData, "Leveransvillkor");
-        for (JsonNode term : terms) {
-            String name = requiredText(term, "Namn");
-            String description = optionalText(term, "Beskrivning");
-
-            SSDeliveryTerm ssDeliveryTerm = new SSDeliveryTerm(name, description);
-            if (Repositories.deliveryTerms().findByName(name).isPresent()) {
-                Repositories.deliveryTerms().update(ssDeliveryTerm);
-            } else {
-                Repositories.deliveryTerms().add(ssDeliveryTerm);
-            }
-        }
-    }
-
-    private void seedDeliveryWays(JsonNode seedData) {
-        List<JsonNode> ways = SSJsonSeedDataLoader.getArrayObjects(seedData, "Leveranssätt");
-        for (JsonNode way : ways) {
-            String name = requiredText(way, "Namn");
-            String description = optionalText(way, "Beskrivning");
-
-            SSDeliveryWay ssDeliveryWay = new SSDeliveryWay(name, description);
-            if (Repositories.deliveryWays().findByName(name).isPresent()) {
-                Repositories.deliveryWays().update(ssDeliveryWay);
-            } else {
-                Repositories.deliveryWays().add(ssDeliveryWay);
-            }
-        }
-    }
 
     // /////////////////////////////////////////////////////////////////////////////
 

@@ -4,6 +4,7 @@ import se.swedsoft.bookkeeping.data.system.SSDB;
 import se.swedsoft.bookkeeping.data.system.SSAccountingContext;
 import se.swedsoft.bookkeeping.data.system.SSMasterdataContext;
 import se.swedsoft.bookkeeping.data.system.SSProductContext;
+import se.swedsoft.bookkeeping.data.system.SSSalesContext;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -11,6 +12,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import se.swedsoft.bookkeeping.data.SSCustomer;
+import se.swedsoft.bookkeeping.data.SSInvoice;
 import se.swedsoft.bookkeeping.data.SSNewAccountingYear;
 import se.swedsoft.bookkeeping.data.SSNewCompany;
 import se.swedsoft.bookkeeping.data.SSProduct;
@@ -121,17 +123,54 @@ class SSDBStartupAndRefreshV2IntegrationTest {
     @Test
     void startupLocalSeedsRequestedDemoEntitiesInSchemaV2() {
         // Customers, suppliers and products are seeded from Seed_Demo.json
-        assertThat(SSMasterdataContext.getCustomers())
+        List<SSCustomer> customers = SSMasterdataContext.getCustomers();
+        assertThat(customers)
                 .extracting(SSCustomer::getNumber)
                 .containsExactlyInAnyOrder("K001", "K002");
 
-        assertThat(SSProductContext.getProducts())
+        assertThat(customers.stream()
+                .filter(customer -> "K001".equals(customer.getNumber()))
+                .findFirst()
+                .orElseThrow()
+                .getInvoiceAddress()
+                .getCity()).isEqualTo("Kundstad");
+
+        List<SSProduct> products = SSProductContext.getProducts();
+        assertThat(products)
                 .extracting(SSProduct::getNumber)
-                .containsExactlyInAnyOrder("P001", "P002", "P003");
+                .containsExactlyInAnyOrder("P001", "P002", "P003", "P004");
+        assertThat(products.stream()
+                .filter(product -> "P001".equals(product.getNumber()))
+                .findFirst()
+                .orElseThrow()
+                .getPurchasePrice()).isEqualByComparingTo("500.00");
+        assertThat(products.stream()
+                .filter(product -> "P004".equals(product.getNumber()))
+                .findFirst()
+                .orElseThrow()
+                .isOnlyWholeQuantity()).isFalse();
 
         assertThat(SSMasterdataContext.getSuppliers())
                 .extracting(se.swedsoft.bookkeeping.data.SSSupplier::getNumber)
                 .containsExactlyInAnyOrder("L001", "L002");
+
+        List<SSInvoice> invoices = SSSalesContext.getInvoices();
+        assertThat(invoices).hasSize(3);
+        assertThat(invoices)
+                .filteredOn(invoice -> "K001".equals(invoice.getCustomerNr()))
+                .extracting(SSInvoice::getLocalDate)
+                .contains(LocalDate.of(2026, 7, 24));
+        assertThat(invoices)
+                .filteredOn(invoice -> LocalDate.of(2026, 8, 15).equals(invoice.getLocalDate()))
+                .singleElement()
+                .extracting(invoice -> invoice.getPaymentTerm().getName())
+                .isEqualTo("30 dagar");
+        assertThat(invoices)
+                .filteredOn(invoice -> invoice.getPaymentTerm() != null
+                        && "10 dagar".equals(invoice.getPaymentTerm().getName()))
+                .singleElement()
+                .extracting(invoice -> invoice.getRows().get(1).getQuantity())
+                .isEqualTo(25);
 
         // Vouchers are seeded from Seed_Demo_VerFakt.json with auto-assigned numbers
         assertThat(SSAccountingContext.getVouchers()).hasSize(2);
@@ -144,6 +183,7 @@ class SSDBStartupAndRefreshV2IntegrationTest {
         int customerCountBefore = SSMasterdataContext.getCustomers().size();
         int productCountBefore = SSProductContext.getProducts().size();
         int supplierCountBefore = SSMasterdataContext.getSuppliers().size();
+        int invoiceCountBefore = SSSalesContext.getInvoices().size();
         int voucherCountBefore = SSAccountingContext.getVouchers().size();
 
         se.swedsoft.bookkeeping.data.system.SSSystemConfigContext.startupLocal(connection);
@@ -155,6 +195,7 @@ class SSDBStartupAndRefreshV2IntegrationTest {
         assertThat(SSMasterdataContext.getCustomers()).hasSize(customerCountBefore);
         assertThat(SSProductContext.getProducts()).hasSize(productCountBefore);
         assertThat(SSMasterdataContext.getSuppliers()).hasSize(supplierCountBefore);
+        assertThat(SSSalesContext.getInvoices()).hasSize(invoiceCountBefore);
         assertThat(SSAccountingContext.getVouchers()).hasSize(voucherCountBefore);
     }
 
@@ -232,4 +273,3 @@ class SSDBStartupAndRefreshV2IntegrationTest {
         return row;
     }
 }
-

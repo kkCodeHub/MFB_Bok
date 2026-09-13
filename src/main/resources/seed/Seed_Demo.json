@@ -3,12 +3,20 @@
     {
       "Kund-id": "K001",
       "Namn": "Kundföretaget AB",
-      "Er kontaktperson": "Kund Kontakt"
+      "Er kontaktperson": "Kund Kontakt",
+      "Fakturaadress.Namn": "Kundföretaget AB",
+      "Fakturaadress.Adress 1": "Kundgatan 1",
+      "Fakturaadress.Postnummer": "543 21",
+      "Fakturaadress.Postort": "Kundstad"
     },
     {
       "Kund-id": "K002",
       "Namn": "Exempelkunden AB",
-      "Er kontaktperson": "Exempel Kontakt"
+      "Er kontaktperson": "Exempel Kontakt",
+      "Fakturaadress.Namn": "Exempelkunden AB",
+      "Fakturaadress.Adress 1": "Exempelgatan 1",
+      "Fakturaadress.Postnummer": "345 21",
+      "Fakturaadress.Postort": "Exempelstad"
     }
   ],
 
@@ -16,12 +24,20 @@
     {
       "Leverantörs-id": "L001",
       "Namn": "Leverantören AB",
-      "Er kontaktperson": "Leveran Kontakt"
+      "Er kontaktperson": "Leveran Kontakt",
+      "Adress.Namn": "Leverantören AB",
+      "Adress.Adress 1": "Leverantörsgatan 1",
+      "Adress.Postnummer": "678 90",
+      "Adress.Postort": "Leverantörsstad"
     },
     {
       "Leverantörs-id": "L002",
       "Namn": "Kontorsvaror AB",
-      "Er kontaktperson": "Kontor Kontakt"
+      "Er kontaktperson": "Kontor Kontakt",
+      "Adress.Namn": "Kontorsvaror AB",
+      "Adress.Adress 1": "Kontorsgatan 1",
+      "Adress.Postnummer": "123 45",
+      "Adress.Postort": "Kontorsstad"
     }
   ],
 
@@ -29,17 +45,26 @@
     {
       "Produktnummer": "P001",
       "Beskrivning": "Konsulttjänst",
-      "Försäljningspris": 1000.00
+      "Försäljningspris": 1000.00,
+      "Inköpspris": 500.00
     },
     {
       "Produktnummer": "P002",
       "Beskrivning": "Fönster",
-      "Försäljningspris": 2500.00
+      "Försäljningspris": 2500.00,
+      "Inköpspris": 1500.00
     },
     {
       "Produktnummer": "P003",
       "Beskrivning": "Spik",
-      "Försäljningspris": 500.00
+      "Försäljningspris": 500.00,
+      "Inköpspris": 200.00
+    },
+    {
+      "Produktnummer": "P004",
+      "Beskrivning": "Milersättning",
+      "Försäljningspris": 60.00,
+      "Hela antal": "False"
     }
   ]
 }
