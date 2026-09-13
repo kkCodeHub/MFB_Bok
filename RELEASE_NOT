@@ -2,6 +2,10 @@
 Skapad JAR-fil enbart testad på Windows. Java 21 eller nyare krävs.
 Modifieringar, ändringar och tillägg gjorda med stöd av GitHubCopilot.
 
+Version 0.0.1b:
+
+Metoder för seed-hantering flyttad till klass SSSeedService från SSDB.
+
 Version 0.0.1a:
 
 Databas HSQLDB uppgraderad till version 2.7.2.
