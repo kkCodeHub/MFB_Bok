@@ -302,6 +302,7 @@ public class SSVoucherFrame extends SSDefaultTableFrame {
         iTable = new SSTable();
 
         iModel = new SSVoucherTableModel();
+        iModel.addColumn(SSVoucherTableModel.COLUMN_SERIES);
         iModel.addColumn(SSVoucherTableModel.COLUMN_NUMBER);
         iModel.addColumn(SSVoucherTableModel.COLUMN_DATE);
         iModel.addColumn(SSVoucherTableModel.COLUMN_DESCRIPTION);
@@ -553,5 +554,4 @@ public class SSVoucherFrame extends SSDefaultTableFrame {
         return sb.toString();
     }
 }
-
 

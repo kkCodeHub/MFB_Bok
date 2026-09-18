@@ -1,6 +1,7 @@
 {
   "Verifikationer": [
     {
+      "Serie": "A",
       "Datum": "2026-01-05",
       "Beskrivning": "Inköp av kontorsmaterial",
       "Rader": [
@@ -22,6 +23,7 @@
       ]
     },
     {
+      "Serie": "A",
       "Datum": "2026-02-15",
       "Beskrivning": "Försäljning 25%",
       "Rader": [

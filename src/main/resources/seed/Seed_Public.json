@@ -171,6 +171,42 @@
        "Namn": "Hemleverans",
        "Beskrivning": "Hemleverans"
     }
+ ],
+ "Verifikatserie": [
+   {
+     "Händelsekod": "",
+     "Händelsenamn": "Manuella",
+     "Verifikatkod": "A"
+   },
+   {
+     "Händelsekod": "KI",
+     "Händelsenamn": "Kundfaktura/Inbetalning",
+     "Verifikatkod": "B"
+   },
+   {
+     "Händelsekod": "LU",
+     "Händelsenamn": "Leverantörsfaktura/Utbetalning",
+     "Verifikatkod": "C"
+   },
+   {
+     "Händelsekod": "SA",
+     "Händelsenamn": "Skatt/Avgift",
+     "Verifikatkod": "D"
+   },
+   {
+     "Händelsekod": "MO",
+     "Händelsenamn": "Momsredovisning",
+     "Verifikatkod": "E"
+   },
+   {
+     "Händelsekod": "KA",
+     "Händelsenamn": "Kassa",
+     "Verifikatkod": "F"
+   },
+   {
+     "Händelsekod": "IN",
+     "Händelsenamn": "Inlästa verifikat",
+     "Verifikatkod": "I"
+   }
  ]
-
 }

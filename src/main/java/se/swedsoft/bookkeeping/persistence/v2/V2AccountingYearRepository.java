@@ -11,6 +11,7 @@ import se.swedsoft.bookkeeping.data.SSNewCompany;
 import se.swedsoft.bookkeeping.gui.SSMainFrame;
 import se.swedsoft.bookkeeping.gui.util.SSBundle;
 import se.swedsoft.bookkeeping.gui.util.dialogs.SSErrorDialog;
+import se.swedsoft.bookkeeping.persistence.Repositories;
 import se.swedsoft.bookkeeping.persistence.snapshot.AccountPlanSnapshot;
 
 import java.math.BigDecimal;
@@ -132,10 +133,18 @@ public class V2AccountingYearRepository {
 
             replaceYearBalances(year);
             replaceBudgetRows(year);
+            initializeDefaultVoucherSeriesMappings(year);
             connection.commit();
         } catch (SQLException e) {
             handleSqlError(e);
         }
+    }
+
+    private void initializeDefaultVoucherSeriesMappings(SSNewAccountingYear year) throws SQLException {
+        if (year == null || year.getId() == null) {
+            return;
+        }
+        Repositories.yearVoucherEventSeriesMaps().initializeDefaultMappingsForYear(year.getId());
     }
 
     public void update(SSNewAccountingYear year) {

@@ -33,6 +33,9 @@ import se.swedsoft.bookkeeping.persistence.v2.V2ProjectRepository;
 import se.swedsoft.bookkeeping.persistence.v2.V2ResultUnitRepository;
 import se.swedsoft.bookkeeping.persistence.v2.V2VoucherRepository;
 import se.swedsoft.bookkeeping.persistence.v2.V2VoucherTemplateRepository;
+import se.swedsoft.bookkeeping.persistence.v2.V2VoucherEventTypeRepository;
+import se.swedsoft.bookkeeping.persistence.v2.V2YearVoucherEventSeriesMapRepository;
+import se.swedsoft.bookkeeping.persistence.v2.V2VoucherSeriesCounterRepository;
 
 import java.lang.reflect.Proxy;
 import java.sql.Connection;
@@ -88,6 +91,9 @@ public final class Repositories {
     private static V2AccountPlanRepository accountPlanRepository;
     private static V2VoucherRepository voucherRepository;
     private static V2VoucherTemplateRepository voucherTemplateRepository;
+    private static V2VoucherEventTypeRepository voucherEventTypeRepository;
+    private static V2YearVoucherEventSeriesMapRepository yearVoucherEventSeriesMapRepository;
+    private static V2VoucherSeriesCounterRepository voucherSeriesCounterRepository;
     private static V2AccountingYearRepository accountingYearRepository;
     private static V2CompanyRepository companyRepository;
     private static V2ProjectRepository projectRepository;
@@ -254,6 +260,9 @@ public final class Repositories {
                     se.swedsoft.bookkeeping.data.SSNewAccountingYear iYear = SSCompanyYearContext.getCurrentYear();
                     return iYear != null ? iYear : db.getCurrentYear();
                 }, db::rollbackCurrentTransaction);
+        voucherEventTypeRepository = new V2VoucherEventTypeRepository(db.getConnection());
+        yearVoucherEventSeriesMapRepository = new V2YearVoucherEventSeriesMapRepository(db.getConnection());
+        voucherSeriesCounterRepository = new V2VoucherSeriesCounterRepository(db.getConnection());
         accountingYearRepository = new V2AccountingYearRepository(
                 db.getConnection(),
                 () -> {
@@ -302,6 +311,9 @@ public final class Repositories {
         voucherTemplateRepository = new V2VoucherTemplateRepository(NO_CONNECTION, () -> null, () -> { });
         accountPlanRepository = new V2AccountPlanRepository(NO_CONNECTION, () -> { });
         voucherRepository = new V2VoucherRepository(NO_CONNECTION, () -> null, () -> null, () -> { });
+        voucherEventTypeRepository = new V2VoucherEventTypeRepository(NO_CONNECTION);
+        yearVoucherEventSeriesMapRepository = new V2YearVoucherEventSeriesMapRepository(NO_CONNECTION);
+        voucherSeriesCounterRepository = new V2VoucherSeriesCounterRepository(NO_CONNECTION);
         accountingYearRepository = new V2AccountingYearRepository(
                 NO_CONNECTION,
                 () -> null,
@@ -644,6 +656,39 @@ public final class Repositories {
     public static V2ProjectRepository projects() {
         ensureInitialized();
         return projectRepository;
+    }
+
+    /**
+     * Returns the {@link V2VoucherEventTypeRepository}.
+     *
+     * @return the voucher-event-type repository; never {@code null} after {@link #init}
+     * @throws IllegalStateException if {@link #init} has not been called
+     */
+    public static V2VoucherEventTypeRepository voucherEventTypes() {
+        ensureInitialized();
+        return voucherEventTypeRepository;
+    }
+
+    /**
+     * Returns the {@link V2YearVoucherEventSeriesMapRepository}.
+     *
+     * @return the year-voucher-event-series-map repository; never {@code null} after {@link #init}
+     * @throws IllegalStateException if {@link #init} has not been called
+     */
+    public static V2YearVoucherEventSeriesMapRepository yearVoucherEventSeriesMaps() {
+        ensureInitialized();
+        return yearVoucherEventSeriesMapRepository;
+    }
+
+    /**
+     * Returns the {@link V2VoucherSeriesCounterRepository}.
+     *
+     * @return the voucher-series-counter repository; never {@code null} after {@link #init}
+     * @throws IllegalStateException if {@link #init} has not been called
+     */
+    public static V2VoucherSeriesCounterRepository voucherSeriesCounters() {
+        ensureInitialized();
+        return voucherSeriesCounterRepository;
     }
 
     /**

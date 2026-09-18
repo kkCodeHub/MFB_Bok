@@ -54,6 +54,7 @@ public class SSCompanySettingsDialog extends SSDialog implements ListSelectionLi
         iPages.add(new SSCompanyPageDefaultAccount(this));
         iPages.add(new SSCompanyPageTax(this));
         iPages.add(new SSCompanyPageAutoIncrement(this));
+        iPages.add(new SSCompanyPageVoucherSeries(this));
 
         setPanel(iPanel);
 

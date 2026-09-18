@@ -29,6 +29,8 @@ public class SSVoucher implements Cloneable, SSTableSearchable {
 
     private LocalDate iDate;
 
+    private String iSeries;
+
     private String iDescription;
 
     private SSVoucher iCorrects;
@@ -43,12 +45,14 @@ public class SSVoucher implements Cloneable, SSTableSearchable {
     public SSVoucher() {
         iDate = SSVoucherMath.getNextVoucherLocalDate();
         iVoucherRows = new ArrayList<>();
+        iSeries = "A";
         doAutoIncrecement();
     }
 
     public SSVoucher(Integer iNumber) {
         iDate = SSVoucherMath.getNextVoucherLocalDate();
         iVoucherRows = new ArrayList<>();
+        iSeries = "A";
         this.iNumber = iNumber;
     }
 
@@ -62,6 +66,7 @@ public class SSVoucher implements Cloneable, SSTableSearchable {
     public SSVoucher(Integer iNumber, boolean skipAutoDateInit) {
         iVoucherRows = new ArrayList<>();
         this.iNumber = iNumber == null ? 0 : iNumber;
+        iSeries = "A";
         iDate = skipAutoDateInit ? null : SSVoucherMath.getNextVoucherLocalDate();
     }
 
@@ -81,6 +86,7 @@ public class SSVoucher implements Cloneable, SSTableSearchable {
     public void copyFrom(SSVoucher pVoucher) {
         iNumber = pVoucher.iNumber;
         iDate = pVoucher.iDate;
+        iSeries = pVoucher.iSeries;
         iDescription = pVoucher.iDescription;
         iCorrects = pVoucher.iCorrects;
         iCorrectedBy = pVoucher.iCorrectedBy;
@@ -108,6 +114,34 @@ public class SSVoucher implements Cloneable, SSTableSearchable {
      */
     public void setNumber(int number) {
         iNumber = number;
+    }
+
+    /**
+     * Returns the voucher series.
+     *
+     * @return the series code
+     */
+    public String getSeries() {
+        return iSeries;
+    }
+
+    /**
+     * Sets the voucher series.
+     *
+     * @param series the series code, A-Z
+     */
+    public void setSeries(String series) {
+        if (series == null) {
+            throw new NullPointerException("series must not be null");
+        }
+        if (series.length() != 1) {
+            throw new IllegalArgumentException("series must be a single letter A-Z");
+        }
+        char seriesCode = Character.toUpperCase(series.charAt(0));
+        if (seriesCode < 'A' || seriesCode > 'Z') {
+            throw new IllegalArgumentException("series must be a letter A-Z");
+        }
+        iSeries = String.valueOf(seriesCode);
     }
 
     /**

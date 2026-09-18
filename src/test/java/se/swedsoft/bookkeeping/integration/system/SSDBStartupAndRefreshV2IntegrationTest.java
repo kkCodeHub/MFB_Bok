@@ -174,6 +174,9 @@ class SSDBStartupAndRefreshV2IntegrationTest {
 
         // Vouchers are seeded from Seed_Demo_VerFakt.json with auto-assigned numbers
         assertThat(SSAccountingContext.getVouchers()).hasSize(2);
+        assertThat(SSAccountingContext.getVouchers())
+                .extracting(SSVoucher::getSeries)
+                .containsOnly("A");
     }
 
     @Test

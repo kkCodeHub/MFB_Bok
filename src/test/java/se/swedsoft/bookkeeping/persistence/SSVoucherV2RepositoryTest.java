@@ -75,6 +75,7 @@ class SSVoucherV2RepositoryTest {
     @Test
     void addUpdateDeleteVoucherViaRepository() {
         SSVoucher voucher = new SSVoucher(61001);
+        voucher.setSeries("B");
         voucher.setLocalDate(LocalDate.of(2026, 6, 15));
         voucher.setDescription("Voucher repository test");
         voucher.getRows().add(voucherRow(1910, new BigDecimal("500.00"), null));
@@ -84,6 +85,7 @@ class SSVoucherV2RepositoryTest {
 
         Optional<SSVoucher> fetched = Repositories.vouchers().findByNumber(year, 61001);
         assertThat(fetched).isPresent();
+        assertThat(fetched.get().getSeries()).isEqualTo("B");
         assertThat(fetched.get().getDescription()).isEqualTo("Voucher repository test");
         assertThat(fetched.get().getRows()).hasSize(2);
 
@@ -117,4 +119,3 @@ class SSVoucherV2RepositoryTest {
         return company.getId();
     }
 }
-

@@ -216,15 +216,17 @@ public class SSSeedService {
         }
     }
 
-    public void seedPublicTables(Connection connection) throws IOException {
+    public void seedPublicTables(Connection connection) throws IOException, SQLException {
         JsonNode seedData = SSJsonSeedDataLoader.loadSeedFile(SEED_PUBLIC_FILE);
         seedCurrencies(seedData, connection);
         seedUnits(seedData, connection);
         seedPaymentTerms(seedData, connection);
         seedDeliveryTerms(seedData, connection);
         seedDeliveryWays(seedData, connection);
+        seedVoucherEventTypes(seedData, connection);
         LOG.info("Successfully seeded PUBLIC schema tables");
     }
+
 
     public boolean isSeedAlreadyDone(Connection connection) throws SQLException {
         try (PreparedStatement iStatement = connection.prepareStatement(
@@ -268,7 +270,12 @@ public class SSSeedService {
             }
 
             setSchemaCallback.accept("PUBLIC");
-            seedPublicTables(connection);
+            // Public seed must not block company-year creation; voucher events are skipped per row below.
+            try {
+                seedPublicTables(connection);
+            } catch (IOException | SQLException e) {
+                LOG.warn("Could not seed PUBLIC schema tables: {}", e.getMessage(), e);
+            }
 
             setSchemaCallback.accept(DEMO_SCHEMA_NAME);
             SSNewCompany seededCompany = seedDemoCompanyAndAccountingYear(connection, setCompanyCallback);
@@ -369,6 +376,35 @@ public class SSSeedService {
                 Repositories.deliveryWays().add(ssDeliveryWay);
             }
         }
+    }
+
+    private void seedVoucherEventTypes(JsonNode seedData, Connection connection) throws SQLException {
+        List<JsonNode> events = SSJsonSeedDataLoader.getArrayObjects(seedData, "Verifikatserie");
+        var repo = Repositories.voucherEventTypes();
+
+        for (JsonNode event : events) {
+            String seriesCode = optionalText(event, "Verifikatkod");
+            String eventCode = optionalText(event, "Händelsekod");
+            String eventName = optionalText(event, "Händelsenamn");
+
+            if (seriesCode == null || seriesCode.length() != 1) {
+                LOG.warn("Skipping voucher event type with invalid Verifikatkod: {}", seriesCode);
+                continue;
+            }
+            if (!"A".equals(seriesCode) && (eventCode == null || eventCode.isEmpty())) {
+                LOG.warn("Skipping voucher event type '{}' without Händelsekod", seriesCode);
+                continue;
+            }
+            if (eventName == null || eventName.isEmpty()) {
+                LOG.warn("Skipping voucher event type '{}' without Händelsenamn", seriesCode);
+                continue;
+            }
+            if ("A".equals(seriesCode) && eventCode == null) {
+                eventCode = "";
+            }
+            repo.upsertFromSeed(eventCode, eventName, seriesCode);
+        }
+        LOG.debug("Seeded {} voucher event types", events.size());
     }
 
     public SSNewCompany seedDemoCompanyAndAccountingYear(
@@ -515,6 +551,10 @@ public class SSSeedService {
                 LocalDate voucherDate = adjustDateToYear(rawDate, seedYear);
 
                 SSVoucher voucher = new SSVoucher();
+                String series = optionalText(verNode, "Serie");
+                if (series != null) {
+                    voucher.setSeries(series);
+                }
                 voucher.setLocalDate(voucherDate);
                 voucher.setDescription(requiredText(verNode, "Beskrivning"));
 

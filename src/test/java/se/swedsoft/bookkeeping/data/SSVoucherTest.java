@@ -35,6 +35,13 @@ class SSVoucherTest {
     }
 
     @Test
+    void integerConstructorDefaultsSeriesToA() {
+        SSVoucher v = new SSVoucher(42);
+
+        assertThat(v.getSeries()).isEqualTo("A");
+    }
+
+    @Test
     void integerConstructorInitialisesEmptyRowList() {
         SSVoucher v = new SSVoucher(1);
 
@@ -70,6 +77,16 @@ class SSVoucherTest {
         v.setDescription("Test voucher");
 
         assertThat(v.getDescription()).isEqualTo("Test voucher");
+    }
+
+    // ---- setSeries / getSeries ----
+
+    @Test
+    void setSeriesUpdatesSeries() {
+        SSVoucher v = newVoucher(1);
+        v.setSeries("b");
+
+        assertThat(v.getSeries()).isEqualTo("B");
     }
 
     // ---- setCorrects / getCorrects ----
@@ -201,6 +218,7 @@ class SSVoucherTest {
     @Test
     void copyFromCopiesAllScalarFields() {
         SSVoucher original = newVoucher(7);
+        original.setSeries("C");
         original.setDescription("Original");
         // Use a day-boundary Date since fields are now LocalDate internally
         LocalDate date = LocalDate.of(2024, 3, 10);
@@ -209,6 +227,7 @@ class SSVoucherTest {
         SSVoucher copy = new SSVoucher(original);
 
         assertThat(copy.getNumber()).isEqualTo(7);
+        assertThat(copy.getSeries()).isEqualTo("C");
         assertThat(copy.getDescription()).isEqualTo("Original");
         assertThat(copy.getLocalDate()).isEqualTo(date);
     }

@@ -58,11 +58,38 @@ public class SSVoucherTableModel extends SSTableModel<SSVoucher> {
     public static SSVoucherTableModel getDropDownModel() {
         SSVoucherTableModel iModel = new SSVoucherTableModel();
 
+        iModel.addColumn(COLUMN_SERIES);
         iModel.addColumn(COLUMN_NUMBER);
         iModel.addColumn(COLUMN_DESCRIPTION);
 
         return iModel;
     }
+
+    /**
+     *  Serie
+     */
+    public static SSTableColumn<SSVoucher> COLUMN_SERIES = new SSTableColumn<>(
+            SSBundle.getBundle().getString("vouchertable.column.0")) {
+        @Override
+        public Object getValue(SSVoucher iVoucher) {
+            return iVoucher.getSeries();
+        }
+
+        @Override
+        public void setValue(SSVoucher iVoucher, Object iValue) {
+            iVoucher.setSeries((String) iValue);
+        }
+
+        @Override
+        public Class getColumnClass() {
+            return String.class;
+        }
+
+        @Override
+        public int getDefaultWidth() {
+            return 80;
+        }
+    };
 
     /**
      *  Fakturanr

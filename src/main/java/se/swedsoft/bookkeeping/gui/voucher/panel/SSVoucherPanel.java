@@ -5,6 +5,7 @@ import se.swedsoft.bookkeeping.calc.math.SSVoucherMath;
 import se.swedsoft.bookkeeping.data.*;
 import se.swedsoft.bookkeeping.data.system.SSAccountingContext;
 import se.swedsoft.bookkeeping.data.util.SSConfig;
+import se.swedsoft.bookkeeping.persistence.Repositories;
 import se.swedsoft.bookkeeping.gui.SSMainFrame;
 import se.swedsoft.bookkeeping.gui.util.SSBundle;
 import se.swedsoft.bookkeeping.gui.util.SSSelectionListener;
@@ -31,7 +32,12 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.sql.SQLException;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 
 /**
@@ -45,6 +51,8 @@ public class SSVoucherPanel implements TableModelListener, ListSelectionListener
     protected SSTable iTable;
 
     protected JFormattedTextField iNumber;
+
+    protected JComboBox<SeriesOption> iSeries;
 
     protected SSTableComboBox<SSVoucherTemplate> iDescription;
 
@@ -77,6 +85,24 @@ public class SSVoucherPanel implements TableModelListener, ListSelectionListener
     protected SSVoucherVerifier iVerifier;
 
     private JCheckBox iReopenDialog;
+
+    private static final class SeriesOption {
+        private final String code;
+        private final String label;
+
+        private SeriesOption(String code, String label) {
+            this.code = code;
+            this.label = label == null ? "" : label;
+        }
+
+        @Override
+        public String toString() {
+            if (label == null || label.trim().isEmpty()) {
+                return code;
+            }
+            return code + " - " + label;
+        }
+    }
 
     public static boolean iAccountChanged;
     public static boolean iDebetChanged;
@@ -124,9 +150,40 @@ public class SSVoucherPanel implements TableModelListener, ListSelectionListener
         iDeleteRowButton.setRolloverIcon(
                 SSIcon.getIcon("ICON_DELETEVOUCHERROW", SSIcon.IconState.HIGHLIGHTED));
 
+        if (iSeries != null) {
+            iSeries.addActionListener(e -> {
+                if (iVoucher == null || !iSeries.isEnabled()) {
+                    return;
+                }
+                Object selected = iSeries.getSelectedItem();
+                if (selected instanceof SeriesOption) {
+                    iVoucher.setSeries(((SeriesOption) selected).code);
+                    updateNextNumberForSeries();
+                }
+            });
+        }
+        populateSeriesOptions();
+
         iDescription.setModel(SSVoucherTemplateTableModel.getDropDownModel());
         iDescription.setSearchColumns(0);
         iDescription.setAllowCustomValues(true);
+
+        if (iSeries != null) {
+            iSeries.setPreferredSize(new Dimension(120, iSeries.getPreferredSize().height));
+            iSeries.setMinimumSize(new Dimension(120, iSeries.getPreferredSize().height));
+            iSeries.setMaximumSize(new Dimension(120, iSeries.getPreferredSize().height));
+        }
+        if (iNumber != null) {
+            iNumber.setPreferredSize(new Dimension(25, iNumber.getPreferredSize().height));
+            iNumber.setMinimumSize(new Dimension(25, iNumber.getPreferredSize().height));
+            iNumber.setMaximumSize(new Dimension(25, iNumber.getPreferredSize().height));
+            iNumber.setColumns(5);
+        }
+        if (iDate != null) {
+            iDate.setPreferredSize(new Dimension(150, iDate.getPreferredSize().height));
+            iDate.setMinimumSize(new Dimension(150, iDate.getPreferredSize().height));
+            iDate.setMaximumSize(new Dimension(150, iDate.getPreferredSize().height));
+        }
 
         // Event for selecting a template
         iDescription.addSelectionListener(new SSSelectionListener<>() {
@@ -142,20 +199,22 @@ public class SSVoucherPanel implements TableModelListener, ListSelectionListener
             }
         });
 
-        iDescription.getComponent(0).addKeyListener(new KeyAdapter() {
-            @Override
-            public void keyPressed(KeyEvent e) {
-                if (e.getKeyCode() == KeyEvent.VK_ENTER) {
-                    iDescription.cancelCellEditing();
-                    SwingUtilities.invokeLater(() -> {
+        if (iDescription != null && iDescription.getComponentCount() > 0) {
+            iDescription.getComponent(0).addKeyListener(new KeyAdapter() {
+                @Override
+                public void keyPressed(KeyEvent e) {
+                    if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+                        iDescription.cancelCellEditing();
+                        SwingUtilities.invokeLater(() -> {
 
-                            iTable.requestFocusInWindow();
-                            iTable.changeSelection(0, 0, false, false);
+                                iTable.requestFocusInWindow();
+                                iTable.changeSelection(0, 0, false, false);
 
-                        });
+                            });
+                    }
                 }
-            }
-        });
+            });
+        }
 
         new SSTraversalAction(iTable) {
             @Override
@@ -250,14 +309,24 @@ public class SSVoucherPanel implements TableModelListener, ListSelectionListener
 
         iDate.addChangeListener(e -> iVoucher.setLocalDate(iDate.getLocalDate()));
 
-        iDate.getEditor().getComponent(0).addKeyListener(new KeyAdapter() {
-            @Override
-            public void keyPressed(KeyEvent e) {
-                if (e.getKeyCode() == KeyEvent.VK_ENTER) {
-                    SwingUtilities.invokeLater(() -> iDescription.getComponent(0).requestFocusInWindow());
-                }
+        if (iDate != null && iDate.getEditor() instanceof JSpinner.DateEditor) {
+            JSpinner.DateEditor editor = (JSpinner.DateEditor) iDate.getEditor();
+            JFormattedTextField textField = editor.getTextField();
+            if (textField != null) {
+                textField.addKeyListener(new KeyAdapter() {
+                    @Override
+                    public void keyPressed(KeyEvent e) {
+                        if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+                            SwingUtilities.invokeLater(() -> {
+                                if (iDescription != null && iDescription.getComponentCount() > 0) {
+                                    iDescription.getComponent(0).requestFocusInWindow();
+                                }
+                            });
+                        }
+                    }
+                });
             }
-        });
+        }
 
         iAddAccountButton.addKeyListener(new KeyAdapter() {
             @Override
@@ -519,6 +588,80 @@ public class SSVoucherPanel implements TableModelListener, ListSelectionListener
      * @param iEditing
      * @param repop
      */
+    private void populateSeriesOptions() {
+        Set<String> seriesCodes = new LinkedHashSet<>();
+        Map<String, String> eventNamesBySeries = new LinkedHashMap<>();
+        SSNewAccountingYear currentYear = SSAccountingContext.getCurrentYear();
+        if (currentYear != null && currentYear.getId() != null) {
+            try {
+                for (Map<String, Object> mapping : Repositories.yearVoucherEventSeriesMaps().findByYearOrderedById(currentYear.getId())) {
+                    Object seriesValue = mapping.get("series_code");
+                    if (seriesValue != null) {
+                        String seriesCode = String.valueOf(seriesValue).trim().toUpperCase();
+                        if (!seriesCode.isEmpty()) {
+                            seriesCodes.add(seriesCode);
+                            Object displayName = mapping.getOrDefault("display_event_name",
+                                    mapping.getOrDefault("event_name", ""));
+                            if (displayName != null) {
+                                eventNamesBySeries.put(seriesCode, String.valueOf(displayName).trim());
+                            }
+                        }
+                    }
+                }
+            } catch (SQLException e) {
+                seriesCodes.clear();
+            }
+        }
+        if (seriesCodes.isEmpty()) {
+            for (char code = 'A'; code <= 'Z'; code++) {
+                seriesCodes.add(String.valueOf(code));
+            }
+        }
+
+        DefaultComboBoxModel<SeriesOption> model = new DefaultComboBoxModel<>();
+        for (String seriesCode : seriesCodes) {
+            model.addElement(new SeriesOption(seriesCode, eventNamesBySeries.get(seriesCode)));
+        }
+        iSeries.setModel(model);
+    }
+
+    private void selectSeries(String seriesCode) {
+        if (seriesCode == null || seriesCode.isEmpty()) {
+            seriesCode = "A";
+        }
+        for (int index = 0; index < iSeries.getItemCount(); index++) {
+            SeriesOption item = iSeries.getItemAt(index);
+            if (item != null && item.code.equalsIgnoreCase(seriesCode)) {
+                iSeries.setSelectedIndex(index);
+                return;
+            }
+        }
+        if (iSeries.getItemCount() > 0) {
+            iSeries.setSelectedIndex(0);
+        }
+    }
+
+    private void updateNextNumberForSeries() {
+        if (iVoucher == null || iSeries.getSelectedItem() == null) {
+            return;
+        }
+        SSNewAccountingYear currentYear = SSAccountingContext.getCurrentYear();
+        if (currentYear == null || currentYear.getId() == null) {
+            return;
+        }
+        SeriesOption selected = (SeriesOption) iSeries.getSelectedItem();
+        String seriesCode = selected != null ? selected.code : "A";
+        try {
+            Integer lastNumber = Repositories.voucherSeriesCounters()
+                    .findByYearAndSeries(currentYear.getId(), seriesCode)
+                    .map(row -> ((Number) row.get("last_number")).intValue())
+                    .orElse(0);
+            iNumber.setValue(lastNumber + 1);
+        } catch (SQLException e) {
+            iNumber.setValue(1);
+        }
+    }
+
     public void setVoucher(SSVoucher pVoucher, boolean iEditing, boolean repop) {
         iVoucher = pVoucher;
 
@@ -535,9 +678,20 @@ public class SSVoucherPanel implements TableModelListener, ListSelectionListener
         iModel.setObjects(iVoucher.getRows(), iEditing);
         iModel.setupTable(iTable, true);
 
+        populateSeriesOptions();
+        iSeries.setEnabled(!iEditing);
+        if (iEditing) {
+            selectSeries(pVoucher.getSeries());
+            iNumber.setValue(pVoucher.getNumber());
+        } else {
+            selectSeries(pVoucher.getSeries());
+            if (iSeries.getSelectedItem() instanceof SeriesOption) {
+                iVoucher.setSeries(((SeriesOption) iSeries.getSelectedItem()).code);
+            }
+            updateNextNumberForSeries();
+        }
 
         iDescription.setText(pVoucher.getDescription());
-        iNumber.setValue(pVoucher.getNumber());
         iDate.setLocalDate(pVoucher.getLocalDate());
         iStoreAsTemplate.setSelected(false);
 

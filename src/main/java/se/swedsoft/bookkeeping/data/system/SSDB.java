@@ -459,6 +459,9 @@ public class SSDB {
 
     public void applyOpenedYearFromRepository(SSNewAccountingYear iYear) {
         iCurrentYear = iYear;
+        if (iCurrentCompany != null && iCurrentCompany.getId() != null && iYear != null && iYear.getId() != null) {
+            SSDBConfig.setYearId(iCurrentCompany.getId(), iYear.getId());
+        }
         clearYearCachesInternal();
         notifyListeners("YEAR", iCurrentYear, null);
     }

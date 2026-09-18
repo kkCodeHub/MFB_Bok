@@ -7,6 +7,7 @@ import se.swedsoft.bookkeeping.data.SSNewCompany;
 import se.swedsoft.bookkeeping.data.SSVoucher;
 import se.swedsoft.bookkeeping.data.SSVoucherRow;
 import se.swedsoft.bookkeeping.data.system.SSEventTriggerSyncContext;
+import se.swedsoft.bookkeeping.persistence.Repositories;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -70,7 +71,8 @@ public class V2VoucherRepository {
             while (true) {
                 int count = 0;
                 try (PreparedStatement statement = connection.prepareStatement(
-                        "SELECT * FROM tbl_voucher WHERE yearid=? AND id>?")) {
+                        "SELECT id, series, number, yearid, vdate, description, corrects_id, corrected_by_id "
+                                + "FROM tbl_voucher WHERE yearid=? AND id>?")) {
                     statement.setObject(1, year.getId());
                     statement.setObject(2, maxId);
                     statement.setMaxRows(1024);
@@ -98,7 +100,8 @@ public class V2VoucherRepository {
         }
         try {
             try (PreparedStatement statement = connection.prepareStatement(
-                    "SELECT * FROM tbl_voucher WHERE number=? AND yearid=?")) {
+                    "SELECT id, series, number, yearid, vdate, description, corrects_id, corrected_by_id "
+                            + "FROM tbl_voucher WHERE number=? AND yearid=?")) {
                 statement.setObject(1, number);
                 statement.setObject(2, year.getId());
                 try (ResultSet resultSet = statement.executeQuery()) {
@@ -132,13 +135,14 @@ public class V2VoucherRepository {
         SSNewAccountingYear year = resolveYear(voucher);
         try {
             try (PreparedStatement statement = connection.prepareStatement(
-                    "UPDATE tbl_voucher SET vdate=?,description=?,corrects_id=?,corrected_by_id=? WHERE number=? AND yearid=?")) {
-                statement.setObject(1, java.sql.Date.valueOf(voucher.getLocalDate()));
-                statement.setObject(2, voucher.getDescription());
-                statement.setObject(3, getVoucherIdByNumberV2(voucher.getCorrects(), year.getId()));
-                statement.setObject(4, getVoucherIdByNumberV2(voucher.getCorrectedBy(), year.getId()));
-                statement.setObject(5, voucher.getNumber());
-                statement.setObject(6, year.getId());
+                    "UPDATE tbl_voucher SET series=?,vdate=?,description=?,corrects_id=?,corrected_by_id=? WHERE number=? AND yearid=?")) {
+                statement.setObject(1, voucher.getSeries());
+                statement.setObject(2, java.sql.Date.valueOf(voucher.getLocalDate()));
+                statement.setObject(3, voucher.getDescription());
+                statement.setObject(4, getVoucherIdByNumberV2(voucher.getCorrects(), year.getId()));
+                statement.setObject(5, getVoucherIdByNumberV2(voucher.getCorrectedBy(), year.getId()));
+                statement.setObject(6, voucher.getNumber());
+                statement.setObject(7, year.getId());
                 statement.executeUpdate();
             }
 
@@ -202,19 +206,20 @@ public class V2VoucherRepository {
         SSNewAccountingYear year = resolveYear(voucher);
         try {
             if (!hasNumber) {
-                voucher.setNumber(findLastNumber(year.getId()) + 1);
+                voucher.setNumber(findLastNumber(year.getId(), voucher.getSeries()) + 1);
             }
 
             Integer voucherId = null;
             try (PreparedStatement statement = connection.prepareStatement(
-                    "INSERT INTO tbl_voucher(number,yearid,vdate,description,corrects_id,corrected_by_id) VALUES(?,?,?,?,?,?)",
+                    "INSERT INTO tbl_voucher(series,number,yearid,vdate,description,corrects_id,corrected_by_id) VALUES(?,?,?,?,?,?,?)",
                     Statement.RETURN_GENERATED_KEYS)) {
-                statement.setObject(1, voucher.getNumber());
-                statement.setObject(2, year.getId());
-                statement.setObject(3, java.sql.Date.valueOf(voucher.getLocalDate()));
-                statement.setObject(4, voucher.getDescription());
-                statement.setObject(5, getVoucherIdByNumberV2(voucher.getCorrects(), year.getId()));
-                statement.setObject(6, getVoucherIdByNumberV2(voucher.getCorrectedBy(), year.getId()));
+                statement.setObject(1, voucher.getSeries());
+                statement.setObject(2, voucher.getNumber());
+                statement.setObject(3, year.getId());
+                statement.setObject(4, java.sql.Date.valueOf(voucher.getLocalDate()));
+                statement.setObject(5, voucher.getDescription());
+                statement.setObject(6, getVoucherIdByNumberV2(voucher.getCorrects(), year.getId()));
+                statement.setObject(7, getVoucherIdByNumberV2(voucher.getCorrectedBy(), year.getId()));
                 statement.executeUpdate();
                 try (ResultSet keys = statement.getGeneratedKeys()) {
                     if (keys.next()) {
@@ -229,6 +234,8 @@ public class V2VoucherRepository {
             if (voucherId != null) {
                 replaceVoucherRowsV2(voucherId, voucher);
             }
+
+            Repositories.voucherSeriesCounters().updateLastNumber(year.getId(), voucher.getSeries(), voucher.getNumber());
 
             connection.commit();
             SSEventTriggerSyncContext.triggerAction(
@@ -294,9 +301,19 @@ public class V2VoucherRepository {
     }
 
     private int findLastNumber(Integer yearId) throws SQLException {
-        try (PreparedStatement statement = connection.prepareStatement(
-                "SELECT MAX(number) AS maxnum FROM tbl_voucher WHERE yearid=?")) {
+        return findLastNumber(yearId, null);
+    }
+
+    private int findLastNumber(Integer yearId, String seriesCode) throws SQLException {
+        String sql = "SELECT MAX(number) AS maxnum FROM tbl_voucher WHERE yearid=?";
+        if (seriesCode != null && !seriesCode.trim().isEmpty()) {
+            sql += " AND series=?";
+        }
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setObject(1, yearId);
+            if (seriesCode != null && !seriesCode.trim().isEmpty()) {
+                statement.setObject(2, seriesCode);
+            }
             try (ResultSet resultSet = statement.executeQuery()) {
                 if (resultSet.next()) {
                     return resultSet.getInt("maxnum");
@@ -408,6 +425,7 @@ public class V2VoucherRepository {
 
     private SSVoucher mapVoucherV2(ResultSet resultSet) throws SQLException {
         SSVoucher voucher = new SSVoucher(resultSet.getInt("number"), true);
+        voucher.setSeries(resultSet.getString("series"));
         java.sql.Date date = resultSet.getDate("vdate");
         if (date != null) {
             voucher.setLocalDate(date.toLocalDate());
