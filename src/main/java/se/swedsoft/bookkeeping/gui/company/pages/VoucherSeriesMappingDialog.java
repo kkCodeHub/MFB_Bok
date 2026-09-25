@@ -28,11 +28,17 @@ public class VoucherSeriesMappingDialog extends SSDialog {
         public int mappingId;
         public String customEventName;
         public String seriesCode;
+        public boolean active;
 
         public MappingData(int mappingId, String customEventName, String seriesCode) {
+            this(mappingId, customEventName, seriesCode, true);
+        }
+
+        public MappingData(int mappingId, String customEventName, String seriesCode, boolean active) {
             this.mappingId = mappingId;
             this.customEventName = customEventName;
             this.seriesCode = seriesCode;
+            this.active = active;
         }
     }
 
@@ -45,6 +51,7 @@ public class VoucherSeriesMappingDialog extends SSDialog {
 
     private JTextField iCustomEventNameField;
     private JComboBox<SeriesCodeOption> iSeriesCodeCombo;
+    private JCheckBox iActiveCheckBox;
     private JButton iOkButton;
     private JButton iCancelButton;
     private int iResultCode = JOptionPane.CANCEL_OPTION;
@@ -90,6 +97,14 @@ public class VoucherSeriesMappingDialog extends SSDialog {
         gbc.gridx = 1;
         contentPanel.add(iSeriesCodeCombo, gbc);
 
+        JLabel activeLabel = new JLabel("Aktiv:");
+        iActiveCheckBox = new JCheckBox();
+        gbc.gridx = 0;
+        gbc.gridy = 2;
+        contentPanel.add(activeLabel, gbc);
+        gbc.gridx = 1;
+        contentPanel.add(iActiveCheckBox, gbc);
+
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         iOkButton = new JButton("OK");
         iCancelButton = new JButton("Avbryt");
@@ -125,9 +140,11 @@ public class VoucherSeriesMappingDialog extends SSDialog {
 
         if (iMode == Mode.EDIT && iExistingData != null) {
             iCustomEventNameField.setText(iExistingData.customEventName);
+            iActiveCheckBox.setSelected(iExistingData.active);
             selectSeriesCode(iExistingData.seriesCode);
         } else {
             iCustomEventNameField.setText("");
+            iActiveCheckBox.setSelected(true);
             selectFirstEnabledSeriesCode();
         }
         iCustomEventNameField.selectAll();
@@ -139,9 +156,10 @@ public class VoucherSeriesMappingDialog extends SSDialog {
         String customEventName = iCustomEventNameField.getText().trim();
         SeriesCodeOption selected = (SeriesCodeOption) iSeriesCodeCombo.getSelectedItem();
         String seriesCode = selected != null ? selected.code : null;
+        boolean active = iActiveCheckBox.isSelected();
 
         if (customEventName.isEmpty()) {
-            JOptionPane.showMessageDialog(this, 
+            JOptionPane.showMessageDialog(this,
                     "Händelsenamn får inte vara tomt",
                     "Validering", JOptionPane.ERROR_MESSAGE);
             return;
@@ -152,17 +170,21 @@ public class VoucherSeriesMappingDialog extends SSDialog {
 
         try {
             if (iMode == Mode.ADD) {
-                iService.addCustomMapping(iYearId, customEventName, seriesCode);
-                LOG.info("Added custom mapping: {}", customEventName);
+                iService.addCustomMapping(iYearId, customEventName, seriesCode, active);
+                LOG.info("Added custom mapping: {} active={}", customEventName, active);
             } else if (iMode == Mode.EDIT && iExistingData != null) {
-                iService.updateCustomMapping(iExistingData.mappingId, customEventName, seriesCode);
-                LOG.info("Updated custom mapping: {}", customEventName);
+                iService.updateCustomMapping(iExistingData.mappingId, customEventName, seriesCode, active);
+                LOG.info("Updated custom mapping: {} active={}", customEventName, active);
             }
             iResultCode = JOptionPane.OK_OPTION;
             dispose();
+        } catch (IllegalStateException ex) {
+            JOptionPane.showMessageDialog(this,
+                    ex.getMessage(),
+                    "Begränsning", JOptionPane.WARNING_MESSAGE);
         } catch (SQLException ex) {
             LOG.error("Failed to save mapping", ex);
-            JOptionPane.showMessageDialog(this, 
+            JOptionPane.showMessageDialog(this,
                     "Fel vid sparning: " + ex.getMessage(),
                     "Fel", JOptionPane.ERROR_MESSAGE);
         }

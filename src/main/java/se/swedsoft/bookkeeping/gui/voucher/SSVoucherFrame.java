@@ -2,8 +2,10 @@ package se.swedsoft.bookkeeping.gui.voucher;
 
 
 import org.fribok.bookkeeping.app.Version;
+import se.swedsoft.bookkeeping.data.SSNewAccountingYear;
 import se.swedsoft.bookkeeping.data.SSVoucher;
 import se.swedsoft.bookkeeping.data.system.SSAccountingContext;
+import se.swedsoft.bookkeeping.data.system.SSCompanyYearContext;
 
 import se.swedsoft.bookkeeping.gui.SSMainFrame;
 import se.swedsoft.bookkeeping.gui.util.SSBundle;
@@ -21,6 +23,7 @@ import se.swedsoft.bookkeeping.importexport.excel.SSVoucherImporter;
 import se.swedsoft.bookkeeping.importexport.sie.SSSIEImporter;
 import se.swedsoft.bookkeeping.importexport.util.SSExportException;
 import se.swedsoft.bookkeeping.importexport.util.SSImportException;
+import se.swedsoft.bookkeeping.print.SSReportFactory;
 import se.swedsoft.bookkeeping.print.report.SSVoucherListPrinter;
 
 import javax.swing.*;
@@ -265,11 +268,16 @@ public class SSVoucherFrame extends SSDefaultTableFrame {
                         int iResponce = iFileChooser.showOpenDialog(getMainFrame());
 
                         if (iResponce == JFileChooser.APPROVE_OPTION) {
+                            SSSIEImporter.VoucherImportMode iImportMode =
+                                    SSSIEImporter.showVoucherImportModeDialog(getMainFrame());
+                            if (iImportMode == null) {
+                                return;
+                            }
                             SSSIEImporter iImporter = new SSSIEImporter(
                                     iFileChooser.getSelectedFile());
 
                             try {
-                                iImporter.doImportVouchers();
+                                iImporter.doImportVouchers(iImportMode);
                             } catch (SSImportException ex) {
                                 SSErrorDialog.showDialog(getMainFrame(), "",
                                         ex.getLocalizedMessage());
@@ -353,6 +361,19 @@ public class SSVoucherFrame extends SSDefaultTableFrame {
         }
     }
 
+    public static void updateEditedVoucher(SSVoucher originalVoucher, SSVoucher updatedVoucher) {
+        if (cInstance == null || cInstance.iModel == null || cInstance.iTable == null) {
+            return;
+        }
+        int rowIndex = cInstance.iModel.replaceVoucher(originalVoucher, updatedVoucher);
+        if (rowIndex >= 0) {
+            cInstance.iTable.setRowSelectionInterval(rowIndex, rowIndex);
+            cInstance.iTable.scrollRectToVisible(cInstance.iTable.getCellRect(rowIndex, 0, true));
+        } else {
+            cInstance.updateFrame();
+        }
+    }
+
     /**
      * This method should return the status bar content, if any.
      *
@@ -422,35 +443,12 @@ public class SSVoucherFrame extends SSDefaultTableFrame {
      *
      */
     private void printVouchers() {
-        final SSVoucherListPrinter iPrinter;
-
-        if (iTable.getSelectedRowCount() > 0) {
-
-            SSQueryDialog iDialog = new SSQueryDialog(getMainFrame(),
-                    JOptionPane.YES_NO_CANCEL_OPTION, "voucherframe.print");
-
-            List<SSVoucher> iVouchers;
-
-            switch (iDialog.getResponce()) {
-            case JOptionPane.YES_OPTION:
-                iVouchers = getVouchers(iModel.getObjects(iTable.getSelectedRows()));
-                iPrinter = new SSVoucherListPrinter(iVouchers);
-                break;
-
-            case JOptionPane.NO_OPTION:
-                iPrinter = new SSVoucherListPrinter(SSAccountingContext.getVouchers());
-                break;
-
-            default:
-                return;
-            }
-        } else {
-            iPrinter = new SSVoucherListPrinter(SSAccountingContext.getVouchers());
-            // iPrinter = new SSVoucherListPrinter(iModel.getObjects(iTable.getSelectedRows()));
+        SSNewAccountingYear yearData = SSCompanyYearContext.getCurrentYear();
+        if (yearData == null) {
+            SSNewAccountingYear.openWarningDialogNoYearData(getMainFrame());
+            return;
         }
-
-        SSProgressDialog.runProgress(getMainFrame(), () -> iPrinter.preview(getMainFrame()));
-
+        SSReportFactory.buildVoucherReport(getMainFrame(), SSBundle.getBundle(), yearData);
     }
 
     private class SSVoucherCellEditor extends DefaultCellEditor {
@@ -554,4 +552,3 @@ public class SSVoucherFrame extends SSDefaultTableFrame {
         return sb.toString();
     }
 }
-

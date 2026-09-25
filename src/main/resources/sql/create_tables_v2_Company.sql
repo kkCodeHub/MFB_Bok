@@ -201,6 +201,7 @@ CREATE TABLE IF NOT EXISTS tbl_year_voucher_event_series_map (
     event_name             VARCHAR(255),
     series_code            VARCHAR(1)    NOT NULL,
     is_custom              BOOLEAN       DEFAULT FALSE,
+    active                 BOOLEAN       DEFAULT TRUE,
     CONSTRAINT pk_year_event_series_map PRIMARY KEY (id),
     CONSTRAINT uq_year_event_code UNIQUE (year_id, event_code),
     CONSTRAINT fk_yesm_year FOREIGN KEY (year_id) REFERENCES tbl_accountingyear(id),
@@ -231,6 +232,7 @@ CREATE TABLE IF NOT EXISTS tbl_voucher (
     corrected_by_id    INTEGER,
     CONSTRAINT pk_voucher PRIMARY KEY (id),
     CONSTRAINT ck_voucher_series CHECK (series >= 'A' AND series <= 'Z'),
+    CONSTRAINT uq_voucher_year_series_number UNIQUE (yearid, series, number),
     CONSTRAINT fk_voucher_year   FOREIGN KEY (yearid)          REFERENCES tbl_accountingyear(id),
     CONSTRAINT fk_voucher_corr   FOREIGN KEY (corrects_id)     REFERENCES tbl_voucher(id),
     CONSTRAINT fk_voucher_corrby FOREIGN KEY (corrected_by_id) REFERENCES tbl_voucher(id)
@@ -1138,5 +1140,3 @@ CREATE TABLE IF NOT EXISTS tbl_ownreport_account_row (
 );
 
 -- End of schema V2 COMPANY
-
-

@@ -25,6 +25,8 @@ import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.LinkedList;
+import java.util.Locale;
+import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -137,6 +139,7 @@ public class SSVoucherDialog {    private static final Logger LOG = LoggerFactor
         final SSDialog       iDialog = new SSDialog(iMainFrame,
                 SSBundle.getBundle().getString("voucherframe.edit.title"));
         final SSVoucherPanel iPanel = new SSVoucherPanel(iDialog);
+        final SSVoucher iOriginalVoucher = new SSVoucher(iVoucher);
 
         iPanel.setMarkRowButtonVisible(true);
         iPanel.setDeleteRowButtonVisible(true);
@@ -156,12 +159,14 @@ public class SSVoucherDialog {    private static final Logger LOG = LoggerFactor
                         }
 
                         SSAccountingContext.updateVoucher(iVoucher1);
+                        Optional<SSVoucher> iSavedVoucher = SSAccountingContext.getVoucher(iVoucher1);
 
                         if (iPanel.isStoreAsTemplate()) {
                             SSAccountingContext.addVoucherTemplate(new SSVoucherTemplate(iVoucher1));
                             iPanel.updateAccounts();
                         }
-                        SSVoucherFrame.fireTableDataChanged();
+                        SSVoucherFrame.updateEditedVoucher(iOriginalVoucher,
+                                iSavedVoucher.orElse(iVoucher1));
                         iDialog.closeDialog();
 
                         if (iPanel.doReopen()) {
@@ -205,7 +210,8 @@ public class SSVoucherDialog {    private static final Logger LOG = LoggerFactor
                 SSVoucher iVoucher = iPanel.getVoucher();
 
                 SSAccountingContext.updateVoucher(iVoucher);
-                SSVoucherFrame.fireTableDataChanged();
+                Optional<SSVoucher> iSavedVoucher = SSAccountingContext.getVoucher(iVoucher);
+                SSVoucherFrame.updateEditedVoucher(iOriginalVoucher, iSavedVoucher.orElse(iVoucher));
 
             }
         });
@@ -227,7 +233,7 @@ public class SSVoucherDialog {    private static final Logger LOG = LoggerFactor
 
         if (iVoucher.getCorrectedBy() != null) {
             SSInformationDialog.showDialog(iMainFrame, "voucherframe.alreadyedited",
-                    iVoucher.getNumber());
+                    formatVoucherReference(iVoucher));
             return;
         }
         Boolean iCopyReverse = SSCopyReversedVoucherDialog.showDialog(iMainFrame, iVoucher);
@@ -249,7 +255,7 @@ public class SSVoucherDialog {    private static final Logger LOG = LoggerFactor
         iNew.setDescription(
                 String.format(
                         SSBundle.getBundle().getString("voucherframe.correctsdescription"),
-                        iVoucher.getNumber(), iVoucher.getDescription()));
+                        formatVoucherReference(iVoucher), iVoucher.getDescription()));
         iNew.setCorrects(iVoucher);
 
         iPanel.setMarkRowButtonVisible(false);
@@ -336,5 +342,15 @@ public class SSVoucherDialog {    private static final Logger LOG = LoggerFactor
         iDialog.setLocationRelativeTo(iMainFrame);
         iDialog.setVisible();
     }
-}
 
+    static String formatVoucherReference(SSVoucher voucher) {
+        if (voucher == null) {
+            return "";
+        }
+        String series = voucher.getSeries();
+        if (series == null || series.trim().isEmpty()) {
+            return Integer.toString(voucher.getNumber());
+        }
+        return series.trim().toUpperCase(Locale.ROOT) + voucher.getNumber();
+    }
+}

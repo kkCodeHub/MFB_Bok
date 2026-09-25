@@ -6,7 +6,7 @@
 	<field name="account.description" class="java.lang.String"/>
 	<field name="account.insaldo" class="java.math.BigDecimal"/>
 	<field name="account.inbalance" class="java.math.BigDecimal"/>
-	<field name="voucher.number" class="java.lang.Integer"/>
+	<field name="voucher.number" class="java.lang.String"/>
 	<field name="voucher.description" class="java.lang.String"/>
 	<field name="voucher.date" class="java.lang.String"/>
 	<field name="voucherrow.added" class="java.lang.Boolean"/>

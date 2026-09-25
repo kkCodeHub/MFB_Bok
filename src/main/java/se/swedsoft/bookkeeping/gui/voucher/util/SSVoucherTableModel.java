@@ -253,4 +253,35 @@ public class SSVoucherTableModel extends SSTableModel<SSVoucher> {
         }
     };
 
+    /**
+     * Replaces a voucher in-place to preserve table ordering and selection.
+     *
+     * @param original The original voucher identity.
+     * @param updated  The updated voucher to place in the same row.
+     * @return Row index if replaced, otherwise -1.
+     */
+    public int replaceVoucher(SSVoucher original, SSVoucher updated) {
+        if (original == null || updated == null) {
+            return -1;
+        }
+        List<SSVoucher> vouchers = getObjects();
+        for (int index = 0; index < vouchers.size(); index++) {
+            SSVoucher current = vouchers.get(index);
+            if (current == null) {
+                continue;
+            }
+            String currentSeries = current.getSeries();
+            String originalSeries = original.getSeries();
+            if (current.getNumber() == original.getNumber()
+                    && currentSeries != null
+                    && originalSeries != null
+                    && currentSeries.equalsIgnoreCase(originalSeries)) {
+                vouchers.set(index, updated);
+                fireTableRowsUpdated(index, index);
+                return index;
+            }
+        }
+        return -1;
+    }
+
 }

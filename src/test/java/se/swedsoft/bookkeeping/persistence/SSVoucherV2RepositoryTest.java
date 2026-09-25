@@ -104,6 +104,50 @@ class SSVoucherV2RepositoryTest {
         assertThat(Repositories.vouchers().findByNumber(year, 61001)).isEmpty();
     }
 
+    @Test
+    void resolveUpdateAndDeleteBySeriesWhenNumbersOverlap() {
+        SSVoucher voucherA = new SSVoucher(61002);
+        voucherA.setSeries("A");
+        voucherA.setLocalDate(LocalDate.of(2026, 6, 20));
+        voucherA.setDescription("Series A voucher");
+        voucherA.getRows().add(voucherRow(1910, new BigDecimal("100.00"), null));
+        voucherA.getRows().add(voucherRow(3010, null, new BigDecimal("100.00")));
+
+        SSVoucher voucherB = new SSVoucher(61002);
+        voucherB.setSeries("B");
+        voucherB.setLocalDate(LocalDate.of(2026, 6, 21));
+        voucherB.setDescription("Series B voucher");
+        voucherB.getRows().add(voucherRow(1910, new BigDecimal("200.00"), null));
+        voucherB.getRows().add(voucherRow(3010, null, new BigDecimal("200.00")));
+
+        Repositories.vouchers().add(voucherA);
+        Repositories.vouchers().add(voucherB);
+
+        Optional<SSVoucher> fetchedA = Repositories.vouchers().findBySeriesAndNumber(year, "A", 61002);
+        Optional<SSVoucher> fetchedB = Repositories.vouchers().findBySeriesAndNumber(year, "B", 61002);
+        assertThat(fetchedA).isPresent();
+        assertThat(fetchedB).isPresent();
+        assertThat(fetchedA.get().getDescription()).isEqualTo("Series A voucher");
+        assertThat(fetchedB.get().getDescription()).isEqualTo("Series B voucher");
+
+        SSVoucher updatedB = fetchedB.get();
+        updatedB.setDescription("Series B voucher updated");
+        Repositories.vouchers().update(updatedB);
+
+        Optional<SSVoucher> reloadedA = Repositories.vouchers().findBySeriesAndNumber(year, "A", 61002);
+        Optional<SSVoucher> reloadedB = Repositories.vouchers().findBySeriesAndNumber(year, "B", 61002);
+        assertThat(reloadedA).isPresent();
+        assertThat(reloadedB).isPresent();
+        assertThat(reloadedA.get().getDescription()).isEqualTo("Series A voucher");
+        assertThat(reloadedB.get().getDescription()).isEqualTo("Series B voucher updated");
+
+        Repositories.vouchers().delete(reloadedB.get());
+        assertThat(Repositories.vouchers().findBySeriesAndNumber(year, "A", 61002)).isPresent();
+        assertThat(Repositories.vouchers().findBySeriesAndNumber(year, "B", 61002)).isEmpty();
+
+        Repositories.vouchers().delete(reloadedA.get());
+    }
+
     private static SSVoucherRow voucherRow(int accountNumber, BigDecimal debet, BigDecimal credit) {
         SSVoucherRow row = new SSVoucherRow();
         row.setAccountNr(accountNumber);

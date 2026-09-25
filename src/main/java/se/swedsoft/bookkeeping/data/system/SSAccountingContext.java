@@ -10,11 +10,15 @@ import se.swedsoft.bookkeeping.data.SSNewResultUnit;
 import se.swedsoft.bookkeeping.data.SSVoucher;
 import se.swedsoft.bookkeeping.data.SSVoucherTemplate;
 import se.swedsoft.bookkeeping.persistence.Repositories;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.sql.SQLException;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -26,6 +30,8 @@ import java.util.Optional;
  * <p>All operations delegate to the repository layer via {@link Repositories}.</p>
  */
 public final class SSAccountingContext {
+    private static final Logger LOG = LoggerFactory.getLogger(SSAccountingContext.class);
+    private static final String DEFAULT_VOUCHER_SERIES = "A";
 
     private SSAccountingContext() {
     }
@@ -222,7 +228,46 @@ public final class SSAccountingContext {
         if (currentYear == null || voucher == null) {
             return Optional.empty();
         }
-        return Repositories.vouchers().findByNumber(currentYear, voucher.getNumber());
+        return Repositories.vouchers().findBySeriesAndNumber(currentYear, voucher.getSeries(),
+                voucher.getNumber());
+    }
+
+    public static Optional<SSVoucher> getVoucher(SSNewAccountingYear year, SSVoucher voucher) {
+        if (year == null || voucher == null) {
+            return Optional.empty();
+        }
+        return Repositories.vouchers().findBySeriesAndNumber(year, voucher.getSeries(), voucher.getNumber());
+    }
+
+    public static SSNewAccountingYear resolveAccountingYearForVoucherDate(LocalDate voucherDate) {
+        if (voucherDate == null) {
+            throw new IllegalArgumentException("voucher date must be set to resolve accounting year");
+        }
+
+        SSNewAccountingYear currentYear = getCurrentYear();
+        if (matchesVoucherDate(currentYear, voucherDate)) {
+            return currentYear;
+        }
+
+        SSNewCompany currentCompany = getCurrentCompany();
+        if (currentCompany == null || currentCompany.getId() == null) {
+            throw new IllegalArgumentException("current company must be set to resolve accounting year");
+        }
+
+        for (SSNewAccountingYear year : SSCompanyYearContext.getYearsForCompany(currentCompany)) {
+            if (matchesVoucherDate(year, voucherDate)) {
+                return year;
+            }
+        }
+
+        throw new IllegalArgumentException("No accounting year matches voucher date: " + voucherDate);
+    }
+
+    private static boolean matchesVoucherDate(SSNewAccountingYear year, LocalDate voucherDate) {
+        if (year == null || voucherDate == null || year.getLocalFrom() == null || year.getLocalTo() == null) {
+            return false;
+        }
+        return !voucherDate.isBefore(year.getLocalFrom()) && !voucherDate.isAfter(year.getLocalTo());
     }
 
     /**
@@ -232,6 +277,61 @@ public final class SSAccountingContext {
      */
     public static int getLastVoucherNumber() {
         return Repositories.vouchers().findLastNumber();
+    }
+
+    /**
+     * Resolves voucher series code for a voucher event code in the current year.
+     *
+     * <p>If no mapping exists, or mapping data is invalid/unavailable, the fallback series
+     * {@code A} is returned.</p>
+     *
+     * @param eventCode voucher event code (for example {@code KI}, {@code LU})
+     * @return resolved series code, always a single letter {@code A-Z}
+     */
+    public static String resolveVoucherSeriesForEventCode(String eventCode) {
+        SSNewAccountingYear currentYear = getCurrentYear();
+        if (currentYear == null || currentYear.getId() == null) {
+            return DEFAULT_VOUCHER_SERIES;
+        }
+
+        String normalizedEventCode = normalizeEventCode(eventCode);
+        try {
+            List<Map<String, Object>> mappings =
+                    Repositories.yearVoucherEventSeriesMaps().findByYearOrderedById(currentYear.getId());
+            for (Map<String, Object> mapping : mappings) {
+                if (!eventCodeMatches(mapping.get("event_code"), normalizedEventCode)) {
+                    continue;
+                }
+                return normalizeSeriesCode(mapping.get("series_code"));
+            }
+        } catch (SQLException e) {
+            LOG.warn("Failed to resolve voucher series for event code '{}'", normalizedEventCode, e);
+        }
+        return DEFAULT_VOUCHER_SERIES;
+    }
+
+    private static String normalizeEventCode(String eventCode) {
+        return eventCode == null ? "" : eventCode.trim().toUpperCase();
+    }
+
+    private static boolean eventCodeMatches(Object mappedEventCode, String normalizedEventCode) {
+        String candidate = mappedEventCode == null ? "" : String.valueOf(mappedEventCode).trim().toUpperCase();
+        return candidate.equals(normalizedEventCode);
+    }
+
+    private static String normalizeSeriesCode(Object seriesCodeValue) {
+        if (seriesCodeValue == null) {
+            return DEFAULT_VOUCHER_SERIES;
+        }
+        String seriesCode = String.valueOf(seriesCodeValue).trim().toUpperCase();
+        if (seriesCode.length() != 1) {
+            return DEFAULT_VOUCHER_SERIES;
+        }
+        char value = seriesCode.charAt(0);
+        if (value < 'A' || value > 'Z') {
+            return DEFAULT_VOUCHER_SERIES;
+        }
+        return seriesCode;
     }
 
     /**

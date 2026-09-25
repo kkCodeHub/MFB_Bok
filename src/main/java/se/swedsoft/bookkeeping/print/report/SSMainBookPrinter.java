@@ -10,6 +10,7 @@ import se.swedsoft.bookkeeping.data.system.SSDB;
 import se.swedsoft.bookkeeping.gui.util.SSBundle;
 import se.swedsoft.bookkeeping.gui.util.model.SSDefaultTableModel;
 import se.swedsoft.bookkeeping.print.SSPrinter;
+import se.swedsoft.bookkeeping.print.util.SSVoucherPrintReference;
 import se.swedsoft.bookkeeping.util.SSDateUtil;
 
 import java.math.BigDecimal;
@@ -167,7 +168,7 @@ public class SSMainBookPrinter extends SSPrinter {
 
                 case 5:
                     // voucher.number
-                    value = iRow.getNumber();
+                    value = SSVoucherPrintReference.toDisplayString(iRow.getSeries(), iRow.getNumber());
                     break;
 
                 case 6:

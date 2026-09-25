@@ -116,6 +116,32 @@ public class V2VoucherRepository {
         }
     }
 
+    public Optional<SSVoucher> findBySeriesAndNumber(SSNewAccountingYear year, String series, int number) {
+        if (year == null || year.getId() == null) {
+            return Optional.empty();
+        }
+        if (series == null || series.trim().isEmpty()) {
+            return findByNumber(year, number);
+        }
+        try {
+            try (PreparedStatement statement = connection.prepareStatement(
+                    "SELECT id, series, number, yearid, vdate, description, corrects_id, corrected_by_id "
+                            + "FROM tbl_voucher WHERE number=? AND yearid=? AND series=?")) {
+                statement.setObject(1, number);
+                statement.setObject(2, year.getId());
+                statement.setObject(3, series.trim());
+                try (ResultSet resultSet = statement.executeQuery()) {
+                    if (resultSet.next()) {
+                        return Optional.of(mapVoucherV2(resultSet));
+                    }
+                }
+            }
+            return Optional.empty();
+        } catch (SQLException e) {
+            throw handleFailure("find voucher '" + series + number + "'", e);
+        }
+    }
+
     public Optional<SSVoucher> findVoucher(SSVoucher voucher) {
         if (voucher == null) {
             return Optional.empty();
@@ -124,7 +150,7 @@ public class V2VoucherRepository {
         if (currentYear == null || currentYear.getId() == null) {
             return Optional.empty();
         }
-        return findByNumber(currentYear, voucher.getNumber());
+        return findBySeriesAndNumber(currentYear, voucher.getSeries(), voucher.getNumber());
     }
 
     public void add(SSVoucher voucher) {
@@ -135,7 +161,7 @@ public class V2VoucherRepository {
         SSNewAccountingYear year = resolveYear(voucher);
         try {
             try (PreparedStatement statement = connection.prepareStatement(
-                    "UPDATE tbl_voucher SET series=?,vdate=?,description=?,corrects_id=?,corrected_by_id=? WHERE number=? AND yearid=?")) {
+                    "UPDATE tbl_voucher SET series=?,vdate=?,description=?,corrects_id=?,corrected_by_id=? WHERE number=? AND yearid=? AND series=?")) {
                 statement.setObject(1, voucher.getSeries());
                 statement.setObject(2, java.sql.Date.valueOf(voucher.getLocalDate()));
                 statement.setObject(3, voucher.getDescription());
@@ -143,10 +169,11 @@ public class V2VoucherRepository {
                 statement.setObject(5, getVoucherIdByNumberV2(voucher.getCorrectedBy(), year.getId()));
                 statement.setObject(6, voucher.getNumber());
                 statement.setObject(7, year.getId());
+                statement.setObject(8, voucher.getSeries());
                 statement.executeUpdate();
             }
 
-            Integer voucherId = getVoucherIdV2(voucher.getNumber(), year.getId());
+            Integer voucherId = getVoucherIdV2(voucher.getNumber(), year.getId(), voucher.getSeries());
             if (voucherId != null) {
                 replaceVoucherRowsV2(voucherId, voucher);
             }
@@ -162,7 +189,7 @@ public class V2VoucherRepository {
     public void delete(SSVoucher voucher) {
         SSNewAccountingYear year = resolveYear(voucher);
         try {
-            Integer voucherId = getVoucherIdV2(voucher.getNumber(), year.getId());
+            Integer voucherId = getVoucherIdV2(voucher.getNumber(), year.getId(), voucher.getSeries());
             if (voucherId != null) {
                 try (PreparedStatement deleteRows = connection.prepareStatement(
                         "DELETE FROM tbl_voucher_row WHERE voucher_id=?")) {
@@ -172,9 +199,10 @@ public class V2VoucherRepository {
             }
 
             try (PreparedStatement statement = connection.prepareStatement(
-                    "DELETE FROM tbl_voucher WHERE number=? AND yearid=?")) {
+                    "DELETE FROM tbl_voucher WHERE number=? AND yearid=? AND series=?")) {
                 statement.setObject(1, voucher.getNumber());
                 statement.setObject(2, year.getId());
+                statement.setObject(3, voucher.getSeries());
                 statement.executeUpdate();
             }
 
@@ -229,7 +257,7 @@ public class V2VoucherRepository {
             }
 
             if (voucherId == null) {
-                voucherId = getVoucherIdV2(voucher.getNumber(), year.getId());
+                voucherId = getVoucherIdV2(voucher.getNumber(), year.getId(), voucher.getSeries());
             }
             if (voucherId != null) {
                 replaceVoucherRowsV2(voucherId, voucher);
@@ -327,17 +355,28 @@ public class V2VoucherRepository {
         if (voucher == null) {
             return null;
         }
-        return getVoucherIdV2(voucher.getNumber(), yearId);
+        return getVoucherIdV2(voucher.getNumber(), yearId, voucher.getSeries());
     }
 
     private Integer getVoucherIdV2(Integer voucherNumber, Integer yearId) throws SQLException {
+        return getVoucherIdV2(voucherNumber, yearId, null);
+    }
+
+    private Integer getVoucherIdV2(Integer voucherNumber, Integer yearId, String seriesCode) throws SQLException {
         if (voucherNumber == null || yearId == null) {
             return null;
         }
-        try (PreparedStatement statement = connection.prepareStatement(
-                "SELECT id FROM tbl_voucher WHERE number=? AND yearid=?")) {
+        String sql = "SELECT id FROM tbl_voucher WHERE number=? AND yearid=?";
+        boolean hasSeries = seriesCode != null && !seriesCode.trim().isEmpty();
+        if (hasSeries) {
+            sql += " AND series=?";
+        }
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setObject(1, voucherNumber);
             statement.setObject(2, yearId);
+            if (hasSeries) {
+                statement.setObject(3, seriesCode.trim());
+            }
             try (ResultSet resultSet = statement.executeQuery()) {
                 if (resultSet.next()) {
                     return resultSet.getInt(1);
@@ -347,16 +386,18 @@ public class V2VoucherRepository {
         }
     }
 
-    private Integer getVoucherNumberForIdV2(Integer voucherId) throws SQLException {
+    private SSVoucher getVoucherReferenceForIdV2(Integer voucherId) throws SQLException {
         if (voucherId == null) {
             return null;
         }
         try (PreparedStatement statement = connection.prepareStatement(
-                "SELECT number FROM tbl_voucher WHERE id=?")) {
+                "SELECT number, series FROM tbl_voucher WHERE id=?")) {
             statement.setObject(1, voucherId);
             try (ResultSet resultSet = statement.executeQuery()) {
                 if (resultSet.next()) {
-                    return resultSet.getInt(1);
+                    SSVoucher voucher = new SSVoucher(resultSet.getInt("number"), true);
+                    voucher.setSeries(resultSet.getString("series"));
+                    return voucher;
                 }
                 return null;
             }
@@ -434,14 +475,10 @@ public class V2VoucherRepository {
 
         Integer correctsId = (Integer) resultSet.getObject("corrects_id");
         Integer correctedById = (Integer) resultSet.getObject("corrected_by_id");
-        Integer correctsNumber = getVoucherNumberForIdV2(correctsId);
-        Integer correctedByNumber = getVoucherNumberForIdV2(correctedById);
-        if (correctsNumber != null) {
-            voucher.setCorrects(new SSVoucher(correctsNumber, true));
-        }
-        if (correctedByNumber != null) {
-            voucher.setCorrectedBy(new SSVoucher(correctedByNumber, true));
-        }
+        SSVoucher corrects = getVoucherReferenceForIdV2(correctsId);
+        SSVoucher correctedBy = getVoucherReferenceForIdV2(correctedById);
+        voucher.setCorrects(corrects);
+        voucher.setCorrectedBy(correctedBy);
 
         voucher.getRows().clear();
         voucher.getRows().addAll(getVoucherRowsV2(resultSet.getInt("id")));

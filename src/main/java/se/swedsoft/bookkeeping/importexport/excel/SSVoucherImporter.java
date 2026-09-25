@@ -27,6 +27,7 @@ import java.util.*;
  * Time: 16:43:09
  */
 public class SSVoucherImporter {
+    private static final String DEFAULT_VOUCHER_SERIES = "A";
 
     private final File iFile;
 
@@ -86,7 +87,9 @@ public class SSVoucherImporter {
             String iName = iColumn.getString();
 
             if (iName != null && !iName.isEmpty()) {
-                if (iName.equalsIgnoreCase(SSVoucherExporter.NUMMER)) {
+                if (iName.equalsIgnoreCase(SSVoucherExporter.VERIFIKATSERIE)) {
+                    this.iColumns.put(SSVoucherExporter.VERIFIKATSERIE, iIndex);
+                } else if (iName.equalsIgnoreCase(SSVoucherExporter.NUMMER)) {
                     this.iColumns.put(SSVoucherExporter.NUMMER, iIndex);
                 } else if (iName.equalsIgnoreCase(SSVoucherExporter.BESKRIVNING)) {
                     this.iColumns.put(SSVoucherExporter.BESKRIVNING, iIndex);
@@ -129,7 +132,7 @@ public class SSVoucherImporter {
         getColumnIndexes(iRows.getFirst());
 
         ImportSummary iSummary = new ImportSummary();
-        Set<Integer> iSeenNumbers = new HashSet<>();
+        Set<String> iSeenVoucherKeys = new HashSet<>();
 
         SSVoucher    iVoucher = null;
         boolean      iDuplicateVoucher = false;
@@ -147,7 +150,8 @@ public class SSVoucherImporter {
                 if (iVoucher != null && !iDuplicateVoucher) {
                     iSummary.addImportedVoucher(iVoucher);
                 }
-                iVoucher = createVoucher(iNumber, iSeenNumbers, iSummary);
+                String iSeries = getSeries(iRow);
+                iVoucher = createVoucher(iSeries, iNumber, iSeenVoucherKeys, iSummary);
                 iDuplicateVoucher = iVoucher == null;
             }
 
@@ -169,21 +173,32 @@ public class SSVoucherImporter {
         return iSummary;
     }
 
-    private SSVoucher createVoucher(Integer iNumber, Set<Integer> iSeenNumbers, ImportSummary iSummary) {
+    private SSVoucher createVoucher(String iSeries, Integer iNumber, Set<String> iSeenVoucherKeys, ImportSummary iSummary) {
         if (iNumber == null) {
             return null;
         }
 
-        if (iSeenNumbers.contains(iNumber) || se.swedsoft.bookkeeping.data.system.SSAccountingContext.hasVoucher(iNumber)) {
-            iSummary.addDuplicateNumber(iNumber);
+        String iVoucherKey = formatVoucherKey(iSeries, iNumber);
+        if (iSeenVoucherKeys.contains(iVoucherKey) || hasVoucher(iSeries, iNumber)) {
+            iSummary.addDuplicateVoucherKey(iVoucherKey);
             return null;
         }
 
-        iSeenNumbers.add(iNumber);
-        return new SSVoucher(iNumber);
+        iSeenVoucherKeys.add(iVoucherKey);
+        SSVoucher iVoucher = new SSVoucher(iNumber);
+        iVoucher.setSeries(iSeries);
+        return iVoucher;
     }
 
     private void applyVoucherHeader(SSExcelRow iRow, SSVoucher iVoucher) {
+        Integer iSeriesColumn = iColumns.get(SSVoucherExporter.VERIFIKATSERIE);
+        if (iSeriesColumn != null) {
+            String iSeries = iRow.getString(iSeriesColumn);
+            if (iSeries != null && !iSeries.trim().isEmpty()) {
+                iVoucher.setSeries(iSeries.trim());
+            }
+        }
+
         Integer iDescriptionColumn = iColumns.get(SSVoucherExporter.BESKRIVNING);
         if (iDescriptionColumn != null) {
             String iDescription = iRow.getString(iDescriptionColumn);
@@ -269,10 +284,10 @@ public class SSVoucherImporter {
     }
 
     String buildImportReportText(ImportSummary iSummary) {
-        return buildImportReportText(iSummary.getImportedVouchers(), iSummary.getDuplicateNumbers());
+        return buildImportReportText(iSummary.getImportedVouchers(), iSummary.getDuplicateVoucherKeys());
     }
 
-    String buildImportReportText(List<SSVoucher> iImportedVouchers, List<Integer> iDuplicateNumbers) {
+    String buildImportReportText(List<SSVoucher> iImportedVouchers, List<String> iDuplicateVoucherKeys) {
         StringBuilder sb = new StringBuilder();
 
         sb.append("<html>");
@@ -289,11 +304,11 @@ public class SSVoucherImporter {
         sb.append("</ul>");
 
         sb.append("Hoppade dubbletter:<br>");
-        if (iDuplicateNumbers.isEmpty()) {
+        if (iDuplicateVoucherKeys.isEmpty()) {
             sb.append("Inga");
         } else {
             sb.append("<ul>");
-            for (Integer iDuplicateNumber : iDuplicateNumbers) {
+            for (String iDuplicateNumber : iDuplicateVoucherKeys) {
                 sb.append("<li>");
                 sb.append(iDuplicateNumber);
                 sb.append("</li>");
@@ -317,24 +332,52 @@ public class SSVoucherImporter {
         return iRow.getInteger(iIndex);
     }
 
+    private String getSeries(SSExcelRow iRow) {
+        Integer iSeriesIndex = iColumns.get(SSVoucherExporter.VERIFIKATSERIE);
+        if (iSeriesIndex == null) {
+            return DEFAULT_VOUCHER_SERIES;
+        }
+
+        String iSeries = iRow.getString(iSeriesIndex);
+        if (iSeries == null || iSeries.trim().isEmpty()) {
+            return DEFAULT_VOUCHER_SERIES;
+        }
+
+        String iNormalizedSeries = iSeries.trim().toUpperCase(Locale.ROOT);
+        if (iNormalizedSeries.length() != 1 || iNormalizedSeries.charAt(0) < 'A' || iNormalizedSeries.charAt(0) > 'Z') {
+            throw new SSImportException("Ogiltig verifikatserie i importfilen: %s", iSeries);
+        }
+        return iNormalizedSeries;
+    }
+
+    private boolean hasVoucher(String iSeries, Integer iNumber) {
+        SSVoucher iProbe = new SSVoucher(iNumber);
+        iProbe.setSeries(iSeries);
+        return se.swedsoft.bookkeeping.data.system.SSAccountingContext.getVoucher(iProbe).isPresent();
+    }
+
+    private String formatVoucherKey(String iSeries, Integer iNumber) {
+        return iSeries + iNumber;
+    }
+
     private static final class ImportSummary {
         private final List<SSVoucher> iImportedVouchers = new LinkedList<>();
-        private final List<Integer> iDuplicateNumbers = new LinkedList<>();
+        private final List<String> iDuplicateVoucherKeys = new LinkedList<>();
 
         void addImportedVoucher(SSVoucher iVoucher) {
             iImportedVouchers.add(iVoucher);
         }
 
-        void addDuplicateNumber(Integer iNumber) {
-            iDuplicateNumbers.add(iNumber);
+        void addDuplicateVoucherKey(String iVoucherKey) {
+            iDuplicateVoucherKeys.add(iVoucherKey);
         }
 
         List<SSVoucher> getImportedVouchers() {
             return iImportedVouchers;
         }
 
-        List<Integer> getDuplicateNumbers() {
-            return iDuplicateNumbers;
+        List<String> getDuplicateVoucherKeys() {
+            return iDuplicateVoucherKeys;
         }
     }
 

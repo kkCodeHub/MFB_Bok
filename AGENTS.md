@@ -35,6 +35,8 @@ error handling, Javadoc, UI conventions, testing patterns and best practices.
 - `mvn test` runs both Surefire executions: unit tests (`excludedGroups=integration`) and `@Tag("integration")` tests in a separate forked JVM
 - Uses JUnit 5 syntax; use fully qualified class names if needed
 - Integration tests use `@Tag("integration")` and the shared fixtures in `src/test/java/se/swedsoft/bookkeeping/testsupport/system/`
+- Default scope for code changes: run only directly affected tests first (for example targeted export/import tests for Excel import/export changes).
+- Do not run baseline/full suite (`mvn clean install`) unless explicitly requested by the user or when the change impacts broad cross-module behavior.
 
 ## Continuous Integration
 No CI workflow is currently committed under `.github/workflows/` in this repository snapshot.

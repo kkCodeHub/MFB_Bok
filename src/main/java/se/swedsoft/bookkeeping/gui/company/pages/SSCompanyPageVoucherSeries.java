@@ -19,8 +19,10 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Company settings page for Val 8: Voucher Series Configuration.
@@ -29,6 +31,10 @@ import java.util.Map;
 public class SSCompanyPageVoucherSeries extends SSCompanyPage {
     private static final Logger LOG = LoggerFactory.getLogger(SSCompanyPageVoucherSeries.class);
     private static final int COLUMN_PADDING = 10;
+    private static final int COLUMN_TYPE = 3;
+    private static final int COLUMN_ACTIVE = 4;
+    private static final int COLUMN_SYSTEM_FLAG = 5;
+    private static final int COLUMN_MAPPING_ID = 6;
 
     private JPanel iPanel;
     private SSTable iTable;
@@ -88,17 +94,23 @@ public class SSCompanyPageVoucherSeries extends SSCompanyPage {
         model.addColumn("Händelsekod");
         model.addColumn("Händelsenamn");
         model.addColumn("Typ");
+        model.addColumn("Aktiv");
+        model.addColumn("SystemFlag");
         model.addColumn("Id");
         iTable.setModel(model);
         iTable.setRowSelectionAllowed(true);
         iTable.setColumnSelectionAllowed(false);
-        iTable.getColumnModel().getColumn(0).setPreferredWidth(56);
-        iTable.getColumnModel().getColumn(1).setPreferredWidth(56);
-        iTable.getColumnModel().getColumn(2).setPreferredWidth(272);
+        iTable.getColumnModel().getColumn(0).setPreferredWidth(60);
+        iTable.getColumnModel().getColumn(1).setPreferredWidth(62);
+        iTable.getColumnModel().getColumn(2).setPreferredWidth(230);
         iTable.getColumnModel().getColumn(3).setPreferredWidth(56);
-        iTable.getColumnModel().getColumn(4).setMinWidth(0);
-        iTable.getColumnModel().getColumn(4).setMaxWidth(0);
-        iTable.getColumnModel().getColumn(4).setPreferredWidth(0);
+        iTable.getColumnModel().getColumn(4).setPreferredWidth(56);
+        iTable.getColumnModel().getColumn(COLUMN_SYSTEM_FLAG).setMinWidth(0);
+        iTable.getColumnModel().getColumn(COLUMN_SYSTEM_FLAG).setMaxWidth(0);
+        iTable.getColumnModel().getColumn(COLUMN_SYSTEM_FLAG).setPreferredWidth(0);
+        iTable.getColumnModel().getColumn(COLUMN_MAPPING_ID).setMinWidth(0);
+        iTable.getColumnModel().getColumn(COLUMN_MAPPING_ID).setMaxWidth(0);
+        iTable.getColumnModel().getColumn(COLUMN_MAPPING_ID).setPreferredWidth(0);
         iTable.getColumnModel().getColumn(0).setCellRenderer(createIndentedRenderer());
         iTable.getColumnModel().getColumn(1).setCellRenderer(createIndentedRenderer());
     }
@@ -127,10 +139,12 @@ public class SSCompanyPageVoucherSeries extends SSCompanyPage {
                 String seriesCode = (String) mapping.getOrDefault("series_code", "");
                 String eventCode = (String) mapping.getOrDefault("event_code", "");
                 String displayName = (String) mapping.getOrDefault("display_event_name", "");
-                Boolean isCustom = (Boolean) mapping.getOrDefault("is_custom", false);
-                String type = isCustom ? "Egen" : "System";
+                boolean isSystem = Boolean.TRUE.equals(mapping.getOrDefault("system", false));
+                boolean isActive = Boolean.TRUE.equals(mapping.getOrDefault("active", false));
+                String type = isSystem ? "System" : "Egen";
+                String active = isActive ? "Ja" : "Nej";
 
-                model.addRow(new Object[]{seriesCode, eventCode, displayName, type, mappingId});
+                model.addRow(new Object[]{seriesCode, eventCode, displayName, type, active, isSystem, mappingId});
             }
         } catch (SQLException ex) {
             LOG.error("Failed to load voucher series mappings", ex);
@@ -198,24 +212,37 @@ public class SSCompanyPageVoucherSeries extends SSCompanyPage {
 
         DefaultTableModel model = (DefaultTableModel) ((SSTableSorter) iTable.getModel()).getTableModel();
         int modelRow = iTable.convertRowIndexToModel(selectedRow);
-        Object typeObj = model.getValueAt(modelRow, 3);
-        String type = typeObj != null ? typeObj.toString() : "";
-
-        if ("System".equals(type)) {
+        boolean isSystem = Boolean.TRUE.equals(model.getValueAt(modelRow, COLUMN_SYSTEM_FLAG));
+        Integer yearId = resolveYearId();
+        if (yearId == null) {
             JOptionPane.showMessageDialog(iPanel,
-                    "Systemrader kan inte ändras",
+                    "Inget räkenskapsår valt",
+                    "Fel", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        if (isSystem) {
+            JOptionPane.showMessageDialog(iPanel,
+                    "Systemrader kan inte ändras i Val 8.",
                     "Begränsning", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
         String seriesCode = (String) model.getValueAt(modelRow, 0);
         String customName = (String) model.getValueAt(modelRow, 2);
-        int mappingId = ((Number) model.getValueAt(modelRow, 4)).intValue();
+        boolean active = "Ja".equals(model.getValueAt(modelRow, 4));
+        int mappingId = ((Number) model.getValueAt(modelRow, COLUMN_MAPPING_ID)).intValue();
 
-        Integer yearId = resolveYearId();
-        if (yearId == null) {
+        try {
+            if (!iService.canEditCustomMapping(mappingId)) {
+                JOptionPane.showMessageDialog(iPanel,
+                        "Det går inte att ändra serien då det finns verifikat för den här serien.",
+                        "Begränsning", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+        } catch (SQLException ex) {
+            LOG.error("Failed to check custom mapping editability", ex);
             JOptionPane.showMessageDialog(iPanel,
-                    "Inget räkenskapsår valt",
+                    "Fel vid kontroll av serieanvändning: " + ex.getMessage(),
                     "Fel", JOptionPane.ERROR_MESSAGE);
             return;
         }
@@ -225,7 +252,7 @@ public class SSCompanyPageVoucherSeries extends SSCompanyPage {
                 iService,
                 yearId,
                 VoucherSeriesMappingDialog.Mode.EDIT,
-                new VoucherSeriesMappingDialog.MappingData(mappingId, customName, seriesCode));
+                new VoucherSeriesMappingDialog.MappingData(mappingId, customName, seriesCode, active));
 
         if (dialog.showDialog() == JOptionPane.OK_OPTION) {
             loadData();
@@ -243,10 +270,8 @@ public class SSCompanyPageVoucherSeries extends SSCompanyPage {
 
         DefaultTableModel model = (DefaultTableModel) ((SSTableSorter) iTable.getModel()).getTableModel();
         int modelRow = iTable.convertRowIndexToModel(selectedRow);
-        Object typeObj = model.getValueAt(modelRow, 3);
-        String type = typeObj != null ? typeObj.toString() : "";
-
-        if ("System".equals(type)) {
+        boolean isSystem = Boolean.TRUE.equals(model.getValueAt(modelRow, COLUMN_SYSTEM_FLAG));
+        if (isSystem) {
             JOptionPane.showMessageDialog(iPanel,
                     "Systemrader kan inte tas bort",
                     "Begränsning", JOptionPane.WARNING_MESSAGE);
@@ -271,17 +296,95 @@ public class SSCompanyPageVoucherSeries extends SSCompanyPage {
                     if (customName.equals(mapping.get("display_event_name")) &&
                         (Boolean) mapping.getOrDefault("is_custom", false)) {
                         int mappingId = ((Number) mapping.get("id")).intValue();
+                        if (!iService.canDeleteCustomMapping(mappingId)) {
+                            JOptionPane.showMessageDialog(iPanel,
+                                    "Det går inte att ta bort serien då det finns verifikat skapade med den här serien.",
+                                    "Begränsning", JOptionPane.WARNING_MESSAGE);
+                            return;
+                        }
                         iService.deleteCustomMapping(mappingId);
                         break;
                     }
                 }
                 loadData();
+            } catch (IllegalStateException ex) {
+                JOptionPane.showMessageDialog(iPanel,
+                        ex.getMessage(),
+                        "Begränsning", JOptionPane.WARNING_MESSAGE);
             } catch (SQLException ex) {
                 LOG.error("Failed to delete custom mapping", ex);
                 JOptionPane.showMessageDialog(iPanel,
                         "Fel vid borttagning: " + ex.getMessage(),
                         "Fel", JOptionPane.ERROR_MESSAGE);
             }
+        }
+    }
+
+    private void editSystemMapping(DefaultTableModel model, int modelRow, int yearId) {
+        try {
+            if (!iService.canChangeSystemSeriesCode(yearId)) {
+                JOptionPane.showMessageDialog(iPanel,
+                        "Systemrader kan bara ändras om inga verifikat finns för bokföringsåret",
+                        "Begränsning", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+
+            String eventCode = (String) model.getValueAt(modelRow, 1);
+            String currentSeriesCode = (String) model.getValueAt(modelRow, 0);
+            int mappingId = ((Number) model.getValueAt(modelRow, COLUMN_MAPPING_ID)).intValue();
+            if (eventCode == null || eventCode.trim().isEmpty()) {
+                JOptionPane.showMessageDialog(iPanel,
+                        "Systemrad saknar händelsekod och kan inte ändras",
+                        "Fel", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            Set<String> usedCodes = new LinkedHashSet<>();
+            for (Map<String, Object> mapping : iService.getMappingsForYear(yearId)) {
+                int rowMappingId = ((Number) mapping.get("id")).intValue();
+                if (rowMappingId == mappingId) {
+                    continue;
+                }
+                String usedSeriesCode = (String) mapping.get("series_code");
+                if (usedSeriesCode != null && !usedSeriesCode.isBlank()) {
+                    usedCodes.add(usedSeriesCode.trim().toUpperCase());
+                }
+            }
+
+            java.util.List<String> selectableCodes = new java.util.ArrayList<>();
+            for (char code = 'A'; code <= 'Z'; code++) {
+                String candidate = String.valueOf(code);
+                if (candidate.equalsIgnoreCase(currentSeriesCode) || !usedCodes.contains(candidate)) {
+                    selectableCodes.add(candidate);
+                }
+            }
+            Object selected = JOptionPane.showInputDialog(
+                    iPanel,
+                    "Välj ny verifikatkod för systemrad",
+                    "Ändra systemserie",
+                    JOptionPane.QUESTION_MESSAGE,
+                    null,
+                    selectableCodes.toArray(new String[0]),
+                    currentSeriesCode);
+            if (!(selected instanceof String)) {
+                return;
+            }
+            String newSeriesCode = ((String) selected).trim().toUpperCase();
+            if (newSeriesCode.isEmpty() || newSeriesCode.equalsIgnoreCase(currentSeriesCode)) {
+                return;
+            }
+
+            iService.updateSystemMappingSeriesCode(yearId, eventCode, newSeriesCode);
+            loadData();
+        } catch (IllegalStateException ex) {
+            JOptionPane.showMessageDialog(iPanel,
+                    ex.getMessage(),
+                    "Begränsning", JOptionPane.WARNING_MESSAGE);
+        } catch (SQLException ex) {
+            LOG.error("Failed to update system mapping", ex);
+            JOptionPane.showMessageDialog(iPanel,
+                    "Fel vid ändring: " + ex.getMessage(),
+                    "Fel", JOptionPane.ERROR_MESSAGE);
         }
     }
 

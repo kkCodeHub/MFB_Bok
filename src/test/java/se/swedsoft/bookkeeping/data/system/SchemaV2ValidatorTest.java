@@ -6,9 +6,12 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.Arrays;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.fail;
 
 /**
@@ -73,9 +76,42 @@ class SchemaV2ValidatorTest {
                         + skipped + " skipped):" + errors);
             }
 
+            assertThat(hasColumn(conn, "PUBLIC", "TBL_VOUCHER_EVENT_TYPE", "SYSTEM")).isTrue();
+            assertThat(hasColumn(conn, "PUBLIC", "TBL_YEAR_VOUCHER_EVENT_SERIES_MAP", "ACTIVE")).isTrue();
+            assertThat(isColumnNullable(conn, "PUBLIC", "TBL_VOUCHER_EVENT_TYPE", "EVENT_CODE")).isTrue();
+
             System.out.println("SchemaV2ValidatorTest: " + executed
                     + " statements executed successfully, " + skipped + " skipped.");
         }
     }
-}
 
+    private boolean hasColumn(Connection conn, String schema, String table, String column) throws Exception {
+        String sql = "SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS "
+                + "WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ? AND COLUMN_NAME = ?";
+        try (PreparedStatement statement = conn.prepareStatement(sql)) {
+            statement.setString(1, schema);
+            statement.setString(2, table);
+            statement.setString(3, column);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                resultSet.next();
+                return resultSet.getInt(1) > 0;
+            }
+        }
+    }
+
+    private boolean isColumnNullable(Connection conn, String schema, String table, String column) throws Exception {
+        String sql = "SELECT IS_NULLABLE FROM INFORMATION_SCHEMA.COLUMNS "
+                + "WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ? AND COLUMN_NAME = ?";
+        try (PreparedStatement statement = conn.prepareStatement(sql)) {
+            statement.setString(1, schema);
+            statement.setString(2, table);
+            statement.setString(3, column);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (!resultSet.next()) {
+                    return false;
+                }
+                return "YES".equalsIgnoreCase(resultSet.getString(1));
+            }
+        }
+    }
+}

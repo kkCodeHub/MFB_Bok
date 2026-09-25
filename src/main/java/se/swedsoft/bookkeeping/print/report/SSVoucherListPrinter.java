@@ -9,6 +9,7 @@ import se.swedsoft.bookkeeping.gui.util.SSBundle;
 import se.swedsoft.bookkeeping.gui.util.model.SSDefaultTableModel;
 import se.swedsoft.bookkeeping.print.SSPrinter;
 import se.swedsoft.bookkeeping.print.util.SSDefaultJasperDataSource;
+import se.swedsoft.bookkeeping.print.util.SSVoucherPrintReference;
 
 import java.text.DateFormat;
 import java.util.Collections;
@@ -81,7 +82,7 @@ public class SSVoucherListPrinter extends SSPrinter {
 
                 switch (columnIndex) {
                 case 0:
-                    value = iVoucher.getNumber();
+                    value = SSVoucherPrintReference.toDisplayString(iVoucher);
                     break;
 
                 case 1:

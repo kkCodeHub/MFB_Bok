@@ -367,7 +367,24 @@ public abstract class SSPrinter {
      * @param iCloseListener
      */
     public void preview(SSMainFrame iMainFrame, final ActionListener iCloseListener) {
-        preview(iMainFrame, new InternalFrameAdapter() {
+        preview(iMainFrame, iCloseListener, null);
+    }
+
+    /**
+     * Shows preview and invokes close listener when preview closes.
+     * Also supports callback on first print/save action from preview.
+     *
+     * @param iMainFrame owning frame
+     * @param iCloseListener callback invoked when preview is closed
+     * @param iOnOutputAction callback run once on first output action
+     */
+    public void preview(SSMainFrame iMainFrame, final ActionListener iCloseListener,
+                        final Runnable iOnOutputAction) {
+        iReport.addParameter("title", getTitle());
+        iReport.addParameter("subtitle", getSubTitle());
+        iReport.setModel(getModel());
+
+        iReport.viewReport(iMainFrame, new InternalFrameAdapter() {
 
             /**
              * Invoked when an internal frame has been closed.
@@ -380,7 +397,7 @@ public abstract class SSPrinter {
 
                 e.getInternalFrame().removeInternalFrameListener(this);
             }
-        });
+        }, iOnOutputAction, null, false);
     }
 
     /**

@@ -174,39 +174,95 @@
  ],
  "Verifikatserie": [
    {
+     "Händelsekod": "RV",
+     "Händelsenamn": "Redovisning",
+     "Verifikatkod": "A",
+     "System": "true",
+     "Aktiv": "true"
+   },
+   {
+     "Händelsekod": "KF",
+     "Händelsenamn": "Kundfaktura",
+     "Verifikatkod": "B",
+     "System": "true",
+     "Aktiv": "true"
+   },
+   {
+     "Händelsekod": "IB",
+     "Händelsenamn": "Inbetalning",
+     "Verifikatkod": "C",
+     "System": "true",
+     "Aktiv": "true"
+   },
+   {
+     "Händelsekod": "LF",
+     "Händelsenamn": "Leverantörsfaktura",
+     "Verifikatkod": "D",
+     "System": "true",
+     "Aktiv": "true"
+   },
+   {
+     "Händelsekod": "UB",
+     "Händelsenamn": "Utbetalning",
+     "Verifikatkod": "E",
+     "System": "true",
+     "Aktiv": "true"
+   },
+   {
      "Händelsekod": "",
-     "Händelsenamn": "Manuella",
-     "Verifikatkod": "A"
-   },
-   {
-     "Händelsekod": "KI",
-     "Händelsenamn": "Kundfaktura/Inbetalning",
-     "Verifikatkod": "B"
-   },
-   {
-     "Händelsekod": "LU",
-     "Händelsenamn": "Leverantörsfaktura/Utbetalning",
-     "Verifikatkod": "C"
-   },
-   {
-     "Händelsekod": "SA",
-     "Händelsenamn": "Skatt/Avgift",
-     "Verifikatkod": "D"
-   },
-   {
-     "Händelsekod": "MO",
-     "Händelsenamn": "Momsredovisning",
-     "Verifikatkod": "E"
-   },
-   {
-     "Händelsekod": "KA",
      "Händelsenamn": "Kassa",
-     "Verifikatkod": "F"
+     "Verifikatkod": "F",
+     "System": "false",
+     "Aktiv": "false"
+   },
+   {
+     "Händelsekod": "",
+     "Händelsenamn": "Avskrivning",
+     "Verifikatkod": "G",
+     "System": "false",
+     "Aktiv": "false"
+   },
+   {
+     "Händelsekod": "",
+     "Händelsenamn": "Periodisering",
+     "Verifikatkod": "H",
+     "System": "false",
+     "Aktiv": "false"
    },
    {
      "Händelsekod": "IN",
      "Händelsenamn": "Inlästa verifikat",
-     "Verifikatkod": "I"
+     "Verifikatkod": "I",
+     "System": "true",
+     "Aktiv": "true"
+   },
+   {
+     "Händelsekod": "",
+     "Händelsenamn": "Bokslut",
+     "Verifikatkod": "J",
+     "System": "false",
+     "Aktiv": "false"
+   },
+   {
+     "Händelsekod": "",
+     "Händelsenamn": "Kontantfaktura",
+     "Verifikatkod": "K",
+     "System": "false",
+     "Aktiv": "false"
+   },
+   {
+     "Händelsekod": "",
+     "Händelsenamn": "Lön",
+     "Verifikatkod": "L",
+     "System": "false",
+     "Aktiv": "false"
+   },
+   {
+     "Händelsekod": "",
+     "Händelsenamn": "Momsredovisning",
+     "Verifikatkod": "M",
+     "System": "false",
+     "Aktiv": "false"
    }
  ]
 }

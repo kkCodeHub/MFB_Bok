@@ -225,10 +225,14 @@ public class SSMainMenu {    private static final Logger LOG = LoggerFactory.get
 
                 SSSIEFileChooser iFileChooser = SSSIEFileChooser.getInstance();
                 if (iFileChooser.showOpenDialog(iMainFrame) == JFileChooser.APPROVE_OPTION) {
+                    SSSIEImporter.VoucherImportMode iImportMode = SSSIEImporter.showVoucherImportModeDialog(iMainFrame);
+                    if (iImportMode == null) {
+                        return;
+                    }
                     SSSIEImporter iImporter = new SSSIEImporter(iFileChooser.getSelectedFile());
 
                     try {
-                        iImporter.doImportVouchers();
+                        iImporter.doImportVouchers(iImportMode);
                     } catch (SSImportException ex) {
                         new SSErrorDialog(iMainFrame, "importexceptiondialog", ex.getMessage());
                     }

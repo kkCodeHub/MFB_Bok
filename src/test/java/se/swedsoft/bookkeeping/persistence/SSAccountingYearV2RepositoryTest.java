@@ -106,7 +106,7 @@ class SSAccountingYearV2RepositoryTest {
         assertThat(reloaded.get().getBudget().getValueForAccountAndMonth(cash, january))
                 .hasValueSatisfying(value -> assertThat(value).isEqualByComparingTo("300.00"));
 
-        Repositories.accountingYears().delete(year);
+        deleteAccountingYear(year);
         assertThat(se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.getAccountingYear(year)).isEmpty();
         assertThat(countChildRows("tbl_year_balance", year.getId())).isZero();
         assertThat(countChildRows("tbl_budget_row", year.getId())).isZero();
@@ -132,7 +132,7 @@ class SSAccountingYearV2RepositoryTest {
         assertThat(year.getId()).isNotNull();
         assertThat(countChildRows("tbl_budget_row", year.getId())).isZero();
 
-        Repositories.accountingYears().delete(year);
+        deleteAccountingYear(year);
         Repositories.accountPlans().delete(plan);
     }
 
@@ -166,7 +166,7 @@ class SSAccountingYearV2RepositoryTest {
         assertThat(countChildRows("tbl_year_balance", year.getId())).isZero();
         assertThat(countChildRows("tbl_budget_row", year.getId())).isZero();
 
-        Repositories.accountingYears().delete(year);
+        deleteAccountingYear(year);
         Repositories.accountPlans().delete(plan);
     }
 
@@ -211,7 +211,7 @@ class SSAccountingYearV2RepositoryTest {
                 .hasValueSatisfying(value -> assertThat(value).isEqualByComparingTo("250.00"));
         assertThat(countChildRows("tbl_budget_row", year.getId())).isEqualTo(2);
 
-        Repositories.accountingYears().delete(year);
+        deleteAccountingYear(year);
         Repositories.accountPlans().delete(plan);
     }
 
@@ -278,8 +278,8 @@ class SSAccountingYearV2RepositoryTest {
         assertThat(countAccountRowsForYear(yearA.getId())).isZero();
         assertThat(countAccountRowsForYear(yearB.getId())).isEqualTo(1);
 
-        Repositories.accountingYears().delete(yearA);
-        Repositories.accountingYears().delete(yearB);
+        deleteAccountingYear(yearA);
+        deleteAccountingYear(yearB);
         Repositories.accountPlans().delete(planA);
         Repositories.accountPlans().delete(planB);
     }
@@ -322,6 +322,25 @@ class SSAccountingYearV2RepositoryTest {
         }
     }
 
+    private static void deleteAccountingYear(SSNewAccountingYear year) throws Exception {
+        if (year == null || year.getId() == null) {
+            return;
+        }
+
+        deleteChildRows("tbl_voucher_series_counter", year.getId());
+        deleteChildRows("tbl_year_voucher_event_series_map", year.getId());
+        Repositories.accountingYears().delete(year);
+    }
+
+    private static void deleteChildRows(String tableName, Integer yearId) throws Exception {
+        try (PreparedStatement statement = connection.prepareStatement(
+                "DELETE FROM " + tableName + " WHERE year_id=?")) {
+            statement.setObject(1, yearId);
+            statement.executeUpdate();
+        }
+        connection.commit();
+    }
+
     private static Integer createCompany(String name) throws Exception {
         se.swedsoft.bookkeeping.data.SSNewCompany company = new se.swedsoft.bookkeeping.data.SSNewCompany();
         company.setName(name);
@@ -329,4 +348,3 @@ class SSAccountingYearV2RepositoryTest {
         return company.getId();
     }
 }
-

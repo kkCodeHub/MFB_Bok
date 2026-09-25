@@ -66,9 +66,6 @@ final class AccountingTriggerHandler implements SSTriggerCategoryHandler {
             }
             iVouchers.remove(iIndex);
             iVouchers.add(iIndex, iVoucher);
-            if (SSVoucherFrame.getInstance() != null) {
-                SSVoucherFrame.getInstance().updateFrame();
-            }
             return true;
         }
 
@@ -83,4 +80,3 @@ final class AccountingTriggerHandler implements SSTriggerCategoryHandler {
         return true;
     }
 }
-

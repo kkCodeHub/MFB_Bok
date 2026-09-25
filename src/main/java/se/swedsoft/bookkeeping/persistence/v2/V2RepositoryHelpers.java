@@ -74,10 +74,19 @@ public final class V2RepositoryHelpers {
             return null;
         }
 
-        try (PreparedStatement statement = connection.prepareStatement(
-                "SELECT id FROM tbl_voucher WHERE number=? AND yearid=?")) {
+        String sql = "SELECT id FROM tbl_voucher WHERE number=? AND yearid=?";
+        String series = voucher.getSeries();
+        boolean hasSeries = series != null && !series.trim().isEmpty();
+        if (hasSeries) {
+            sql += " AND series=?";
+        }
+
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setObject(1, voucher.getNumber());
             statement.setObject(2, currentYear.getId());
+            if (hasSeries) {
+                statement.setObject(3, series.trim());
+            }
             try (ResultSet resultSet = statement.executeQuery()) {
                 if (resultSet.next()) {
                     return resultSet.getInt(1);

@@ -9,6 +9,7 @@ import se.swedsoft.bookkeeping.calc.math.*;
 import se.swedsoft.bookkeeping.calc.util.SSAutoIncrement;
 import se.swedsoft.bookkeeping.calc.util.SSVATUtil;
 import se.swedsoft.bookkeeping.data.*;
+import se.swedsoft.bookkeeping.data.system.SSAccountingContext;
 import se.swedsoft.bookkeeping.data.system.SSInvoiceActionPolicy;
 import se.swedsoft.bookkeeping.data.system.SSDB;
 import se.swedsoft.bookkeeping.data.system.SSMail;
@@ -21,6 +22,7 @@ import se.swedsoft.bookkeeping.print.dialog.*;
 import se.swedsoft.bookkeeping.print.report.*;
 import se.swedsoft.bookkeeping.print.report.journals.*;
 import se.swedsoft.bookkeeping.print.report.sales.*;
+import se.swedsoft.bookkeeping.print.util.SSVoucherPrintReference;
 
 import javax.mail.MessagingException;
 import javax.swing.*;
@@ -30,6 +32,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.sql.SQLException;
 import java.text.DateFormat;
 import java.time.LocalDate;
 import java.util.*;
@@ -45,6 +48,7 @@ import se.swedsoft.bookkeeping.util.SSDateUtil;
  *
  */
 public class SSReportFactory {    private static final Logger LOG = LoggerFactory.getLogger(SSReportFactory.class);
+    private static final String VOUCHER_EVENT_CODE_CUSTOMER_INVOICE = "KF";
 
     private static final File PDF_FILE_DIR = new File(Path.get(Path.APP_DATA), "pdftoemail");
     private SSReportFactory() {}
@@ -64,10 +68,13 @@ public class SSReportFactory {    private static final Logger LOG = LoggerFactor
         if (iDialog.showDialog() != JOptionPane.OK_OPTION) {
             return;
         }
+        final List<SSVoucher> iVouchers = iDialog.getElementsToPrint();
+        if (iVouchers.isEmpty()) {
+            new SSInformationDialog(iMainFrame, "voucherlistreport.dialog.norows");
+            return;
+        }
         SSProgressDialog.runProgress(iMainFrame,
                 () -> {
-
-                        List<SSVoucher> iVouchers = iDialog.getElementsToPrint();
 
                         DateFormat iFormat = DateFormat.getDateInstance(DateFormat.SHORT);
 
@@ -2037,16 +2044,32 @@ public class SSReportFactory {    private static final Logger LOG = LoggerFactor
             }
         }
         final SSVoucher iVoucher1 = SSVoucherMath.compress(iVoucher);
+        iVoucher1.setSeries(
+                SSAccountingContext.resolveVoucherSeriesForEventCode(
+                        VOUCHER_EVENT_CODE_CUSTOMER_INVOICE));
+        assignNextVoucherNumberForSeries(iVoucher1);
+
+        final boolean[] iHasOutput = {false};
+        final Runnable iOnOutputAction = () -> iHasOutput[0] = true;
 
         final ActionListener iCloseListener = e -> {
+                if (!iHasOutput[0]) {
+                    SSInformationDialog.showDialog(iMainFrame, "invoicejournal.dialog.requiresoutput");
+                    return;
+                }
+                if (!hasOpenAccountingYearForVoucherDate(iVoucher1)) {
+                    SSInformationDialog.showDialog(iMainFrame, "invoiceframe.voucher.badyear",
+                            getVoucherAccountingYearLabel(iVoucher1));
+                    return;
+                }
 
                 SSQueryDialog iDialog1 = new SSQueryDialog(iMainFrame, SSBundle.getBundle(),
-                        "invoicejournal.dialog.register", iNumber, iVoucher1.getNumber());
+                        "invoicejournal.dialog.register", iNumber, SSVoucherPrintReference.toDisplayString(iVoucher1));
 
                 if (iDialog1.getResponce() != JOptionPane.YES_NO_OPTION) {
                     return;
                 }
-                se.swedsoft.bookkeeping.data.system.SSAccountingContext.addVoucher(iVoucher1, false);
+                SSAccountingContext.addVoucher(iVoucher1, true);
 
                 String iJournalNumbers = "FA" + iNumber;
                 // Mark all invoices as entered
@@ -2086,7 +2109,7 @@ public class SSReportFactory {    private static final Logger LOG = LoggerFactor
                         iPrinter.addReport(iPrinter1);
                         iPrinter.addReport(iPrinter2);
 
-                        iPrinter.preview(iMainFrame, iCloseListener);
+                        iPrinter.preview(iMainFrame, iCloseListener, iOnOutputAction);
 
                     });
     }
@@ -2194,6 +2217,52 @@ public class SSReportFactory {    private static final Logger LOG = LoggerFactor
 
                     });
 
+    }
+
+    private static void assignNextVoucherNumberForSeries(SSVoucher pVoucher) {
+        if (pVoucher == null) {
+            return;
+        }
+        SSNewAccountingYear iVoucherYear = SSAccountingContext.resolveAccountingYearForVoucherDate(
+                pVoucher.getLocalDate());
+        String iSeries = pVoucher.getSeries() == null
+                ? "A"
+                : pVoucher.getSeries().trim().toUpperCase(Locale.ROOT);
+        if (iSeries.isEmpty()) {
+            iSeries = "A";
+        }
+        pVoucher.setSeries(iSeries);
+
+        int iNextNumber = 1;
+        try {
+            iNextNumber = Repositories.voucherSeriesCounters()
+                    .findByYearAndSeries(iVoucherYear.getId(), iSeries)
+                    .map(iRow -> ((Number) iRow.get("last_number")).intValue() + 1)
+                    .orElse(1);
+        } catch (SQLException e) {
+            LOG.warn("Failed to read voucher series counter for series '{}'", iSeries, e);
+        }
+        while (Repositories.vouchers().findBySeriesAndNumber(iVoucherYear, iSeries, iNextNumber).isPresent()) {
+            iNextNumber++;
+        }
+        pVoucher.setNumber(iNextNumber);
+    }
+
+    private static boolean hasOpenAccountingYearForVoucherDate(SSVoucher pVoucher) {
+        SSNewAccountingYear iCurrentYear = se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.getCurrentYear();
+        if (iCurrentYear == null || pVoucher == null || pVoucher.getLocalDate() == null) {
+            return false;
+        }
+        LocalDate iVoucherDate = pVoucher.getLocalDate();
+        return !iVoucherDate.isBefore(iCurrentYear.getLocalFrom())
+                && !iVoucherDate.isAfter(iCurrentYear.getLocalTo());
+    }
+
+    private static String getVoucherAccountingYearLabel(SSVoucher pVoucher) {
+        if (pVoucher == null || pVoucher.getLocalDate() == null) {
+            return "????";
+        }
+        return Integer.toString(pVoucher.getLocalDate().getYear());
     }
 
     /**

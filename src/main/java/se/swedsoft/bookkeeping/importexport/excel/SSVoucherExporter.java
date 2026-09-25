@@ -28,6 +28,7 @@ import java.util.Locale;
  */
 public class SSVoucherExporter {
     // Column names
+    public static final String VERIFIKATSERIE = "Verifikatserie";
     public static final String NUMMER = "Nummer";
     public static final String BESKRIVNING = "Beskrivning";
 
@@ -118,14 +119,15 @@ public class SSVoucherExporter {
         iCellFormat.setFillPattern(org.apache.poi.ss.usermodel.FillPatternType.SOLID_FOREGROUND);
 
         SSWritableExcelRow iHeaderRow = iRows.getFirst();
-        iHeaderRow.setString(0, NUMMER, iCellFormat);
-        iHeaderRow.setString(1, BESKRIVNING, iCellFormat);
-        iHeaderRow.setString(2, DATUM, iCellFormat);
-        iHeaderRow.setString(3, KONTO, iCellFormat);
-        iHeaderRow.setString(4, DEBET, iCellFormat);
-        iHeaderRow.setString(5, KREDIT, iCellFormat);
-        iHeaderRow.setString(6, PROJEKT, iCellFormat);
-        iHeaderRow.setString(7, RESULTATENHET, iCellFormat);
+        iHeaderRow.setString(0, VERIFIKATSERIE, iCellFormat);
+        iHeaderRow.setString(1, NUMMER, iCellFormat);
+        iHeaderRow.setString(2, BESKRIVNING, iCellFormat);
+        iHeaderRow.setString(3, DATUM, iCellFormat);
+        iHeaderRow.setString(4, KONTO, iCellFormat);
+        iHeaderRow.setString(5, DEBET, iCellFormat);
+        iHeaderRow.setString(6, KREDIT, iCellFormat);
+        iHeaderRow.setString(7, PROJEKT, iCellFormat);
+        iHeaderRow.setString(8, RESULTATENHET, iCellFormat);
 
         iCellFormat = iWorkbook.createCellStyle();
         Font iFont = iWorkbook.createFont();
@@ -139,9 +141,10 @@ public class SSVoucherExporter {
             iRowIndex++;
             SSWritableExcelRow iRow = iRows.get(iRowIndex);
 
-            iRow.setNumber(0, iVoucher.getNumber(), iCellFormat);
-            iRow.setString(1, iVoucher.getDescription(), iCellFormat);
-            iRow.setDate(2, iVoucher.getLocalDate(), iCellFormat);
+            iRow.setString(0, iVoucher.getSeries(), iCellFormat);
+            iRow.setNumber(1, iVoucher.getNumber(), iCellFormat);
+            iRow.setString(2, iVoucher.getDescription(), iCellFormat);
+            iRow.setDate(3, iVoucher.getLocalDate(), iCellFormat);
 
             for (SSVoucherRow iVoucherRow : iVoucher.getRows()) {
 
@@ -151,11 +154,11 @@ public class SSVoucherExporter {
 
                 iRowIndex++;
                 iRow = iRows.get(iRowIndex);
-                iRow.setNumber(3, iVoucherRow.getAccountNr());
-                iRow.setNumber(4, iVoucherRow.getDebet());
-                iRow.setNumber(5, iVoucherRow.getCredit());
-                iRow.setString(6, iVoucherRow.getProjectNr());
-                iRow.setString(7, iVoucherRow.getResultUnitNr());
+                iRow.setNumber(4, iVoucherRow.getAccountNr());
+                iRow.setNumber(5, iVoucherRow.getDebet());
+                iRow.setNumber(6, iVoucherRow.getCredit());
+                iRow.setString(7, iVoucherRow.getProjectNr());
+                iRow.setString(8, iVoucherRow.getResultUnitNr());
             }
         }
 

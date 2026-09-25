@@ -772,6 +772,21 @@ public class SSReport {    private static final Logger LOG = LoggerFactory.getLo
      * @param listener
      */
     public void viewReport(SSMainFrame iMainFrame, InternalFrameListener listener) {
+        viewReport(iMainFrame, listener, null, null, false);
+    }
+
+    /**
+     * Shows report preview with frame listener and output callbacks.
+     *
+     * @param iMainFrame main frame owner
+     * @param listener frame lifecycle listener
+     * @param iOnOutputAction callback run once on first save/print action
+     * @param iOnEmailAction callback run when e-mail action is chosen
+     * @param iShowEmailButton true if the e-mail button should be visible
+     */
+    public void viewReport(SSMainFrame iMainFrame, InternalFrameListener listener,
+                           Runnable iOnOutputAction, Runnable iOnEmailAction,
+                           boolean iShowEmailButton) {
         SSException reportError = null;
         try {
             generateReport();
@@ -790,6 +805,9 @@ public class SSReport {    private static final Logger LOG = LoggerFactory.getLo
 
             iJasperPreviewFrame.addInternalFrameListener(listener);
             iJasperPreviewFrame.setReport(this);
+            iJasperPreviewFrame.setOnOutputAction(iOnOutputAction);
+            iJasperPreviewFrame.setShowEmailButton(iShowEmailButton);
+            iJasperPreviewFrame.setOnEmailAction(iOnEmailAction);
             iJasperPreviewFrame.setPrinter(printer);
             iJasperPreviewFrame.setInCenter(iMainFrame);
             iJasperPreviewFrame.setVisible(true);

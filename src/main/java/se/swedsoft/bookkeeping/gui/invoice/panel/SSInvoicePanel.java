@@ -38,6 +38,7 @@ import se.swedsoft.bookkeeping.gui.voucher.util.SSVoucherRowTableModel;
 import se.swedsoft.bookkeeping.util.SSDateUtil;
 
 import javax.swing.*;
+import javax.swing.event.ChangeListener;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.text.DefaultFormatterFactory;
@@ -156,7 +157,9 @@ public class SSInvoicePanel {
     private boolean iUpdatingDueDateField;
     private boolean iVoucherGenerated;
 
-    // protected JTabbedPane iTabbedPane;
+    private static final int KONTERING_TAB_INDEX = 3;
+    protected JTabbedPane iTabbedPane;
+    private ChangeListener iTabbedPaneChangeListener;
     private JCheckBox iUseInvoiceForDelivery;
 
     /**
@@ -369,17 +372,13 @@ public class SSInvoicePanel {
 
                     });
 
-        iRefreshVoucher.addActionListener(e -> {
-
-                SSVoucher iVoucher = iInvoice.generateVoucher();
-
-                iVoucherTableModel.setVoucher(iVoucher, false);
-                iVoucherGenerated = true;
-                if (iKonteringPossibleMode) {
-                    iButtonPanel.getOkButton().setEnabled(true);
-                }
-
-            });
+        iRefreshVoucher.addActionListener(e -> refreshVoucherPreview());
+        iTabbedPaneChangeListener = e -> {
+            if (iTabbedPane.getSelectedIndex() == KONTERING_TAB_INDEX) {
+                refreshVoucherPreview();
+            }
+        };
+        iTabbedPane.addChangeListener(iTabbedPaneChangeListener);
         SSButtonGroup iGroup = new SSButtonGroup(true);
 
         iGroup.add(iEuSaleCommodity);
@@ -406,6 +405,18 @@ public class SSInvoicePanel {
             iRefreshVoucher.setEnabled(false);
         } else {
             iRefreshVoucher.setEnabled(true);
+        }
+    }
+
+    private void refreshVoucherPreview() {
+        if (iInvoice == null) {
+            return;
+        }
+        SSVoucher iVoucher = iInvoice.generateVoucher();
+        iVoucherTableModel.setVoucher(iVoucher, false);
+        iVoucherGenerated = true;
+        if (iKonteringPossibleMode) {
+            iButtonPanel.getOkButton().setEnabled(true);
         }
     }
 
@@ -570,8 +581,11 @@ public class SSInvoicePanel {
         iInterestInvoiced = null;
         iOCRNumber = null;
         iInputVerifier = null;
-        // iTabbedPane.removeAll();
-        // iTabbedPane=null;
+        if (iTabbedPane != null && iTabbedPaneChangeListener != null) {
+            iTabbedPane.removeChangeListener(iTabbedPaneChangeListener);
+        }
+        iTabbedPane = null;
+        iTabbedPaneChangeListener = null;
         iUseInvoiceForDelivery = null;
     }
 

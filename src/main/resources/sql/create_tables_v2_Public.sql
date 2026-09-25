@@ -134,15 +134,14 @@ CREATE INDEX IF NOT EXISTS ix_company_catalog_company_name
 -- Used to define default series for each event type across all years.
 CREATE TABLE IF NOT EXISTS tbl_voucher_event_type (
     id                     INTEGER IDENTITY,
-    event_code             VARCHAR(10)   NOT NULL,
+    event_code             VARCHAR(10),
     event_name             VARCHAR(255)  NOT NULL,
     default_series_code    VARCHAR(1)    NOT NULL,
+    system                 BOOLEAN       DEFAULT TRUE,
     active                 BOOLEAN       DEFAULT TRUE,
     CONSTRAINT pk_voucher_event_type PRIMARY KEY (id),
     CONSTRAINT uq_voucher_event_code UNIQUE (event_code)
 );
 
 -- End of schema V2 PUBLIC
-
-
 

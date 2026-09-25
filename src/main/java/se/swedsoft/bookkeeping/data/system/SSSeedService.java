@@ -386,23 +386,25 @@ public class SSSeedService {
             String seriesCode = optionalText(event, "Verifikatkod");
             String eventCode = optionalText(event, "Händelsekod");
             String eventName = optionalText(event, "Händelsenamn");
+            boolean system = optionalBoolean(event, "System").orElse(true);
+            boolean active = optionalBoolean(event, "Aktiv").orElse(true);
+            if (eventCode != null && eventCode.isBlank()) {
+                eventCode = null;
+            }
 
             if (seriesCode == null || seriesCode.length() != 1) {
                 LOG.warn("Skipping voucher event type with invalid Verifikatkod: {}", seriesCode);
                 continue;
             }
-            if (!"A".equals(seriesCode) && (eventCode == null || eventCode.isEmpty())) {
-                LOG.warn("Skipping voucher event type '{}' without Händelsekod", seriesCode);
+            if (system && (eventCode == null || eventCode.isEmpty())) {
+                LOG.warn("Skipping system voucher event type '{}' without Händelsekod", seriesCode);
                 continue;
             }
             if (eventName == null || eventName.isEmpty()) {
                 LOG.warn("Skipping voucher event type '{}' without Händelsenamn", seriesCode);
                 continue;
             }
-            if ("A".equals(seriesCode) && eventCode == null) {
-                eventCode = "";
-            }
-            repo.upsertFromSeed(eventCode, eventName, seriesCode);
+            repo.upsertFromSeed(eventCode, eventName, seriesCode, system, active);
         }
         LOG.debug("Seeded {} voucher event types", events.size());
     }

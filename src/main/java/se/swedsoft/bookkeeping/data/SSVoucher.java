@@ -321,6 +321,10 @@ public class SSVoucher implements Cloneable, SSTableSearchable {
 
         StringBuilder sb = new StringBuilder();
 
+        String series = iSeries == null ? "" : iSeries.trim();
+        if (!series.isEmpty()) {
+            sb.append(series);
+        }
         sb.append(iNumber);
         sb.append(", ");
         sb.append(iDescription);

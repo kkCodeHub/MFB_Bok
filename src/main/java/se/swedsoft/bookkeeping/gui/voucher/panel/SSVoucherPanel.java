@@ -100,7 +100,7 @@ public class SSVoucherPanel implements TableModelListener, ListSelectionListener
             if (label == null || label.trim().isEmpty()) {
                 return code;
             }
-            return code + " - " + label;
+            return code + "    -  " + label;
         }
     }
 
@@ -169,15 +169,17 @@ public class SSVoucherPanel implements TableModelListener, ListSelectionListener
         iDescription.setAllowCustomValues(true);
 
         if (iSeries != null) {
-            iSeries.setPreferredSize(new Dimension(120, iSeries.getPreferredSize().height));
-            iSeries.setMinimumSize(new Dimension(120, iSeries.getPreferredSize().height));
-            iSeries.setMaximumSize(new Dimension(120, iSeries.getPreferredSize().height));
+            iSeries.setPreferredSize(new Dimension(250, iSeries.getPreferredSize().height));
+            iSeries.setMinimumSize(new Dimension(250, iSeries.getPreferredSize().height));
+            iSeries.setMaximumSize(new Dimension(250, iSeries.getPreferredSize().height));
+            iSeries.setFont(iSeries.getFont().deriveFont(Font.BOLD));
         }
         if (iNumber != null) {
-            iNumber.setPreferredSize(new Dimension(25, iNumber.getPreferredSize().height));
-            iNumber.setMinimumSize(new Dimension(25, iNumber.getPreferredSize().height));
-            iNumber.setMaximumSize(new Dimension(25, iNumber.getPreferredSize().height));
-            iNumber.setColumns(5);
+            iNumber.setPreferredSize(new Dimension(70, iNumber.getPreferredSize().height));
+            iNumber.setMinimumSize(new Dimension(70, iNumber.getPreferredSize().height));
+            iNumber.setMaximumSize(new Dimension(70, iNumber.getPreferredSize().height));
+     //       iNumber.setColumns(5);
+            iNumber.setHorizontalAlignment(SwingConstants.RIGHT);
         }
         if (iDate != null) {
             iDate.setPreferredSize(new Dimension(150, iDate.getPreferredSize().height));
@@ -594,7 +596,8 @@ public class SSVoucherPanel implements TableModelListener, ListSelectionListener
         SSNewAccountingYear currentYear = SSAccountingContext.getCurrentYear();
         if (currentYear != null && currentYear.getId() != null) {
             try {
-                for (Map<String, Object> mapping : Repositories.yearVoucherEventSeriesMaps().findByYearOrderedById(currentYear.getId())) {
+                for (Map<String, Object> mapping :
+                        Repositories.yearVoucherEventSeriesMaps().findActiveByYearOrderedById(currentYear.getId())) {
                     Object seriesValue = mapping.get("series_code");
                     if (seriesValue != null) {
                         String seriesCode = String.valueOf(seriesValue).trim().toUpperCase();
@@ -697,6 +700,10 @@ public class SSVoucherPanel implements TableModelListener, ListSelectionListener
 
         iVerifier.setVoucher(iVoucher);
         iVerifier.update();
+
+        if (iEditing) {
+            iReopenDialog.setSelected(false);
+        }
     }
 
     /**
@@ -913,4 +920,3 @@ public class SSVoucherPanel implements TableModelListener, ListSelectionListener
         return sb.toString();
     }
 }
-

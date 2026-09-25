@@ -9,7 +9,7 @@
     <properties/>
     <border type="none"/>
     <children>
-      <tabbedpane id="454b5">
+      <tabbedpane id="454b5" binding="iTabbedPane">
         <constraints>
           <xy x="4" y="4" width="790" height="495"/>
           <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3">

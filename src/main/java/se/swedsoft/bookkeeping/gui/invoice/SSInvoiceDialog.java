@@ -3,12 +3,14 @@ package se.swedsoft.bookkeeping.gui.invoice;
 
 import se.swedsoft.bookkeeping.calc.math.SSInvoiceMath;
 import se.swedsoft.bookkeeping.data.SSInvoice;
+import se.swedsoft.bookkeeping.data.SSNewAccountingYear;
 import se.swedsoft.bookkeeping.data.SSOrder;
 import se.swedsoft.bookkeeping.data.SSVoucher;
 import se.swedsoft.bookkeeping.data.common.SSInvoiceType;
 import se.swedsoft.bookkeeping.data.system.SSInvoiceActionPolicy;
 import se.swedsoft.bookkeeping.data.system.SSDB;
 import se.swedsoft.bookkeeping.data.system.SSAccountingContext;
+import se.swedsoft.bookkeeping.data.system.SSCompanyYearContext;
 import se.swedsoft.bookkeeping.data.system.SSSalesContext;
 import se.swedsoft.bookkeeping.gui.SSMainFrame;
 import se.swedsoft.bookkeeping.gui.invoice.dialog.SSInvoiceTypeDialog;
@@ -27,6 +29,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.time.LocalDate;
 import java.util.List;
 
 
@@ -37,6 +40,7 @@ import java.util.List;
  */
 public class SSInvoiceDialog {
     private static final Logger LOG = LoggerFactory.getLogger(SSInvoiceDialog.class);
+    private static final String VOUCHER_EVENT_CODE_CUSTOMER_INVOICE = "KF";
 
     private SSInvoiceDialog() {}
 
@@ -81,6 +85,14 @@ public class SSInvoiceDialog {
                 }
 
                 if (iSaveVoucher) {
+                    if (!hasOpenAccountingYearForVoucherDate(iInvoice.getVoucher())) {
+                        SSInformationDialog.showDialog(iMainFrame, "invoiceframe.voucher.badyear",
+                                getVoucherAccountingYearLabel(iInvoice.getVoucher()));
+                        return;
+                    }
+                    iInvoice.getVoucher().setSeries(
+                            SSAccountingContext.resolveVoucherSeriesForEventCode(
+                                    VOUCHER_EVENT_CODE_CUSTOMER_INVOICE));
                     SSAccountingContext.addVoucher(iInvoice.getVoucher(), false);
                     iInvoice.setEntered();
                 } else if (!iInvoice.isEntered()) {
@@ -172,6 +184,14 @@ public class SSInvoiceDialog {
                 }
 
                 if (iSaveVoucher) {
+                    if (!hasOpenAccountingYearForVoucherDate(iInvoice1.getVoucher())) {
+                        SSInformationDialog.showDialog(iMainFrame, "invoiceframe.voucher.badyear",
+                                getVoucherAccountingYearLabel(iInvoice1.getVoucher()));
+                        return;
+                    }
+                    iInvoice1.getVoucher().setSeries(
+                            SSAccountingContext.resolveVoucherSeriesForEventCode(
+                                    VOUCHER_EVENT_CODE_CUSTOMER_INVOICE));
                     SSAccountingContext.addVoucher(iInvoice1.getVoucher(), false);
                     iInvoice1.setEntered();
                 } else if (!iInvoice1.isEntered()) {
@@ -280,6 +300,14 @@ public class SSInvoiceDialog {
                 }
 
                 if (iSaveVoucher) {
+                    if (!hasOpenAccountingYearForVoucherDate(iInvoice1.getVoucher())) {
+                        SSInformationDialog.showDialog(iMainFrame, "invoiceframe.voucher.badyear",
+                                getVoucherAccountingYearLabel(iInvoice1.getVoucher()));
+                        return;
+                    }
+                    iInvoice1.getVoucher().setSeries(
+                            SSAccountingContext.resolveVoucherSeriesForEventCode(
+                                    VOUCHER_EVENT_CODE_CUSTOMER_INVOICE));
                     SSAccountingContext.addVoucher(iInvoice1.getVoucher(), false);
                     iInvoice1.setEntered();
                 } else if (!iInvoice1.isEntered()) {
@@ -373,6 +401,14 @@ public class SSInvoiceDialog {
                 }
 
                 if (iSaveVoucher) {
+                    if (!hasOpenAccountingYearForVoucherDate(iInvoice1.getVoucher())) {
+                        SSInformationDialog.showDialog(iMainFrame, "invoiceframe.voucher.badyear",
+                                getVoucherAccountingYearLabel(iInvoice1.getVoucher()));
+                        return;
+                    }
+                    iInvoice1.getVoucher().setSeries(
+                            SSAccountingContext.resolveVoucherSeriesForEventCode(
+                                    VOUCHER_EVENT_CODE_CUSTOMER_INVOICE));
                     SSAccountingContext.addVoucher(iInvoice1.getVoucher(), false);
                     iInvoice1.setEntered();
                 } else if (!iInvoice1.isEntered()) {
@@ -429,5 +465,25 @@ public class SSInvoiceDialog {
         iDialog.setSize(800, 600);
         iDialog.setLocationRelativeTo(iMainFrame);
         iDialog.setVisible();
+    }
+
+    private static boolean hasOpenAccountingYearForVoucherDate(SSVoucher pVoucher) {
+        SSNewAccountingYear iCurrentYear = SSCompanyYearContext.getCurrentYear();
+        if (iCurrentYear == null || pVoucher == null) {
+            return false;
+        }
+        LocalDate iVoucherDate = pVoucher.getLocalDate();
+        if (iVoucherDate == null) {
+            return false;
+        }
+        return !iVoucherDate.isBefore(iCurrentYear.getLocalFrom())
+                && !iVoucherDate.isAfter(iCurrentYear.getLocalTo());
+    }
+
+    private static String getVoucherAccountingYearLabel(SSVoucher pVoucher) {
+        if (pVoucher == null || pVoucher.getLocalDate() == null) {
+            return "????";
+        }
+        return Integer.toString(pVoucher.getLocalDate().getYear());
     }
 }

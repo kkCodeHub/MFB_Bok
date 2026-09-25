@@ -64,6 +64,7 @@ public class SSSchemaEnsurer {
         ensureTemplateAccountTable();
         ensureAccountPlanColumns();
         ensureYearOwnedAccountTable();
+        ensureVoucherYearSeriesNumberUniqueness();
         ensureSingleActiveAccountYear();
         ensureDropYearPlanFk();
     }
@@ -280,6 +281,26 @@ public class SSSchemaEnsurer {
     }
 
     /**
+     * Ensure voucher numbering is unique per accounting year and series.
+     *
+     * @throws SQLException if DDL operations fail unexpectedly
+     */
+    private void ensureVoucherYearSeriesNumberUniqueness() throws SQLException {
+        dropConstraintIfExists("tbl_voucher", "uq_voucher_year_number");
+        try (PreparedStatement iUnique = connection.prepareStatement(
+                "ALTER TABLE tbl_voucher ADD CONSTRAINT uq_voucher_year_series_number "
+                        + "UNIQUE (yearid, series, number)")) {
+            iUnique.executeUpdate();
+        } catch (SQLException e) {
+            String msg = e.getMessage() == null ? "" : e.getMessage().toLowerCase(Locale.ROOT);
+            if (!msg.contains("already exists") && !msg.contains("duplicate")
+                    && !msg.contains("integrity constraint")) {
+                throw e;
+            }
+        }
+    }
+
+    /**
      * Ensure the foreign key from tbl_accountingyear to tbl_accountplan is dropped.
      * <p>
      * In the snapshot model, the year owns a self-contained CLOB copy of its account plan.
@@ -390,6 +411,4 @@ public class SSSchemaEnsurer {
         }
     }
 }
-
-
 

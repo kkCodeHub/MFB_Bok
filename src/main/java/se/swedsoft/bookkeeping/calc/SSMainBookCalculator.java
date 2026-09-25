@@ -27,6 +27,8 @@ public class SSMainBookCalculator {
 
         private Integer      iNumber;
 
+        private String       iSeries;
+
         private String       iDescription;
 
         private LocalDate    iDate;
@@ -51,6 +53,10 @@ public class SSMainBookCalculator {
 
         public Integer getNumber() {
             return iNumber;
+        }
+
+        public String getSeries() {
+            return iSeries;
         }
 
         public String getDescription() {
@@ -105,6 +111,7 @@ public class SSMainBookCalculator {
             sb.append(", iDebet=").append(iDebet);
             sb.append(", iDescription='").append(iDescription).append('\'');
             sb.append(", iHasdata=").append(iHasdata);
+            sb.append(", iSeries='").append(iSeries).append('\'');
             sb.append(", iNumber=").append(iNumber);
             sb.append(", iSum=").append(iSum);
             sb.append('}');
@@ -260,6 +267,7 @@ public class SSMainBookCalculator {
                     iMainBookRow.iHasdata = true;
                     iMainBookRow.iAccount = iAccount;
 
+                    iMainBookRow.iSeries = iVoucher.getSeries();
                     iMainBookRow.iNumber = iVoucher.getNumber();
                     iMainBookRow.iDescription = iVoucher.getDescription();
                     iMainBookRow.iDate = voucherDate;

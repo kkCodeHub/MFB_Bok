@@ -27,6 +27,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.time.LocalDate;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -41,6 +42,13 @@ import org.slf4j.LoggerFactory;
  */
 public class SSSIEImporter {    private static final Logger LOG = LoggerFactory.getLogger(SSSIEImporter.class);
 
+    public enum VoucherImportMode {
+        USE_SIE_VOUCHER_CODE,
+        USE_EVENT_CODE_IN
+    }
+
+    private static final String IMPORT_EVENT_CODE = "IN";
+
 
     private List<String> iLines;
 
@@ -52,6 +60,8 @@ public class SSSIEImporter {    private static final Logger LOG = LoggerFactory.
     private SIEFactory iFactory;
 
     private File iFile;
+
+    private VoucherImportMode iVoucherImportMode = VoucherImportMode.USE_SIE_VOUCHER_CODE;
 
     /**
      *
@@ -424,33 +434,58 @@ public class SSSIEImporter {    private static final Logger LOG = LoggerFactory.
      * @throws SSImportException
      */
     public void doImportVouchers() throws SSImportException {
-        // Read the contents of the file
-        readFile(iFile);
+        doImportVouchers(VoucherImportMode.USE_SIE_VOUCHER_CODE);
+    }
 
-        if (iLines.isEmpty()) {
-            return;
-        }
+    public void doImportVouchers(VoucherImportMode pVoucherImportMode) throws SSImportException {
+        VoucherImportMode iPreviousImportMode = iVoucherImportMode;
+        iVoucherImportMode = pVoucherImportMode == null
+                ? VoucherImportMode.USE_SIE_VOUCHER_CODE
+                : pVoucherImportMode;
+        try {
+            try {
+                // Read the contents of the file
+                readFile(iFile);
 
-        List<List<String>> iParsedLines = getParsedLines(iLines);
-        SSNewAccountingYear iYear = se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.getCurrentYear();
-        validateVoucherNumbersBeforeImport(iParsedLines);
+                if (iLines.isEmpty()) {
+                    return;
+                }
 
-        for (List<String> iEntryLines : iParsedLines) {
-            SIEReader iReader = new SIEReader(iEntryLines);
+                List<List<String>> iParsedLines = getParsedLines(iLines);
+                SSNewAccountingYear iYear = se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.getCurrentYear();
+                validateVoucherNumbersBeforeImport(iParsedLines);
 
-            String iLabel = iReader.next();
+                for (List<String> iEntryLines : iParsedLines) {
+                    SIEReader iReader = new SIEReader(iEntryLines);
 
-            // Only import verifications
-            if (iLabel.equals("#VER")) {
-                SIEEntry iEntry = iFactory.get("#VER");
+                    String iLabel = iReader.next();
 
-                iEntry.importEntry(this, iReader, iYear);
+                    // Only import verifications
+                    if (iLabel.equals("#VER")) {
+                        SIEEntry iEntry = iFactory.get("#VER");
+
+                        iEntry.importEntry(this, iReader, iYear);
+                    }
+                }
+            } catch (VoucherImportAbortedException e) {
+                return;
+            } catch (IllegalArgumentException e) {
+                handleVoucherImportIllegalArgument(e);
             }
+        } finally {
+            iVoucherImportMode = iPreviousImportMode;
         }
     }
 
     private void validateVoucherNumbersBeforeImport(List<List<String>> pParsedLines) throws SSImportException {
-        Set<Integer> iImportedNumbers = new HashSet<>();
+        validateVoucherDatesWithinOpenYear(pParsedLines);
+
+        if (iVoucherImportMode == VoucherImportMode.USE_EVENT_CODE_IN) {
+            validateVoucherHeadersBeforeImport(pParsedLines);
+            return;
+        }
+
+        Set<String> iImportedVoucherKeys = new HashSet<>();
 
         for (List<String> iEntryLines : pParsedLines) {
             SIEReader iReader = new SIEReader(iEntryLines);
@@ -469,26 +504,180 @@ public class SSSIEImporter {    private static final Logger LOG = LoggerFactory.
             }
 
             String iSerie = iReader.nextString();
+            String iNormalizedSeries = SIEEntryVerifikation.normalizeVoucherSeries(iSerie);
             Integer iNumber = iReader.nextInteger().orElse(null);
-            Integer iInternalNumber = SIEEntryVerifikation.toInternalVoucherNumber(iSerie, iNumber);
+            Date iDate = iReader.hasNextDate() ? iReader.nextDate() : SSDateUtil.toDate(SSDateUtil.today());
 
-            if (iInternalNumber == null) {
+            if (iNumber == null) {
                 throw new SSImportException(
                         SSBundleString.getString("sieimport.fielderror", iReader.peekLine()));
             }
 
-            if (!iImportedNumbers.add(iInternalNumber)) {
-                throw new SSImportException(
-                        "Dubblett av verifikationsnummer i SIE-filen: " + iInternalNumber
+            String iVoucherKey = iNormalizedSeries + iNumber;
+
+            if (!iImportedVoucherKeys.add(iVoucherKey)) {
+                abortVoucherImport(
+                        "Dubblett av verifikationsnummer i SIE-filen: " + iVoucherKey
                                 + ". Importen avbryts och inga verifikationer lases in.");
             }
 
-            if (se.swedsoft.bookkeeping.data.system.SSAccountingContext.hasVoucher(iInternalNumber)) {
-                throw new SSImportException(
-                        "Verifikationsnummer finns redan i oppet bokforingsar: " + iInternalNumber
+            LocalDate iVoucherDate = SSDateUtil.toLocalDate(iDate);
+            SSNewAccountingYear iVoucherYear =
+                    se.swedsoft.bookkeeping.data.system.SSAccountingContext.resolveAccountingYearForVoucherDate(
+                            iVoucherDate);
+
+            SSVoucher iProbe = new SSVoucher(iNumber);
+            iProbe.setSeries(iNormalizedSeries);
+            iProbe.setLocalDate(iVoucherDate);
+            if (se.swedsoft.bookkeeping.data.system.SSAccountingContext.getVoucher(iVoucherYear, iProbe).isPresent()) {
+                abortVoucherImport(
+                        "Verifikationsnummer finns redan i bokforingsaret for verifikationsdatum: " + iVoucherKey
                                 + ". Importen avbryts och inga verifikationer lases in.");
             }
         }
+    }
+
+    private void validateVoucherDatesWithinOpenYear(List<List<String>> pParsedLines) throws SSImportException {
+        SSNewAccountingYear iOpenYear = SSCompanyYearContext.getCurrentYear();
+        if (iOpenYear == null || iOpenYear.getLocalFrom() == null || iOpenYear.getLocalTo() == null) {
+            throw new IllegalArgumentException("Oppet bokforingsar saknas eller ar ofullstandigt.");
+        }
+
+        for (List<String> iEntryLines : pParsedLines) {
+            SIEReader iReader = new SIEReader(iEntryLines);
+            if (!iReader.hasNext()) {
+                continue;
+            }
+
+            String iLabel = iReader.next();
+            if (!iLabel.equals("#VER")) {
+                continue;
+            }
+
+            if (!iReader.hasFields(SIEReader.SIEDataType.STRING, SIEReader.SIEDataType.STRING, SIEReader.SIEDataType.STRING)) {
+                throw new SSImportException(
+                        SSBundleString.getString("sieimport.fielderror", iReader.peekLine()));
+            }
+
+            iReader.nextString();
+            Integer iNumber = iReader.nextInteger().orElse(null);
+            Date iDate = iReader.hasNextDate() ? iReader.nextDate() : SSDateUtil.toDate(SSDateUtil.today());
+
+            if (iNumber == null) {
+                throw new SSImportException(
+                        SSBundleString.getString("sieimport.fielderror", iReader.peekLine()));
+            }
+
+            LocalDate iVoucherDate = SSDateUtil.toLocalDate(iDate);
+            if (iVoucherDate.isBefore(iOpenYear.getLocalFrom()) || iVoucherDate.isAfter(iOpenYear.getLocalTo())) {
+                throw new IllegalArgumentException(String.format(
+                        "Verifikationsdatum %s ligger utanfor oppet bokforingsar %s - %s.",
+                        iVoucherDate,
+                        iOpenYear.getLocalFrom(),
+                        iOpenYear.getLocalTo()));
+            }
+        }
+    }
+
+    private void validateVoucherHeadersBeforeImport(List<List<String>> pParsedLines) throws SSImportException {
+        for (List<String> iEntryLines : pParsedLines) {
+            SIEReader iReader = new SIEReader(iEntryLines);
+            if (!iReader.hasNext()) {
+                continue;
+            }
+
+            String iLabel = iReader.next();
+            if (!iLabel.equals("#VER")) {
+                continue;
+            }
+
+            if (!iReader.hasFields(SIEReader.SIEDataType.STRING, SIEReader.SIEDataType.STRING, SIEReader.SIEDataType.STRING)) {
+                throw new SSImportException(
+                        SSBundleString.getString("sieimport.fielderror", iReader.peekLine()));
+            }
+
+            iReader.nextString();
+            Integer iNumber = iReader.nextInteger().orElse(null);
+            if (iNumber == null) {
+                throw new SSImportException(
+                        SSBundleString.getString("sieimport.fielderror", iReader.peekLine()));
+            }
+        }
+    }
+
+    public boolean shouldUseEventCodeInVoucherSeries() {
+        return iVoucherImportMode == VoucherImportMode.USE_EVENT_CODE_IN;
+    }
+
+    public String resolveVoucherSeriesForVoucherImport(String pSerie) {
+        if (shouldUseEventCodeInVoucherSeries()) {
+            return se.swedsoft.bookkeeping.data.system.SSAccountingContext.resolveVoucherSeriesForEventCode(
+                    IMPORT_EVENT_CODE);
+        }
+        return SIEEntryVerifikation.normalizeVoucherSeries(pSerie);
+    }
+
+    public boolean shouldKeepImportedVoucherNumber() {
+        return !shouldUseEventCodeInVoucherSeries();
+    }
+
+    public static VoucherImportMode showVoucherImportModeDialog(Component pParent) {
+        if (GraphicsEnvironment.isHeadless()) {
+            return VoucherImportMode.USE_SIE_VOUCHER_CODE;
+        }
+
+        Object[] iOptions = {
+                SSBundleString.getString("sieimport.vouchers.mode.option.sie").getString(),
+                SSBundleString.getString("sieimport.vouchers.mode.option.in").getString()
+        };
+
+        int iChoice = JOptionPane.showOptionDialog(
+                pParent,
+                SSBundleString.getString("sieimport.vouchers.mode.message").getString(),
+                SSBundleString.getString("sieimport.vouchers.mode.title").getString(),
+                JOptionPane.DEFAULT_OPTION,
+                JOptionPane.QUESTION_MESSAGE,
+                null,
+                iOptions,
+                iOptions[0]);
+
+        if (iChoice == 0) {
+            return VoucherImportMode.USE_SIE_VOUCHER_CODE;
+        }
+        if (iChoice == 1) {
+            return VoucherImportMode.USE_EVENT_CODE_IN;
+        }
+        return null;
+    }
+
+    private static void handleVoucherImportIllegalArgument(IllegalArgumentException pException) throws SSImportException {
+        String iReason = pException == null || pException.getMessage() == null
+                ? "Okand orsak."
+                : pException.getMessage();
+        abortVoucherImport(iReason);
+    }
+
+    private static void abortVoucherImport(String pReason) throws SSImportException {
+        String iMessage = SSBundleString.getString("sieimport.vouchers.abort.message", pReason).getString();
+
+        if (GraphicsEnvironment.isHeadless()) {
+            throw new SSImportException(iMessage);
+        }
+
+        JOptionPane.showOptionDialog(
+                null,
+                iMessage,
+                SSBundleString.getString("sieimport.vouchers.abort.title").getString(),
+                JOptionPane.DEFAULT_OPTION,
+                JOptionPane.INFORMATION_MESSAGE,
+                null,
+                new Object[]{SSBundleString.getString("sieimport.vouchers.abort.confirm").getString()},
+                SSBundleString.getString("sieimport.vouchers.abort.confirm").getString());
+        throw new VoucherImportAbortedException();
+    }
+
+    private static final class VoucherImportAbortedException extends RuntimeException {
+        private static final long serialVersionUID = 1L;
     }
 
     /**
