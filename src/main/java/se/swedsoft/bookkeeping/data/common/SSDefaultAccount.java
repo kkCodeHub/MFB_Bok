@@ -21,6 +21,8 @@ public enum SSDefaultAccount  {
     OutPayment(1930),
     // Kontant
     Cash(1910),
+    // Förskott från Kund
+    CustomerDebt(2420),
     // Leverantörsskuld
     SupplierDebt(2440),
     // Moms 1

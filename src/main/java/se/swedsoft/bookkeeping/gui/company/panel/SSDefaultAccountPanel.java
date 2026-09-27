@@ -38,6 +38,8 @@ public class SSDefaultAccountPanel extends JPanel {
     private SSTableComboBox<SSAccount> iOutPayment;
     // Kontant
     private SSTableComboBox<SSAccount> iCash;
+    // Förskott från kund
+    private SSTableComboBox<SSAccount> iCustomerDebt;
     // Leverantörsskuld
     private SSTableComboBox<SSAccount> iSupplierDebt;
     // Moms 1
@@ -69,6 +71,8 @@ public class SSDefaultAccountPanel extends JPanel {
     private JTextField iOutPaymentText;
     // Kontant
     private JTextField iCashText;
+    // Förskott från kund
+    private JTextField iCustomerDebtText;
     // Leverantörsskuld
     private JTextField iSupplierDebtText;
     // Moms 1
@@ -109,6 +113,8 @@ public class SSDefaultAccountPanel extends JPanel {
         iComboBoxes.put(SSDefaultAccount.OutPayment, iOutPayment);
         // Kontant
         iComboBoxes.put(SSDefaultAccount.Cash, iCash);
+        // Förskott från kund
+        iComboBoxes.put(SSDefaultAccount.CustomerDebt, iCustomerDebt);
         // Leverantörsskuld
         iComboBoxes.put(SSDefaultAccount.SupplierDebt, iSupplierDebt);
         // Moms 1
@@ -142,6 +148,8 @@ public class SSDefaultAccountPanel extends JPanel {
         iTextFields.put(SSDefaultAccount.OutPayment, iOutPaymentText);
         // Kontant
         iTextFields.put(SSDefaultAccount.Cash, iCashText);
+        // Förskott från kund
+        iTextFields.put(SSDefaultAccount.CustomerDebt, iCustomerDebtText);
         // Leverantörsskuld
         iTextFields.put(SSDefaultAccount.SupplierDebt, iSupplierDebtText);
         // Moms 1
@@ -265,6 +273,8 @@ public class SSDefaultAccountPanel extends JPanel {
         iOutPayment = null;
         iCash.dispose();
         iCash = null;
+        iCustomerDebt.dispose();
+        iCustomerDebt = null;
         iSupplierDebt.dispose();
         iSupplierDebt = null;
         iTax1.dispose();
@@ -317,6 +327,8 @@ public class SSDefaultAccountPanel extends JPanel {
         iInterestProfitText = null;
         iIncommingTaxText.removeAll();
         iIncommingTaxText = null;
+        iCustomerDebtText.removeAll();
+        iCustomerDebtText = null;
     }
 
     private class SelectionListener implements SSSelectionListener<SSAccount> {
@@ -369,6 +381,8 @@ public class SSDefaultAccountPanel extends JPanel {
         sb.append(", iCurrencyLossText=").append(iCurrencyLossText);
         sb.append(", iCurrencyProfit=").append(iCurrencyProfit);
         sb.append(", iCurrencyProfitText=").append(iCurrencyProfitText);
+        sb.append(", iCustomerDebt=").append(iCustomerDebt);
+        sb.append(", iCustomerDebtText=").append(iCustomerDebtText);
         sb.append(", iCustomerClaim=").append(iCustomerClaim);
         sb.append(", iCustomerClaimText=").append(iCustomerClaimText);
         sb.append(", iDefaultAccounts=").append(iDefaultAccounts);

@@ -36,6 +36,7 @@ import se.swedsoft.bookkeeping.gui.util.table.editors.SSTaxCodeCellRenderer;
 import se.swedsoft.bookkeeping.gui.voucher.util.SSVoucherRowTableModel;
 
 import javax.swing.*;
+import javax.swing.event.ChangeListener;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.text.DefaultFormatterFactory;
@@ -136,6 +137,14 @@ public class SSCreditInvoicePanel {
 
     private SSInputVerifier iInputVerifier;
     private JCheckBox isStockInfluencing;
+    private JCheckBox iPrinted;
+    private boolean iReadOnlyMode;
+    private boolean iKonteringPossibleMode;
+    private boolean iVoucherGenerated;
+
+    private static final int KONTERING_TAB_INDEX = 3;
+    protected JTabbedPane iTabbedPane;
+    private ChangeListener iTabbedPaneChangeListener;
 
     /**
      *
@@ -294,13 +303,13 @@ public class SSCreditInvoicePanel {
 
             });
 
-        iRefreshVoucher.addActionListener(e -> {
-
-                SSVoucher iVoucher = iCreditInvoice.generateVoucher();
-
-                iVoucherTableModel.setVoucher(iVoucher, false);
-
-            });
+        iRefreshVoucher.addActionListener(e -> refreshVoucherPreview());
+        iTabbedPaneChangeListener = e -> {
+            if (iTabbedPane.getSelectedIndex() == KONTERING_TAB_INDEX) {
+                refreshVoucherPreview();
+            }
+        };
+        iTabbedPane.addChangeListener(iTabbedPaneChangeListener);
 
         iInputVerifier = new SSInputVerifier();
 
@@ -314,15 +323,20 @@ public class SSCreditInvoicePanel {
                     ;
                 }
 
-                iButtonPanel.getOkButton().setEnabled(iValid);
+                iButtonPanel.getOkButton().setEnabled(iValid && !iReadOnlyMode);
             }
         });
+        iEntered.setEnabled(false);
+        iPrinted.setEnabled(false);
 
         addKeyListeners();
 
     }
 
     public void dispose() {
+        if (iTabbedPane != null && iTabbedPaneChangeListener != null) {
+            iTabbedPane.removeChangeListener(iTabbedPaneChangeListener);
+        }
         iModel.setCustomer(null);
         iPanel.removeAll();
         iPanel = null;
@@ -421,8 +435,11 @@ public class SSCreditInvoicePanel {
         iVoucherTableModel = null;
 
         iEntered = null;
+        iPrinted = null;
         isStockInfluencing = null;
         iInputVerifier = null;
+        iTabbedPane = null;
+        iTabbedPaneChangeListener = null;
     }
 
     /**
@@ -456,6 +473,52 @@ public class SSCreditInvoicePanel {
      */
     public void addCancelAction(ActionListener pActionListener) {
         iButtonPanel.addCancelActionListener(pActionListener);
+    }
+
+    public boolean isReadOnlyMode() {
+        return iReadOnlyMode;
+    }
+
+    public void setReadOnlyMode(boolean pReadOnlyMode) {
+        iKonteringPossibleMode = false;
+        iReadOnlyMode = pReadOnlyMode;
+
+        setEditableState(iPanel, !pReadOnlyMode);
+        iButtonPanel.getCancelButton().setEnabled(true);
+        iButtonPanel.getOkButton().setEnabled(!pReadOnlyMode && isValid());
+        iEntered.setEnabled(false);
+        iPrinted.setEnabled(false);
+    }
+
+    public void setKonteringPossibleMode() {
+        iKonteringPossibleMode = true;
+        iReadOnlyMode = true;
+
+        setEditableState(iPanel, false);
+        iButtonPanel.getCancelButton().setEnabled(true);
+        iButtonPanel.getOkButton().setEnabled(false);
+        checkAndDisableUpdateButton();
+    }
+
+    private void setEditableState(Component pComponent, boolean pEnabled) {
+        if (pComponent == null) {
+            return;
+        }
+
+        if (pComponent instanceof JTextField
+                || pComponent instanceof JTextArea
+                || pComponent instanceof JCheckBox
+                || pComponent instanceof JComboBox
+                || pComponent instanceof JTable
+                || pComponent instanceof AbstractButton) {
+            pComponent.setEnabled(pEnabled);
+        }
+
+        if (pComponent instanceof Container) {
+            for (Component iChild : ((Container) pComponent).getComponents()) {
+                setEditableState(iChild, pEnabled);
+            }
+        }
     }
 
     /**
@@ -504,6 +567,8 @@ public class SSCreditInvoicePanel {
 
         // Bokförd
         iEntered.setSelected(iCreditInvoice.isEntered());
+        // Utskriven
+        iPrinted.setSelected(iCreditInvoice.isPrinted());
         // Lagerför
         isStockInfluencing.setSelected(iCreditInvoice.isStockInfluencing());
 
@@ -536,6 +601,8 @@ public class SSCreditInvoicePanel {
         iSavecustomerandproducts.setSelected(true);
 
         iInputVerifier.update();
+        iVoucherGenerated = false;
+        checkAndDisableUpdateButton();
     }
 
     /**
@@ -591,8 +658,6 @@ public class SSCreditInvoicePanel {
         iCreditInvoice.setTaxRate2(iTaxRate2.getValue());
         // Momssats
         iCreditInvoice.setTaxRate3(iTaxRate3.getValue());
-        // Bokförd
-        iCreditInvoice.setEntered(iEntered.isSelected());
         // Lagerför
         iCreditInvoice.setStockInfluencing(isStockInfluencing.isSelected());
 
@@ -606,8 +671,10 @@ public class SSCreditInvoicePanel {
         // Standard konton
         iCreditInvoice.setDefaultAccounts(iDefaultAccounts.getDefaultAccounts());
 
-        // Generera verifikationen
-        iCreditInvoice.generateVoucher();
+        // Generera verifikationen om den inte redan uppdaterats via knappen Uppdatera
+        if (!iVoucherGenerated) {
+            iCreditInvoice.generateVoucher();
+        }
 
         return iCreditInvoice;
 
@@ -723,6 +790,30 @@ public class SSCreditInvoicePanel {
      */
     public boolean doSaveCustomerAndProducts() {
         return iSavecustomerandproducts.isSelected();
+    }
+
+    public boolean isVoucherGenerated() {
+        return iVoucherGenerated;
+    }
+
+    private void checkAndDisableUpdateButton() {
+        if (iCreditInvoice != null && (iCreditInvoice.isEntered() || iCreditInvoice.isCancelled())) {
+            iRefreshVoucher.setEnabled(false);
+        } else {
+            iRefreshVoucher.setEnabled(true);
+        }
+    }
+
+    private void refreshVoucherPreview() {
+        if (iCreditInvoice == null) {
+            return;
+        }
+        SSVoucher iVoucher = iCreditInvoice.generateVoucher();
+        iVoucherTableModel.setVoucher(iVoucher, false);
+        iVoucherGenerated = true;
+        if (iKonteringPossibleMode) {
+            iButtonPanel.getOkButton().setEnabled(true);
+        }
     }
 
     /**

@@ -188,14 +188,14 @@ public class V2CreditInvoiceRepository {
             }
 
             Integer creditInvoiceId = null;
-            String placeholders = String.join(",", Collections.nCopies(41, "?"));
+            String placeholders = String.join(",", Collections.nCopies(42, "?"));
             try (PreparedStatement insertStatement = connection.prepareStatement(
                     "INSERT INTO tbl_creditinvoice(" +
                             "number,companyid,crediting_nr,vdate,customer_nr,customer_name,our_contact,your_contact," +
                             "delay_interest,currency_code,payment_term,delivery_term,delivery_way,tax_free," +
                             "sale_text,eu_sale_commodity,eu_sale_third_part,printed,invoice_type,currency_rate," +
                             "payment_day,your_order_number,ocr_number,entered,num_reminders,interest_invoiced," +
-                            "stock_influencing,order_numbers,voucher_id,inv_addr_name,inv_addr_address," +
+                            "stock_influencing,order_numbers,journal_numbers,voucher_id,inv_addr_name,inv_addr_address," +
                             "inv_addr_street,inv_addr_zipcode,inv_addr_city,inv_addr_country,del_addr_name," +
                             "del_addr_address,del_addr_street,del_addr_zipcode,del_addr_city,del_addr_country) " +
                             "VALUES(" + placeholders + ")",
@@ -245,7 +245,7 @@ public class V2CreditInvoiceRepository {
                             "tax_free=?,sale_text=?,eu_sale_commodity=?,eu_sale_third_part=?,printed=?," +
                             "invoice_type=?,currency_rate=?,payment_day=?,your_order_number=?,ocr_number=?," +
                             "entered=?,num_reminders=?,interest_invoiced=?,stock_influencing=?,order_numbers=?," +
-                            "voucher_id=?,inv_addr_name=?,inv_addr_address=?,inv_addr_street=?,inv_addr_zipcode=?," +
+                            "journal_numbers=?,voucher_id=?,inv_addr_name=?,inv_addr_address=?,inv_addr_street=?,inv_addr_zipcode=?," +
                             "inv_addr_city=?,inv_addr_country=?,del_addr_name=?,del_addr_address=?,del_addr_street=?," +
                             "del_addr_zipcode=?,del_addr_city=?,del_addr_country=? WHERE number=? AND companyid=?")) {
                 int i = bindCreditInvoiceColumnsV2(statement, 1, creditInvoice);
@@ -411,6 +411,7 @@ public class V2CreditInvoiceRepository {
         statement.setObject(index++, creditInvoice.isInterestInvoiced());
         statement.setObject(index++, creditInvoice.isStockInfluencing());
         statement.setObject(index++, creditInvoice.getOrderNumbers());
+        statement.setObject(index++, creditInvoice.getJournalNumbers());
         statement.setObject(index++, V2RepositoryHelpers.getVoucherIdByNumber(connection, creditInvoice.getVoucher()));
         index = V2RepositoryHelpers.bindAddress(statement, index, creditInvoice.getInvoiceAddress());
         return V2RepositoryHelpers.bindAddress(statement, index, creditInvoice.getDeliveryAddress());
@@ -481,6 +482,7 @@ public class V2CreditInvoiceRepository {
         creditInvoice.setInterestInvoiced(resultSet.getBoolean("interest_invoiced"));
         creditInvoice.setStockInfluencing(resultSet.getBoolean("stock_influencing"));
         creditInvoice.setOrderNumbers(resultSet.getString("order_numbers"));
+        creditInvoice.setJournalNumbers(resultSet.getString("journal_numbers"));
 
         Integer voucherId = (Integer) resultSet.getObject("voucher_id");
         Integer voucherNumber = V2RepositoryHelpers.getVoucherNumberForId(connection, voucherId);

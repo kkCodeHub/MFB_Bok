@@ -32,6 +32,7 @@ import java.util.Optional;
 public final class SSAccountingContext {
     private static final Logger LOG = LoggerFactory.getLogger(SSAccountingContext.class);
     private static final String DEFAULT_VOUCHER_SERIES = "A";
+    public static final String VOUCHER_EVENT_CODE_CUSTOMER_INVOICE = "KF";
 
     private SSAccountingContext() {
     }

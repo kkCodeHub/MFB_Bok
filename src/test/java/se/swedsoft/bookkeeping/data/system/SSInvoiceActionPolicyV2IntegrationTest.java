@@ -171,11 +171,37 @@ class SSInvoiceActionPolicyV2IntegrationTest {
     }
 
     @Test
+    void deletingLastCreditInvoiceRequiresUnlockedState() {
+        SSCreditInvoice first = new SSCreditInvoice();
+        first.setNumber(5000);
+        SSCreditInvoice last = new SSCreditInvoice();
+        last.setNumber(5001);
+        List<SSInvoice> series = List.of(first, last);
+
+        assertThat(SSInvoiceActionPolicy.canDeletePhysically(last, series)).isTrue();
+
+        last.setPrinted(true);
+        assertThat(SSInvoiceActionPolicy.canDeletePhysically(last, series)).isFalse();
+    }
+
+    @Test
     void cancelledLastInvoiceCanBeUncancelled() {
         SSInvoice first = invoiceTemplate("POL-UL-001", "Uncancel Last 1");
         first.setNumber(3000);
         SSInvoice last = invoiceTemplate("POL-UL-002", "Uncancel Last 2");
         last.setNumber(3001);
+        last.setCancelled();
+        List<SSInvoice> series = List.of(first, last);
+
+        assertThat(SSInvoiceActionPolicy.canUncancel(last, series)).isTrue();
+    }
+
+    @Test
+    void cancelledLastCreditInvoiceCanBeUncancelled() {
+        SSCreditInvoice first = new SSCreditInvoice();
+        first.setNumber(6000);
+        SSCreditInvoice last = new SSCreditInvoice();
+        last.setNumber(6001);
         last.setCancelled();
         List<SSInvoice> series = List.of(first, last);
 

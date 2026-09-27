@@ -40,7 +40,6 @@ import java.util.List;
  */
 public class SSInvoiceDialog {
     private static final Logger LOG = LoggerFactory.getLogger(SSInvoiceDialog.class);
-    private static final String VOUCHER_EVENT_CODE_CUSTOMER_INVOICE = "KF";
 
     private SSInvoiceDialog() {}
 
@@ -92,7 +91,7 @@ public class SSInvoiceDialog {
                     }
                     iInvoice.getVoucher().setSeries(
                             SSAccountingContext.resolveVoucherSeriesForEventCode(
-                                    VOUCHER_EVENT_CODE_CUSTOMER_INVOICE));
+                                    SSAccountingContext.VOUCHER_EVENT_CODE_CUSTOMER_INVOICE));
                     SSAccountingContext.addVoucher(iInvoice.getVoucher(), false);
                     iInvoice.setEntered();
                 } else if (!iInvoice.isEntered()) {
@@ -191,7 +190,7 @@ public class SSInvoiceDialog {
                     }
                     iInvoice1.getVoucher().setSeries(
                             SSAccountingContext.resolveVoucherSeriesForEventCode(
-                                    VOUCHER_EVENT_CODE_CUSTOMER_INVOICE));
+                                    SSAccountingContext.VOUCHER_EVENT_CODE_CUSTOMER_INVOICE));
                     SSAccountingContext.addVoucher(iInvoice1.getVoucher(), false);
                     iInvoice1.setEntered();
                 } else if (!iInvoice1.isEntered()) {
@@ -307,7 +306,7 @@ public class SSInvoiceDialog {
                     }
                     iInvoice1.getVoucher().setSeries(
                             SSAccountingContext.resolveVoucherSeriesForEventCode(
-                                    VOUCHER_EVENT_CODE_CUSTOMER_INVOICE));
+                                    SSAccountingContext.VOUCHER_EVENT_CODE_CUSTOMER_INVOICE));
                     SSAccountingContext.addVoucher(iInvoice1.getVoucher(), false);
                     iInvoice1.setEntered();
                 } else if (!iInvoice1.isEntered()) {
@@ -408,7 +407,7 @@ public class SSInvoiceDialog {
                     }
                     iInvoice1.getVoucher().setSeries(
                             SSAccountingContext.resolveVoucherSeriesForEventCode(
-                                    VOUCHER_EVENT_CODE_CUSTOMER_INVOICE));
+                                    SSAccountingContext.VOUCHER_EVENT_CODE_CUSTOMER_INVOICE));
                     SSAccountingContext.addVoucher(iInvoice1.getVoucher(), false);
                     iInvoice1.setEntered();
                 } else if (!iInvoice1.isEntered()) {

@@ -5,6 +5,10 @@ import se.swedsoft.bookkeeping.calc.math.SSOrderMath;
 import se.swedsoft.bookkeeping.calc.math.SSTenderMath;
 import se.swedsoft.bookkeeping.data.SSCreditInvoice;
 import se.swedsoft.bookkeeping.data.SSInvoice;
+import se.swedsoft.bookkeeping.data.SSNewAccountingYear;
+import se.swedsoft.bookkeeping.data.SSVoucher;
+import se.swedsoft.bookkeeping.data.system.SSAccountingContext;
+import se.swedsoft.bookkeeping.data.system.SSCompanyYearContext;
 import se.swedsoft.bookkeeping.data.system.SSDB;
 import se.swedsoft.bookkeeping.data.system.SSSalesContext;
 import se.swedsoft.bookkeeping.gui.SSMainFrame;
@@ -13,6 +17,7 @@ import se.swedsoft.bookkeeping.gui.creditinvoice.panel.SSCreditInvoicePanel;
 import se.swedsoft.bookkeeping.gui.invoice.SSInvoiceFrame;
 import se.swedsoft.bookkeeping.gui.util.SSBundle;
 import se.swedsoft.bookkeeping.gui.util.dialogs.SSDialog;
+import se.swedsoft.bookkeeping.gui.util.dialogs.SSInformationDialog;
 import se.swedsoft.bookkeeping.gui.util.dialogs.SSErrorDialog;
 import se.swedsoft.bookkeeping.gui.util.dialogs.SSQueryDialog;
 import se.swedsoft.bookkeeping.util.SSDateUtil;
@@ -24,6 +29,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.time.LocalDate;
 import java.util.ResourceBundle;
 
 
@@ -48,15 +54,51 @@ public class SSCreditInvoiceDialog {
         final SSDialog             iDialog = new SSDialog(iMainFrame,
                 bundle.getString("creditinvoiceframe.edit.title"));
         final SSCreditInvoicePanel iPanel = new SSCreditInvoicePanel(iDialog);
+        final boolean iReadOnly = shouldOpenReadOnly(iInvoice);
+        final boolean iKonteringPossibleMode = shouldOpenKonteringPossibleMode(iInvoice);
+
+        if (shouldShowEditLockedInfo(iInvoice)) {
+            SSInformationDialog.showDialog(iMainFrame, "creditinvoiceframe.editlocked");
+        }
 
         iPanel.setCreditInvoice(new SSCreditInvoice(iInvoice));
         iPanel.setSavecustomerandproductsSelected(false);
+        if (iKonteringPossibleMode) {
+            iPanel.setKonteringPossibleMode();
+        } else {
+            iPanel.setReadOnlyMode(iReadOnly);
+        }
 
         iDialog.add(iPanel.getPanel(), BorderLayout.CENTER);
 
         final ActionListener iSaveAction = e -> {
 
                 SSCreditInvoice iInvoice1 = iPanel.getCreditInvoice();
+                boolean iSaveVoucher = false;
+
+                if (iPanel.isVoucherGenerated() && !iInvoice1.isEntered() && !iInvoice1.isCancelled()) {
+                    int iResponse = SSQueryDialog.showDialog(iMainFrame, SSBundle.getBundle(),
+                            "invoiceframe.voucher.saveonclose");
+
+                    iSaveVoucher = iResponse == JOptionPane.OK_OPTION;
+                } else if (iInvoice1.isEntered()) {
+                    new SSInformationDialog(iMainFrame, "creditinvoiceframe.entered");
+                }
+
+                if (iSaveVoucher) {
+                    if (!hasOpenAccountingYearForVoucherDate(iInvoice1.getVoucher())) {
+                        SSInformationDialog.showDialog(iMainFrame, "invoiceframe.voucher.badyear",
+                                getVoucherAccountingYearLabel(iInvoice1.getVoucher()));
+                        return;
+                    }
+                    iInvoice1.getVoucher().setSeries(
+                            SSAccountingContext.resolveVoucherSeriesForEventCode(
+                                    SSAccountingContext.VOUCHER_EVENT_CODE_CUSTOMER_INVOICE));
+                    SSAccountingContext.addVoucher(iInvoice1.getVoucher(), false);
+                    iInvoice1.setEntered();
+                } else if (!iInvoice1.isEntered()) {
+                    iInvoice1.setVoucher(new SSVoucher());
+                }
 
                 SSSalesContext.updateCreditInvoice(iInvoice1);
 
@@ -87,6 +129,9 @@ public class SSCreditInvoiceDialog {
                 new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e) {
+                if (iPanel.isReadOnlyMode()) {
+                    return;
+                }
                 if (!iPanel.isValid()) {
                     return;
                 }
@@ -104,6 +149,21 @@ public class SSCreditInvoiceDialog {
         iDialog.setSize(800, 600);
         iDialog.setLocationRelativeTo(iMainFrame);
         iDialog.setVisible();
+    }
+
+    static boolean shouldShowEditLockedInfo(SSCreditInvoice pInvoice) {
+        return !canEditCreditInvoice(pInvoice);
+    }
+
+    static boolean shouldOpenReadOnly(SSCreditInvoice pInvoice) {
+        return !canEditCreditInvoice(pInvoice);
+    }
+
+    static boolean shouldOpenKonteringPossibleMode(SSCreditInvoice pInvoice) {
+        return pInvoice != null
+                && !pInvoice.isEntered()
+                && !pInvoice.isCancelled()
+                && !canEditCreditInvoice(pInvoice);
     }
 
     /**
@@ -147,6 +207,32 @@ public class SSCreditInvoiceDialog {
         final ActionListener iSaveAction = e -> {
 
                 SSCreditInvoice iInvoice = iPanel.getCreditInvoice();
+                boolean iSaveVoucher = false;
+
+                if (iPanel.isVoucherGenerated() && !iInvoice.isEntered() && !iInvoice.isCancelled()) {
+                    iInvoice.generateVoucher();
+                    int iResponse = SSQueryDialog.showDialog(iMainFrame, SSBundle.getBundle(),
+                            "invoiceframe.voucher.saveonclose");
+
+                    iSaveVoucher = iResponse == JOptionPane.OK_OPTION;
+                } else if (iInvoice.isEntered()) {
+                    new SSInformationDialog(iMainFrame, "creditinvoiceframe.entered");
+                }
+
+                if (iSaveVoucher) {
+                    if (!hasOpenAccountingYearForVoucherDate(iInvoice.getVoucher())) {
+                        SSInformationDialog.showDialog(iMainFrame, "invoiceframe.voucher.badyear",
+                                getVoucherAccountingYearLabel(iInvoice.getVoucher()));
+                        return;
+                    }
+                    iInvoice.getVoucher().setSeries(
+                            SSAccountingContext.resolveVoucherSeriesForEventCode(
+                                    SSAccountingContext.VOUCHER_EVENT_CODE_CUSTOMER_INVOICE));
+                    SSAccountingContext.addVoucher(iInvoice.getVoucher(), false);
+                    iInvoice.setEntered();
+                } else if (!iInvoice.isEntered()) {
+                    iInvoice.setVoucher(new SSVoucher());
+                }
 
                 SSSalesContext.addCreditInvoice(iInvoice);
 
@@ -224,6 +310,32 @@ public class SSCreditInvoiceDialog {
         final ActionListener iSaveAction = e -> {
 
                 SSCreditInvoice iInvoice = iPanel.getCreditInvoice();
+                boolean iSaveVoucher = false;
+
+                if (iPanel.isVoucherGenerated() && !iInvoice.isEntered() && !iInvoice.isCancelled()) {
+                    iInvoice.generateVoucher();
+                    int iResponse = SSQueryDialog.showDialog(iMainFrame, SSBundle.getBundle(),
+                            "invoiceframe.voucher.saveonclose");
+
+                    iSaveVoucher = iResponse == JOptionPane.OK_OPTION;
+                } else if (iInvoice.isEntered()) {
+                    new SSInformationDialog(iMainFrame, "creditinvoiceframe.entered");
+                }
+
+                if (iSaveVoucher) {
+                    if (!hasOpenAccountingYearForVoucherDate(iInvoice.getVoucher())) {
+                        SSInformationDialog.showDialog(iMainFrame, "invoiceframe.voucher.badyear",
+                                getVoucherAccountingYearLabel(iInvoice.getVoucher()));
+                        return;
+                    }
+                    iInvoice.getVoucher().setSeries(
+                            SSAccountingContext.resolveVoucherSeriesForEventCode(
+                                    SSAccountingContext.VOUCHER_EVENT_CODE_CUSTOMER_INVOICE));
+                    SSAccountingContext.addVoucher(iInvoice.getVoucher(), false);
+                    iInvoice.setEntered();
+                } else if (!iInvoice.isEntered()) {
+                    iInvoice.setVoucher(new SSVoucher());
+                }
 
                 SSSalesContext.addCreditInvoice(iInvoice);
 
@@ -271,5 +383,32 @@ public class SSCreditInvoiceDialog {
         iDialog.setSize(800, 600);
         iDialog.setLocationRelativeTo(iMainFrame);
         iDialog.setVisible();
+    }
+
+    private static boolean hasOpenAccountingYearForVoucherDate(SSVoucher pVoucher) {
+        SSNewAccountingYear iCurrentYear = SSCompanyYearContext.getCurrentYear();
+        if (iCurrentYear == null || pVoucher == null) {
+            return false;
+        }
+        LocalDate iVoucherDate = pVoucher.getLocalDate();
+        if (iVoucherDate == null) {
+            return false;
+        }
+        return !iVoucherDate.isBefore(iCurrentYear.getLocalFrom())
+                && !iVoucherDate.isAfter(iCurrentYear.getLocalTo());
+    }
+
+    private static String getVoucherAccountingYearLabel(SSVoucher pVoucher) {
+        if (pVoucher == null || pVoucher.getLocalDate() == null) {
+            return "????";
+        }
+        return Integer.toString(pVoucher.getLocalDate().getYear());
+    }
+
+    private static boolean canEditCreditInvoice(SSCreditInvoice pInvoice) {
+        return pInvoice != null
+                && !pInvoice.isPrinted()
+                && !pInvoice.isEntered()
+                && !pInvoice.isCancelled();
     }
 }

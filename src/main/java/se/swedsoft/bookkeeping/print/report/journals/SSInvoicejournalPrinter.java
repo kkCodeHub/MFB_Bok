@@ -2,6 +2,7 @@ package se.swedsoft.bookkeeping.print.report.journals;
 
 
 import se.swedsoft.bookkeeping.calc.math.SSInvoiceMath;
+import se.swedsoft.bookkeeping.data.SSCreditInvoice;
 import se.swedsoft.bookkeeping.data.SSInvoice;
 import se.swedsoft.bookkeeping.data.SSVoucherRow;
 import se.swedsoft.bookkeeping.gui.util.model.SSDefaultTableModel;
@@ -95,11 +96,11 @@ public class SSInvoicejournalPrinter extends SSPrinter {
                     break;
 
                 case 1:
-                    value = iInvoice.getCustomerNr();
+                    value = getDocumentType(iInvoice);
                     break;
 
                 case 2:
-                    value = iInvoice.getCustomerName();
+                    value = getDocumentReference(iInvoice);
                     break;
 
                 case 3:
@@ -119,15 +120,15 @@ public class SSInvoicejournalPrinter extends SSPrinter {
                     break;
 
                 case 6:
-                    value = SSInvoiceMath.getTotalSum(iInvoice);
+                    value = toSignedJournalAmount(iInvoice, SSInvoiceMath.getTotalSum(iInvoice));
                     break;
 
                 case 7:
-                    value = SSInvoiceMath.getTotalTaxSum(iInvoice);
+                    value = toSignedJournalAmount(iInvoice, SSInvoiceMath.getTotalTaxSum(iInvoice));
                     break;
 
                 case 8:
-                    BigDecimal iTotalSum = SSInvoiceMath.getTotalSum(iInvoice);
+                    BigDecimal iTotalSum = toSignedJournalAmount(iInvoice, SSInvoiceMath.getTotalSum(iInvoice));
 
                     value = SSInvoiceMath.convertToLocal(iInvoice, iTotalSum);
                     break;
@@ -160,6 +161,41 @@ public class SSInvoicejournalPrinter extends SSPrinter {
         iModel.setObjects(iInvoices);
 
         return iModel;
+    }
+
+    private String getDocumentType(SSInvoice iInvoice) {
+        if (iInvoice instanceof SSCreditInvoice) {
+            return iBundle.getString("invoicejournal.documenttype.creditinvoice");
+        }
+        return iBundle.getString("invoicejournal.documenttype.invoice");
+    }
+
+    static BigDecimal toSignedJournalAmount(SSInvoice iInvoice, BigDecimal iAmount) {
+        if (iAmount == null) {
+            return null;
+        }
+        if (iInvoice instanceof SSCreditInvoice) {
+            return iAmount.negate();
+        }
+        return iAmount;
+    }
+
+    private String getDocumentReference(SSInvoice iInvoice) {
+        String iCustomerText = String.format("%s %s",
+                iInvoice.getCustomerNr() == null ? "" : iInvoice.getCustomerNr(),
+                iInvoice.getCustomerName() == null ? "" : iInvoice.getCustomerName()).trim();
+        if (iInvoice instanceof SSCreditInvoice) {
+            Integer iCreditingNr = ((SSCreditInvoice) iInvoice).getCreditingNr();
+            if (iCreditingNr != null) {
+                if (iCustomerText.isEmpty()) {
+                    return String.format(iBundle.getString("invoicejournal.reference.crediting"), iCreditingNr);
+                }
+                return String.format("%s - %s",
+                        String.format(iBundle.getString("invoicejournal.reference.crediting"), iCreditingNr),
+                        iCustomerText);
+            }
+        }
+        return iCustomerText;
     }
 
     private class SSVoucherPrinter extends SSPrinter {

@@ -2,8 +2,11 @@ package se.swedsoft.bookkeeping.gui.creditinvoice;
 
 
 import se.swedsoft.bookkeeping.data.SSCreditInvoice;
+import se.swedsoft.bookkeeping.data.SSInvoice;
+import se.swedsoft.bookkeeping.data.SSNewCompany;
 import se.swedsoft.bookkeeping.data.system.SSDB;
-import se.swedsoft.bookkeeping.data.system.SSMail;
+import se.swedsoft.bookkeeping.data.system.SSCompanyYearContext;
+import se.swedsoft.bookkeeping.data.system.SSInvoiceActionPolicy;
 import se.swedsoft.bookkeeping.data.system.SSSalesContext;
 import se.swedsoft.bookkeeping.gui.SSMainFrame;
 import se.swedsoft.bookkeeping.gui.creditinvoice.panel.SSCreditInvoiceSearchPanel;
@@ -21,7 +24,9 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 
 /**
@@ -172,22 +177,6 @@ public class SSCreditInvoiceFrame extends SSDefaultTableFrame {
                     });
 
         iTable.addSelectionDependentComponent(iMenuItem);
-        iMenuItem = iButton2.add("creditinvoiceframe.print.emailcreditinvoicereport",
-                e -> {
-
-                        SSCreditInvoice iSelected = iModel.getSelectedRow(iTable);
-
-                        iSelected = getCreditInvoice(iSelected);
-                        if (iSelected == null) {
-                            return;
-                        }
-                        if (!SSMail.isOk(iSelected.getCustomer())) {
-                            return;
-                        }
-                        SSReportFactory.EmailCreditInvoiceReport(getMainFrame(), iSelected);
-
-                    });
-        iTable.addSelectionDependentComponent(iMenuItem);
         iButton2.addSeparator();
         iButton2.add("creditinvoiceframe.print.creditinvoicelist", e -> SSReportFactory.CreditInvoiceListReport(getMainFrame()));
         iToolBar.add(iButton2);
@@ -305,12 +294,47 @@ public class SSCreditInvoiceFrame extends SSDefaultTableFrame {
         int iResponce = iDialog.getResponce();
 
         if (iResponce == JOptionPane.YES_OPTION) {
-            for (SSCreditInvoice iCreditInvoice : delete) {
-                SSSalesContext.deleteCreditInvoice(iCreditInvoice);
+            List<SSCreditInvoice> iCurrentInvoices = getCreditInvoices(delete);
+            iCurrentInvoices.sort(Comparator.comparing(SSCreditInvoice::getNumber, Comparator.nullsLast(Integer::compareTo))
+                    .reversed());
+
+            List<SSInvoice> iAllInvoices = SSSalesContext.getCreditInvoices()
+                    .stream()
+                    .map(iInvoice -> (SSInvoice) iInvoice)
+                    .collect(Collectors.toList());
+
+            for (SSCreditInvoice iCreditInvoice : iCurrentInvoices) {
+                if (SSInvoiceActionPolicy.canDeletePhysically(iCreditInvoice, iAllInvoices)) {
+                    deleteCreditInvoicePhysically(iCreditInvoice);
+                } else if (SSInvoiceActionPolicy.canUncancel(iCreditInvoice, iAllInvoices)) {
+                    iCreditInvoice.clearCancelled();
+                    SSSalesContext.updateCreditInvoice(iCreditInvoice);
+                } else if (SSInvoiceActionPolicy.canCancel(iCreditInvoice)) {
+                    iCreditInvoice.setCancelled();
+                    SSSalesContext.updateCreditInvoice(iCreditInvoice);
+                }
             }
             updateFrame();
         }
 
+    }
+
+    private void deleteCreditInvoicePhysically(SSCreditInvoice iCreditInvoice) {
+        decrementCreditInvoiceCounter();
+        SSSalesContext.deleteCreditInvoice(iCreditInvoice);
+    }
+
+    private void decrementCreditInvoiceCounter() {
+        SSNewCompany iCurrentCompany = SSCompanyYearContext.getCurrentCompany();
+        if (iCurrentCompany == null) {
+            return;
+        }
+        int iCurrentCounter = iCurrentCompany.getAutoIncrement().getNumber("creditinvoice");
+        if (iCurrentCounter <= 0) {
+            return;
+        }
+        iCurrentCompany.getAutoIncrement().setNumber("creditinvoice", iCurrentCounter - 1);
+        SSCompanyYearContext.updateCompany(iCurrentCompany);
     }
 
     private SSCreditInvoice getCreditInvoice(SSCreditInvoice iCreditInvoice) {

@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
 import se.swedsoft.bookkeeping.data.SSCreditInvoice;
 import se.swedsoft.bookkeeping.data.SSNewAccountingYear;
 import se.swedsoft.bookkeeping.data.SSNewCompany;
+import se.swedsoft.bookkeeping.data.SSVoucher;
 import se.swedsoft.bookkeeping.data.base.SSSaleRow;
 import se.swedsoft.bookkeeping.data.common.SSInvoiceType;
 import se.swedsoft.bookkeeping.data.common.SSTaxCode;
@@ -97,6 +98,7 @@ class SSCreditInvoiceV2RepositoryTest {
         assertThat(fetched).isPresent();
         assertThat(fetched.get().getCustomerName()).isEqualTo("Repo Credit Invoice Customer AB");
         assertThat(fetched.get().getCreditingNr()).isEqualTo(91001);
+        assertThat(fetched.get().getJournalNumbers()).isEqualTo("FA91001");
         assertThat(fetched.get().getRows()).hasSize(1);
         assertThat(fetched.get().getRows().get(0).getDescription()).isEqualTo("Repo row");
 
@@ -119,6 +121,7 @@ class SSCreditInvoiceV2RepositoryTest {
         updatedCreditInvoice.setText("Updated credit invoice text via repository");
         updatedCreditInvoice.setLocalDueDate(LocalDate.of(2025, 9, 1));
         updatedCreditInvoice.setCreditingNr(91099);
+        updatedCreditInvoice.setJournalNumbers("FA91099");
         updatedCreditInvoice.getRows().clear();
         updatedCreditInvoice.getRows().add(
                 invoiceRow("P-CINV-REPO-003", "After update row", new BigDecimal("750.00"), 3, 3041));
@@ -131,6 +134,7 @@ class SSCreditInvoiceV2RepositoryTest {
         assertThat(updated.get().getText()).isEqualTo("Updated credit invoice text via repository");
         assertThat(updated.get().getLocalDueDate()).isEqualTo(LocalDate.of(2025, 9, 1));
         assertThat(updated.get().getCreditingNr()).isEqualTo(91099);
+        assertThat(updated.get().getJournalNumbers()).isEqualTo("FA91099");
         assertThat(updated.get().getRows()).hasSize(1);
         assertThat(updated.get().getRows().get(0).getDescription()).isEqualTo("After update row");
 
@@ -139,6 +143,32 @@ class SSCreditInvoiceV2RepositoryTest {
         se.swedsoft.bookkeeping.data.system.SSEventTriggerSyncContext.clearCachedLists();
         List<SSCreditInvoice> all = Repositories.creditInvoices().findAll();
         assertThat(all).extracting(SSCreditInvoice::getNumber).doesNotContain(number);
+    }
+
+    @Test
+    void journalNumberVoucherAndEnteredPersistOnCreditInvoice() {
+        SSVoucher voucher = new SSVoucher();
+        voucher.setDescription("Credit invoice journal voucher");
+        voucher.setLocalDate(LocalDate.of(2025, 8, 31));
+        Repositories.vouchers().addWithAutoNumber(voucher);
+
+        SSCreditInvoice creditInvoice = creditInvoice("CINV-REPO-CUST-003", "Journal Tracking Credit Invoice", 91003);
+        creditInvoice.setJournalNumbers("FA54321");
+        creditInvoice.setVoucher(voucher);
+        creditInvoice.setEntered();
+        creditInvoice.getRows().add(invoiceRow("P-CINV-REPO-004", "Journal row", new BigDecimal("500.00"), 1, 3010));
+        Repositories.creditInvoices().add(creditInvoice);
+
+        se.swedsoft.bookkeeping.data.system.SSEventTriggerSyncContext.clearCachedLists();
+        Optional<SSCreditInvoice> fetched = Repositories.creditInvoices().findByCreditInvoice(creditInvoice);
+        assertThat(fetched).isPresent();
+        assertThat(fetched.get().getJournalNumbers()).isEqualTo("FA54321");
+        assertThat(fetched.get().isEntered()).isTrue();
+        assertThat(fetched.get().getVoucher()).isNotNull();
+        assertThat(fetched.get().getVoucher().getNumber()).isEqualTo(voucher.getNumber());
+
+        Repositories.creditInvoices().delete(fetched.get());
+        Repositories.vouchers().delete(voucher);
     }
 
     private static SSCreditInvoice creditInvoice(String customerNr, String customerName, Integer creditingNr) {
@@ -152,6 +182,7 @@ class SSCreditInvoiceV2RepositoryTest {
         creditInvoice.setType(SSInvoiceType.CASH);
         creditInvoice.setText("Credit invoice text in repository test");
         creditInvoice.setYourOrderNumber("ORDER-REPO-CREDIT-001");
+        creditInvoice.setJournalNumbers("FA91001");
         return creditInvoice;
     }
 
@@ -177,4 +208,3 @@ class SSCreditInvoiceV2RepositoryTest {
         return company.getId();
     }
 }
-

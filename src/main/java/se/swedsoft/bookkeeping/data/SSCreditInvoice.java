@@ -336,6 +336,14 @@ public class SSCreditInvoice extends SSInvoice {
 
         iVoucher = SSVoucherMath.compress(iVoucher);
 
+        // Filter out rows with 0.00 debet and 0.00 credit
+        iVoucher.getRows().removeIf(row -> {
+            BigDecimal debet = row.getDebet();
+            BigDecimal credit = row.getCredit();
+            return (debet == null || debet.compareTo(BigDecimal.ZERO) == 0) &&
+                   (credit == null || credit.compareTo(BigDecimal.ZERO) == 0);
+        });
+
         return iVoucher;
     }
 

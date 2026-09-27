@@ -71,9 +71,19 @@ public class SSCreditInvoiceTableModel extends SSTableModel<SSCreditInvoice> {
             "") {
         @Override
         public Object getValue(SSCreditInvoice iCreditInvoice) {
-            return iCreditInvoice.isPrinted()
-                    ? SSIcon.getIcon("ICON_PROPERTIES16", SSIcon.IconState.NORMAL)
-                    : null;
+            if (iCreditInvoice.isCancelled()) {
+                return SSIcon.getIcon("ICON_DELETE16", SSIcon.IconState.NORMAL);
+            }
+            if (iCreditInvoice.isPrinted() && iCreditInvoice.isEntered()) {
+                return SSIcon.getIcon("ICON_PROPERTIES16", SSIcon.IconState.NORMAL);
+            }
+            if (iCreditInvoice.isPrinted() && !iCreditInvoice.isEntered()) {
+                return SSIcon.getIcon("ICON_PRINTED16", SSIcon.IconState.NORMAL);
+            }
+            if (iCreditInvoice.isEntered() && !iCreditInvoice.isPrinted()) {
+                return SSIcon.getIcon("ICON_ENTERED16", SSIcon.IconState.NORMAL);
+            }
+            return null;
         }
 
         @Override

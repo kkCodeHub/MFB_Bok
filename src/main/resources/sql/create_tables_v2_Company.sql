@@ -534,6 +534,7 @@ CREATE TABLE IF NOT EXISTS tbl_creditinvoice (
     interest_invoiced    BOOLEAN       DEFAULT FALSE,
     stock_influencing    BOOLEAN       DEFAULT TRUE,
     order_numbers        VARCHAR(500),
+    journal_numbers      VARCHAR(20),
     voucher_id           INTEGER,
     inv_addr_name        VARCHAR(255),  inv_addr_address   VARCHAR(255),
     inv_addr_street      VARCHAR(255),  inv_addr_zipcode   VARCHAR(20),
