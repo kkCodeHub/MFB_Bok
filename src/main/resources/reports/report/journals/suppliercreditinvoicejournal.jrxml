@@ -12,9 +12,10 @@
 	<field name="suppliercreditinvoice.currency" class="java.lang.String"/>
 	<field name="suppliercreditinvoice.currencyrate" class="java.math.BigDecimal"/>
 	<field name="suppliercreditinvoice.localsum" class="java.math.BigDecimal"/>
+	<field name="suppliercreditinvoice.cancelled" class="java.lang.Boolean"/>
 	<field name="journal.rows" class="net.sf.jasperreports.engine.JRDataSource"/>
 	<variable name="sum" class="java.math.BigDecimal" calculation="Sum">
-		<variableExpression><![CDATA[$F{suppliercreditinvoice.localsum}]]></variableExpression>
+		<variableExpression><![CDATA[$F{suppliercreditinvoice.cancelled} ? BigDecimal.ZERO : $F{suppliercreditinvoice.localsum}]]></variableExpression>
 		<initialValueExpression><![CDATA[new BigDecimal(0.0)]]></initialValueExpression>
 	</variable>
 	<columnHeader>
@@ -118,6 +119,17 @@
 				<dataSourceExpression><![CDATA[$F{journal.rows}]]></dataSourceExpression>
 				<subreportExpression><![CDATA[$P{Report}]]></subreportExpression>
 			</subreport>
+			<staticText>
+				<reportElement x="50" y="-3" width="10" height="16" uuid="f1c2671f-b2bb-4d10-95b0-31f49ef6c9c2">
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+					<property name="com.jaspersoft.studio.unit.y" value="px"/>
+					<printWhenExpression><![CDATA[$F{suppliercreditinvoice.cancelled}]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Left" verticalAlignment="Top" rotation="None">
+					<font size="12" isBold="true"/>
+				</textElement>
+				<text><![CDATA[M]]></text>
+			</staticText>
 		</band>
 		<band height="75">
 			<frame>

@@ -12,15 +12,19 @@ import net.sf.jasperreports.engine.design.JasperDesign;
 import net.sf.jasperreports.view.JasperViewer;
 import se.swedsoft.bookkeeping.gui.SSMainFrame;
 import se.swedsoft.bookkeeping.gui.util.dialogs.SSErrorDialog;
+import se.swedsoft.bookkeeping.gui.util.frame.SSFrameManager;
+import se.swedsoft.bookkeeping.gui.util.frame.SSInternalFrame;
 import se.swedsoft.bookkeeping.gui.util.model.SSDefaultTableModel;
 import se.swedsoft.bookkeeping.print.util.SSDefaultJasperDataSource;
 import se.swedsoft.bookkeeping.print.util.SSReportCache;
 import se.swedsoft.bookkeeping.print.view.SSJasperPreviewFrame;
+import se.swedsoft.bookkeeping.print.view.SSPreviewFrame;
 import se.swedsoft.bookkeeping.util.SSException;
 
 import javax.swing.*;
 import javax.swing.event.InternalFrameListener;
 import java.awt.*;
+import java.beans.PropertyVetoException;
 import java.util.*;
 import java.util.List;
 import org.slf4j.Logger;
@@ -61,6 +65,8 @@ public class SSReport {    private static final Logger LOG = LoggerFactory.getLo
     private JasperDesign iDesign;
 
     private SSDefaultJasperDataSource iDataSource;
+
+    private String iPreviewKey;
 
     protected Map<String, Object     > iParameters;
 
@@ -631,6 +637,46 @@ public class SSReport {    private static final Logger LOG = LoggerFactory.getLo
         return iParameters.get(iName);
     }
 
+    public void setPreviewKey(String iPreviewKey) {
+        this.iPreviewKey = iPreviewKey;
+    }
+
+    public String getPreviewKey() {
+        return iPreviewKey;
+    }
+
+    private boolean activateExistingPreviewFrame() {
+        SSInternalFrame iExistingPreview = getExistingPreviewFrame();
+
+        if (iExistingPreview == null) {
+            return false;
+        }
+
+        iExistingPreview.setVisible(true);
+        iExistingPreview.deIconize();
+        try {
+            iExistingPreview.setSelected(true);
+        } catch (PropertyVetoException ignored) {}
+        return true;
+    }
+
+    private SSInternalFrame getExistingPreviewFrame() {
+        if (iPreviewKey == null || iPreviewKey.trim().isEmpty()) {
+            return null;
+        }
+
+        for (SSInternalFrame iFrame : SSFrameManager.getInstance().getFrames()) {
+            if (iFrame instanceof SSPreviewFrame) {
+                SSPreviewFrame iPreviewFrame = (SSPreviewFrame) iFrame;
+
+                if (!iFrame.isClosed() && Objects.equals(iPreviewKey, iPreviewFrame.getPreviewKey())) {
+                    return iFrame;
+                }
+            }
+        }
+        return null;
+    }
+
     /**
      *
      * @return
@@ -668,6 +714,9 @@ public class SSReport {    private static final Logger LOG = LoggerFactory.getLo
         final JasperPrint printer = iPrinter;
         final SSException error = reportError;
         SwingUtilities.invokeLater(() -> {
+            if (activateExistingPreviewFrame()) {
+                return;
+            }
             if (error != null) {
                 new SSErrorDialog(iMainFrame, "exceptiondialog", error.getLocalizedMessage());
             }
@@ -675,6 +724,7 @@ public class SSReport {    private static final Logger LOG = LoggerFactory.getLo
                     800, 600);
 
             iJasperPreviewFrame.setInCenter(iMainFrame);
+            iJasperPreviewFrame.setPreviewKey(iPreviewKey);
             iJasperPreviewFrame.setReport(this);
             iJasperPreviewFrame.setPrinter(printer);
             iJasperPreviewFrame.setVisible(true);
@@ -722,12 +772,16 @@ public class SSReport {    private static final Logger LOG = LoggerFactory.getLo
         final JasperPrint printer = iPrinter;
         final SSException error = reportError;
         SwingUtilities.invokeLater(() -> {
+            if (activateExistingPreviewFrame()) {
+                return;
+            }
             if (error != null) {
                 new SSErrorDialog(iMainFrame, "exceptiondialog", error.getLocalizedMessage());
             }
             SSJasperPreviewFrame iJasperPreviewFrame = new SSJasperPreviewFrame(iMainFrame, 800, 600);
 
             iJasperPreviewFrame.setInCenter(iMainFrame);
+            iJasperPreviewFrame.setPreviewKey(iPreviewKey);
             iJasperPreviewFrame.setReport(this);
             iJasperPreviewFrame.setOnOutputAction(iOnOutputAction);
             iJasperPreviewFrame.setShowEmailButton(iShowEmailButton);
@@ -752,6 +806,9 @@ public class SSReport {    private static final Logger LOG = LoggerFactory.getLo
         final JasperPrint printer = iPrinter;
         final SSException error = reportError;
         SwingUtilities.invokeLater(() -> {
+            if (activateExistingPreviewFrame()) {
+                return;
+            }
             if (error != null) {
                 new SSErrorDialog(SSMainFrame.getInstance(), "exceptiondialog",
                         error.getLocalizedMessage());
@@ -760,6 +817,7 @@ public class SSReport {    private static final Logger LOG = LoggerFactory.getLo
                     SSMainFrame.getInstance(), 800, 600);
 
             iJasperPreviewFrame.setInCenter(iDialog);
+            iJasperPreviewFrame.setPreviewKey(iPreviewKey);
             iJasperPreviewFrame.setReport(this);
             iJasperPreviewFrame.setPrinter(printer);
             iJasperPreviewFrame.setVisible(true);
@@ -797,6 +855,9 @@ public class SSReport {    private static final Logger LOG = LoggerFactory.getLo
         final JasperPrint printer = iPrinter;
         final SSException error = reportError;
         SwingUtilities.invokeLater(() -> {
+            if (activateExistingPreviewFrame()) {
+                return;
+            }
             if (error != null) {
                 new SSErrorDialog(iMainFrame, "exceptiondialog", error.getLocalizedMessage());
             }
@@ -804,6 +865,7 @@ public class SSReport {    private static final Logger LOG = LoggerFactory.getLo
                     800, 600);
 
             iJasperPreviewFrame.addInternalFrameListener(listener);
+            iJasperPreviewFrame.setPreviewKey(iPreviewKey);
             iJasperPreviewFrame.setReport(this);
             iJasperPreviewFrame.setOnOutputAction(iOnOutputAction);
             iJasperPreviewFrame.setShowEmailButton(iShowEmailButton);

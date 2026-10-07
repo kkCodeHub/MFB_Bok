@@ -2,7 +2,7 @@ package se.swedsoft.bookkeeping.gui.suppliercreditinvoice.panel;
 
 
 import se.swedsoft.bookkeeping.data.SSSupplierCreditInvoice;
-import se.swedsoft.bookkeeping.persistence.Repositories;
+import se.swedsoft.bookkeeping.data.system.SSPurchaseContext;
 import se.swedsoft.bookkeeping.gui.util.table.model.SSTableModel;
 
 import javax.swing.*;
@@ -42,7 +42,7 @@ public class SSSupplierCreditInvoiceSearchPanel extends JPanel {
 
     public void ApplyFilter() {
         List<SSSupplierCreditInvoice> iFiltered = new LinkedList<>();
-        List<SSSupplierCreditInvoice> iInvoices = Repositories.supplierCreditInvoices().findAll();
+        List<SSSupplierCreditInvoice> iInvoices = SSPurchaseContext.getSupplierCreditInvoices();
         String iText = iTextField.getText();
 
         if (iText == null) {

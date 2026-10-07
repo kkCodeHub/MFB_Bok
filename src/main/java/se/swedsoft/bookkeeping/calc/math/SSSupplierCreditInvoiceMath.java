@@ -47,6 +47,9 @@ public class SSSupplierCreditInvoiceMath {
         BigDecimal iSum = new BigDecimal(0);
 
         for (SSSupplierCreditInvoice iCreditInvoice : iCreditInvoices) {
+            if (iCreditInvoice.isCancelled()) {
+                continue;
+            }
             BigDecimal iRowSum = SSSupplierInvoiceMath.getTotalSum(iCreditInvoice);
 
             if (iRowSum != null && iCreditInvoice.isCrediting(iInvoice)) {
@@ -72,6 +75,9 @@ public class SSSupplierCreditInvoiceMath {
 
         for (SSSupplierCreditInvoice iCreditInvoice : iCreditInvoices) {
             LocalDate iCurrent = iCreditInvoice.getLocalDate();
+            if (iCreditInvoice.isCancelled()) {
+                continue;
+            }
 
             BigDecimal iRowSum = SSSupplierInvoiceMath.getTotalSum(iCreditInvoice);
 
@@ -89,6 +95,9 @@ public class SSSupplierCreditInvoiceMath {
         List<SSSupplierCreditInvoice> iSupplierCreditInvoices = Repositories.supplierCreditInvoices().findAll();
 
         for (SSSupplierCreditInvoice iSupplierCreditInvoice : iSupplierCreditInvoices) {
+            if (iSupplierCreditInvoice.isCancelled()) {
+                continue;
+            }
             BigDecimal iRowSum = SSSupplierInvoiceMath.getTotalSum(iSupplierCreditInvoice);
 
             if (iRowSum != null && iSupplierCreditInvoice.getCreditingNr() != null) {
@@ -112,6 +121,9 @@ public class SSSupplierCreditInvoiceMath {
         for (SSSupplierCreditInvoice iSupplierCreditInvoice : iSupplierCreditInvoices) {
             if (iSupplierCreditInvoice.getLocalDate() != null && localDate != null
                     && !iSupplierCreditInvoice.getLocalDate().isAfter(localDate)) {
+                if (iSupplierCreditInvoice.isCancelled()) {
+                    continue;
+                }
                 BigDecimal iRowSum = SSSupplierInvoiceMath.getTotalSum(
                         iSupplierCreditInvoice);
 

@@ -1,5 +1,7 @@
 package se.swedsoft.bookkeeping.data.system;
 
+import se.swedsoft.bookkeeping.calc.math.SSCustomerMath;
+import se.swedsoft.bookkeeping.calc.math.SSInvoiceMath;
 import se.swedsoft.bookkeeping.data.SSCreditInvoice;
 import se.swedsoft.bookkeeping.data.SSCustomer;
 import se.swedsoft.bookkeeping.data.SSInvoice;
@@ -326,6 +328,7 @@ public final class SSSalesContext {
      */
     public static void addCreditInvoice(SSCreditInvoice pCreditInvoice) {
         Repositories.creditInvoices().add(pCreditInvoice);
+        refreshSalesCaches();
     }
 
     /**
@@ -335,6 +338,7 @@ public final class SSSalesContext {
      */
     public static void updateCreditInvoice(SSCreditInvoice pCreditInvoice) {
         Repositories.creditInvoices().update(pCreditInvoice);
+        refreshSalesCaches();
     }
 
     /**
@@ -344,6 +348,14 @@ public final class SSSalesContext {
      */
     public static void deleteCreditInvoice(SSCreditInvoice pCreditInvoice) {
         Repositories.creditInvoices().delete(pCreditInvoice);
+        refreshSalesCaches();
+    }
+
+    private static void refreshSalesCaches() {
+        SSInvoiceMath.iSaldoMap = null;
+        SSInvoiceMath.calculateSaldos();
+        SSCustomerMath.iInvoicesForCustomers = null;
+        SSCustomerMath.getInvoicesForCustomers();
     }
 
     // -------------------------------------------------------------------------

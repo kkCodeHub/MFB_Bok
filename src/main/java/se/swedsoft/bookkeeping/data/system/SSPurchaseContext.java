@@ -1,5 +1,7 @@
 package se.swedsoft.bookkeeping.data.system;
 
+import se.swedsoft.bookkeeping.calc.math.SSSupplierInvoiceMath;
+import se.swedsoft.bookkeeping.calc.math.SSSupplierMath;
 import se.swedsoft.bookkeeping.data.SSPurchaseOrder;
 import se.swedsoft.bookkeeping.data.SSSupplier;
 import se.swedsoft.bookkeeping.data.SSSupplierCreditInvoice;
@@ -203,6 +205,15 @@ public final class SSPurchaseContext {
         Repositories.supplierInvoices().delete(pSupplierInvoice);
     }
 
+    /**
+     * Returns the maximum supplier invoice number for the current company.
+     *
+     * @return the highest supplier invoice number, or -1 if none exist
+     */
+    public static int getMaxSupplierInvoiceId() {
+        return Repositories.supplierInvoices().getMaxSupplierInvoiceId();
+    }
+
     // -------------------------------------------------------------------------
     // Supplier Credit Invoice CRUD
     // -------------------------------------------------------------------------
@@ -253,6 +264,16 @@ public final class SSPurchaseContext {
      */
     public static void addSupplierCreditInvoice(SSSupplierCreditInvoice pSupplierCreditInvoice) {
         Repositories.supplierCreditInvoices().add(pSupplierCreditInvoice);
+        refreshPurchaseCaches();
+    }
+
+    /**
+     * Returns the maximum supplier credit invoice number for the current company.
+     *
+     * @return the highest supplier credit invoice number, or -1 if none exist
+     */
+    public static int getMaxSupplierCreditInvoiceId() {
+        return Repositories.supplierCreditInvoices().getMaxSupplierCreditInvoiceId();
     }
 
     /**
@@ -262,6 +283,7 @@ public final class SSPurchaseContext {
      */
     public static void updateSupplierCreditInvoice(SSSupplierCreditInvoice pSupplierCreditInvoice) {
         Repositories.supplierCreditInvoices().update(pSupplierCreditInvoice);
+        refreshPurchaseCaches();
     }
 
     /**
@@ -271,5 +293,13 @@ public final class SSPurchaseContext {
      */
     public static void deleteSupplierCreditInvoice(SSSupplierCreditInvoice pSupplierCreditInvoice) {
         Repositories.supplierCreditInvoices().delete(pSupplierCreditInvoice);
+        refreshPurchaseCaches();
+    }
+
+    private static void refreshPurchaseCaches() {
+        SSSupplierInvoiceMath.iSaldoMap = null;
+        SSSupplierInvoiceMath.calculateSaldos();
+        SSSupplierMath.iInvoicesForSuppliers = null;
+        SSSupplierMath.getInvoicesForSuppliers();
     }
 }

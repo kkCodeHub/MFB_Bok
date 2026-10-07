@@ -7,7 +7,6 @@ import se.swedsoft.bookkeeping.data.SSSupplierCreditInvoice;
 import se.swedsoft.bookkeeping.data.SSSupplierInvoiceRow;
 import se.swedsoft.bookkeeping.data.SSVoucher;
 import se.swedsoft.bookkeeping.data.common.SSCurrency;
-import se.swedsoft.bookkeeping.data.common.SSPaymentTerm;
 import se.swedsoft.bookkeeping.data.common.SSUnit;
 import se.swedsoft.bookkeeping.data.system.SSEventTriggerSyncContext;
 
@@ -119,6 +118,31 @@ public class V2SupplierCreditInvoiceRepository {
         }
     }
 
+    public int getMaxSupplierCreditInvoiceId() {
+        SSNewCompany currentCompany = currentCompanySupplier.get();
+        if (currentCompany == null || currentCompany.getId() == null) {
+            return -1;
+        }
+
+        try {
+            try (PreparedStatement statement = connection.prepareStatement(
+                    "SELECT MAX(number) AS max_number FROM tbl_suppliercreditinvoice WHERE companyid=?")) {
+                statement.setObject(1, currentCompany.getId());
+                try (ResultSet resultSet = statement.executeQuery()) {
+                    if (resultSet.next()) {
+                        Object maxNumber = resultSet.getObject("max_number");
+                        if (maxNumber != null) {
+                            return ((Number) maxNumber).intValue();
+                        }
+                    }
+                }
+            }
+            return -1;
+        } catch (SQLException e) {
+            throw handleFailure("get max supplier credit invoice number", e);
+        }
+    }
+
     public void add(SSSupplierCreditInvoice supplierCreditInvoice) {
         if (supplierCreditInvoice == null) {
             return;
@@ -147,13 +171,33 @@ public class V2SupplierCreditInvoiceRepository {
                 }
             }
 
+//            LOG.info("Saving supplier credit invoice: number={}, creditingNr={}, date={}, dueDate={}, supplierNr={}, supplierName={}, referenceNumber={}, currency={}, currencyRate={}, taxSum={}, roundingSum={}, entered={}, cancelled={}, stockInfluencing={}, bgcEntered={}, voucher={}, correction={}, rows={}",
+//                    supplierCreditInvoice.getNumber(),
+//                    supplierCreditInvoice.getCreditingNr(),
+//                    supplierCreditInvoice.getLocalDate(),
+//                    supplierCreditInvoice.getLocalDueDate(),
+//                    supplierCreditInvoice.getSupplierNr(),
+//                    supplierCreditInvoice.getSupplierName(),
+//                    supplierCreditInvoice.getReferencenumber(),
+//                    supplierCreditInvoice.getCurrency(),
+//                    supplierCreditInvoice.getCurrencyRate(),
+//                    supplierCreditInvoice.getTaxSum(),
+//                    supplierCreditInvoice.getRoundingSum(),
+//                    supplierCreditInvoice.isEntered(),
+//                    supplierCreditInvoice.isCancelled(),
+//                    supplierCreditInvoice.isStockInfluencing(),
+//                    supplierCreditInvoice.isBGCEntered(),
+//                    supplierCreditInvoice.getVoucher(),
+//                    supplierCreditInvoice.getCorrection(),
+//                    supplierCreditInvoice.getRows());
+
             Integer supplierCreditInvoiceId = null;
             try (PreparedStatement insertStatement = connection.prepareStatement(
                     "INSERT INTO tbl_suppliercreditinvoice(" +
                             "number,companyid,crediting_nr,vdate,due_date,supplier_nr,supplier_name,reference_number," +
-                            "currency_code,currency_rate,payment_term,tax_sum,rounding_sum,entered,stock_influencing," +
-                            "bgc_entered,voucher_id,correction_voucher_id) " +
-                            "VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                            "currency_code,currency_rate,payment_term,tax_sum,rounding_sum,entered,cancelled," +
+                            "stock_influencing,bgc_entered,voucher_id,correction_voucher_id) " +
+                            "VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
                     Statement.RETURN_GENERATED_KEYS)) {
                 int i = 1;
                 insertStatement.setObject(i++, supplierCreditInvoice.getNumber());
@@ -193,11 +237,31 @@ public class V2SupplierCreditInvoiceRepository {
         }
 
         try {
+            LOG.info("Updating supplier credit invoice: number={}, creditingNr={}, date={}, dueDate={}, supplierNr={}, supplierName={}, referenceNumber={}, currency={}, currencyRate={}, taxSum={}, roundingSum={}, entered={}, cancelled={}, stockInfluencing={}, bgcEntered={}, voucher={}, correction={}, rows={}",
+                    supplierCreditInvoice.getNumber(),
+                    supplierCreditInvoice.getCreditingNr(),
+                    supplierCreditInvoice.getLocalDate(),
+                    supplierCreditInvoice.getLocalDueDate(),
+                    supplierCreditInvoice.getSupplierNr(),
+                    supplierCreditInvoice.getSupplierName(),
+                    supplierCreditInvoice.getReferencenumber(),
+                    supplierCreditInvoice.getCurrency(),
+                    supplierCreditInvoice.getCurrencyRate(),
+                    supplierCreditInvoice.getTaxSum(),
+                    supplierCreditInvoice.getRoundingSum(),
+                    supplierCreditInvoice.isEntered(),
+                    supplierCreditInvoice.isCancelled(),
+                    supplierCreditInvoice.isStockInfluencing(),
+                    supplierCreditInvoice.isBGCEntered(),
+                    supplierCreditInvoice.getVoucher(),
+                    supplierCreditInvoice.getCorrection(),
+                    supplierCreditInvoice.getRows());
+
             try (PreparedStatement statement = connection.prepareStatement(
                     "UPDATE tbl_suppliercreditinvoice SET " +
                             "crediting_nr=?,vdate=?,due_date=?,supplier_nr=?,supplier_name=?,reference_number=?," +
                             "currency_code=?,currency_rate=?,payment_term=?,tax_sum=?,rounding_sum=?,entered=?," +
-                            "stock_influencing=?,bgc_entered=?,voucher_id=?,correction_voucher_id=? " +
+                            "cancelled=?,stock_influencing=?,bgc_entered=?,voucher_id=?,correction_voucher_id=? " +
                             "WHERE number=? AND companyid=?")) {
                 int i = bindSupplierCreditInvoiceColumnsV2(statement, 1, supplierCreditInvoice);
                 statement.setObject(i++, supplierCreditInvoice.getNumber());
@@ -347,6 +411,7 @@ public class V2SupplierCreditInvoiceRepository {
         statement.setObject(index++, supplierCreditInvoice.getTaxSum());
         statement.setObject(index++, supplierCreditInvoice.getRoundingSum());
         statement.setObject(index++, supplierCreditInvoice.isEntered());
+        statement.setObject(index++, supplierCreditInvoice.isCancelled());
         statement.setObject(index++, supplierCreditInvoice.isStockInfluencing());
         statement.setObject(index++, supplierCreditInvoice.isBGCEntered());
         statement.setObject(index++, getVoucherIdByNumberV2(supplierCreditInvoice.getVoucher()));
@@ -355,7 +420,7 @@ public class V2SupplierCreditInvoiceRepository {
     }
 
     private SSSupplierCreditInvoice mapSupplierCreditInvoiceV2(ResultSet resultSet) throws SQLException {
-        SSSupplierCreditInvoice supplierCreditInvoice = new SSSupplierCreditInvoice();
+        SSSupplierCreditInvoice supplierCreditInvoice = new SSSupplierCreditInvoice(true);
         supplierCreditInvoice.setNumber((Integer) resultSet.getObject("number"));
         supplierCreditInvoice.setCreditingNr((Integer) resultSet.getObject("crediting_nr"));
 
@@ -387,19 +452,20 @@ public class V2SupplierCreditInvoiceRepository {
         supplierCreditInvoice.setTaxSum(resultSet.getBigDecimal("tax_sum"));
         supplierCreditInvoice.setRoundingSum(resultSet.getBigDecimal("rounding_sum"));
         supplierCreditInvoice.setEntered(resultSet.getBoolean("entered"));
+        supplierCreditInvoice.setCancelled(resultSet.getBoolean("cancelled"));
         supplierCreditInvoice.setStockInfluencing(resultSet.getBoolean("stock_influencing"));
         supplierCreditInvoice.setBGCEntered(resultSet.getBoolean("bgc_entered"));
 
         Integer voucherId = (Integer) resultSet.getObject("voucher_id");
         Integer voucherNumber = getVoucherNumberForIdV2(voucherId);
         if (voucherNumber != null) {
-            supplierCreditInvoice.setVoucher(new SSVoucher(voucherNumber));
+            supplierCreditInvoice.setVoucher(new SSVoucher(voucherNumber, true));
         }
 
         Integer correctionVoucherId = (Integer) resultSet.getObject("correction_voucher_id");
         Integer correctionVoucherNumber = getVoucherNumberForIdV2(correctionVoucherId);
         if (correctionVoucherNumber != null) {
-            supplierCreditInvoice.setCorrection(new SSVoucher(correctionVoucherNumber));
+            supplierCreditInvoice.setCorrection(new SSVoucher(correctionVoucherNumber, true));
         }
 
         supplierCreditInvoice.getRows().clear();

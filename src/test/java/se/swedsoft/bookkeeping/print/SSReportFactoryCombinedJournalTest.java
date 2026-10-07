@@ -138,6 +138,26 @@ class SSReportFactoryCombinedJournalTest {
         assertThat(persisted).extracting(SSInvoice::getNumber).containsExactly(1012);
     }
 
+    @Test
+    void canRegisterCombinedJournalBlocksWhenNoOutputWasProduced() {
+        final boolean[] messageShown = {false};
+
+        boolean canRegister = SSReportFactory.canRegisterCombinedJournal(false, () -> messageShown[0] = true);
+
+        assertThat(canRegister).isFalse();
+        assertThat(messageShown[0]).isTrue();
+    }
+
+    @Test
+    void canRegisterCombinedJournalAllowsPostingAfterOutputWasProduced() {
+        final boolean[] messageShown = {false};
+
+        boolean canRegister = SSReportFactory.canRegisterCombinedJournal(true, () -> messageShown[0] = true);
+
+        assertThat(canRegister).isTrue();
+        assertThat(messageShown[0]).isFalse();
+    }
+
     private static SSInvoice invoice(LocalDate date, boolean entered, boolean cancelled) {
         SSInvoice invoice = new SSInvoice();
         invoice.setNumber(1000 + date.getDayOfMonth());

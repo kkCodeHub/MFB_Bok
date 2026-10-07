@@ -114,6 +114,7 @@ class SSSupplierInvoiceV2RepositoryTest {
         SSSupplierInvoice updatedInvoice = fetched.get();
         updatedInvoice.setSupplierName("After Repo Update");
         updatedInvoice.setReferencenumber("REF-REPO-UPDATED");
+        updatedInvoice.setCancelled(true);
         updatedInvoice.getRows().clear();
         updatedInvoice.getRows().add(
                 invoiceRow("P-REPO-003", "After update row", new BigDecimal("750.00"), 3, 4041));
@@ -124,6 +125,7 @@ class SSSupplierInvoiceV2RepositoryTest {
         assertThat(updated).isPresent();
         assertThat(updated.get().getSupplierName()).isEqualTo("After Repo Update");
         assertThat(updated.get().getReferencenumber()).isEqualTo("REF-REPO-UPDATED");
+        assertThat(updated.get().isCancelled()).isTrue();
         assertThat(updated.get().getRows()).hasSize(1);
         assertThat(updated.get().getRows().get(0).getDescription()).isEqualTo("After update row");
 

@@ -5,6 +5,8 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import se.swedsoft.bookkeeping.calc.math.SSCreditInvoiceMath;
+import se.swedsoft.bookkeeping.calc.math.SSInvoiceMath;
 import se.swedsoft.bookkeeping.data.SSCreditInvoice;
 import se.swedsoft.bookkeeping.data.SSInpayment;
 import se.swedsoft.bookkeeping.data.SSInpaymentRow;
@@ -109,6 +111,24 @@ class SSInvoiceActionPolicyV2IntegrationTest {
     }
 
     @Test
+    void creditInvoiceIsNotLockedByCreditedSumCheck() {
+        SSInvoice invoice = persistInvoice("POL-CR-002", "Policy Credit Sum Customer");
+        SSCreditInvoice creditInvoice = creditInvoice(invoice, "POL-CR-003", false, "120.00");
+
+        Repositories.creditInvoices().add(creditInvoice);
+        SSEventTriggerSyncContext.clearCachedLists();
+
+        SSCreditInvoice deletableCreditInvoice = new SSCreditInvoice(invoice);
+        List<SSInvoice> series = List.of(creditInvoice, deletableCreditInvoice);
+
+        assertThat(SSInvoiceActionPolicy.canCancel(deletableCreditInvoice)).isTrue();
+        assertThat(SSInvoiceActionPolicy.canDeletePhysically(deletableCreditInvoice, series)).isTrue();
+
+        Repositories.creditInvoices().delete(creditInvoice);
+        Repositories.invoices().delete(invoice);
+    }
+
+    @Test
     void paidInvoiceCannotBeEdited() {
         SSInvoice invoice = persistInvoice("POL-PD-001", "Policy Paid Customer");
 
@@ -185,6 +205,17 @@ class SSInvoiceActionPolicyV2IntegrationTest {
     }
 
     @Test
+    void deletingNonLastCreditInvoiceIsBlocked() {
+        SSCreditInvoice first = new SSCreditInvoice();
+        first.setNumber(5100);
+        SSCreditInvoice last = new SSCreditInvoice();
+        last.setNumber(5101);
+        List<SSInvoice> series = List.of(first, last);
+
+        assertThat(SSInvoiceActionPolicy.canDeletePhysically(first, series)).isFalse();
+    }
+
+    @Test
     void cancelledLastInvoiceCanBeUncancelled() {
         SSInvoice first = invoiceTemplate("POL-UL-001", "Uncancel Last 1");
         first.setNumber(3000);
@@ -206,6 +237,18 @@ class SSInvoiceActionPolicyV2IntegrationTest {
         List<SSInvoice> series = List.of(first, last);
 
         assertThat(SSInvoiceActionPolicy.canUncancel(last, series)).isTrue();
+    }
+
+    @Test
+    void cancelledNonLastCreditInvoiceCannotBeUncancelled() {
+        SSCreditInvoice first = new SSCreditInvoice();
+        first.setNumber(6100);
+        first.setCancelled();
+        SSCreditInvoice last = new SSCreditInvoice();
+        last.setNumber(6101);
+        List<SSInvoice> series = List.of(first, last);
+
+        assertThat(SSInvoiceActionPolicy.canUncancel(first, series)).isFalse();
     }
 
     @Test
@@ -253,11 +296,55 @@ class SSInvoiceActionPolicyV2IntegrationTest {
         assertThat(SSInvoiceActionPolicy.canSendByEmail(cancelled)).isFalse();
     }
 
+    @Test
+    void cancelledCreditInvoiceDoesNotReduceSaldo() {
+        SSInvoice invoice = persistInvoiceWithBalance("POL-SD-001", "Saldo Credit Customer");
+
+        SSCreditInvoice activeCreditInvoice = creditInvoice(invoice, "POL-SD-CR-001", false, "120.00");
+        SSSalesContext.addCreditInvoice(activeCreditInvoice);
+
+        SSEventTriggerSyncContext.clearCachedLists();
+        BigDecimal saldoWithActiveCredit = SSInvoiceMath.getSaldo(invoice);
+        BigDecimal creditSumWithActiveCredit = SSCreditInvoiceMath.getSumForInvoice(invoice);
+
+        activeCreditInvoice.setCancelled();
+        SSSalesContext.updateCreditInvoice(activeCreditInvoice);
+
+        assertThat(SSCreditInvoiceMath.getSumForInvoice(invoice)).isEqualByComparingTo(BigDecimal.ZERO);
+        assertThat(SSInvoiceMath.getSaldo(invoice)).isEqualByComparingTo(
+                saldoWithActiveCredit.add(creditSumWithActiveCredit));
+
+        SSSalesContext.deleteCreditInvoice(activeCreditInvoice);
+        Repositories.invoices().delete(invoice);
+    }
+
     private static SSInvoice persistInvoice(String customerNr, String customerName) {
         SSInvoice invoice = invoiceTemplate(customerNr, customerName);
         invoice.getRows().add(invoiceRow("P-" + customerNr, "Policy row", new BigDecimal("500.00"), 1, 3010));
         Repositories.invoices().add(invoice);
         return invoice;
+    }
+
+    private static SSInvoice persistInvoiceWithBalance(String customerNr, String customerName) {
+        SSInvoice invoice = new SSInvoice();
+        invoice.setCustomerNr(customerNr);
+        invoice.setCustomerName(customerName);
+        invoice.setLocalDate(LocalDate.of(2025, 7, 15));
+        invoice.setLocalDueDate(LocalDate.of(2025, 8, 14));
+        invoice.setCurrencyRate(BigDecimal.ONE);
+        invoice.setType(SSInvoiceType.NORMAL);
+        invoice.getRows().add(invoiceRow("P-" + customerNr, "Balanced row", new BigDecimal("1000.00"), 1, 3010));
+        Repositories.invoices().add(invoice);
+        return invoice;
+    }
+
+    private static SSCreditInvoice creditInvoice(SSInvoice invoice, String customerNr, boolean cancelled,
+                                                 String rowValue) {
+        SSCreditInvoice creditInvoice = new SSCreditInvoice(invoice);
+        creditInvoice.setCustomerNr(customerNr);
+        creditInvoice.getRows().add(invoiceRow("CR-" + customerNr, "Credit row", new BigDecimal(rowValue), 1, 3010));
+        creditInvoice.setCancelled(cancelled);
+        return creditInvoice;
     }
 
     private static SSInvoice invoiceTemplate(String customerNr, String customerName) {

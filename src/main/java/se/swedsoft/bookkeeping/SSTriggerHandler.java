@@ -36,12 +36,12 @@ public class SSTriggerHandler implements Trigger {
         } else {
             // "Normala objekt"
             if (oldRow != null) {
-                iNumber = oldRow[1].toString();
+                iNumber = oldRow[0] + ":" + oldRow[1];
                 iCompanyId = getNormalCompanyId(oldRow);
             }
 
             if (newRow != null) {
-                iNumber = newRow[1].toString();
+                iNumber = newRow[0] + ":" + newRow[1];
                 iCompanyId = getNormalCompanyId(newRow);
             }
         }

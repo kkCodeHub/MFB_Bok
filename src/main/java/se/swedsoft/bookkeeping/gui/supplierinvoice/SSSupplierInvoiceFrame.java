@@ -8,6 +8,8 @@ import se.swedsoft.bookkeeping.data.SSPurchaseOrder;
 import se.swedsoft.bookkeeping.data.SSSupplierInvoice;
 import se.swedsoft.bookkeeping.data.common.SSCurrency;
 import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.data.system.SSPurchaseContext;
+import se.swedsoft.bookkeeping.data.system.SSSupplierInvoiceActionPolicy;
 
 import se.swedsoft.bookkeeping.gui.SSMainFrame;
 import se.swedsoft.bookkeeping.gui.product.SSProductFrame;
@@ -36,6 +38,7 @@ import javax.swing.event.ChangeListener;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.Comparator;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -297,6 +300,7 @@ public class SSSupplierInvoiceFrame extends SSDefaultTableFrame {
     @Override
     public JComponent getMainContent() {
         iModel = new SSSupplierInvoiceTableModel();
+        iModel.addColumn(SSSupplierInvoiceTableModel.COLUMN_STATE);
         iModel.addColumn(SSSupplierInvoiceTableModel.COLUMN_NUMBER);
         iModel.addColumn(SSSupplierInvoiceTableModel.COLUMN_REFERENCE_NUMBER);
         iModel.addColumn(SSSupplierInvoiceTableModel.COLUMN_SUPPLIER_NUMBER);
@@ -344,7 +348,7 @@ public class SSSupplierInvoiceFrame extends SSDefaultTableFrame {
         iTabbedPane.add(SSBundle.getBundle().getString("supplierinvoiceframe.filter.3"),
                 new SSTabbedPanePanel());
 
-        iTabbedPane.addChangeListener(e -> updateFrame());
+        iTabbedPane.addChangeListener(e -> iSearchPanel.ApplyFilter(SSPurchaseContext.getSupplierInvoices()));
         // setFilterIndex(0);
 
         JPanel iPanel = new JPanel();
@@ -471,29 +475,66 @@ public class SSSupplierInvoiceFrame extends SSDefaultTableFrame {
         if (delete.isEmpty()) {
             return;
         }
+        List<SSSupplierInvoice> iCurrentInvoices = getSupplierInvoices(delete);
+        if (!hasProcessableSelected(iCurrentInvoices, SSPurchaseContext.getSupplierInvoices())) {
+            new SSErrorDialog(getMainFrame(), "supplierinvoiceframe.delete.notallowed");
+            return;
+        }
         SSQueryDialog iDialog = new SSQueryDialog(getMainFrame(),
                 "supplierinvoiceframe.delete");
         int iResponce = iDialog.getResponce();
 
         if (iResponce == JOptionPane.YES_OPTION) {
-            for (SSSupplierInvoice iSupplierInvoice : delete) {
+            iCurrentInvoices.sort(Comparator.comparing(SSSupplierInvoice::getNumber,
+                    Comparator.nullsLast(Integer::compareTo)).reversed());
+
+            for (SSSupplierInvoice iSupplierInvoice : iCurrentInvoices) {
                 for (SSPurchaseOrder iPurchaseOrder : Repositories.purchaseOrders().findAll()) {
                     if (iPurchaseOrder.hasInvoice(iSupplierInvoice)) {
                         iPurchaseOrder.setInvoice(null);
                         Repositories.purchaseOrders().update(iPurchaseOrder);
                     }
                 }
-                int iIndex = SSSupplierMath.iInvoicesForSuppliers.get(iSupplierInvoice.getSupplierNr()).indexOf(
-                        iSupplierInvoice);
-
-                if (iIndex != -1) {
-                    SSSupplierMath.iInvoicesForSuppliers.get(iSupplierInvoice.getSupplierNr()).remove(
-                            iIndex);
+                if (SSSupplierInvoiceActionPolicy.canDeletePhysically(iSupplierInvoice, SSPurchaseContext.getSupplierInvoices())) {
+                    deleteInvoicePhysically(iSupplierInvoice);
+                } else if (SSSupplierInvoiceActionPolicy.canUncancel(iSupplierInvoice, SSPurchaseContext.getSupplierInvoices())) {
+                    iSupplierInvoice.clearCancelled();
+                    SSPurchaseContext.updateSupplierInvoice(iSupplierInvoice);
+                } else if (SSSupplierInvoiceActionPolicy.canCancel(iSupplierInvoice)) {
+                    iSupplierInvoice.setCancelled();
+                    SSPurchaseContext.updateSupplierInvoice(iSupplierInvoice);
                 }
-                Repositories.supplierInvoices().delete(iSupplierInvoice);
             }
             updateFrame();
         }
+    }
+
+    private boolean hasProcessableSelected(List<SSSupplierInvoice> delete, List<SSSupplierInvoice> currentInvoices) {
+        for (SSSupplierInvoice iSupplierInvoice : delete) {
+            if (SSSupplierInvoiceActionPolicy.canDeletePhysically(iSupplierInvoice, currentInvoices)
+                    || SSSupplierInvoiceActionPolicy.canUncancel(iSupplierInvoice, currentInvoices)
+                    || SSSupplierInvoiceActionPolicy.canCancel(iSupplierInvoice)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void deleteInvoicePhysically(SSSupplierInvoice iSupplierInvoice) {
+        for (SSPurchaseOrder iPurchaseOrder : Repositories.purchaseOrders().findAll()) {
+            if (iPurchaseOrder.hasInvoice(iSupplierInvoice)) {
+                iPurchaseOrder.setInvoice(null);
+                Repositories.purchaseOrders().update(iPurchaseOrder);
+            }
+        }
+        int iIndex = SSSupplierMath.iInvoicesForSuppliers.get(iSupplierInvoice.getSupplierNr()).indexOf(
+                iSupplierInvoice);
+
+        if (iIndex != -1) {
+            SSSupplierMath.iInvoicesForSuppliers.get(iSupplierInvoice.getSupplierNr()).remove(
+                    iIndex);
+        }
+        Repositories.supplierInvoices().delete(iSupplierInvoice);
     }
 
     private SSSupplierInvoice getSupplierInvoice(SSSupplierInvoice iSupplierInvoice) {
@@ -515,8 +556,10 @@ public class SSSupplierInvoiceFrame extends SSDefaultTableFrame {
     }
 
     public void updateFrame() {
-        SSSupplierInvoiceMath.calculateSaldos();
-        iSearchPanel.ApplyFilter(Repositories.supplierInvoices().findAll());
+        if (SSSupplierInvoiceMath.iSaldoMap == null) {
+            SSSupplierInvoiceMath.calculateSaldos();
+        }
+        iSearchPanel.ApplyFilter(SSPurchaseContext.getSupplierInvoices());
         SSProductFrame.fireTableDataChanged();
     }
 

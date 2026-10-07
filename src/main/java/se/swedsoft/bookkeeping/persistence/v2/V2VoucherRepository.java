@@ -180,7 +180,7 @@ public class V2VoucherRepository {
 
             connection.commit();
             SSEventTriggerSyncContext.triggerAction(
-                    "EDITVOUCHER", "TBL_VOUCHER", String.valueOf(voucher.getNumber()));
+                    "EDITVOUCHER", "TBL_VOUCHER", toTriggerIdentifier(voucher));
         } catch (SQLException e) {
             throw handleFailure("update voucher '" + voucher.getNumber() + "'", e);
         }
@@ -208,7 +208,7 @@ public class V2VoucherRepository {
 
             connection.commit();
             SSEventTriggerSyncContext.triggerAction(
-                    "DELETEVOUCHER", "TBL_VOUCHER", String.valueOf(voucher.getNumber()));
+                    "DELETEVOUCHER", "TBL_VOUCHER", toTriggerIdentifier(voucher));
         } catch (SQLException e) {
             throw handleFailure("delete voucher '" + voucher.getNumber() + "'", e);
         }
@@ -267,10 +267,17 @@ public class V2VoucherRepository {
 
             connection.commit();
             SSEventTriggerSyncContext.triggerAction(
-                    "NEWVOUCHER", "TBL_VOUCHER", String.valueOf(voucher.getNumber()));
+                    "NEWVOUCHER", "TBL_VOUCHER", toTriggerIdentifier(voucher));
         } catch (SQLException e) {
             throw handleFailure("add voucher '" + voucher.getNumber() + "'", e);
         }
+    }
+
+    private String toTriggerIdentifier(SSVoucher voucher) {
+        if (voucher == null) {
+            throw new NullPointerException("voucher must not be null");
+        }
+        return voucher.getSeries() + ":" + voucher.getNumber();
     }
 
     private SSNewAccountingYear resolveYear(SSVoucher voucher) {

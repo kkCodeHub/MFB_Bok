@@ -3,6 +3,7 @@ package se.swedsoft.bookkeeping.print.report.journals;
 
 import se.swedsoft.bookkeeping.calc.math.SSSupplierInvoiceMath;
 import se.swedsoft.bookkeeping.data.SSInvoice;
+import se.swedsoft.bookkeeping.data.SSSupplierCreditInvoice;
 import se.swedsoft.bookkeeping.data.SSSupplierInvoice;
 import se.swedsoft.bookkeeping.data.SSVoucherRow;
 import se.swedsoft.bookkeeping.gui.util.model.SSDefaultTableModel;
@@ -99,11 +100,11 @@ public class SSSupplierInvoicejournalPrinter extends SSPrinter {
                     break;
 
                 case 1:
-                    value = iInvoice.getSupplierNr();
+                    value = getDocumentType(iInvoice);
                     break;
 
                 case 2:
-                    value = iInvoice.getSupplierName();
+                    value = getDocumentReference(iInvoice);
                     break;
 
                 case 3:
@@ -123,20 +124,36 @@ public class SSSupplierInvoicejournalPrinter extends SSPrinter {
                     break;
 
                 case 6:
-                    value = SSSupplierInvoiceMath.getTotalSum(iInvoice);
+                    if (iInvoice.isCancelled()) {
+                        value = BigDecimal.ZERO;
+                    } else {
+                        value = toSignedJournalAmount(iInvoice, SSSupplierInvoiceMath.getTotalSum(iInvoice));
+                    }
                     break;
 
                 case 7:
-                    value = iInvoice.getTaxSum();
+                    if (iInvoice.isCancelled()) {
+                        value = BigDecimal.ZERO;
+                    } else {
+                        value = toSignedJournalAmount(iInvoice, iInvoice.getTaxSum());
+                    }
                     break;
 
                 case 8:
-                    BigDecimal iTotalSum = SSSupplierInvoiceMath.getTotalSum(iInvoice);
+                    BigDecimal iTotalSum = toSignedJournalAmount(iInvoice, SSSupplierInvoiceMath.getTotalSum(iInvoice));
 
-                    value = SSSupplierInvoiceMath.convertToLocal(iInvoice, iTotalSum);
+                    if (iInvoice.isCancelled()) {
+                        value = BigDecimal.ZERO;
+                    } else {
+                        value = SSSupplierInvoiceMath.convertToLocal(iInvoice, iTotalSum);
+                    }
                     break;
 
                 case 9:
+                    value = iInvoice.isCancelled();
+                    break;
+
+                case 10:
                     iPrinter.setInvoice(iInvoice);
 
                     iDataSource.reset();
@@ -158,6 +175,7 @@ public class SSSupplierInvoicejournalPrinter extends SSPrinter {
         iModel.addColumn("supplierinvoice.sum");
         iModel.addColumn("supplierinvoice.tax");
         iModel.addColumn("supplierinvoice.localsum");
+        iModel.addColumn("supplierinvoice.cancelled");
 
         iModel.addColumn("journal.rows");
 
@@ -166,9 +184,45 @@ public class SSSupplierInvoicejournalPrinter extends SSPrinter {
         return iModel;
     }
 
+    private String getDocumentType(SSSupplierInvoice iInvoice) {
+        if (iInvoice instanceof SSSupplierCreditInvoice) {
+            return iBundle.getString("supplierinvoicejournal.documenttype.creditinvoice");
+        }
+        return iBundle.getString("supplierinvoicejournal.documenttype.invoice");
+    }
+
+    private String getDocumentReference(SSSupplierInvoice iInvoice) {
+        String iSupplierText = String.format("%s %s",
+                iInvoice.getSupplierNr() == null ? "" : iInvoice.getSupplierNr(),
+                iInvoice.getSupplierName() == null ? "" : iInvoice.getSupplierName()).trim();
+        if (iInvoice instanceof SSSupplierCreditInvoice) {
+            Integer iCreditingNr = ((SSSupplierCreditInvoice) iInvoice).getCreditingNr();
+            if (iCreditingNr != null) {
+                if (iSupplierText.isEmpty()) {
+                    return String.format(iBundle.getString("supplierinvoicejournal.reference.crediting"), iCreditingNr);
+                }
+                return String.format("%s - %s",
+                        String.format(iBundle.getString("supplierinvoicejournal.reference.crediting"), iCreditingNr),
+                        iSupplierText);
+            }
+        }
+        return iSupplierText;
+    }
+
+    private static BigDecimal toSignedJournalAmount(SSSupplierInvoice iInvoice, BigDecimal iAmount) {
+        if (iAmount == null) {
+            return null;
+        }
+        if (iInvoice instanceof SSSupplierCreditInvoice) {
+            return iAmount.negate();
+        }
+        return iAmount;
+    }
+
     private class SSVoucherPrinter extends SSPrinter {
 
         private SSDefaultTableModel<SSVoucherRow> iModel;
+        private SSSupplierInvoice iCurrentInvoice;
 
         /**
          *
@@ -176,7 +230,7 @@ public class SSSupplierInvoicejournalPrinter extends SSPrinter {
         public SSVoucherPrinter() {
             setMargins(0, 0, 0, 0);
 
-            setDetail("journals/invoicejournal.rows.jrxml");
+            setDetail("journals/supplierinvoicejournal.rows.jrxml");
             // setSummary("journals/invoicejournal.rows.jrxml");
 
             iModel = new SSDefaultTableModel<>() {
@@ -226,6 +280,10 @@ public class SSSupplierInvoicejournalPrinter extends SSPrinter {
                                 : iRow.getResultUnit().getNumber();
                         break;
 
+                    case 6:
+                        value = iCurrentInvoice.isCancelled();
+                        break;
+
                     }
 
                     return value;
@@ -238,6 +296,7 @@ public class SSSupplierInvoicejournalPrinter extends SSPrinter {
             iModel.addColumn("row.credet");
             iModel.addColumn("row.project");
             iModel.addColumn("row.resultunit");
+            iModel.addColumn("row.cancelled");
         }
 
         /**
@@ -265,8 +324,8 @@ public class SSSupplierInvoicejournalPrinter extends SSPrinter {
          * @param iInvoice
          */
         public void setInvoice(SSSupplierInvoice iInvoice) {
-
-            iModel.setObjects(iInvoice.getVoucher().getRows());
+            this.iCurrentInvoice = iInvoice;
+            iModel.setObjects(SSSupplierJournalVoucherResolver.resolveVoucher(iInvoice).getRows());
         }
 
         @Override

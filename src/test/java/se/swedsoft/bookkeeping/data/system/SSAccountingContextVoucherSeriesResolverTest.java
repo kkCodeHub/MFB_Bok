@@ -53,13 +53,13 @@ class SSAccountingContextVoucherSeriesResolverTest {
     }
 
     @Test
-    void shouldResolveSeriesFromCurrentYearMappingForKiEvent() {
-        assertThat(SSAccountingContext.resolveVoucherSeriesForEventCode("KI")).isEqualTo("B");
+    void shouldResolveSeriesFromCurrentYearMappingForLfEvent() {
+        assertThat(SSAccountingContext.resolveVoucherSeriesForEventCode("LF")).isEqualTo("D");
     }
 
     @Test
     void shouldNormalizeEventCodeBeforeLookup() {
-        assertThat(SSAccountingContext.resolveVoucherSeriesForEventCode(" ki ")).isEqualTo("B");
+        assertThat(SSAccountingContext.resolveVoucherSeriesForEventCode(" lf ")).isEqualTo("D");
     }
 
     @Test

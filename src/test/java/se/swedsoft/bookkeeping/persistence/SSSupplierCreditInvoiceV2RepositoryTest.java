@@ -121,6 +121,7 @@ class SSSupplierCreditInvoiceV2RepositoryTest {
         updatedInvoice.setSupplierName("After Repo Update");
         updatedInvoice.setReferencenumber("REF-CR-REPO-UPDATED");
         updatedInvoice.setCreditingNr(2202);
+        updatedInvoice.setCancelled(true);
         updatedInvoice.getRows().clear();
         updatedInvoice.getRows().add(
                 invoiceRow("P-CR-REPO-003", "After update row", new BigDecimal("750.00"), 3, 4041));
@@ -133,6 +134,7 @@ class SSSupplierCreditInvoiceV2RepositoryTest {
         assertThat(updated.get().getSupplierName()).isEqualTo("After Repo Update");
         assertThat(updated.get().getReferencenumber()).isEqualTo("REF-CR-REPO-UPDATED");
         assertThat(updated.get().getCreditingNr()).isEqualTo(2202);
+        assertThat(updated.get().isCancelled()).isTrue();
         assertThat(updated.get().getRows()).hasSize(1);
         assertThat(updated.get().getRows().get(0).getDescription()).isEqualTo("After update row");
 

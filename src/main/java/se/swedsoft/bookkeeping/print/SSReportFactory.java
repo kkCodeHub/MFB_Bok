@@ -51,6 +51,8 @@ import se.swedsoft.bookkeeping.util.SSDateUtil;
 public class SSReportFactory {    private static final Logger LOG = LoggerFactory.getLogger(SSReportFactory.class);
     private static final String CUSTOMER_INVOICE_JOURNAL_COUNTER_KEY = "invoicejournal";
     private static final String CUSTOMER_INVOICE_JOURNAL_NUMBER_PREFIX = "FA";
+    private static final String SUPPLIER_INVOICE_JOURNAL_COUNTER_KEY = "supplierinvoicejournal";
+    private static final String SUPPLIER_CREDIT_INVOICE_JOURNAL_COUNTER_KEY = "suppliercreditinvoicejournal";
 
     private static final File PDF_FILE_DIR = new File(Path.get(Path.APP_DATA), "pdftoemail");
     private SSReportFactory() {}
@@ -2096,8 +2098,9 @@ public class SSReportFactory {    private static final Logger LOG = LoggerFactor
         final Runnable iOnOutputAction = () -> iHasOutput[0] = true;
 
         final ActionListener iCloseListener = e -> {
-                if (!iHasOutput[0]) {
-                    SSInformationDialog.showDialog(iMainFrame, "invoicejournal.dialog.requiresoutput");
+                if (!canRegisterCombinedJournal(iHasOutput[0],
+                        () -> SSInformationDialog.showDialog(iMainFrame, "invoicejournal.dialog.requiresoutput"))) {
+                    return;
                 }
                 if (!hasOpenAccountingYearForVoucherDate(iVoucher1)) {
                     SSInformationDialog.showDialog(iMainFrame, "invoiceframe.voucher.badyear",
@@ -2183,6 +2186,14 @@ public class SSReportFactory {    private static final Logger LOG = LoggerFactor
             iInvoice.setEntered();
             pPersistAction.accept(iInvoice);
         }
+    }
+
+    static boolean canRegisterCombinedJournal(boolean pHasOutput, Runnable pShowMissingOutputMessage) {
+        if (!pHasOutput) {
+            pShowMissingOutputMessage.run();
+            return false;
+        }
+        return true;
     }
 
     private static void persistJournaledInvoice(SSInvoice pInvoice) {
@@ -2297,6 +2308,10 @@ public class SSReportFactory {    private static final Logger LOG = LoggerFactor
             }
         }
         final SSVoucher iVoucher1 = SSVoucherMath.compress(iVoucher);
+        iVoucher1.setSeries(
+                SSAccountingContext.resolveVoucherSeriesForEventCode(
+                        SSAccountingContext.VOUCHER_EVENT_CODE_SUPPLIER_INVOICE));
+        assignNextVoucherNumberForSeries(iVoucher1);
 
         final ActionListener iCloseListener = e -> {
 
@@ -2351,106 +2366,12 @@ public class SSReportFactory {    private static final Logger LOG = LoggerFactor
      * @param iMainFrame
      */
     public static void SupplierInvoiceJournal(final SSMainFrame iMainFrame) {
-        SSAutoIncrement iAutoIncrement = se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.getCurrentCompany().getAutoIncrement();
-
-        SSPeriodSelectionDialog iDialog = new SSPeriodSelectionDialog(iMainFrame,
-                SSBundle.getBundle().getString("supplierinvoicejournal.dialog.title"));
-
-        java.time.LocalDate prevMonth = java.time.LocalDate.now().minusMonths(1);
-        LocalDate iFirstDayOfMonth = prevMonth.withDayOfMonth(1);
-        LocalDate iLastDayOfMonth = prevMonth.withDayOfMonth(prevMonth.lengthOfMonth());
-
-        iDialog.setLocalFrom(iFirstDayOfMonth);
-        iDialog.setLocalTo(iLastDayOfMonth);
-
-        iDialog.setLocationRelativeTo(iMainFrame);
-
-        int iResponce = iDialog.showDialog();
-
-        if (iResponce != JOptionPane.OK_OPTION) {
-            return;
-        }
-        List<SSSupplierInvoice> iInvoices = Repositories.supplierInvoices().findAll();
-
-        final LocalDate iFrom = iDialog.getLocalFrom();
-        final LocalDate iTo = iDialog.getLocalTo();
-
-        final List<SSSupplierInvoice> iFiltered = iInvoices.stream()
-                .filter(iInvoice -> !iInvoice.isEntered()
-                        && SSSupplierInvoiceMath.inPeriod(iInvoice, iFrom, iTo))
-                .collect(Collectors.toList());
-        if (iFiltered.isEmpty()) {
-            new SSInformationDialog(iMainFrame, "supplierinvoicejournal.dialog.norows");
-            return;
-        }
-
-        final Integer iNumber = iAutoIncrement.getNumber("supplierinvoicejournal") + 1;
-
-        SSVoucher iVoucher = new SSVoucher();
-
-        iVoucher.setDescription(
-                String.format(
-                        SSBundle.getBundle().getString(
-                                "supplierinvoicejournal.voucher.description"),
-                                iNumber));
-        iVoucher.setLocalDate(iTo);
-
-        for (SSSupplierInvoice iInvoice : iFiltered) {
-            SSVoucher iCurrent = iInvoice.generateVoucher();
-
-            for (SSVoucherRow iRow : iCurrent.getRows()) {
-                iVoucher.addVoucherRow(new SSVoucherRow(iRow));
-            }
-        }
-        final SSVoucher iVoucher1 = SSVoucherMath.compress(iVoucher);
-
-        final ActionListener iCloseListener = e -> {
-
-                SSQueryDialog iDialog1 = new SSQueryDialog(iMainFrame, SSBundle.getBundle(),
-                        "supplierinvoicejournal.dialog.register", iNumber,
-                        iVoucher1.getNumber());
-                int iResponce1 = iDialog1.getResponce();
-
-                if (iResponce1 != JOptionPane.YES_NO_OPTION) {
-                    return;
-                }
-                // Mark all invoices as entered
-                for (SSSupplierInvoice iInvoice : iFiltered) {
-                    iInvoice.setEntered();
-                    Repositories.supplierInvoices().update(iInvoice);
-                }
-                // Auto increment the invoice journal counter.
-                SSNewCompany iCurrentCompany = se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.getCurrentCompany();
-
-                iCurrentCompany.getAutoIncrement().doAutoIncrement(
-                        "supplierinvoicejournal");
-                se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.updateCompany(iCurrentCompany);
-                // Add the voucher to the database.
-                se.swedsoft.bookkeeping.data.system.SSAccountingContext.addVoucher(iVoucher1, false);
-
-                if (SSVoucherFrame.getInstance() != null) {
-                    SSVoucherFrame.getInstance().getModel().fireTableDataChanged();
-                }
-
-            };
-
-        SSProgressDialog.runProgress(iMainFrame,
-                () -> {
-
-                        SSSupplierInvoicejournalPrinter iPrinter1 = new SSSupplierInvoicejournalPrinter(
-                                iFiltered, iNumber, iTo);
-
-                        SSVoucherPrinter     iPrinter2 = new SSVoucherPrinter(iVoucher1,
-                                iPrinter1.getTitle());
-
-                        SSMultiPrinter iPrinter = new SSMultiPrinter();
-
-                        iPrinter.addReport(iPrinter1);
-                        iPrinter.addReport(iPrinter2);
-
-                        iPrinter.preview(iMainFrame, iCloseListener);
-
-                    });
+       runCombinedSupplierJournal(iMainFrame,
+               "supplierinvoicejournal.dialog.title",
+               "supplierinvoicejournal.dialog.norows",
+               "supplierinvoicejournal.voucher.description",
+               "supplierinvoicejournal.dialog.register",
+               SUPPLIER_INVOICE_JOURNAL_COUNTER_KEY);
     }
 
     /**
@@ -2458,108 +2379,163 @@ public class SSReportFactory {    private static final Logger LOG = LoggerFactor
      * @param iMainFrame
      */
     public static void SupplierCreditInvoiceJournal(final SSMainFrame iMainFrame) {
-        SSAutoIncrement iAutoIncrement = se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.getCurrentCompany().getAutoIncrement();
+       runCombinedSupplierJournal(iMainFrame,
+               "suppliercreditinvoicejournal.dialog.title",
+               "suppliercreditinvoicejournal.dialog.norows",
+               "suppliercreditinvoicejournal.voucher.description",
+               "suppliercreditinvoicejournal.dialog.register",
+               SUPPLIER_INVOICE_JOURNAL_COUNTER_KEY);
+    }
 
-        SSPeriodSelectionDialog iDialog = new SSPeriodSelectionDialog(iMainFrame,
-                SSBundle.getBundle().getString("suppliercreditinvoicejournal.dialog.title"));
+    private static void runCombinedSupplierJournal(final SSMainFrame iMainFrame,
+           final String pDialogTitleKey,
+           final String pNoRowsKey,
+           final String pVoucherDescriptionKey,
+           final String pRegisterDialogKey,
+           final String pCounterKey) {
+       SSAutoIncrement iAutoIncrement = se.swedsoft.bookkeeping.data.system.SSCompanyYearContext
+               .getCurrentCompany().getAutoIncrement();
 
-        java.time.LocalDate prevMonth = java.time.LocalDate.now().minusMonths(1);
-        LocalDate iFirstDayOfMonth = prevMonth.withDayOfMonth(1);
-        LocalDate iLastDayOfMonth = prevMonth.withDayOfMonth(prevMonth.lengthOfMonth());
+       SSPeriodSelectionDialog iDialog = new SSPeriodSelectionDialog(iMainFrame,
+               SSBundle.getBundle().getString(pDialogTitleKey));
 
-        iDialog.setLocalFrom(iFirstDayOfMonth);
-        iDialog.setLocalTo(iLastDayOfMonth);
+       java.time.LocalDate prevMonth = java.time.LocalDate.now().minusMonths(1);
+       LocalDate iFirstDayOfMonth = prevMonth.withDayOfMonth(1);
+       LocalDate iLastDayOfMonth = prevMonth.withDayOfMonth(prevMonth.lengthOfMonth());
 
-        iDialog.setLocationRelativeTo(iMainFrame);
+       iDialog.setLocalFrom(iFirstDayOfMonth);
+       iDialog.setLocalTo(iLastDayOfMonth);
 
-        int iResponce = iDialog.showDialog();
+       iDialog.setLocationRelativeTo(iMainFrame);
 
-        if (iResponce != JOptionPane.OK_OPTION) {
-            return;
+       if (iDialog.showDialog() != JOptionPane.OK_OPTION) {
+           return;
+       }
+
+       final LocalDate iFrom = iDialog.getLocalFrom();
+       final LocalDate iTo = iDialog.getLocalTo();
+
+       final List<SSSupplierInvoice> iFiltered = filterSupplierInvoicesForCombinedJournal(
+               Repositories.supplierInvoices().findAll(),
+               Repositories.supplierCreditInvoices().findAll(),
+               iFrom,
+               iTo);
+       if (iFiltered.isEmpty()) {
+           new SSInformationDialog(iMainFrame, pNoRowsKey);
+           return;
+       }
+
+       final Integer iNumber = iAutoIncrement.getNumber(pCounterKey) + 1;
+
+       SSVoucher iVoucher = new SSVoucher();
+       iVoucher.setDescription(
+               String.format(
+                       SSBundle.getBundle().getString(pVoucherDescriptionKey),
+                       iNumber));
+       iVoucher.setLocalDate(iTo);
+
+       for (SSSupplierInvoice iInvoice : iFiltered) {
+           if (iInvoice.isCancelled()) {
+               continue;
+           }
+           SSVoucher iCurrent = iInvoice.generateVoucher();
+           for (SSVoucherRow iRow : iCurrent.getRows()) {
+               iVoucher.addVoucherRow(new SSVoucherRow(iRow));
+           }
+       }
+
+       final SSVoucher iVoucher1 = SSVoucherMath.compress(iVoucher);
+       iVoucher1.setSeries(
+               SSAccountingContext.resolveVoucherSeriesForEventCode(
+                       SSAccountingContext.VOUCHER_EVENT_CODE_SUPPLIER_INVOICE));
+       assignNextVoucherNumberForSeries(iVoucher1);
+
+       final ActionListener iCloseListener = e -> {
+               if (!hasOpenAccountingYearForVoucherDate(iVoucher1)) {
+                   SSInformationDialog.showDialog(iMainFrame, "invoiceframe.voucher.badyear",
+                           getVoucherAccountingYearLabel(iVoucher1));
+                   return;
+               }
+
+               SSQueryDialog iDialog1 = new SSQueryDialog(iMainFrame, SSBundle.getBundle(),
+                       pRegisterDialogKey, iNumber,
+                       SSVoucherPrintReference.toDisplayString(iVoucher1));
+               if (iDialog1.getResponce() != JOptionPane.YES_OPTION) {
+                   return;
+               }
+
+               registerCombinedSupplierJournalEntries(iFiltered, iVoucher1);
+
+               SSNewCompany iCurrentCompany = se.swedsoft.bookkeeping.data.system.SSCompanyYearContext
+                       .getCurrentCompany();
+               iCurrentCompany.getAutoIncrement().doAutoIncrement(pCounterKey);
+               se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.updateCompany(iCurrentCompany);
+               se.swedsoft.bookkeeping.data.system.SSAccountingContext.addVoucher(iVoucher1, true);
+
+               if (SSVoucherFrame.getInstance() != null) {
+                   SSVoucherFrame.getInstance().getModel().fireTableDataChanged();
+               }
+           };
+
+       SSProgressDialog.runProgress(iMainFrame,
+               () -> {
+                       final SSPrinter iReportPrinter = new SSSupplierInvoicejournalPrinter(
+                               iFiltered, iNumber, iTo);
+
+                       final SSVoucherPrinter iPrinter2 = new SSVoucherPrinter(iVoucher1,
+                               iReportPrinter.getTitle());
+
+                       final SSMultiPrinter iPrinter = new SSMultiPrinter();
+                       iPrinter.addReport(iReportPrinter);
+                       iPrinter.addReport(iPrinter2);
+
+                       iPrinter.preview(iMainFrame, iCloseListener);
+                   });
+    }
+
+    private static List<SSSupplierInvoice> filterSupplierInvoicesForCombinedJournal(
+            List<SSSupplierInvoice> pInvoices,
+            List<SSSupplierCreditInvoice> pCreditInvoices,
+            LocalDate pFrom,
+            LocalDate pTo) {
+        List<SSSupplierInvoice> iCombinedInvoices = new LinkedList<>();
+        if (pInvoices != null) {
+            iCombinedInvoices.addAll(pInvoices);
         }
-        List<SSSupplierCreditInvoice> iInvoices = Repositories.supplierCreditInvoices().findAll();
-
-        final LocalDate iFrom = iDialog.getLocalFrom();
-        final LocalDate iTo = iDialog.getLocalTo();
-
-        final List<SSSupplierCreditInvoice> iFiltered = iInvoices.stream()
+        if (pCreditInvoices != null) {
+            iCombinedInvoices.addAll(pCreditInvoices);
+        }
+        return iCombinedInvoices.stream()
                 .filter(iInvoice -> !iInvoice.isEntered()
-                        && SSSupplierCreditInvoiceMath.inPeriod(iInvoice, iFrom, iTo))
+                        && SSSupplierInvoiceMath.inPeriod(iInvoice, pFrom, pTo))
                 .collect(Collectors.toList());
-        if (iFiltered.isEmpty()) {
-            new SSInformationDialog(iMainFrame,
-                    "suppliercreditinvoicejournal.dialog.norows");
-            return;
-        }
+    }
 
-        final Integer iNumber = iAutoIncrement.getNumber("suppliercreditinvoicejournal")
-                + 1;
+    static void registerCombinedSupplierJournalEntries(List<SSSupplierInvoice> pInvoices,
+                                                       SSVoucher pVoucher) {
+        registerCombinedSupplierJournalEntries(pInvoices, pVoucher,
+                SSReportFactory::persistJournaledSupplierInvoice);
+    }
 
-        SSVoucher iVoucher = new SSVoucher();
-
-        iVoucher.setDescription(
-                String.format(
-                        SSBundle.getBundle().getString(
-                                "suppliercreditinvoicejournal.voucher.description"),
-                                iNumber));
-        iVoucher.setLocalDate(iTo);
-
-        for (SSSupplierCreditInvoice iInvoice : iFiltered) {
-            SSVoucher iCurrent = iInvoice.generateVoucher();
-
-            for (SSVoucherRow iRow : iCurrent.getRows()) {
-                iVoucher.addVoucherRow(new SSVoucherRow(iRow));
+    static void registerCombinedSupplierJournalEntries(List<SSSupplierInvoice> pInvoices,
+                                                       SSVoucher pVoucher,
+                                                       Consumer<SSSupplierInvoice> pPersistAction) {
+        for (SSSupplierInvoice iInvoice : pInvoices) {
+            if (iInvoice.isEntered()) {
+                continue;
             }
+            iInvoice.setVoucher(pVoucher);
+            iInvoice.setEntered();
+            pPersistAction.accept(iInvoice);
         }
-        final SSVoucher iVoucher1 = SSVoucherMath.compress(iVoucher);
+    }
 
-        final ActionListener iCloseListener = e -> {
-
-                SSQueryDialog iDialog1 = new SSQueryDialog(iMainFrame, SSBundle.getBundle(),
-                        "suppliercreditinvoicejournal.dialog.register", iNumber,
-                        iVoucher1.getNumber());
-                int iResponce1 = iDialog1.getResponce();
-
-                if (iResponce1 != JOptionPane.YES_NO_OPTION) {
-                    return;
-                }
-                // Mark all invoices as entered
-                for (SSSupplierCreditInvoice iInvoice : iFiltered) {
-                    iInvoice.setEntered();
-                    Repositories.supplierCreditInvoices().update(iInvoice);
-                }
-                // Auto increment the invoice journal counter.
-                SSNewCompany iCurrentCompany = se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.getCurrentCompany();
-
-                iCurrentCompany.getAutoIncrement().doAutoIncrement(
-                        "suppliercreditinvoicejournal");
-                se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.updateCompany(iCurrentCompany);
-                // Add the voucher to the database.
-                se.swedsoft.bookkeeping.data.system.SSAccountingContext.addVoucher(iVoucher1, false);
-
-                if (SSVoucherFrame.getInstance() != null) {
-                    SSVoucherFrame.getInstance().getModel().fireTableDataChanged();
-                }
-
-            };
-
-        SSProgressDialog.runProgress(iMainFrame,
-                () -> {
-
-                        SSSuppliercreditinvoicejournalPrinter iPrinter1 = new SSSuppliercreditinvoicejournalPrinter(
-                                iFiltered, iNumber, iTo);
-
-                        SSVoucherPrinter     iPrinter2 = new SSVoucherPrinter(iVoucher1,
-                                iPrinter1.getTitle());
-
-                        SSMultiPrinter iPrinter = new SSMultiPrinter();
-
-                        iPrinter.addReport(iPrinter1);
-                        iPrinter.addReport(iPrinter2);
-
-                        iPrinter.preview(iMainFrame, iCloseListener);
-
-                    });
+    private static void persistJournaledSupplierInvoice(SSSupplierInvoice pInvoice) {
+        if (pInvoice instanceof SSSupplierCreditInvoice) {
+            Repositories.supplierCreditInvoices().update((SSSupplierCreditInvoice) pInvoice);
+        } else {
+            Repositories.supplierInvoices().update(pInvoice);
+        }
     }
 
     /**

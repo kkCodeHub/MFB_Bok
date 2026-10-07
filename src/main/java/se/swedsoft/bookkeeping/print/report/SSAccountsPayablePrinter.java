@@ -63,6 +63,10 @@ public class SSAccountsPayablePrinter extends SSPrinter {
         iSupplierCreditInvoiceSum = SSSupplierCreditInvoiceMath.getSumsForSupplierInvoices(
                 SSDateUtil.toDate(iCeiledDate));
 
+        if (SSSupplierMath.iInvoicesForSuppliers == null) {
+            SSSupplierMath.getInvoicesForSuppliers();
+        }
+
         iSupplierInvoicesMap = new HashMap<>();
 
         for (String iSupplierNumber : SSSupplierMath.iInvoicesForSuppliers.keySet()) {
@@ -70,7 +74,9 @@ public class SSAccountsPayablePrinter extends SSPrinter {
 
             for (SSSupplierInvoice iInvoice : SSSupplierMath.iInvoicesForSuppliers.get(
                     iSupplierNumber)) {
-                if (iInvoice.getLocalDate() != null && !iInvoice.getLocalDate().isAfter(iCeiledDate)) {
+                if (!iInvoice.isCancelled()
+                        && iInvoice.getLocalDate() != null
+                        && !iInvoice.getLocalDate().isAfter(iCeiledDate)) {
                     iInvoicesForCustomer.add(iInvoice);
                 }
             }

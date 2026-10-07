@@ -1027,7 +1027,7 @@ public class SSNewCompany  {    private static final Logger LOG = LoggerFactory.
         Double sumSupplierInvoices = 0.0;
 
         for (SSSupplierInvoice iSupplierInvoice: Repositories.supplierInvoices().findAll()) {
-            if (iMonth.isDateInMonth(iSupplierInvoice.getLocalDate())) {
+            if (!iSupplierInvoice.isCancelled() && iMonth.isDateInMonth(iSupplierInvoice.getLocalDate())) {
                 if (SSSupplierInvoiceMath.getNetSum(iSupplierInvoice) != null) {
                     sumSupplierInvoices += SSSupplierInvoiceMath.getNetSum(iSupplierInvoice).doubleValue()
                             * iSupplierInvoice.getCurrencyRate().doubleValue();
@@ -1037,7 +1037,7 @@ public class SSNewCompany  {    private static final Logger LOG = LoggerFactory.
         Double sumSupplierCreditInvoices = 0.0;
 
         for (SSSupplierCreditInvoice iSupplierCreditInvoice : Repositories.supplierCreditInvoices().findAll()) {
-            if (iMonth.isDateInMonth(iSupplierCreditInvoice.getLocalDate())) {
+            if (!iSupplierCreditInvoice.isCancelled() && iMonth.isDateInMonth(iSupplierCreditInvoice.getLocalDate())) {
                 if (SSSupplierInvoiceMath.getNetSum(iSupplierCreditInvoice) != null) {
                     sumSupplierCreditInvoices += SSSupplierInvoiceMath.getNetSum(iSupplierCreditInvoice).doubleValue()
                             * iSupplierCreditInvoice.getCurrencyRate().doubleValue();

@@ -279,6 +279,9 @@ final class SalesTriggerHandler implements SSTriggerCategoryHandler {
             if (SSCustomerFrame.getInstance() != null) {
                 SSCustomerFrame.getInstance().updateFrame();
             }
+            if (SSInvoiceFrame.getInstance() != null) {
+                SSInvoiceFrame.getInstance().updateFrame();
+            }
             if (SSCreditInvoiceFrame.getInstance() != null) {
                 SSCreditInvoiceFrame.getInstance().updateFrame();
             }
@@ -332,4 +335,3 @@ final class SalesTriggerHandler implements SSTriggerCategoryHandler {
         return true;
     }
 }
-

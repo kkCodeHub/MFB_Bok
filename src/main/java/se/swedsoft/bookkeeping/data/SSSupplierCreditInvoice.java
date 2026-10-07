@@ -8,6 +8,8 @@ import se.swedsoft.bookkeeping.data.common.SSDefaultAccount;
 import se.swedsoft.bookkeeping.data.system.SSDB;
 import se.swedsoft.bookkeeping.gui.util.SSBundle;
 import se.swedsoft.bookkeeping.persistence.Repositories;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.math.BigDecimal;
 import se.swedsoft.bookkeeping.util.SSDateUtil;
@@ -25,6 +27,8 @@ public class SSSupplierCreditInvoice extends SSSupplierInvoice {
     // Constant for serialization versioning.
     static final long serialVersionUID = 1L;
 
+    private static final Logger LOG = LoggerFactory.getLogger(SSSupplierCreditInvoice.class);
+
     // Nummret för leverantörsfakturan denna fakturan krediterar
     protected Integer iCreditingNr;
 
@@ -35,6 +39,15 @@ public class SSSupplierCreditInvoice extends SSSupplierInvoice {
      *
      */
     public SSSupplierCreditInvoice() {}
+
+    /**
+     * Internal constructor used by persistence/trigger paths for lightweight hydration.
+     *
+     * @param lightweightInit {@code true} to skip expensive base initialization
+     */
+    public SSSupplierCreditInvoice(boolean lightweightInit) {
+        super(lightweightInit);
+    }
 
     /**
      *
@@ -55,6 +68,26 @@ public class SSSupplierCreditInvoice extends SSSupplierInvoice {
         iCreditingNr = iSupplierInvoice.getNumber();
         iCrediting = iSupplierInvoice;
 
+//        LOG.info("Copying supplier invoice to supplier credit invoice: sourceNumber={}, sourceDate={}, dueDate={}, supplierNr={}, supplierName={}, referenceNumber={}, currency={}, currencyRate={}, taxSum={}, roundingSum={}, stockInfluencing={}, entered={}, cancelled={}, bgcEntered={}, voucher={}, correction={}, defaultAccounts={}, rows={}",
+//                iSupplierInvoice.getNumber(),
+//                iSupplierInvoice.getLocalDate(),
+//                iSupplierInvoice.getLocalDueDate(),
+//                iSupplierInvoice.getSupplierNr(),
+//                iSupplierInvoice.getSupplierName(),
+//                iSupplierInvoice.getReferencenumber(),
+//                iSupplierInvoice.getCurrency(),
+//                iSupplierInvoice.getCurrencyRate(),
+//                iSupplierInvoice.getTaxSum(),
+//                iSupplierInvoice.getRoundingSum(),
+//                iSupplierInvoice.isStockInfluencing(),
+//                iSupplierInvoice.isEntered(),
+//                iSupplierInvoice.isCancelled(),
+//                iSupplierInvoice.isBGCEntered(),
+//                iSupplierInvoice.getVoucher(),
+//                iSupplierInvoice.getCorrection(),
+//                iSupplierInvoice.getDefaultAccounts(),
+//                iSupplierInvoice.getRows());
+
     }
 
     // //////////////////////////////////////////////////
@@ -64,20 +97,15 @@ public class SSSupplierCreditInvoice extends SSSupplierInvoice {
      */
     @Override
     public void doAutoIncrecement() {
-        List<SSSupplierCreditInvoice> iInvoices = Repositories.supplierCreditInvoices().findAll();
-
         SSNewCompany iCurrentCompany = se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.getCurrentCompany();
         SSAutoIncrement iAutoIncrement = iCurrentCompany != null && iCurrentCompany.getAutoIncrement() != null
                 ? iCurrentCompany.getAutoIncrement()
                 : new SSAutoIncrement();
         int iNumber = iAutoIncrement.getNumber("suppliercreditinvoice");
-
-        for (SSSupplierCreditInvoice iSupplierInvoice : iInvoices) {
-            if (iSupplierInvoice.getNumber() > iNumber) {
-                iNumber = iSupplierInvoice.getNumber();
-            }
+        int iRepositoryMax = se.swedsoft.bookkeeping.data.system.SSPurchaseContext.getMaxSupplierCreditInvoiceId();
+        if (iRepositoryMax > iNumber) {
+            iNumber = iRepositoryMax;
         }
-
         this.iNumber = iNumber + 1;
     }
 
@@ -217,6 +245,10 @@ public class SSSupplierCreditInvoice extends SSSupplierInvoice {
         iVoucher = new SSVoucher();
         String iDescription = SSBundle.getBundle().getString(
                 "suppliercreditinvoiceframe.voucherdescription");
+
+        if (iNumber == null) {
+            doAutoIncrecement();
+        }
 
         SSNewCompany     iCompany = se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.getCurrentCompany();
 

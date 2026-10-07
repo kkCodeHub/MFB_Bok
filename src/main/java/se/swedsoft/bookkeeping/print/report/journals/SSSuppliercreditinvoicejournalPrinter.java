@@ -127,20 +127,35 @@ public class SSSuppliercreditinvoicejournalPrinter extends SSPrinter {
                     break;
 
                 case 6:
-                    value = SSSupplierInvoiceMath.getTotalSum(iInvoice);
+                    if (iInvoice.isCancelled()) {
+                        value = BigDecimal.ZERO;
+                    } else {
+                        value = SSSupplierInvoiceMath.getTotalSum(iInvoice);
+                    }
                     break;
 
                 case 7:
-                    value = iInvoice.getTaxSum();
+                    if (iInvoice.isCancelled()) {
+                        value = BigDecimal.ZERO;
+                    } else {
+                        value = iInvoice.getTaxSum();
+                    }
                     break;
 
                 case 8:
-                    BigDecimal iTotalSum = SSSupplierInvoiceMath.getTotalSum(iInvoice);
-
-                    value = SSSupplierInvoiceMath.convertToLocal(iInvoice, iTotalSum);
+                    if (iInvoice.isCancelled()) {
+                        value = BigDecimal.ZERO;
+                    } else {
+                        BigDecimal iTotalSum = SSSupplierInvoiceMath.getTotalSum(iInvoice);
+                        value = SSSupplierInvoiceMath.convertToLocal(iInvoice, iTotalSum);
+                    }
                     break;
 
                 case 9:
+                    value = iInvoice.isCancelled();
+                    break;
+
+                case 10:
                     iPrinter.setInvoice(iInvoice);
 
                     iDataSource.reset();
@@ -162,6 +177,7 @@ public class SSSuppliercreditinvoicejournalPrinter extends SSPrinter {
         iModel.addColumn("suppliercreditinvoice.sum");
         iModel.addColumn("suppliercreditinvoice.tax");
         iModel.addColumn("suppliercreditinvoice.localsum");
+        iModel.addColumn("suppliercreditinvoice.cancelled");
 
         iModel.addColumn("journal.rows");
 
@@ -173,6 +189,7 @@ public class SSSuppliercreditinvoicejournalPrinter extends SSPrinter {
     private class SSVoucherPrinter extends SSPrinter {
 
         private SSDefaultTableModel<SSVoucherRow> iModel;
+        private SSSupplierInvoice iCurrentInvoice;
 
         /**
          *
@@ -230,6 +247,10 @@ public class SSSuppliercreditinvoicejournalPrinter extends SSPrinter {
                                 : iRow.getResultUnit().getNumber();
                         break;
 
+                    case 6:
+                        value = iCurrentInvoice.isCancelled();
+                        break;
+
                     }
 
                     return value;
@@ -242,6 +263,7 @@ public class SSSuppliercreditinvoicejournalPrinter extends SSPrinter {
             iModel.addColumn("row.credet");
             iModel.addColumn("row.project");
             iModel.addColumn("row.resultunit");
+            iModel.addColumn("row.cancelled");
         }
 
         /**
@@ -269,8 +291,8 @@ public class SSSuppliercreditinvoicejournalPrinter extends SSPrinter {
          * @param iInvoice
          */
         public void setInvoice(SSSupplierInvoice iInvoice) {
-
-            iModel.setObjects(iInvoice.getVoucher().getRows());
+            iCurrentInvoice = iInvoice;
+            iModel.setObjects(SSSupplierJournalVoucherResolver.resolveVoucher(iInvoice).getRows());
         }
 
         @Override

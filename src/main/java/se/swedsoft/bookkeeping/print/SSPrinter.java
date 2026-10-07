@@ -257,6 +257,22 @@ public abstract class SSPrinter {
     }
 
     /**
+     * Returns the preview identity used to prevent duplicate report/journal windows.
+     *
+     * @return stable preview key, or {@code null} when duplicate guarding should not apply
+     */
+    protected String getPreviewKey() {
+        String iClassName = getClass().getName();
+
+        if (iClassName.startsWith("se.swedsoft.bookkeeping.print.report.")
+                && !iClassName.startsWith("se.swedsoft.bookkeeping.print.report.sales.")) {
+            return iClassName;
+        }
+
+        return null;
+    }
+
+    /**
      *
      * @return
      */
@@ -279,6 +295,7 @@ public abstract class SSPrinter {
      *
      */
     public void preview() {
+        iReport.setPreviewKey(getPreviewKey());
         iReport.addParameter("title", getTitle());
         iReport.addParameter("subtitle", getSubTitle());
         iReport.setModel(getModel());
@@ -293,6 +310,7 @@ public abstract class SSPrinter {
      * @param iMainFrame
      */
     public void preview(SSMainFrame iMainFrame) {
+        iReport.setPreviewKey(getPreviewKey());
         iReport.addParameter("title", getTitle());
         iReport.addParameter("subtitle", getSubTitle());
         iReport.setModel(getModel());
@@ -330,6 +348,7 @@ public abstract class SSPrinter {
      */
     public void preview(SSMainFrame iMainFrame, Runnable iOnOutputAction, Runnable iOnEmailAction,
                         boolean iShowEmailButton) {
+        iReport.setPreviewKey(getPreviewKey());
         iReport.addParameter("title", getTitle());
         iReport.addParameter("subtitle", getSubTitle());
         iReport.setModel(getModel());
@@ -341,6 +360,7 @@ public abstract class SSPrinter {
      * @param iDialog
      */
     public void preview(JDialog iDialog) {
+        iReport.setPreviewKey(getPreviewKey());
         iReport.addParameter("title", getTitle());
         iReport.addParameter("subtitle", getSubTitle());
         iReport.setModel(getModel());
@@ -354,6 +374,7 @@ public abstract class SSPrinter {
      * @param listener
      */
     public void preview(SSMainFrame iMainFrame, InternalFrameListener listener) {
+        iReport.setPreviewKey(getPreviewKey());
         iReport.addParameter("title", getTitle());
         iReport.addParameter("subtitle", getSubTitle());
         iReport.setModel(getModel());
@@ -380,6 +401,7 @@ public abstract class SSPrinter {
      */
     public void preview(SSMainFrame iMainFrame, final ActionListener iCloseListener,
                         final Runnable iOnOutputAction) {
+        iReport.setPreviewKey(getPreviewKey());
         iReport.addParameter("title", getTitle());
         iReport.addParameter("subtitle", getSubTitle());
         iReport.setModel(getModel());

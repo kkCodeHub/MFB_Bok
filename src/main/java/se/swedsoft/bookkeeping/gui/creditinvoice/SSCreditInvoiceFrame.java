@@ -289,13 +289,22 @@ public class SSCreditInvoiceFrame extends SSDefaultTableFrame {
             return;
         }
 
+        List<SSInvoice> iCurrentInvoices = SSSalesContext.getCreditInvoices()
+                .stream()
+                .map(iInvoice -> (SSInvoice) iInvoice)
+                .collect(Collectors.toList());
+        if (!canDeleteSelected(delete, iCurrentInvoices)) {
+            new SSErrorDialog(getMainFrame(), "creditinvoiceframe.delete.notallowed");
+            return;
+        }
+
         SSQueryDialog iDialog = new SSQueryDialog(getMainFrame(),
                 "creditinvoiceframe.delete");
         int iResponce = iDialog.getResponce();
 
         if (iResponce == JOptionPane.YES_OPTION) {
-            List<SSCreditInvoice> iCurrentInvoices = getCreditInvoices(delete);
-            iCurrentInvoices.sort(Comparator.comparing(SSCreditInvoice::getNumber, Comparator.nullsLast(Integer::compareTo))
+            List<SSCreditInvoice> iSelectedInvoices = getCreditInvoices(delete);
+            iSelectedInvoices.sort(Comparator.comparing(SSCreditInvoice::getNumber, Comparator.nullsLast(Integer::compareTo))
                     .reversed());
 
             List<SSInvoice> iAllInvoices = SSSalesContext.getCreditInvoices()
@@ -303,7 +312,7 @@ public class SSCreditInvoiceFrame extends SSDefaultTableFrame {
                     .map(iInvoice -> (SSInvoice) iInvoice)
                     .collect(Collectors.toList());
 
-            for (SSCreditInvoice iCreditInvoice : iCurrentInvoices) {
+            for (SSCreditInvoice iCreditInvoice : iSelectedInvoices) {
                 if (SSInvoiceActionPolicy.canDeletePhysically(iCreditInvoice, iAllInvoices)) {
                     deleteCreditInvoicePhysically(iCreditInvoice);
                 } else if (SSInvoiceActionPolicy.canUncancel(iCreditInvoice, iAllInvoices)) {
@@ -317,6 +326,18 @@ public class SSCreditInvoiceFrame extends SSDefaultTableFrame {
             updateFrame();
         }
 
+    }
+
+    private boolean canDeleteSelected(List<SSCreditInvoice> delete, List<SSInvoice> currentInvoices) {
+        for (SSCreditInvoice iCreditInvoice : delete) {
+            boolean iCanDelete = SSInvoiceActionPolicy.canDeletePhysically(iCreditInvoice, currentInvoices)
+                    || SSInvoiceActionPolicy.canUncancel(iCreditInvoice, currentInvoices)
+                    || SSInvoiceActionPolicy.canCancel(iCreditInvoice);
+            if (!iCanDelete) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private void deleteCreditInvoicePhysically(SSCreditInvoice iCreditInvoice) {

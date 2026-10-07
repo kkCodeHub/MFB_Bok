@@ -144,6 +144,9 @@ public class SSSupplierInvoiceMath {
      * @return
      */
     public static BigDecimal getSaldo(SSSupplierInvoice iSupplierInvoice) {
+        if (iSupplierInvoice.isCancelled()) {
+            return BigDecimal.ZERO;
+        }
 
         BigDecimal iTotalSum = getTotalSum(iSupplierInvoice);
         BigDecimal iCredited = SSSupplierCreditInvoiceMath.getSumForInvoice(
@@ -175,6 +178,9 @@ public class SSSupplierInvoiceMath {
     }
 
     public static BigDecimal getSaldo(SSSupplierInvoice iInvoice, LocalDate iDate) {
+        if (iInvoice.isCancelled()) {
+            return BigDecimal.ZERO;
+        }
 
         BigDecimal iTotalSum = getTotalSum(iInvoice);
 
@@ -201,6 +207,9 @@ public class SSSupplierInvoiceMath {
         List<SSSupplierInvoice> iSupplierInvoices = Repositories.supplierInvoices().findAll();
 
         for (SSSupplierInvoice iSupplierInvoice : iSupplierInvoices) {
+            if (iSupplierInvoice.isCancelled()) {
+                continue;
+            }
             BigDecimal iTotalSum = getTotalSum(iSupplierInvoice);
 
             if (iOutpaymentSum.containsKey(iSupplierInvoice.getNumber())) {
@@ -233,6 +242,9 @@ public class SSSupplierInvoiceMath {
         List<SSSupplierInvoice> iSupplierInvoices = Repositories.supplierInvoices().findAll();
 
         for (SSSupplierInvoice iSupplierInvoice : iSupplierInvoices) {
+            if (iSupplierInvoice.isCancelled()) {
+                continue;
+            }
 
             BigDecimal iTotalSum = getTotalSum(iSupplierInvoice);
 
@@ -269,7 +281,7 @@ public class SSSupplierInvoiceMath {
             LocalDate iCurrent = iInvoice.getLocalDate();
 
             // Only put invoices that is added before the specified date
-            if (iCurrent != null && iDate != null && !iCurrent.isAfter(iDate)) {
+            if (!iInvoice.isCancelled() && iCurrent != null && iDate != null && !iCurrent.isAfter(iDate)) {
                 BigDecimal iSum = getTotalSum(iInvoice);
 
                 if (iOutpaymentSum.containsKey(iInvoice.getNumber())) {
@@ -304,8 +316,8 @@ public class SSSupplierInvoiceMath {
 
         BigDecimal iSum = new BigDecimal(0);
 
-        for (SSSupplierInvoice iInvoice : iInvoices) {
-            iSum = iSum.add(iSaldos.get(iInvoice));
+        for (BigDecimal iSaldo : iSaldos.values()) {
+            iSum = iSum.add(iSaldo);
         }
 
         return iSum;

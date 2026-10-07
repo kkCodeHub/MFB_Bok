@@ -12,9 +12,10 @@
 	<field name="supplierinvoice.currency" class="java.lang.String"/>
 	<field name="supplierinvoice.currencyrate" class="java.math.BigDecimal"/>
 	<field name="supplierinvoice.localsum" class="java.math.BigDecimal"/>
+	<field name="supplierinvoice.cancelled" class="java.lang.Boolean"/>
 	<field name="journal.rows" class="net.sf.jasperreports.engine.JRDataSource"/>
 	<variable name="sum" class="java.math.BigDecimal" calculation="Sum">
-		<variableExpression><![CDATA[$F{supplierinvoice.localsum}]]></variableExpression>
+		<variableExpression><![CDATA[$F{supplierinvoice.cancelled} ? BigDecimal.ZERO : $F{supplierinvoice.localsum}]]></variableExpression>
 		<initialValueExpression><![CDATA[new BigDecimal(0.0)]]></initialValueExpression>
 	</variable>
 	<columnHeader>
@@ -30,14 +31,14 @@
 				<textFieldExpression><![CDATA[$R{supplierinvoicejournal.column.1}]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement x="60" y="0" width="80" height="24" uuid="1c1f2354-0693-431c-9831-b24998d50ad2"/>
+				<reportElement x="65" y="0" width="80" height="24" uuid="1c1f2354-0693-431c-9831-b24998d50ad2"/>
 				<textElement>
 					<font size="8"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$R{supplierinvoicejournal.column.2}]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement x="115" y="0" width="80" height="24" uuid="556edecb-1f43-4659-8588-ad8399c68436"/>
+				<reportElement x="110" y="0" width="80" height="24" uuid="556edecb-1f43-4659-8588-ad8399c68436"/>
 				<textElement>
 					<font size="8"/>
 				</textElement>
@@ -74,7 +75,7 @@
 		</band>
 	</columnHeader>
 	<detail>
-		<band height="20" splitType="Stretch">
+		<band height="36" splitType="Stretch">
 			<textField>
 				<reportElement x="20" y="0" width="30" height="14" uuid="22f912a1-715c-4b02-bf70-fd4356fd01b0"/>
 				<textElement>
@@ -118,6 +119,17 @@
 				<dataSourceExpression><![CDATA[$F{journal.rows}]]></dataSourceExpression>
 				<subreportExpression><![CDATA[$P{Report}]]></subreportExpression>
 			</subreport>
+			<staticText>
+				<reportElement x="50" y="-3" width="10" height="16" uuid="0f082523-226a-4f5f-a8d1-1745efc80058">
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+					<property name="com.jaspersoft.studio.unit.y" value="px"/>
+					<printWhenExpression><![CDATA[$F{supplierinvoice.cancelled}]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Left" verticalAlignment="Top" rotation="None">
+					<font size="12" isBold="true"/>
+				</textElement>
+				<text><![CDATA[M]]></text>
+			</staticText>
 		</band>
 		<band height="75">
 			<frame>

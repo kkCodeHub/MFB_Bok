@@ -28,10 +28,16 @@ public class SSCreditInvoiceMath extends SSInvoiceMath {
     public static BigDecimal getSumForInvoice(SSInvoice iInvoice) {
         // Get all credit invoices from the db
         List<SSCreditInvoice> iCreditInvoices = se.swedsoft.bookkeeping.data.system.SSSalesContext.getCreditInvoices();
+        if (iInvoice.getNumber() == null) {
+            return new BigDecimal(0);
+        }
 
         BigDecimal iSum = new BigDecimal(0);
 
         for (SSCreditInvoice iCreditInvoice : iCreditInvoices) {
+            if (iCreditInvoice.isCancelled()) {
+                continue;
+            }
             BigDecimal iRowSum = getTotalSum(iCreditInvoice);
 
             if (iRowSum != null && iCreditInvoice.isCrediting(iInvoice)) {
@@ -47,6 +53,9 @@ public class SSCreditInvoiceMath extends SSInvoiceMath {
         List<SSCreditInvoice> iCreditInvoices = se.swedsoft.bookkeeping.data.system.SSSalesContext.getCreditInvoices();
 
         for (SSCreditInvoice iCreditInvoice : iCreditInvoices) {
+            if (iCreditInvoice.isCancelled()) {
+                continue;
+            }
             BigDecimal iRowSum = getTotalSum(iCreditInvoice);
 
             if (iRowSum != null && iCreditInvoice.getCreditingNr() != null) {
@@ -70,6 +79,9 @@ public class SSCreditInvoiceMath extends SSInvoiceMath {
         for (SSCreditInvoice iCreditInvoice : iCreditInvoices) {
             if (iCreditInvoice.getLocalDate() != null && localDate != null
                     && !iCreditInvoice.getLocalDate().isAfter(localDate)) {
+                if (iCreditInvoice.isCancelled()) {
+                    continue;
+                }
                 BigDecimal iRowSum = getTotalSum(iCreditInvoice);
 
                 if (iRowSum != null && iCreditInvoice.getCreditingNr() != null) {

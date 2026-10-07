@@ -37,7 +37,7 @@ import org.slf4j.LoggerFactory;
  * $Id$
  *
  */
-public class SSJasperPreviewFrame extends SSDefaultTableFrame implements PropertyChangeListener {    private static final Logger LOG = LoggerFactory.getLogger(SSJasperPreviewFrame.class);
+public class SSJasperPreviewFrame extends SSDefaultTableFrame implements PropertyChangeListener, SSPreviewFrame {    private static final Logger LOG = LoggerFactory.getLogger(SSJasperPreviewFrame.class);
 
 
     public static ResourceBundle bundle = SSBundle.getBundle();
@@ -51,6 +51,7 @@ public class SSJasperPreviewFrame extends SSDefaultTableFrame implements Propert
     private JComboBox<SSZoomLevel> iZoomLevels;
 
     private SSReport iReport;
+    private String iPreviewKey;
     private Runnable iOnOutputAction;
     private Runnable iOnEmailAction;
     private boolean iShowEmailButton;
@@ -342,6 +343,15 @@ public class SSJasperPreviewFrame extends SSDefaultTableFrame implements Propert
      */
     public void setReport(SSReport iReport) {
         this.iReport = iReport;
+    }
+
+    @Override
+    public String getPreviewKey() {
+        return iPreviewKey;
+    }
+
+    public void setPreviewKey(String iPreviewKey) {
+        this.iPreviewKey = iPreviewKey;
     }
 
     /**

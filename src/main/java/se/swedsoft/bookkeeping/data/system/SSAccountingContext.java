@@ -33,6 +33,7 @@ public final class SSAccountingContext {
     private static final Logger LOG = LoggerFactory.getLogger(SSAccountingContext.class);
     private static final String DEFAULT_VOUCHER_SERIES = "A";
     public static final String VOUCHER_EVENT_CODE_CUSTOMER_INVOICE = "KF";
+    public static final String VOUCHER_EVENT_CODE_SUPPLIER_INVOICE = "LF";
 
     private SSAccountingContext() {
     }
@@ -202,7 +203,7 @@ public final class SSAccountingContext {
         if (currentYear == null) {
             return Collections.emptyList();
         }
-        return Repositories.vouchers().findByYear(currentYear);
+        return SSSystemConfigContext.getDatabase().loadVouchers();
     }
 
     /**
@@ -214,6 +215,10 @@ public final class SSAccountingContext {
     public static List<SSVoucher> getVouchers(SSNewAccountingYear year) {
         if (year == null) {
             return Collections.emptyList();
+        }
+        SSNewAccountingYear currentYear = getCurrentYear();
+        if (currentYear != null && year.getId() != null && year.getId().equals(currentYear.getId())) {
+            return SSSystemConfigContext.getDatabase().loadVouchers();
         }
         return Repositories.vouchers().findByYear(year);
     }

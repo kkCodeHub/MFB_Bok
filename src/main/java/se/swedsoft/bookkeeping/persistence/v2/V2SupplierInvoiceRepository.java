@@ -148,6 +148,31 @@ public class V2SupplierInvoiceRepository {
         }
     }
 
+    public int getMaxSupplierInvoiceId() {
+        SSNewCompany currentCompany = currentCompanySupplier.get();
+        if (currentCompany == null || currentCompany.getId() == null) {
+            return -1;
+        }
+
+        try {
+            try (PreparedStatement statement = connection.prepareStatement(
+                    "SELECT MAX(number) AS max_number FROM tbl_supplierinvoice WHERE companyid=?")) {
+                statement.setObject(1, currentCompany.getId());
+                try (ResultSet resultSet = statement.executeQuery()) {
+                    if (resultSet.next()) {
+                        Object maxNumber = resultSet.getObject("max_number");
+                        if (maxNumber != null) {
+                            return ((Number) maxNumber).intValue();
+                        }
+                    }
+                }
+            }
+            return -1;
+        } catch (SQLException e) {
+            throw handleFailure("get max supplier invoice number", e);
+        }
+    }
+
     public void add(SSSupplierInvoice supplierInvoice) {
         if (supplierInvoice == null) {
             return;
@@ -181,8 +206,8 @@ public class V2SupplierInvoiceRepository {
                     "INSERT INTO tbl_supplierinvoice(" +
                             "number,companyid,vdate,due_date,supplier_nr,supplier_name,reference_number," +
                             "currency_code,currency_rate,payment_term,tax_sum,rounding_sum,entered," +
-                            "stock_influencing,bgc_entered,voucher_id,correction_voucher_id) " +
-                            "VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                            "cancelled,stock_influencing,bgc_entered,voucher_id,correction_voucher_id) " +
+                            "VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
                     Statement.RETURN_GENERATED_KEYS)) {
                 int i = 1;
                 insertStatement.setObject(i++, supplierInvoice.getNumber());
@@ -226,7 +251,7 @@ public class V2SupplierInvoiceRepository {
                     "UPDATE tbl_supplierinvoice SET " +
                             "vdate=?,due_date=?,supplier_nr=?,supplier_name=?,reference_number=?," +
                             "currency_code=?,currency_rate=?,payment_term=?,tax_sum=?,rounding_sum=?," +
-                            "entered=?,stock_influencing=?,bgc_entered=?,voucher_id=?,correction_voucher_id=? " +
+                            "entered=?,cancelled=?,stock_influencing=?,bgc_entered=?,voucher_id=?,correction_voucher_id=? " +
                             "WHERE number=? AND companyid=?")) {
                 int i = bindSupplierInvoiceColumnsV2(statement, 1, supplierInvoice);
                 statement.setObject(i++, supplierInvoice.getNumber());
@@ -368,6 +393,7 @@ public class V2SupplierInvoiceRepository {
         statement.setObject(index++, supplierInvoice.getTaxSum());
         statement.setObject(index++, supplierInvoice.getRoundingSum());
         statement.setObject(index++, supplierInvoice.isEntered());
+        statement.setObject(index++, supplierInvoice.isCancelled());
         statement.setObject(index++, supplierInvoice.isStockInfluencing());
         statement.setObject(index++, supplierInvoice.isBGCEntered());
         statement.setObject(index++, V2RepositoryHelpers.getVoucherIdByNumber(connection, supplierInvoice.getVoucher()));
@@ -376,12 +402,7 @@ public class V2SupplierInvoiceRepository {
     }
 
     private SSSupplierInvoice mapSupplierInvoiceV2(ResultSet resultSet) throws SQLException {
-        SSSupplierInvoice supplierInvoice = new SSSupplierInvoice() {
-            @Override
-            public LocalDate getLastLocalDate() {
-                return null;
-            }
-        };
+        SSSupplierInvoice supplierInvoice = new SSSupplierInvoice(true);
         supplierInvoice.setNumber((Integer) resultSet.getObject("number"));
 
         Date date = resultSet.getDate("vdate");
@@ -412,6 +433,7 @@ public class V2SupplierInvoiceRepository {
         supplierInvoice.setTaxSum(resultSet.getBigDecimal("tax_sum"));
         supplierInvoice.setRoundingSum(resultSet.getBigDecimal("rounding_sum"));
         supplierInvoice.setEntered(resultSet.getBoolean("entered"));
+        supplierInvoice.setCancelled(resultSet.getBoolean("cancelled"));
         supplierInvoice.setStockInfluencing(resultSet.getBoolean("stock_influencing"));
         supplierInvoice.setBGCEntered(resultSet.getBoolean("bgc_entered"));
 

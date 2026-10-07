@@ -257,6 +257,10 @@ public class SSCreditInvoice extends SSInvoice {
         String iDescription = SSBundle.getBundle().getString(
                 "creditinvoiceframe.voucherdescription");
 
+        if (iNumber == null) {
+            doAutoIncrecement();
+        }
+
         SSAccountPlan iAccountPlan = se.swedsoft.bookkeeping.data.system.SSAccountingContext.getCurrentAccountPlan();
 
         iVoucher = new SSVoucher();

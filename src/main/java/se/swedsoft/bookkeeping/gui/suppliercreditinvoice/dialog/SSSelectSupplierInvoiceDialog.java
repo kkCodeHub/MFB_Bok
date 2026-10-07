@@ -3,6 +3,8 @@ package se.swedsoft.bookkeeping.gui.suppliercreditinvoice.dialog;
 
 import se.swedsoft.bookkeeping.data.SSSupplierInvoice;
 import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.data.system.SSPurchaseContext;
+import se.swedsoft.bookkeeping.data.system.SSSupplierInvoiceActionPolicy;
 import se.swedsoft.bookkeeping.gui.SSMainFrame;
 import se.swedsoft.bookkeeping.gui.supplierinvoice.util.SSSupplierInvoiceTableModel;
 import se.swedsoft.bookkeeping.gui.util.SSBundle;
@@ -15,6 +17,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.LinkedList;
+import java.util.List;
 
 
 /**
@@ -57,9 +61,10 @@ public class SSSelectSupplierInvoiceDialog extends SSDialog {
 
             });
 
-        getRootPane().setDefaultButton(iButtonPanel.getOkButton());
+            getRootPane().setDefaultButton(iButtonPanel.getOkButton());
 
-        iInvoices.setModel(SSSupplierInvoiceTableModel.getDropDownModel());
+            iInvoices.setModel(SSSupplierInvoiceTableModel.getDropDownModel(
+                    filterSelectableSupplierInvoices(SSPurchaseContext.getSupplierInvoices())));
     }
 
     /**
@@ -84,6 +89,12 @@ public class SSSelectSupplierInvoiceDialog extends SSDialog {
      */
     public void addCancelActionListener(ActionListener l) {
         iButtonPanel.addCancelActionListener(l);
+    }
+
+    static List<SSSupplierInvoice> filterSelectableSupplierInvoices(List<SSSupplierInvoice> pInvoices) {
+        List<SSSupplierInvoice> iAllowedInvoices = new LinkedList<>(pInvoices);
+        iAllowedInvoices.removeIf(iInvoice -> !SSSupplierInvoiceActionPolicy.canCreateCreditInvoice(iInvoice));
+        return iAllowedInvoices;
     }
 
     /**

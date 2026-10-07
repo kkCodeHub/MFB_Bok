@@ -12,10 +12,12 @@ import se.swedsoft.bookkeeping.gui.util.table.model.SSTableColumn;
 import se.swedsoft.bookkeeping.gui.util.table.model.SSTableModel;
 import se.swedsoft.bookkeeping.persistence.Repositories;
 import se.swedsoft.bookkeeping.util.SSDateUtil;
+import se.swedsoft.bookkeeping.gui.util.graphics.SSIcon;
 
 import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
+import javax.swing.ImageIcon;
 
 
 /**
@@ -74,6 +76,35 @@ public class SSSupplierInvoiceTableModel extends SSTableModel<SSSupplierInvoice>
         iModel.addColumn(COLUMN_SUPPLIER_NAME);
         return iModel;
     }
+
+    /**
+     *  Konterad / makulerad
+     */
+    public static SSTableColumn<SSSupplierInvoice> COLUMN_STATE = new SSTableColumn<>("") {
+        @Override
+        public Object getValue(SSSupplierInvoice iObject) {
+            if (iObject.isCancelled()) {
+                return SSIcon.getIcon("ICON_DELETE16", SSIcon.IconState.NORMAL);
+            }
+            if (iObject.isEntered()) {
+                return SSIcon.getIcon("ICON_ENTERED16", SSIcon.IconState.NORMAL);
+            }
+            return null;
+        }
+
+        @Override
+        public void setValue(SSSupplierInvoice iObject, Object iValue) {}
+
+        @Override
+        public Class getColumnClass() {
+            return ImageIcon.class;
+        }
+
+        @Override
+        public int getDefaultWidth() {
+            return 20;
+        }
+    };
 
     /**
      * Number

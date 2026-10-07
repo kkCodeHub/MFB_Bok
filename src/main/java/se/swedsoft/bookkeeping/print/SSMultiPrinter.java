@@ -47,6 +47,8 @@ public class SSMultiPrinter extends SSPrinter {
 
     private List<SSSubReport> iSubReports;
 
+    private String iPreviewKey;
+
     /**
      *
      */
@@ -138,6 +140,14 @@ public class SSMultiPrinter extends SSPrinter {
 
         pReport.generateReport();
 
+        if (iPreviewKey == null) {
+            String iSubReportPreviewKey = pReport.getPreviewKey();
+
+            if (iSubReportPreviewKey != null) {
+                iPreviewKey = getClass().getName() + ":" + iSubReportPreviewKey;
+            }
+        }
+
         iSubReport.iName = pReport.getTitle();
         iSubReport.iReport = pReport.getReport();
         iSubReport.iDataSource = new SSDefaultJasperDataSource(pReport.getModel());
@@ -145,6 +155,11 @@ public class SSMultiPrinter extends SSPrinter {
         iSubReport.iBundle = pReport.getBundle();
 
         iSubReports.add(iSubReport);
+    }
+
+    @Override
+    protected String getPreviewKey() {
+        return iPreviewKey;
     }
 
     @Override

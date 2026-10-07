@@ -4,14 +4,16 @@ package se.swedsoft.bookkeeping.gui.suppliercreditinvoice.util;
 import se.swedsoft.bookkeeping.calc.math.SSSupplierInvoiceMath;
 import se.swedsoft.bookkeeping.data.SSSupplierCreditInvoice;
 import se.swedsoft.bookkeeping.data.common.SSCurrency;
+import se.swedsoft.bookkeeping.data.system.SSPurchaseContext;
 import se.swedsoft.bookkeeping.gui.util.SSBundle;
+import se.swedsoft.bookkeeping.gui.util.graphics.SSIcon;
 import se.swedsoft.bookkeeping.gui.util.table.model.SSTableColumn;
 import se.swedsoft.bookkeeping.gui.util.table.model.SSTableModel;
-import se.swedsoft.bookkeeping.persistence.Repositories;
 import se.swedsoft.bookkeeping.util.SSDateUtil;
 
 import java.math.BigDecimal;
 import java.util.Date;
+import javax.swing.ImageIcon;
 
 
 /**
@@ -25,7 +27,7 @@ public class SSSupplierCreditinvoiceTableModel extends SSTableModel<SSSupplierCr
      * Default constructor.
      */
     public SSSupplierCreditinvoiceTableModel() {
-        super(Repositories.supplierCreditInvoices().findAll());
+        super(SSPurchaseContext.getSupplierCreditInvoices());
     }
 
     /**
@@ -37,6 +39,35 @@ public class SSSupplierCreditinvoiceTableModel extends SSTableModel<SSSupplierCr
     public Class<?> getType() {
         return SSSupplierCreditInvoice.class;
     }
+
+    /**
+     * Konterad / makulerad
+     */
+    public static SSTableColumn<SSSupplierCreditInvoice> COLUMN_STATE = new SSTableColumn<>("") {
+        @Override
+        public Object getValue(SSSupplierCreditInvoice iObject) {
+            if (iObject.isCancelled()) {
+                return SSIcon.getIcon("ICON_DELETE16", SSIcon.IconState.NORMAL);
+            }
+            if (iObject.isEntered()) {
+                return SSIcon.getIcon("ICON_ENTERED16", SSIcon.IconState.NORMAL);
+            }
+            return null;
+        }
+
+        @Override
+        public void setValue(SSSupplierCreditInvoice iObject, Object iValue) {}
+
+        @Override
+        public Class getColumnClass() {
+            return ImageIcon.class;
+        }
+
+        @Override
+        public int getDefaultWidth() {
+            return 20;
+        }
+    };
 
     /**
      * Supplier nr

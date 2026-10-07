@@ -20,6 +20,16 @@ class SSCreditInvoiceDialogGuiBehaviorTest {
     }
 
     @Test
+    void cancelledCreditInvoiceShouldOpenReadOnly() {
+        SSCreditInvoice invoice = new SSCreditInvoice();
+        invoice.setCancelled();
+
+        assertThat(SSCreditInvoiceDialog.shouldShowEditLockedInfo(invoice)).isTrue();
+        assertThat(SSCreditInvoiceDialog.shouldOpenReadOnly(invoice)).isTrue();
+        assertThat(SSCreditInvoiceDialog.shouldOpenKonteringPossibleMode(invoice)).isFalse();
+    }
+
+    @Test
     void printedButNotEnteredCreditInvoiceShouldShowPrintedIconInList() {
         SSCreditInvoice invoice = new SSCreditInvoice();
         invoice.setPrinted(true);

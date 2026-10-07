@@ -2,9 +2,13 @@ package se.swedsoft.bookkeeping.gui.suppliercreditinvoice;
 
 
 import se.swedsoft.bookkeeping.data.SSProduct;
+import se.swedsoft.bookkeeping.data.SSNewAccountingYear;
 import se.swedsoft.bookkeeping.data.SSSupplierCreditInvoice;
 import se.swedsoft.bookkeeping.data.SSSupplierInvoice;
 import se.swedsoft.bookkeeping.data.SSSupplierInvoiceRow;
+import se.swedsoft.bookkeeping.data.SSVoucher;
+import se.swedsoft.bookkeeping.data.system.SSAccountingContext;
+import se.swedsoft.bookkeeping.data.system.SSCompanyYearContext;
 import se.swedsoft.bookkeeping.data.system.SSProductContext;
 import se.swedsoft.bookkeeping.data.system.SSPurchaseContext;
 import se.swedsoft.bookkeeping.persistence.Repositories;
@@ -14,6 +18,7 @@ import se.swedsoft.bookkeeping.gui.suppliercreditinvoice.dialog.SSSelectSupplier
 import se.swedsoft.bookkeeping.gui.suppliercreditinvoice.panel.SSSupplierCreditInvoicePanel;
 import se.swedsoft.bookkeeping.gui.util.SSBundle;
 import se.swedsoft.bookkeeping.gui.util.dialogs.SSDialog;
+import se.swedsoft.bookkeeping.gui.util.dialogs.SSInformationDialog;
 import se.swedsoft.bookkeeping.gui.util.dialogs.SSErrorDialog;
 import se.swedsoft.bookkeeping.gui.util.dialogs.SSQueryDialog;
 import se.swedsoft.bookkeeping.gui.util.table.model.SSTableModel;
@@ -25,6 +30,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.time.LocalDate;
 import java.util.ResourceBundle;
 
 
@@ -73,7 +79,33 @@ public class SSSupplierCreditInvoiceDialog {
 
         final ActionListener iSaveAction = e -> {
 
+                assignNextNumberIfMissing(iSupplierCreditInvoice);
                 SSSupplierCreditInvoice iSupplierCreditInvoice1 = iPanel.getSupplierCreditInvoice();
+                boolean iSaveVoucher = false;
+
+                if (iPanel.isVoucherGenerated() && !iSupplierCreditInvoice1.isEntered()) {
+                    int iResponse = SSQueryDialog.showDialog(iMainFrame, SSBundle.getBundle(),
+                            "invoiceframe.voucher.saveonclose");
+
+                    iSaveVoucher = iResponse == JOptionPane.OK_OPTION;
+                } else if (iSupplierCreditInvoice1.isEntered()) {
+                    new SSInformationDialog(iMainFrame, "suppliercreditinvoiceframe.entered");
+                }
+
+                if (iSaveVoucher) {
+                    if (!hasOpenAccountingYearForVoucherDate(iSupplierCreditInvoice1.getVoucher())) {
+                        SSInformationDialog.showDialog(iMainFrame, "invoiceframe.voucher.badyear",
+                                getVoucherAccountingYearLabel(iSupplierCreditInvoice1.getVoucher()));
+                        return;
+                    }
+                    iSupplierCreditInvoice1.getVoucher().setSeries(
+                            SSAccountingContext.resolveVoucherSeriesForEventCode(
+                                    SSAccountingContext.VOUCHER_EVENT_CODE_SUPPLIER_INVOICE));
+                    SSAccountingContext.addVoucher(iSupplierCreditInvoice1.getVoucher(), false);
+                    iSupplierCreditInvoice1.setEntered();
+                } else if (!iSupplierCreditInvoice1.isEntered()) {
+                    iSupplierCreditInvoice1.setVoucher(new SSVoucher());
+                }
 
                 Repositories.supplierCreditInvoices().add(iSupplierCreditInvoice1);
                 SSSupplierCreditInvoiceFrame.fireTableDataChanged();
@@ -151,7 +183,33 @@ public class SSSupplierCreditInvoiceDialog {
 
         final ActionListener iSaveAction = e -> {
 
+                assignNextNumberIfMissing(iSupplierCreditInvoice);
                 SSSupplierCreditInvoice iSupplierCreditInvoice1 = iPanel.getSupplierCreditInvoice();
+                boolean iSaveVoucher = false;
+
+                if (iPanel.isVoucherGenerated() && !iSupplierCreditInvoice1.isEntered()) {
+                    int iResponse = SSQueryDialog.showDialog(iMainFrame, SSBundle.getBundle(),
+                            "invoiceframe.voucher.saveonclose");
+
+                    iSaveVoucher = iResponse == JOptionPane.OK_OPTION;
+                } else if (iSupplierCreditInvoice1.isEntered()) {
+                    new SSInformationDialog(iMainFrame, "suppliercreditinvoiceframe.entered");
+                }
+
+                if (iSaveVoucher) {
+                    if (!hasOpenAccountingYearForVoucherDate(iSupplierCreditInvoice1.getVoucher())) {
+                        SSInformationDialog.showDialog(iMainFrame, "invoiceframe.voucher.badyear",
+                                getVoucherAccountingYearLabel(iSupplierCreditInvoice1.getVoucher()));
+                        return;
+                    }
+                    iSupplierCreditInvoice1.getVoucher().setSeries(
+                            SSAccountingContext.resolveVoucherSeriesForEventCode(
+                                    SSAccountingContext.VOUCHER_EVENT_CODE_SUPPLIER_INVOICE));
+                    SSAccountingContext.addVoucher(iSupplierCreditInvoice1.getVoucher(), false);
+                    iSupplierCreditInvoice1.setEntered();
+                } else if (!iSupplierCreditInvoice1.isEntered()) {
+                    iSupplierCreditInvoice1.setVoucher(new SSVoucher());
+                }
 
                 Repositories.supplierCreditInvoices().add(iSupplierCreditInvoice1);
                 SSSupplierCreditInvoiceFrame.fireTableDataChanged();
@@ -203,14 +261,46 @@ public class SSSupplierCreditInvoiceDialog {
                 "suppliercreditinvoiceframe.edit.title"));
         final SSSupplierCreditInvoicePanel iPanel = new SSSupplierCreditInvoicePanel(
                 iDialog);
+        final boolean iReadOnly = shouldOpenReadOnly(iSupplierCreditInvoice);
 
         iPanel.setCreditSupplierInvoice(iSupplierCreditInvoice);
+        if (shouldShowEditLockedInfo(iSupplierCreditInvoice)) {
+            new SSInformationDialog(iMainFrame, "suppliercreditinvoiceframe.editlocked");
+        }
+        if (iReadOnly) {
+            iPanel.setReadOnlyMode(true);
+        }
 
         iDialog.add(iPanel.getPanel(), BorderLayout.CENTER);
 
         final ActionListener iSaveAction = e -> {
 
                 SSSupplierCreditInvoice iSupplierCreditInvoice1 = iPanel.getSupplierCreditInvoice();
+                boolean iSaveVoucher = false;
+
+                if (iPanel.isVoucherGenerated() && !iSupplierCreditInvoice1.isEntered()) {
+                    int iResponse = SSQueryDialog.showDialog(iMainFrame, SSBundle.getBundle(),
+                            "invoiceframe.voucher.saveonclose");
+
+                    iSaveVoucher = iResponse == JOptionPane.OK_OPTION;
+                } else if (iSupplierCreditInvoice1.isEntered()) {
+                    new SSInformationDialog(iMainFrame, "suppliercreditinvoiceframe.entered");
+                }
+
+                if (iSaveVoucher) {
+                    if (!hasOpenAccountingYearForVoucherDate(iSupplierCreditInvoice1.getVoucher())) {
+                        SSInformationDialog.showDialog(iMainFrame, "invoiceframe.voucher.badyear",
+                                getVoucherAccountingYearLabel(iSupplierCreditInvoice1.getVoucher()));
+                        return;
+                    }
+                    iSupplierCreditInvoice1.getVoucher().setSeries(
+                            SSAccountingContext.resolveVoucherSeriesForEventCode(
+                                    SSAccountingContext.VOUCHER_EVENT_CODE_SUPPLIER_INVOICE));
+                    SSAccountingContext.addVoucher(iSupplierCreditInvoice1.getVoucher(), false);
+                    iSupplierCreditInvoice1.setEntered();
+                } else if (!iSupplierCreditInvoice1.isEntered()) {
+                    iSupplierCreditInvoice1.setVoucher(new SSVoucher());
+                }
 
                 Repositories.supplierCreditInvoices().update(iSupplierCreditInvoice1);
                 SSSupplierCreditInvoiceFrame.fireTableDataChanged();
@@ -233,6 +323,9 @@ public class SSSupplierCreditInvoiceDialog {
                 new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e) {
+                if (iPanel.isReadOnlyMode()) {
+                    return;
+                }
                 if (!iPanel.isValid()) {
                     return;
                 }
@@ -249,6 +342,26 @@ public class SSSupplierCreditInvoiceDialog {
         iDialog.setSize(800, 600);
         iDialog.setLocationRelativeTo(iMainFrame);
         iDialog.setVisible();
+    }
+
+    /**
+     * Returns true when the supplier credit invoice should open in read-only mode.
+     *
+     * @param iSupplierCreditInvoice the invoice to evaluate
+     * @return true when editing is blocked
+     */
+    public static boolean shouldOpenReadOnly(SSSupplierCreditInvoice iSupplierCreditInvoice) {
+        return iSupplierCreditInvoice.isEntered() || iSupplierCreditInvoice.isCancelled();
+    }
+
+    /**
+     * Returns true when the locked-info dialog should be shown.
+     *
+     * @param iSupplierCreditInvoice the invoice to evaluate
+     * @return true when the info dialog should be shown
+     */
+    public static boolean shouldShowEditLockedInfo(SSSupplierCreditInvoice iSupplierCreditInvoice) {
+        return shouldOpenReadOnly(iSupplierCreditInvoice);
     }
 
     /**
@@ -280,7 +393,33 @@ public class SSSupplierCreditInvoiceDialog {
 
         final ActionListener iSaveAction = e -> {
 
+                assignNextNumberIfMissing(iNew);
                 SSSupplierCreditInvoice iSupplierCreditInvoice1 = iPanel.getSupplierCreditInvoice();
+                boolean iSaveVoucher = false;
+
+                if (iPanel.isVoucherGenerated() && !iSupplierCreditInvoice1.isEntered()) {
+                    int iResponse = SSQueryDialog.showDialog(iMainFrame, SSBundle.getBundle(),
+                            "invoiceframe.voucher.saveonclose");
+
+                    iSaveVoucher = iResponse == JOptionPane.OK_OPTION;
+                } else if (iSupplierCreditInvoice1.isEntered()) {
+                    new SSInformationDialog(iMainFrame, "suppliercreditinvoiceframe.entered");
+                }
+
+                if (iSaveVoucher) {
+                    if (!hasOpenAccountingYearForVoucherDate(iSupplierCreditInvoice1.getVoucher())) {
+                        SSInformationDialog.showDialog(iMainFrame, "invoiceframe.voucher.badyear",
+                                getVoucherAccountingYearLabel(iSupplierCreditInvoice1.getVoucher()));
+                        return;
+                    }
+                    iSupplierCreditInvoice1.getVoucher().setSeries(
+                            SSAccountingContext.resolveVoucherSeriesForEventCode(
+                                    SSAccountingContext.VOUCHER_EVENT_CODE_SUPPLIER_INVOICE));
+                    SSAccountingContext.addVoucher(iSupplierCreditInvoice1.getVoucher(), false);
+                    iSupplierCreditInvoice1.setEntered();
+                } else if (!iSupplierCreditInvoice1.isEntered()) {
+                    iSupplierCreditInvoice1.setVoucher(new SSVoucher());
+                }
 
                 Repositories.supplierCreditInvoices().add(iSupplierCreditInvoice1);
                 SSSupplierCreditInvoiceFrame.fireTableDataChanged();
@@ -318,6 +457,33 @@ public class SSSupplierCreditInvoiceDialog {
         iDialog.setSize(800, 600);
         iDialog.setLocationRelativeTo(iMainFrame);
         iDialog.setVisible();
+    }
+
+    private static boolean hasOpenAccountingYearForVoucherDate(SSVoucher pVoucher) {
+        SSNewAccountingYear iCurrentYear = SSCompanyYearContext.getCurrentYear();
+        if (iCurrentYear == null || pVoucher == null) {
+            return false;
+        }
+        LocalDate iVoucherDate = pVoucher.getLocalDate();
+        if (iVoucherDate == null) {
+            return false;
+        }
+        return !iVoucherDate.isBefore(iCurrentYear.getLocalFrom())
+                && !iVoucherDate.isAfter(iCurrentYear.getLocalTo());
+    }
+
+    private static String getVoucherAccountingYearLabel(SSVoucher pVoucher) {
+        if (pVoucher == null || pVoucher.getLocalDate() == null) {
+            return "????";
+        }
+        return Integer.toString(pVoucher.getLocalDate().getYear());
+    }
+
+    private static void assignNextNumberIfMissing(SSSupplierCreditInvoice pSupplierCreditInvoice) {
+        if (pSupplierCreditInvoice == null || pSupplierCreditInvoice.getNumber() != null) {
+            return;
+        }
+        pSupplierCreditInvoice.setNumber(SSPurchaseContext.getMaxSupplierCreditInvoiceId() + 1);
     }
 
 }

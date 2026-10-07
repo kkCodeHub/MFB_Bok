@@ -1,8 +1,9 @@
 package se.swedsoft.bookkeeping.gui.suppliercreditinvoice;
 
 
-import se.swedsoft.bookkeeping.calc.math.SSSupplierInvoiceMath;
 import se.swedsoft.bookkeeping.data.SSSupplierCreditInvoice;
+import se.swedsoft.bookkeeping.data.system.SSPurchaseContext;
+import se.swedsoft.bookkeeping.data.system.SSSupplierInvoiceActionPolicy;
 import se.swedsoft.bookkeeping.persistence.Repositories;
 
 import se.swedsoft.bookkeeping.gui.SSMainFrame;
@@ -22,6 +23,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.Comparator;
 import java.util.List;
 
 
@@ -31,6 +33,13 @@ import java.util.List;
  * Time: 10:47:21
  */
 public class SSSupplierCreditInvoiceFrame extends SSDefaultTableFrame {
+
+    enum DeleteAction {
+        DELETE_PHYSICALLY,
+        UNCANCEL,
+        CANCEL,
+        NONE
+    }
 
     private static SSSupplierCreditInvoiceFrame cInstance;
 
@@ -58,10 +67,6 @@ public class SSSupplierCreditInvoiceFrame extends SSDefaultTableFrame {
     }
 
     private SSTable iTable;
-
-    private JScrollPane iTableScrollPane;
-
-    private JPanel iMainPanel;
 
     private SSTableModel<SSSupplierCreditInvoice> iModel;
 
@@ -183,6 +188,7 @@ public class SSSupplierCreditInvoiceFrame extends SSDefaultTableFrame {
     @Override
     public JComponent getMainContent() {
         iModel = new SSSupplierCreditinvoiceTableModel();
+        iModel.addColumn(SSSupplierCreditinvoiceTableModel.COLUMN_STATE);
         iModel.addColumn(SSSupplierCreditinvoiceTableModel.COLUMN_NUMBER);
         iModel.addColumn(SSSupplierCreditinvoiceTableModel.COLUMN_CREDITNING);
         iModel.addColumn(SSSupplierCreditinvoiceTableModel.COLUMN_SUPPLIER_NUMBER);
@@ -196,8 +202,6 @@ public class SSSupplierCreditInvoiceFrame extends SSDefaultTableFrame {
         iTable = new SSTable();
 
         iModel.setupTable(iTable);
-
-        iTableScrollPane = new JScrollPane(iTable);
 
         iTable.addDblClickListener(
                 e -> {
@@ -223,11 +227,11 @@ public class SSSupplierCreditInvoiceFrame extends SSDefaultTableFrame {
                     });
 
         iSearchPanel = new SSSupplierCreditInvoiceSearchPanel(iModel);
-        iMainPanel = new JPanel();
+        JPanel iMainPanel = new JPanel();
 
         iMainPanel.setLayout(new BorderLayout());
         iMainPanel.add(iSearchPanel, BorderLayout.NORTH);
-        iMainPanel.add(iTableScrollPane, BorderLayout.CENTER);
+        iMainPanel.add(new JScrollPane(iTable), BorderLayout.CENTER);
         iMainPanel.setBorder(BorderFactory.createEmptyBorder(2, 2, 4, 2));
 
         return iMainPanel;
@@ -270,7 +274,7 @@ public class SSSupplierCreditInvoiceFrame extends SSDefaultTableFrame {
      */
     @Override
     public boolean isYearDataFrame() {
-        return true;
+        return false;
     }
 
     /**
@@ -281,16 +285,61 @@ public class SSSupplierCreditInvoiceFrame extends SSDefaultTableFrame {
         if (delete.isEmpty()) {
             return;
         }
+        List<SSSupplierCreditInvoice> iCurrentInvoices = SSPurchaseContext.getSupplierCreditInvoices();
+        if (!canDeleteSelected(delete, iCurrentInvoices)) {
+            new SSErrorDialog(getMainFrame(), "suppliercreditinvoiceframe.delete.notallowed");
+            return;
+        }
         SSQueryDialog iDialog = new SSQueryDialog(getMainFrame(),
                 "suppliercreditinvoiceframe.delete");
         int iResponce = iDialog.getResponce();
 
         if (iResponce == JOptionPane.YES_OPTION) {
-            for (SSSupplierCreditInvoice iSupplierCreditInvoice : delete) {
-                Repositories.supplierCreditInvoices().delete(iSupplierCreditInvoice);
+            List<SSSupplierCreditInvoice> iSelectedInvoices = SSPurchaseContext.getSupplierCreditInvoices(delete);
+            iSelectedInvoices.sort(Comparator.comparing(SSSupplierCreditInvoice::getNumber,
+                            Comparator.nullsLast(Integer::compareTo))
+                    .reversed());
+
+            List<SSSupplierCreditInvoice> iAllInvoices = SSPurchaseContext.getSupplierCreditInvoices();
+
+            for (SSSupplierCreditInvoice iSupplierCreditInvoice : iSelectedInvoices) {
+                DeleteAction iAction = resolveDeleteAction(iSupplierCreditInvoice, iAllInvoices);
+                if (iAction == DeleteAction.DELETE_PHYSICALLY) {
+                    SSPurchaseContext.deleteSupplierCreditInvoice(iSupplierCreditInvoice);
+                } else if (iAction == DeleteAction.UNCANCEL) {
+                    iSupplierCreditInvoice.clearCancelled();
+                    SSPurchaseContext.updateSupplierCreditInvoice(iSupplierCreditInvoice);
+                } else if (iAction == DeleteAction.CANCEL) {
+                    iSupplierCreditInvoice.setCancelled();
+                    SSPurchaseContext.updateSupplierCreditInvoice(iSupplierCreditInvoice);
+                }
             }
             updateFrame();
         }
+    }
+
+    private boolean canDeleteSelected(List<SSSupplierCreditInvoice> delete,
+                                      List<SSSupplierCreditInvoice> currentInvoices) {
+        for (SSSupplierCreditInvoice iSupplierCreditInvoice : delete) {
+            if (resolveDeleteAction(iSupplierCreditInvoice, currentInvoices) == DeleteAction.NONE) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    static DeleteAction resolveDeleteAction(SSSupplierCreditInvoice pInvoice,
+                                            List<SSSupplierCreditInvoice> pAllInvoices) {
+        if (SSSupplierInvoiceActionPolicy.canDeletePhysically(pInvoice, pAllInvoices)) {
+            return DeleteAction.DELETE_PHYSICALLY;
+        }
+        if (SSSupplierInvoiceActionPolicy.canUncancel(pInvoice, pAllInvoices)) {
+            return DeleteAction.UNCANCEL;
+        }
+        if (SSSupplierInvoiceActionPolicy.canCancel(pInvoice)) {
+            return DeleteAction.CANCEL;
+        }
+        return DeleteAction.NONE;
     }
 
     private SSSupplierCreditInvoice getSupplierCreditInvoice(SSSupplierCreditInvoice iSupplierCreditInvoice) {
@@ -306,10 +355,6 @@ public class SSSupplierCreditInvoiceFrame extends SSDefaultTableFrame {
 
     public void updateFrame() {
         iSearchPanel.ApplyFilter();
-        if (iMainPanel != null) {
-            iMainPanel.revalidate();
-            iMainPanel.repaint();
-        }
     }
 
     public void actionPerformed(ActionEvent e) {

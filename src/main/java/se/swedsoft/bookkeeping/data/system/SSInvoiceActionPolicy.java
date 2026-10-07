@@ -2,6 +2,7 @@ package se.swedsoft.bookkeeping.data.system;
 
 import se.swedsoft.bookkeeping.calc.math.SSCreditInvoiceMath;
 import se.swedsoft.bookkeeping.calc.math.SSInpaymentMath;
+import se.swedsoft.bookkeeping.data.SSCreditInvoice;
 import se.swedsoft.bookkeeping.data.SSInvoice;
 import se.swedsoft.bookkeeping.data.common.SSInvoiceLockReason;
 
@@ -218,7 +219,8 @@ public final class SSInvoiceActionPolicy {
         if (pInvoice.isEntered()) {
             iReasons.add(SSInvoiceLockReason.ENTERED);
         }
-        if (hasPositiveValue(SSCreditInvoiceMath.getSumForInvoice(pInvoice))) {
+        if (!(pInvoice instanceof SSCreditInvoice)
+                && hasPositiveValue(SSCreditInvoiceMath.getSumForInvoice(pInvoice))) {
             iReasons.add(SSInvoiceLockReason.CREDITED);
         }
         if (hasPositiveValue(SSInpaymentMath.getSumForInvoice(pInvoice))) {

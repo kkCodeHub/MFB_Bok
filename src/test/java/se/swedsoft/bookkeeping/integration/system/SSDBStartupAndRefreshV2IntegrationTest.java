@@ -247,7 +247,8 @@ class SSDBStartupAndRefreshV2IntegrationTest {
 
     @Test
     void addingVoucherUpdatesWarmCacheImmediatelyInSchemaV2() {
-        int initialSize = SSAccountingContext.getVouchers().size();
+        List<SSVoucher> vouchers = SSAccountingContext.getVouchers();
+        int initialSize = vouchers.size();
 
         SSVoucher voucher = new SSVoucher(98_001);
         voucher.setLocalDate(accountingYear.getLocalFrom().plusDays(10));
@@ -257,13 +258,15 @@ class SSDBStartupAndRefreshV2IntegrationTest {
 
         SSAccountingContext.addVoucher(voucher, true);
 
-        assertThat(SSAccountingContext.getVouchers())
+        assertThat(SSAccountingContext.getVouchers()).isSameAs(vouchers);
+        assertThat(vouchers)
                 .extracting(SSVoucher::getNumber)
                 .contains(98_001);
-        assertThat(SSAccountingContext.getVouchers()).hasSize(initialSize + 1);
+        assertThat(vouchers).hasSize(initialSize + 1);
 
         SSAccountingContext.deleteVoucher(voucher);
-        assertThat(SSAccountingContext.getVouchers())
+        assertThat(SSAccountingContext.getVouchers()).isSameAs(vouchers);
+        assertThat(vouchers)
                 .extracting(SSVoucher::getNumber)
                 .doesNotContain(98_001);
     }

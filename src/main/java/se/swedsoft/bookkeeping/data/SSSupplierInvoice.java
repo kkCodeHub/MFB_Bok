@@ -59,6 +59,8 @@ public class SSSupplierInvoice implements SSTableSearchable {
     protected SSVoucher iCorrection;
     // Bokförd
     protected boolean iEntered;
+    // Makulerad
+    protected boolean iCancelled;
     // Lagerför
     private boolean iStockInfluencing;
     // Om leverantörsfakturan har fakturerats via bangirocentralen
@@ -76,20 +78,37 @@ public class SSSupplierInvoice implements SSTableSearchable {
      *
      */
     public SSSupplierInvoice() {
+        this(false);
+    }
+
+    /**
+     * Internal constructor used by persistence/trigger paths that only need a lightweight
+     * holder object and must avoid expensive date/voucher initialization.
+     *
+     * @param lightweightInit {@code true} to skip last-date lookup and auto voucher init
+     */
+    public SSSupplierInvoice(boolean lightweightInit) {
         iRows = new LinkedList<>();
-        iDate = getLastLocalDate();
-        iDueDate = getLastLocalDate();
+        if (lightweightInit) {
+            iDate = null;
+            iDueDate = null;
+        } else {
+            iDate = getLastLocalDate();
+            iDueDate = getLastLocalDate();
+        }
         iCurrencyRate = new BigDecimal(1);
-        iVoucher = new SSVoucher();
-        iCorrection = new SSVoucher();
+        iVoucher = lightweightInit ? new SSVoucher(0, true) : new SSVoucher();
+        iCorrection = lightweightInit ? new SSVoucher(0, true) : new SSVoucher();
         iTaxSum = new BigDecimal(0);
         iRoundingSum = new BigDecimal(0);
         iEntered = false;
+        iCancelled = false;
         iStockInfluencing = true;
         iDefaultAccounts = new HashMap<>();
-        iDefaultAccounts.putAll(
-                se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.getCurrentCompany().getDefaultAccounts());
         SSNewCompany iCompany = se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.getCurrentCompany();
+        if (iCompany != null && iCompany.getDefaultAccounts() != null) {
+            iDefaultAccounts.putAll(iCompany.getDefaultAccounts());
+        }
 
         if (iCompany != null) {
             iCurrency = iCompany.getCurrency();
@@ -153,6 +172,7 @@ public class SSSupplierInvoice implements SSTableSearchable {
         iRoundingSum = iSupplierInvoice.iRoundingSum;
         iStockInfluencing = iSupplierInvoice.iStockInfluencing;
         iEntered = iSupplierInvoice.iEntered;
+        iCancelled = iSupplierInvoice.iCancelled;
         iBGCEntered = iSupplierInvoice.iBGCEntered;
 
         iVoucher = new SSVoucher(iSupplierInvoice.iVoucher);
@@ -179,20 +199,15 @@ public class SSSupplierInvoice implements SSTableSearchable {
      *
      */
     public void doAutoIncrecement() {
-        List<SSSupplierInvoice> iInvoices = Repositories.supplierInvoices().findAll();
-
         SSNewCompany iCurrentCompany = se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.getCurrentCompany();
         SSAutoIncrement iAutoIncrement = iCurrentCompany != null && iCurrentCompany.getAutoIncrement() != null
                 ? iCurrentCompany.getAutoIncrement()
                 : new SSAutoIncrement();
         int iMax = iAutoIncrement.getNumber("supplierinvoice");
-
-        for (SSSupplierInvoice iSupplierInvoice : iInvoices) {
-            if (iSupplierInvoice.iNumber > iMax) {
-                iMax = iSupplierInvoice.iNumber;
-            }
+        int iRepositoryMax = se.swedsoft.bookkeeping.data.system.SSPurchaseContext.getMaxSupplierInvoiceId();
+        if (iRepositoryMax > iMax) {
+            iMax = iRepositoryMax;
         }
-
         iNumber = iMax + 1;
     }
 
@@ -510,11 +525,10 @@ public class SSSupplierInvoice implements SSTableSearchable {
      */
     public Map<SSDefaultAccount, Integer> getDefaultAccounts() {
         if (iDefaultAccounts == null) {
+            iDefaultAccounts = new HashMap<>();
             SSNewCompany iCompany = se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.getCurrentCompany();
-
-            if (iCompany != null) {
-                iDefaultAccounts = iCompany.getDefaultAccounts();
-                iCompany = null;
+            if (iCompany != null && iCompany.getDefaultAccounts() != null) {
+                iDefaultAccounts.putAll(iCompany.getDefaultAccounts());
             }
         }
         return iDefaultAccounts;
@@ -527,7 +541,7 @@ public class SSSupplierInvoice implements SSTableSearchable {
      * @return
      */
     public Optional<SSAccount> getDefaultAccount(SSAccountPlan iAccountPlan, SSDefaultAccount iDefaultAccount) {
-        Integer iAccountNumber = iDefaultAccounts.get(iDefaultAccount);
+        Integer iAccountNumber = getDefaultAccount(iDefaultAccount);
 
         if (iAccountNumber == null) {
             return Optional.empty();
@@ -542,7 +556,11 @@ public class SSSupplierInvoice implements SSTableSearchable {
      * @return
      */
     public Integer getDefaultAccount(SSDefaultAccount iDefaultAccount) {
-        return iDefaultAccounts.get(iDefaultAccount);
+        if (iDefaultAccounts != null && iDefaultAccounts.containsKey(iDefaultAccount)) {
+            return iDefaultAccounts.get(iDefaultAccount);
+        } else {
+            return iDefaultAccount == null ? null : iDefaultAccount.getDefaultAccountNumber();
+        }
     }
 
     /**
@@ -550,7 +568,10 @@ public class SSSupplierInvoice implements SSTableSearchable {
      * @param iDefaultAccounts
      */
     public void setDefaultAccounts(Map<SSDefaultAccount, Integer> iDefaultAccounts) {
-        this.iDefaultAccounts = iDefaultAccounts;
+        this.iDefaultAccounts = new HashMap<>();
+        if (iDefaultAccounts != null) {
+            this.iDefaultAccounts.putAll(iDefaultAccounts);
+        }
     }
 
     // //////////////////////////////////////////////////
@@ -612,6 +633,38 @@ public class SSSupplierInvoice implements SSTableSearchable {
      */
     public void setEntered() {
         iEntered = true;
+    }
+
+    // //////////////////////////////////////////////////
+
+    /**
+     *
+     * @return
+     */
+    public boolean isCancelled() {
+        return iCancelled;
+    }
+
+    /**
+     *
+     * @param iCancelled
+     */
+    public void setCancelled(boolean iCancelled) {
+        this.iCancelled = iCancelled;
+    }
+
+    /**
+     *
+     */
+    public void setCancelled() {
+        iCancelled = true;
+    }
+
+    /**
+     *
+     */
+    public void clearCancelled() {
+        iCancelled = false;
     }
 
     // //////////////////////////////////////////////////
@@ -727,6 +780,10 @@ public class SSSupplierInvoice implements SSTableSearchable {
         iVoucher = new SSVoucher();
         String iDescription = SSBundle.getBundle().getString(
                 "supplierinvoiceframe.voucherdescription");
+
+        if (iNumber == null) {
+            doAutoIncrecement();
+        }
 
         SSNewCompany     iCompany = se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.getCurrentCompany();
 

@@ -162,7 +162,7 @@ final class PurchaseSupplierTriggerHandler implements SSTriggerCategoryHandler {
             if (iSupplierInvoices == null) {
                 return true;
             }
-            SSSupplierInvoice iSupplierInvoice = new SSSupplierInvoice();
+            SSSupplierInvoice iSupplierInvoice = new SSSupplierInvoice(true);
             iSupplierInvoice.setNumber(Integer.parseInt(iNumber));
 
             if (iTriggerName.equals("NEWSUPPLIERINVOICE")) {
@@ -255,7 +255,7 @@ final class PurchaseSupplierTriggerHandler implements SSTriggerCategoryHandler {
             if (iSupplierCreditInvoices == null) {
                 return true;
             }
-            SSSupplierCreditInvoice iSupplierCreditInvoice = new SSSupplierCreditInvoice();
+            SSSupplierCreditInvoice iSupplierCreditInvoice = new SSSupplierCreditInvoice(true);
             iSupplierCreditInvoice.setNumber(Integer.parseInt(iNumber));
 
             if (iTriggerName.equals("NEWSUPPLIERCREDITINVOICE")) {

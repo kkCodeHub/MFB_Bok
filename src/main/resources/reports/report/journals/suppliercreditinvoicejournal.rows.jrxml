@@ -8,12 +8,13 @@
 	<field name="row.credet" class="java.math.BigDecimal"/>
 	<field name="row.project" class="java.lang.String"/>
 	<field name="row.resultunit" class="java.lang.String"/>
+	<field name="row.cancelled" class="java.lang.Boolean"/>
 	<variable name="debet.sum" class="java.math.BigDecimal" calculation="Sum">
-		<variableExpression><![CDATA[$F{row.debet}]]></variableExpression>
+		<variableExpression><![CDATA[$F{row.cancelled} ? BigDecimal.ZERO : $F{row.debet}]]></variableExpression>
 		<initialValueExpression><![CDATA[new BigDecimal(0.0)]]></initialValueExpression>
 	</variable>
 	<variable name="credet.sum" class="java.math.BigDecimal" calculation="Sum">
-		<variableExpression><![CDATA[$F{row.credet}]]></variableExpression>
+		<variableExpression><![CDATA[$F{row.cancelled} ? BigDecimal.ZERO : $F{row.credet}]]></variableExpression>
 		<initialValueExpression><![CDATA[new BigDecimal(0.0)]]></initialValueExpression>
 	</variable>
 	<detail>
