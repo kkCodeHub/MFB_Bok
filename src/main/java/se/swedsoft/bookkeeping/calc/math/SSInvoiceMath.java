@@ -215,7 +215,7 @@ public class SSInvoiceMath extends SSSaleMath {    private static final Logger L
             LocalDate iCurrent = iInvoice.getLocalDate();
 
             // Only put invoices that is added before the specified date
-            if (iCurrent != null && localDate != null && !iCurrent.isAfter(localDate)
+            if (!iInvoice.isCancelled() && iCurrent != null && localDate != null && !iCurrent.isAfter(localDate)
                     && iInvoice.getType() != SSInvoiceType.CASH) {
                 BigDecimal iSum = getTotalSum(iInvoice);
 

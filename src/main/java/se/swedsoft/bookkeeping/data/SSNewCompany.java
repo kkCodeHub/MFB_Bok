@@ -978,7 +978,7 @@ public class SSNewCompany  {    private static final Logger LOG = LoggerFactory.
         Double suminvoices = 0.0;
 
         for (SSInvoice iInvoice:se.swedsoft.bookkeeping.data.system.SSSalesContext.getInvoices()) {
-            if (iMonth.isDateInMonth(iInvoice.getLocalDate())) {
+            if (!iInvoice.isCancelled() && iMonth.isDateInMonth(iInvoice.getLocalDate())) {
                 for (SSSaleRow iRow : iInvoice.getRows()) {
                     if (iRow.getSum().isPresent()) {
                         suminvoices += iRow.getSum().get().doubleValue()
@@ -991,7 +991,7 @@ public class SSNewCompany  {    private static final Logger LOG = LoggerFactory.
         Double sumcreditinvoices = 0.0;
 
         for (SSCreditInvoice iCreditInvoice:se.swedsoft.bookkeeping.data.system.SSSalesContext.getCreditInvoices()) {
-            if (iMonth.isDateInMonth(iCreditInvoice.getLocalDate())) {
+            if (!iCreditInvoice.isCancelled() && iMonth.isDateInMonth(iCreditInvoice.getLocalDate())) {
                 for (SSSaleRow iRow : iCreditInvoice.getRows()) {
                     if (iRow.getSum().isPresent()) {
                         sumcreditinvoices += iRow.getSum().get().doubleValue()

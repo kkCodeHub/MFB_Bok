@@ -29,7 +29,7 @@ class SSReportFactoryCombinedJournalTest {
     }
 
     @Test
-    void filterInvoicesForCombinedJournalExcludesEnteredCancelledAndOutOfPeriod() {
+    void filterInvoicesForCombinedJournalExcludesEnteredAndOutOfPeriodButKeepsCancelled() {
         SSInvoice enteredInvoice = invoice(LocalDate.of(2025, 1, 10), true, false);
         SSInvoice cancelledInvoice = invoice(LocalDate.of(2025, 1, 10), false, true);
         SSInvoice outsidePeriodInvoice = invoice(LocalDate.of(2025, 2, 1), false, false);
@@ -43,7 +43,7 @@ class SSReportFactoryCombinedJournalTest {
                 LocalDate.of(2025, 1, 1),
                 LocalDate.of(2025, 1, 31));
 
-        assertThat(filtered).extracting(SSInvoice::getNumber).containsExactly(2012);
+        assertThat(filtered).extracting(SSInvoice::getNumber).containsExactly(1010, 2012);
     }
 
     @Test
@@ -119,7 +119,7 @@ class SSReportFactoryCombinedJournalTest {
     }
 
     @Test
-    void registerCombinedJournalEntriesSkipsCancelledInvoices() {
+    void registerCombinedJournalEntriesRegistersCancelledInvoicesToo() {
         SSInvoice cancelledInvoice = invoice(LocalDate.of(2025, 1, 10), false, true);
         SSCreditInvoice cancelledCreditInvoice = creditInvoice(LocalDate.of(2025, 1, 11), false, true);
         SSInvoice eligibleInvoice = invoice(LocalDate.of(2025, 1, 12), false, false);
@@ -132,10 +132,13 @@ class SSReportFactoryCombinedJournalTest {
                 voucher,
                 persisted::add);
 
-        assertThat(cancelledInvoice.getJournalNumbers()).isNull();
-        assertThat(cancelledCreditInvoice.getJournalNumbers()).isNull();
+        assertThat(cancelledInvoice.getJournalNumbers()).isEqualTo("FA779");
+        assertThat(cancelledCreditInvoice.getJournalNumbers()).isEqualTo("FA779");
         assertThat(eligibleInvoice.getJournalNumbers()).isEqualTo("FA779");
-        assertThat(persisted).extracting(SSInvoice::getNumber).containsExactly(1012);
+        assertThat(cancelledInvoice.isEntered()).isTrue();
+        assertThat(cancelledCreditInvoice.isEntered()).isTrue();
+        assertThat(eligibleInvoice.isEntered()).isTrue();
+        assertThat(persisted).extracting(SSInvoice::getNumber).containsExactly(1010, 2011, 1012);
     }
 
     @Test

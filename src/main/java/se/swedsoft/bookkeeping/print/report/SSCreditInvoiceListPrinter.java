@@ -124,29 +124,41 @@ public class SSCreditInvoiceListPrinter extends SSPrinter {
                     break;
 
                 case 6:
-                    value = SSCreditInvoiceMath.getTotalSum(iInvoice);
+                    value = iInvoice.isCancelled()
+                            ? BigDecimal.ZERO
+                            : SSCreditInvoiceMath.getTotalSum(iInvoice);
                     break;
 
                 case 7:
-                    value = SSCreditInvoiceMath.getTotalTaxSum(iInvoice);
+                    value = iInvoice.isCancelled()
+                            ? BigDecimal.ZERO
+                            : SSCreditInvoiceMath.getTotalTaxSum(iInvoice);
                     break;
 
                 case 8:
                     BigDecimal iSum = new BigDecimal(0);
 
-                    iSum = iSum.add(
-                            SSCreditInvoiceMath.getTotalSum(iInvoice).multiply(
-                                    iInvoice.getCurrencyRate()));
+                    if (!iInvoice.isCancelled()) {
+                        iSum = iSum.add(
+                                SSCreditInvoiceMath.getTotalSum(iInvoice).multiply(
+                                        iInvoice.getCurrencyRate()));
+                    }
                     value = iSum;
                     break;
 
                 case 9:
                     BigDecimal iTaxSum = new BigDecimal(0);
 
-                    iTaxSum = iTaxSum.add(
-                            SSCreditInvoiceMath.getTotalTaxSum(iInvoice).multiply(
-                                    iInvoice.getCurrencyRate()));
+                    if (!iInvoice.isCancelled()) {
+                        iTaxSum = iTaxSum.add(
+                                SSCreditInvoiceMath.getTotalTaxSum(iInvoice).multiply(
+                                        iInvoice.getCurrencyRate()));
+                    }
                     value = iTaxSum;
+                    break;
+
+                case 10:
+                    value = iInvoice.isCancelled();
                     break;
                 }
 
@@ -164,6 +176,7 @@ public class SSCreditInvoiceListPrinter extends SSPrinter {
         iModel.addColumn("invoice.tax");
         iModel.addColumn("invoice.totalsum");
         iModel.addColumn("invoice.totaltax");
+        iModel.addColumn("invoice.cancelled");
 
         Collections.sort(iInvoices, (o1, o2) -> o1.getNumber() - o2.getNumber());
 

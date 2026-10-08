@@ -350,7 +350,7 @@ public class SSSaleReportPrinter extends SSPrinter {
         List<SSInvoice> iInvoices = se.swedsoft.bookkeeping.data.system.SSSalesContext.getInvoices();
 
         for (SSInvoice iInvoice : iInvoices) {
-            if (SSInvoiceMath.inPeriod(iInvoice, iFrom, iTo)) {
+            if (!iInvoice.isCancelled() && SSInvoiceMath.inPeriod(iInvoice, iFrom, iTo)) {
                 for (SSSaleRow iRow : iInvoice.getRows()) {
                     if (iRow.getProductNr() != null) {
                         SSProduct iProduct = se.swedsoft.bookkeeping.data.system.SSProductContext.getProduct(
@@ -386,7 +386,7 @@ public class SSSaleReportPrinter extends SSPrinter {
         List<SSCreditInvoice> iCreditInvoices = se.swedsoft.bookkeeping.data.system.SSSalesContext.getCreditInvoices();
 
         for (SSCreditInvoice iCreditInvoice : iCreditInvoices) {
-            if (SSInvoiceMath.inPeriod(iCreditInvoice, iFrom, iTo)) {
+            if (!iCreditInvoice.isCancelled() && SSInvoiceMath.inPeriod(iCreditInvoice, iFrom, iTo)) {
                 for (SSSaleRow iRow : iCreditInvoice.getRows()) {
                     if (iRow.getProductNr() != null) {
                         SSProduct iProduct = se.swedsoft.bookkeeping.data.system.SSProductContext.getProduct(

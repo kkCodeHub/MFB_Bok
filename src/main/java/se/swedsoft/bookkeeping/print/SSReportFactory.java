@@ -2082,6 +2082,9 @@ public class SSReportFactory {    private static final Logger LOG = LoggerFactor
         iVoucher.setLocalDate(iTo);
 
         for (SSInvoice iInvoice : iFiltered) {
+            if (iInvoice.isCancelled()) {
+                continue;
+            }
             SSVoucher iCurrent = iInvoice.generateVoucher();
 
             for (SSVoucherRow iRow : iCurrent.getRows()) {
@@ -2162,7 +2165,7 @@ public class SSReportFactory {    private static final Logger LOG = LoggerFactor
             iCombinedInvoices.addAll(pCreditInvoices);
         }
         return iCombinedInvoices.stream()
-                .filter(iInvoice -> SSInvoiceActionPolicy.canPostToJournal(iInvoice)
+                .filter(iInvoice -> !iInvoice.isEntered()
                         && SSInvoiceMath.inPeriod(iInvoice, pFrom, pTo))
                 .collect(Collectors.toList());
     }
@@ -2178,7 +2181,7 @@ public class SSReportFactory {    private static final Logger LOG = LoggerFactor
                                                SSVoucher pVoucher,
                                                Consumer<SSInvoice> pPersistAction) {
         for (SSInvoice iInvoice : pInvoices) {
-            if (!SSInvoiceActionPolicy.canPostToJournal(iInvoice)) {
+            if (iInvoice.isEntered()) {
                 continue;
             }
             iInvoice.setJournalNumbers(pJournalNumbers);

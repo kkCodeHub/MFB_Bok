@@ -120,23 +120,38 @@ public class SSInvoicejournalPrinter extends SSPrinter {
                     break;
 
                 case 6:
-                    value = toSignedJournalAmount(iInvoice, SSInvoiceMath.getTotalSum(iInvoice));
+                   if (iInvoice.isCancelled()) {
+                       value = BigDecimal.ZERO;
+                   } else {
+                       value = toSignedJournalAmount(iInvoice, SSInvoiceMath.getTotalSum(iInvoice));
+                   }
                     break;
 
                 case 7:
-                    value = toSignedJournalAmount(iInvoice, SSInvoiceMath.getTotalTaxSum(iInvoice));
-                    break;
+                   if (iInvoice.isCancelled()) {
+                       value = BigDecimal.ZERO;
+                   } else {
+                       value = toSignedJournalAmount(iInvoice, SSInvoiceMath.getTotalTaxSum(iInvoice));
+                   }
+                   break;
 
                 case 8:
-                    BigDecimal iTotalSum = toSignedJournalAmount(iInvoice, SSInvoiceMath.getTotalSum(iInvoice));
-
-                    value = SSInvoiceMath.convertToLocal(iInvoice, iTotalSum);
-                    break;
+                   BigDecimal iTotalSum = toSignedJournalAmount(iInvoice, SSInvoiceMath.getTotalSum(iInvoice));
+                   if (iInvoice.isCancelled()) {
+                       value = BigDecimal.ZERO;
+                   } else {
+                       value = SSInvoiceMath.convertToLocal(iInvoice, iTotalSum);
+                   }
+                   break;
 
                 case 9:
-                    iPrinter.setInvoice(iInvoice);
+                   value = iInvoice.isCancelled();
+                   break;
 
-                    iDataSource.reset();
+                case 10:
+                   iPrinter.setInvoice(iInvoice);
+
+                   iDataSource.reset();
 
                     value = iDataSource;
                     break;
@@ -155,6 +170,7 @@ public class SSInvoicejournalPrinter extends SSPrinter {
         iModel.addColumn("invoice.sum");
         iModel.addColumn("invoice.tax");
         iModel.addColumn("invoice.localsum");
+        iModel.addColumn("invoice.cancelled");
 
         iModel.addColumn("journal.rows");
 
@@ -201,6 +217,7 @@ public class SSInvoicejournalPrinter extends SSPrinter {
     private class SSVoucherPrinter extends SSPrinter {
 
         private SSDefaultTableModel<SSVoucherRow> iModel;
+        private SSInvoice iCurrentInvoice;
 
         /**
          *
@@ -257,6 +274,10 @@ public class SSInvoicejournalPrinter extends SSPrinter {
                                 : iRow.getResultUnit().getNumber();
                         break;
 
+                    case 6:
+                        value = iCurrentInvoice.isCancelled();
+                        break;
+
                     }
 
                     return value;
@@ -269,6 +290,7 @@ public class SSInvoicejournalPrinter extends SSPrinter {
             iModel.addColumn("row.credet");
             iModel.addColumn("row.project");
             iModel.addColumn("row.resultunit");
+            iModel.addColumn("row.cancelled");
         }
 
         /**
@@ -296,8 +318,8 @@ public class SSInvoicejournalPrinter extends SSPrinter {
          * @param iInvoice
          */
         public void setInvoice(SSInvoice iInvoice) {
-
-            iModel.setObjects(iInvoice.getVoucher().getRows());
+            iCurrentInvoice = iInvoice;
+            iModel.setObjects(SSCustomerJournalVoucherResolver.resolveVoucher(iInvoice).getRows());
         }
 
         @Override

@@ -70,7 +70,7 @@ public class SSAccountsRecievablePrinter extends SSPrinter {
 
             for (SSInvoice iInvoice : SSCustomerMath.iInvoicesForCustomers.get(
                     iCustomerNumber)) {
-                if (iInvoice.getLocalDate() != null && !iInvoice.getLocalDate().isAfter(iCeiledDate)
+                if (!iInvoice.isCancelled() && iInvoice.getLocalDate() != null && !iInvoice.getLocalDate().isAfter(iCeiledDate)
                         && iInvoice.getType() != SSInvoiceType.CASH) {
                     iInvoicesForCustomer.add(iInvoice);
                 }
