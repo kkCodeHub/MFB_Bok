@@ -43,34 +43,38 @@ public class SSInvoiceSearchPanel extends JPanel {
     }
 
     public void ApplyFilter(List<SSInvoice> iList) {
-        List<SSInvoice> iFiltered = new LinkedList<>();
-
-        String iText = iTextField.getText();
-
-        if (iText == null) {
-            iText = "";
-        }
-
-        iText = iText.toLowerCase();
-
-        for (SSInvoice iInvoice : iList) {
-            String iNumber = iInvoice.getNumber().toString();
-            String iDescription = iInvoice.getCustomerName();
-            String iCustomerNumber = iInvoice.getCustomerNr();
-
-            if ((iText.length() == 0)
-                    || (iNumber != null && iNumber.toLowerCase().startsWith(iText))
-                    || (iDescription != null
-                            && iDescription.toLowerCase().startsWith(iText))
-                            || (iCustomerNumber != null
-                                    && iCustomerNumber.toLowerCase().startsWith(iText))) {
-                iFiltered.add(iInvoice);
-            }
-        }
+        List<SSInvoice> iFiltered = filterInvoices(iList, iTextField.getText());
         SSInvoiceFrame.getInstance().setFilterIndex(
                 SSInvoiceFrame.getInstance().getTabbedPane().getSelectedIndex(), iFiltered);
         // iModel.setObjects(iFiltered);
 
+    }
+
+    static List<SSInvoice> filterInvoices(List<SSInvoice> iList, String iFilterText) {
+        List<SSInvoice> iFiltered = new LinkedList<>();
+
+        String iText = iFilterText == null ? "" : iFilterText.toLowerCase();
+
+        for (SSInvoice iInvoice : iList) {
+            String iNumber = iInvoice.getNumber() == null ? null : iInvoice.getNumber().toString();
+            String iDescription = iInvoice.getCustomerName();
+            String iCustomerNumber = iInvoice.getCustomerNr();
+            String iTypeDescription = iInvoice.getType() == null ? null : iInvoice.getType().getDescription();
+            String iTypeName = iInvoice.getType() == null ? null : iInvoice.getType().name();
+            String iOriginInvoiceNumber = iInvoice.getOriginInvoiceNumber() == null
+                    ? null : iInvoice.getOriginInvoiceNumber().toString();
+
+            if ((iText.length() == 0)
+                    || (iNumber != null && iNumber.toLowerCase().startsWith(iText))
+                    || (iDescription != null && iDescription.toLowerCase().startsWith(iText))
+                    || (iCustomerNumber != null && iCustomerNumber.toLowerCase().startsWith(iText))
+                    || (iTypeDescription != null && iTypeDescription.toLowerCase().startsWith(iText))
+                    || (iTypeName != null && iTypeName.toLowerCase().startsWith(iText))
+                    || (iOriginInvoiceNumber != null && iOriginInvoiceNumber.startsWith(iText))) {
+                iFiltered.add(iInvoice);
+            }
+        }
+        return iFiltered;
     }
 
     @Override

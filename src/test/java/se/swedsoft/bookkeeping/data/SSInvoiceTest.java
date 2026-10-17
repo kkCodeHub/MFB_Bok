@@ -80,6 +80,7 @@ class SSInvoiceTest {
         invoice.setType(SSInvoiceType.CASH);
 
         assertThat(invoice.getType()).isEqualTo(SSInvoiceType.CASH);
+        assertThat(invoice.isInterestInvoiced()).isTrue();
     }
 
     // ---- setCurrencyRate / getCurrencyRate ----

@@ -53,19 +53,26 @@ public class SSInterestInvoiceDialog {
         iDialog.add(iPanel.getPanel(), BorderLayout.CENTER);
 
         iPanel.addOkAction(e -> {
-
-                List<SSInvoice> iInterestInvoices = iPanel.getInterestInvoices();
-
-                for (SSInvoice iInvoice : iInterestInvoices) {
-                    SSSalesContext.addInvoice(iInvoice);
+                if (!iPanel.hasSelectedAccount()) {
+                    new SSInformationDialog(iMainFrame, "interestinvoice.account.required");
+                    return;
                 }
+                try {
+                    List<SSInvoice> iInterestInvoices = iPanel.getInterestInvoices();
+                    boolean hasInterestInvoices = !iInterestInvoices.isEmpty();
 
-                if (pModel != null) {
-                    pModel.fireTableDataChanged();
+                    if (hasInterestInvoices) {
+                        for (SSInvoice iInvoice : iInterestInvoices) {
+                            SSSalesContext.addInvoice(iInvoice);
+                        }
+                    }
+
+                    if (pModel != null) {
+                        pModel.fireTableDataChanged();
+                    }
+                } finally {
+                    iDialog.closeDialog();
                 }
-
-                // iDialog.setVisible(false);
-                iDialog.closeDialog();
 
             });
 

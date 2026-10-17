@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="sv">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Hjälp för Bokföring och Administration – Fribok.org</title>
+    <link rel="stylesheet" href="site.css">
+</head>
+<body>
+<div class="shell">
+    <aside class="sidebar">
+        <div class="brand">
+            <div class="brand-title">Hjälp för Bokföring och Administration</div>
+            <div class="brand-subtitle">Fristående webbhjälp</div>
+        </div>
+
+        <div class="tabs" role="tablist" aria-label="Hjälpnav">
+            <button id="contentsTab" class="tab active" type="button" data-tab="contents">Innehåll</button>
+            <button id="searchTab" class="tab" type="button" data-tab="search">Sök</button>
+        </div>
+
+        <section id="contentsPanel" class="panel active" aria-labelledby="contentsTab">
+            <div class="panel-hint">Välj ett ämne i innehållet.</div>
+            <div id="tocTree" class="toc-tree"></div>
+        </section>
+
+        <section id="searchPanel" class="panel" aria-labelledby="searchTab">
+            <label class="search-label" for="searchInput">Sök i hjälpen</label>
+            <input id="searchInput" class="search-input" type="search" placeholder="Skriv för att söka">
+            <div id="searchResults" class="search-results"></div>
+        </section>
+    </aside>
+
+    <main class="viewer">
+        <div class="viewer-bar">
+            <div>
+                <div id="pageTitle" class="page-title">Hem</div>
+                <div class="page-subtitle">Öppna en hjälpsida från vänsterpanelen.</div>
+            </div>
+            <a id="openExternal" class="external-link" href="../helpjar/html/hem.html" target="_blank" rel="noopener">Öppna i ny flik</a>
+        </div>
+        <iframe id="contentFrame" title="Hjälpinnehåll" src="../helpjar/html/hem.html"></iframe>
+    </main>
+</div>
+<script src="help-data.js"></script>
+<script src="site.js"></script>
+</body>
+</html>

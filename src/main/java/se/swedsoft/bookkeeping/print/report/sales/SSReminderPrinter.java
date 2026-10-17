@@ -53,8 +53,8 @@ public class SSReminderPrinter extends SSPrinter {
         setPageHeader("sales/sale.header.jrxml");
         setPageFooter("sales/sale.footer.jrxml");
 
-        setDetail("sales/reminder.jrxml");
-        setColumnHeader("sales/reminder.jrxml");
+        setDetail("sales/reminder2.jrxml");
+        setColumnHeader("sales/reminder2.jrxml");
 
         addParameters();
 
@@ -173,8 +173,8 @@ public class SSReminderPrinter extends SSPrinter {
         public SSRowReport() {
             setMargins(0, 0, 0, 0);
 
-            setColumnHeader("sales/reminder.rows.jrxml");
-            setDetail("sales/reminder.rows.jrxml");
+            setColumnHeader("sales/reminder2.rows.jrxml");
+            setDetail("sales/reminder2.rows.jrxml");
         }
 
         /**
@@ -226,13 +226,14 @@ public class SSReminderPrinter extends SSPrinter {
                         break;
 
                     case 6:
-                        value = iInvoice.getDelayInterest();
+                        value = getReminderFee();
                         break;
 
                     case 7:
-                        value = SSInvoiceMath.getInterestSum(iInvoice,
-                                SSInvoiceMath.getSaldo(iInvoice.getNumber()),
-                                getNumDelayedDays(iInvoice));
+                        BigDecimal iSaldo = SSInvoiceMath.getSaldo(iInvoice.getNumber());
+                        BigDecimal iReminderfee = getReminderFee();
+                        iSaldo = iSaldo == null ? BigDecimal.ZERO : iSaldo;
+                        value = iSaldo.add(iReminderfee);
                         break;
                     }
 
@@ -281,6 +282,13 @@ public class SSReminderPrinter extends SSPrinter {
         java.time.LocalDate now = java.time.LocalDate.now();
 
         return (int) java.time.temporal.ChronoUnit.DAYS.between(dueLocalDate, now);
+    }
+
+    private static BigDecimal getReminderFee() {
+        BigDecimal iReminderFee = se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.getCurrentCompany()
+                .getReminderfee();
+
+        return iReminderFee == null ? BigDecimal.ZERO : iReminderFee;
     }
 
     @Override

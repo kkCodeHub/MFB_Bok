@@ -45,6 +45,7 @@ public class SSInterestInvoicePanel {
 
     private SSInterestInvoiceTableModel iModel;
     private JTextField iAccountText;
+    private boolean iDefaultInterestAccountConfigured;
 
     public SSInterestInvoicePanel(List<SSInvoice> iRows) {
         iModel = new SSInterestInvoiceTableModel(iRows);
@@ -55,22 +56,45 @@ public class SSInterestInvoicePanel {
         SSAccount iSelected = se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.getCurrentCompany().getDefaultAccount(
                 se.swedsoft.bookkeeping.data.system.SSAccountingContext.getCurrentAccountPlan(),
                 SSDefaultAccount.InterestProfit).orElse(null);
+        if (iSelected == null) {
+            iSelected = SSDefaultAccount.InterestProfit.getAccount(
+                    se.swedsoft.bookkeeping.data.system.SSAccountingContext.getCurrentAccountPlan());
+        }
+        if (iSelected != null && iSelected.getNumber() != null) {
+            SSAccount iResolved = se.swedsoft.bookkeeping.data.system.SSAccountingContext
+                    .getCurrentAccountPlan().getAccount(iSelected.getNumber());
+            if (iResolved != null) {
+                iSelected = iResolved;
+            }
+        }
+        iDefaultInterestAccountConfigured = iSelected != null;
 
         iAccount.setModel(SSAccountTableModel.getDropDownModel());
         iAccount.setSearchColumns(0);
-        iAccount.setAllowCustomValues(true);
+        iAccount.setAllowCustomValues(false);
         iAccount.addSelectionListener(new SSSelectionListener<>() {
             public void selected(SSAccount selected) {
                 if (selected != null) {
                     iAccountText.setText(selected.getDescription());
                 } else {
-                    iAccount.setText("");
+                    iAccountText.setText("");
                 }
+                updateOkButtonState();
             }
         });
         iAccount.setSelected(iSelected, true);
 
         SSInterestInvoiceTableModel.setupTable(iTable);
+        iTable.addSelectionListener(e -> {
+                if (!e.getValueIsAdjusting()) {
+                    updateOkButtonState();
+                }
+            });
+        updateOkButtonState();
+    }
+
+    private void updateOkButtonState() {
+        iOkButton.setEnabled(iTable.getSelectedRowCount() > 0 && hasSelectedAccount());
     }
 
     /**
@@ -104,9 +128,23 @@ public class SSInterestInvoicePanel {
      */
     public List<SSInvoice> getInterestInvoices() {
         String    iDescription = this.iDescription.getText();
-        SSAccount iAccount = this.iAccount.getSelected();
+        SSAccount iAccount = getSelectedAccount();
+        int[] selectedRows = iTable.getSelectedRows();
 
-        return iModel.getInterestInvoices(iDescription, iAccount);
+        return iModel.getInterestInvoices(iDescription, iAccount, selectedRows);
+    }
+
+    public boolean hasSelectedAccount() {
+        return getSelectedAccount() != null;
+    }
+
+    public boolean hasDefaultInterestAccountConfigured() {
+        return iDefaultInterestAccountConfigured;
+    }
+
+    private SSAccount getSelectedAccount() {
+        Object iValue = iAccount.getValue();
+        return iValue instanceof SSAccount ? (SSAccount) iValue : null;
     }
 
     /**
@@ -125,7 +163,9 @@ public class SSInterestInvoicePanel {
                 continue;
             }
             // Skip invoices that is flagged as interest invoiced or is a cash sales
-            if (iInvoice.isInterestInvoiced() || iInvoice.getType() == SSInvoiceType.CASH) {
+            if (iInvoice.isInterestInvoiced()
+                    || iInvoice.getType() == SSInvoiceType.CASH
+                    || iInvoice.getType() == SSInvoiceType.INTEREST) {
                 continue;
             }
 

@@ -168,6 +168,7 @@
         <Menu Name="Help" Bundle="helpmenu">
             <MenuItem Action="helpmenu.help"             Bundle="helpmenu.help"     />
             <Separator/>
+            <MenuItem Action="helpmenu.webhelp"          Bundle="helpmenu.webhelp"  />
             <MenuItem Action="helpmenu.support"          Bundle="helpmenu.support"   />
             <MenuItem Action="helpmenu.updates"          Bundle="helpmenu.updates"   />
             <Separator/>

@@ -78,9 +78,16 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigDecimal;
+import java.net.JarURLConnection;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
 
 import se.swedsoft.bookkeeping.util.SSDateUtil;
 import org.slf4j.Logger;
@@ -94,6 +101,8 @@ public class SSMainMenu {    private static final Logger LOG = LoggerFactory.get
 
 
     private static final String MENU_RES = "/MainMenu.xml";
+    private static final String WEB_HELP_RESOURCE_INDEX = "helpweb/index.html";
+    private static final String HELP_JAR_RESOURCE_MARKER = "helpjar/jfs.hs";
 
     private static final ResourceBundle bundle = SSBundle.getBundle();
 
@@ -851,6 +860,33 @@ public class SSMainMenu {    private static final Logger LOG = LoggerFactory.get
         // *****************************
         iMenuLoader.addActionListener("helpmenu.help",e -> SSHelpFrame.showFrame(iMainFrame, 980, 720));
 
+        iMenuLoader.addActionListener("helpmenu.webhelp", e -> {
+                File helpIndex = resolveStandaloneHelpIndex();
+
+                if (helpIndex == null) {
+                    String message = bundle.getString("helpmenu.webhelp.error.missing");
+                    LOG.error("Standalone web help page not found");
+                    JOptionPane.showMessageDialog(
+                            iMainFrame,
+                            message,
+                            bundle.getString("helpmenu.webhelp.title"),
+                            JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+
+                try {
+                    BrowserLaunch.openURL(helpIndex.toURI().toURL());
+                } catch (IOException ex) {
+                    LOG.error("Failed to open standalone help page: {}", helpIndex.getAbsolutePath(), ex);
+                    String message = bundle.getString("helpmenu.webhelp.error.open");
+                    JOptionPane.showMessageDialog(
+                            iMainFrame,
+                            message,
+                            bundle.getString("helpmenu.webhelp.title"),
+                            JOptionPane.ERROR_MESSAGE);
+                }
+            });
+
         // Online support
         // *****************************
         iMenuLoader.addActionListener("helpmenu.support", e -> {
@@ -1099,6 +1135,157 @@ public class SSMainMenu {    private static final Logger LOG = LoggerFactory.get
         // *****************************
         iMenuLoader.addActionListener("windowmenu.close", e -> SSFrameManager.getInstance().close());
 
+    }
+
+    private File resolveStandaloneHelpIndex() {
+        File installDir = resolveInstallDirectory();
+        if (installDir != null) {
+            File installHelpIndex = new File(installDir, "doc" + File.separator + "helpweb" + File.separator + "index.html");
+            if (installHelpIndex.isFile()) {
+                return installHelpIndex;
+            }
+        }
+
+        File appBaseHelpIndex = new File(Path.get(Path.APP_BASE), "doc" + File.separator + "helpweb" + File.separator + "index.html");
+        if (appBaseHelpIndex.isFile()) {
+            return appBaseHelpIndex;
+        }
+
+        File bundledHelpIndex = extractBundledHelpIndex();
+        if (bundledHelpIndex != null && bundledHelpIndex.isFile()) {
+            return bundledHelpIndex;
+        }
+
+        return null;
+    }
+
+    private File resolveInstallDirectory() {
+        try {
+            URL location = SSMainMenu.class.getProtectionDomain().getCodeSource().getLocation();
+            if (location == null) {
+                return null;
+            }
+
+            File locationFile = new File(location.toURI());
+            if (locationFile.isFile()) {
+                return locationFile.getParentFile();
+            }
+            if (locationFile.isDirectory()) {
+                return locationFile;
+            }
+        } catch (URISyntaxException e) {
+            LOG.error("Could not resolve application install directory", e);
+        }
+
+        return null;
+    }
+
+    private File extractBundledHelpIndex() {
+        File webHelpRoot = new File(Path.get(Path.USER_DATA), "helpweb_cache");
+        File helpJarRoot = new File(Path.get(Path.USER_DATA), "helpjar");
+
+        try {
+            boolean hasWebHelp = extractBundledResourceTree(WEB_HELP_RESOURCE_INDEX, "helpweb", webHelpRoot);
+            boolean hasHelpJar = extractBundledResourceTree(HELP_JAR_RESOURCE_MARKER, "helpjar", helpJarRoot);
+            if (!hasWebHelp || !hasHelpJar) {
+                return null;
+            }
+        } catch (IOException e) {
+            LOG.error("Failed to extract bundled help resources", e);
+            return null;
+        }
+
+        File indexFile = new File(webHelpRoot, "index.html");
+        return indexFile.isFile() ? indexFile : null;
+    }
+
+    private boolean extractBundledResourceTree(String markerResource, String resourceRoot, File targetRoot) throws IOException {
+        ClassLoader classLoader = SSMainMenu.class.getClassLoader();
+        URL markerUrl = classLoader.getResource(markerResource);
+        if (markerUrl == null) {
+            LOG.error("Bundled resource marker not found: {}", markerResource);
+            return false;
+        }
+
+        Set<String> resourcePaths = discoverBundledResources(markerUrl, markerResource, resourceRoot);
+        if (resourcePaths.isEmpty()) {
+            LOG.error("No bundled resources discovered under: {}", resourceRoot);
+            return false;
+        }
+
+        for (String resourcePath : resourcePaths) {
+            String relativePath = resourcePath.substring(resourceRoot.length() + 1);
+            File targetFile = new File(targetRoot, relativePath.replace('/', File.separatorChar));
+            File parent = targetFile.getParentFile();
+            if (parent != null && !parent.exists() && !parent.mkdirs()) {
+                throw new IOException("Failed to create directory: " + parent.getAbsolutePath());
+            }
+
+            try (InputStream stream = classLoader.getResourceAsStream(resourcePath)) {
+                if (stream == null) {
+                    throw new IOException("Missing classpath resource: " + resourcePath);
+                }
+                Files.copy(stream, targetFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+            }
+        }
+        return true;
+    }
+
+    private Set<String> discoverBundledResources(URL markerUrl, String markerResource, String resourceRoot) throws IOException {
+        String protocol = markerUrl.getProtocol();
+        if ("jar".equals(protocol)) {
+            return discoverBundledResourcesFromJar(markerUrl, resourceRoot);
+        }
+        if ("file".equals(protocol)) {
+            return discoverBundledResourcesFromFile(markerUrl, markerResource, resourceRoot);
+        }
+        return Collections.singleton(markerResource);
+    }
+
+    private Set<String> discoverBundledResourcesFromJar(URL markerUrl, String resourceRoot) throws IOException {
+        Set<String> resources = new TreeSet<>();
+        JarURLConnection connection = (JarURLConnection) markerUrl.openConnection();
+        try (JarFile jarFile = connection.getJarFile()) {
+            Enumeration<JarEntry> entries = jarFile.entries();
+            while (entries.hasMoreElements()) {
+                JarEntry entry = entries.nextElement();
+                String name = entry.getName();
+                if (!entry.isDirectory() && name.startsWith(resourceRoot + "/")) {
+                    resources.add(name);
+                }
+            }
+        }
+        return resources;
+    }
+
+    private Set<String> discoverBundledResourcesFromFile(URL markerUrl, String markerResource, String resourceRoot)
+            throws IOException {
+        Set<String> resources = new TreeSet<>();
+        try {
+            java.nio.file.Path markerPath = java.nio.file.Path.of(markerUrl.toURI());
+            java.nio.file.Path rootPath = resolveResourceRootPath(markerPath, markerResource, resourceRoot);
+            try (var stream = Files.walk(rootPath)) {
+                stream.filter(Files::isRegularFile).forEach(path -> {
+                    String relative = rootPath.relativize(path).toString().replace(File.separatorChar, '/');
+                    resources.add(resourceRoot + "/" + relative);
+                });
+            }
+        } catch (URISyntaxException e) {
+            throw new IOException("Failed to parse bundled resource URL: " + markerUrl, e);
+        }
+        return resources;
+    }
+
+    private java.nio.file.Path resolveResourceRootPath(java.nio.file.Path markerPath, String markerResource, String resourceRoot)
+            throws IOException {
+        java.nio.file.Path current = markerPath;
+        while (current != null && !resourceRoot.equals(current.getFileName().toString())) {
+            current = current.getParent();
+        }
+        if (current == null) {
+            throw new IOException("Could not resolve root path for resource: " + markerResource);
+        }
+        return current;
     }
 
     /**

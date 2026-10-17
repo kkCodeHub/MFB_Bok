@@ -229,6 +229,16 @@
         <directory>doc/helpjar</directory>
         <filtering>false</filtering>
       </resource>
+      <resource>
+        <directory>doc/helpjar</directory>
+        <filtering>false</filtering>
+        <targetPath>helpjar</targetPath>
+      </resource>
+      <resource>
+        <directory>doc/helpweb</directory>
+        <filtering>false</filtering>
+        <targetPath>helpweb</targetPath>
+      </resource>
     </resources>
   </build>
   <dependencies>

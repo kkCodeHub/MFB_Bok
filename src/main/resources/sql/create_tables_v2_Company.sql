@@ -449,6 +449,7 @@ CREATE TABLE IF NOT EXISTS tbl_invoice (
     printed              BOOLEAN       DEFAULT FALSE,
     -- SSInvoice specific
     invoice_type         VARCHAR(20),
+    origin_invoice_id    INTEGER,
     currency_rate        DECIMAL(10,6),
     payment_day          DATE,
     your_order_number    VARCHAR(100),
@@ -478,11 +479,18 @@ CREATE TABLE IF NOT EXISTS tbl_invoice (
     CONSTRAINT pk_invoice        PRIMARY KEY (id),
     CONSTRAINT fk_inv_company    FOREIGN KEY (companyid)   REFERENCES tbl_company(id),
     CONSTRAINT fk_inv_voucher    FOREIGN KEY (voucher_id)  REFERENCES tbl_voucher(id),
+    CONSTRAINT fk_inv_origin     FOREIGN KEY (origin_invoice_id) REFERENCES tbl_invoice(id),
     CONSTRAINT fk_inv_currency   FOREIGN KEY (currency_code) REFERENCES PUBLIC.tbl_currency(code),
     CONSTRAINT fk_inv_payterm    FOREIGN KEY (payment_term)  REFERENCES PUBLIC.tbl_paymentterm(name),
     CONSTRAINT fk_inv_delterm    FOREIGN KEY (delivery_term) REFERENCES PUBLIC.tbl_deliveryterm(name),
-    CONSTRAINT fk_inv_delway     FOREIGN KEY (delivery_way)  REFERENCES PUBLIC.tbl_deliveryway(name)
+    CONSTRAINT fk_inv_delway     FOREIGN KEY (delivery_way)  REFERENCES PUBLIC.tbl_deliveryway(name),
+    CONSTRAINT ck_inv_interest_origin CHECK (
+        (invoice_type = 'INTEREST' AND origin_invoice_id IS NOT NULL)
+        OR
+        (COALESCE(invoice_type, '') <> 'INTEREST' AND origin_invoice_id IS NULL)
+    )
 );
+CREATE INDEX IF NOT EXISTS idx_invoice_origin_id ON tbl_invoice(origin_invoice_id);
 
 -- Java class: SSSaleRow  (child of tbl_invoice)
 CREATE TABLE IF NOT EXISTS tbl_invoice_row (

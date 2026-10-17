@@ -7,6 +7,7 @@ import se.swedsoft.bookkeeping.data.SSAccount;
 import se.swedsoft.bookkeeping.data.SSInvoice;
 import se.swedsoft.bookkeeping.data.base.SSSaleRow;
 import se.swedsoft.bookkeeping.data.common.SSCurrency;
+import se.swedsoft.bookkeeping.data.common.SSInvoiceType;
 import se.swedsoft.bookkeeping.data.common.SSTaxCode;
 import se.swedsoft.bookkeeping.data.system.SSDB;
 import se.swedsoft.bookkeeping.data.system.SSSalesContext;
@@ -201,11 +202,16 @@ public class SSInterestInvoiceTableModel extends SSDefaultTableModel<SSInvoice> 
      * @param iAccount
      * @return the interest invoices
      */
-    public List<SSInvoice> getInterestInvoices(String iDescription, SSAccount iAccount) {
+    public List<SSInvoice> getInterestInvoices(String iDescription, SSAccount iAccount, int[] selectedRows) {
 
         List<SSInvoice> iInvoices = new LinkedList<>();
 
-        for (SSInvoice iInvoice : getObjects()) {
+        if (selectedRows == null || selectedRows.length == 0) {
+            return iInvoices;
+        }
+
+        for (int selectedRow : selectedRows) {
+            SSInvoice iInvoice = getObject(selectedRow);
 
             InterestAction iAction = iActions.get(iInvoice);
 
@@ -232,6 +238,9 @@ public class SSInterestInvoiceTableModel extends SSDefaultTableModel<SSInvoice> 
 
             iInterestInvoice.setNumRemainders(0);
 
+            iInterestInvoice.setType(SSInvoiceType.INTEREST);
+            iInterestInvoice.setOriginInvoiceNumber(iInvoice.getNumber());
+
             iInterestInvoice.setLocalDate(SSDateUtil.today());
 
             iInterestInvoice.setEuSaleCommodity(false);
@@ -244,7 +253,9 @@ public class SSInterestInvoiceTableModel extends SSDefaultTableModel<SSInvoice> 
 
             SSSaleRow iRow = new SSSaleRow();
 
-            iRow.setDescription(iDescription);
+            String iDescriptionBase = iDescription == null ? "" : iDescription;
+            String iOriginInvoiceText = iInvoice.getNumber() == null ? "" : ", Fakturanr: " + iInvoice.getNumber();
+            iRow.setDescription(iDescriptionBase + iOriginInvoiceText);
             iRow.setAccount(iAccount);
             iRow.setTaxCode(SSTaxCode.TAXRATE_0);
             iRow.setQuantity(DEFAULT_QUANTITY_TENTHS);

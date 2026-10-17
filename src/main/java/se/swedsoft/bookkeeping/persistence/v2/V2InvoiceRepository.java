@@ -188,21 +188,22 @@ public class V2InvoiceRepository {
             }
 
             Integer invoiceId = null;
+            validateInterestOriginConsistencyV2(invoice, currentCompany.getId());
             try (PreparedStatement insertStatement = connection.prepareStatement(
                     "INSERT INTO tbl_invoice(" +
                             "number,companyid,vdate,customer_nr,customer_name,our_contact,your_contact," +
                             "delay_interest,currency_code,payment_term,delivery_term,delivery_way,tax_free," +
-                            "sale_text,eu_sale_commodity,eu_sale_third_part,printed,invoice_type,currency_rate," +
+                            "sale_text,eu_sale_commodity,eu_sale_third_part,printed,invoice_type,origin_invoice_id,currency_rate," +
                             "payment_day,your_order_number,ocr_number,entered,cancelled,num_reminders,interest_invoiced," +
                             "stock_influencing,order_numbers,journal_numbers,voucher_id,inv_addr_name,inv_addr_address," +
                             "inv_addr_street,inv_addr_zipcode,inv_addr_city,inv_addr_country,del_addr_name," +
                             "del_addr_address,del_addr_street,del_addr_zipcode,del_addr_city,del_addr_country) " +
-                            "VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                            "VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
                     Statement.RETURN_GENERATED_KEYS)) {
                 int i = 1;
                 insertStatement.setObject(i++, invoice.getNumber());
                 insertStatement.setObject(i++, currentCompany.getId());
-                bindInvoiceColumnsV2(insertStatement, i, invoice);
+                bindInvoiceColumnsV2(insertStatement, i, invoice, currentCompany.getId());
                 insertStatement.executeUpdate();
 
                 try (ResultSet keys = insertStatement.getGeneratedKeys()) {
@@ -236,17 +237,18 @@ public class V2InvoiceRepository {
         }
 
         try {
+            validateInterestOriginConsistencyV2(invoice, currentCompany.getId());
             try (PreparedStatement statement = connection.prepareStatement(
                     "UPDATE tbl_invoice SET " +
                             "vdate=?,customer_nr=?,customer_name=?,our_contact=?,your_contact=?," +
                             "delay_interest=?,currency_code=?,payment_term=?,delivery_term=?,delivery_way=?," +
                             "tax_free=?,sale_text=?,eu_sale_commodity=?,eu_sale_third_part=?,printed=?," +
-                            "invoice_type=?,currency_rate=?,payment_day=?,your_order_number=?,ocr_number=?," +
+                            "invoice_type=?,origin_invoice_id=?,currency_rate=?,payment_day=?,your_order_number=?,ocr_number=?," +
                             "entered=?,cancelled=?,num_reminders=?,interest_invoiced=?,stock_influencing=?,order_numbers=?," +
                             "journal_numbers=?,voucher_id=?,inv_addr_name=?,inv_addr_address=?,inv_addr_street=?,inv_addr_zipcode=?," +
                             "inv_addr_city=?,inv_addr_country=?,del_addr_name=?,del_addr_address=?,del_addr_street=?," +
                             "del_addr_zipcode=?,del_addr_city=?,del_addr_country=? WHERE number=? AND companyid=?")) {
-                int i = bindInvoiceColumnsV2(statement, 1, invoice);
+                int i = bindInvoiceColumnsV2(statement, 1, invoice, currentCompany.getId());
                 statement.setObject(i++, invoice.getNumber());
                 statement.setObject(i, currentCompany.getId());
                 statement.executeUpdate();
@@ -409,7 +411,7 @@ public class V2InvoiceRepository {
         }
     }
 
-    private int bindInvoiceColumnsV2(PreparedStatement statement, int index, SSInvoice invoice) throws SQLException {
+    private int bindInvoiceColumnsV2(PreparedStatement statement, int index, SSInvoice invoice, Integer companyId) throws SQLException {
         bindLocalDateV2(statement, index++, invoice.getLocalDate());
         statement.setObject(index++, invoice.getCustomerNr());
         statement.setObject(index++, invoice.getCustomerName());
@@ -426,6 +428,7 @@ public class V2InvoiceRepository {
         statement.setObject(index++, invoice.getEuSaleThirdPartCommodity());
         statement.setObject(index++, invoice.isPrinted());
         statement.setObject(index++, invoice.getType() == null ? null : invoice.getType().name());
+        statement.setObject(index++, getInvoiceIdV2(invoice.getOriginInvoiceNumber(), companyId));
         statement.setObject(index++, invoice.getCurrencyRate());
         bindLocalDateV2(statement, index++, invoice.getLocalDueDate());
         statement.setObject(index++, invoice.getYourOrderNumber());
@@ -508,6 +511,8 @@ public class V2InvoiceRepository {
         invoice.setStockInfluencing(resultSet.getBoolean("stock_influencing"));
         invoice.setOrderNumbers(resultSet.getString("order_numbers"));
         invoice.setJournalNumbers(resultSet.getString("journal_numbers"));
+        Integer originInvoiceId = (Integer) resultSet.getObject("origin_invoice_id");
+        invoice.setOriginInvoiceNumber(getInvoiceNumberV2(originInvoiceId, (Integer) resultSet.getObject("companyid")));
 
         Integer voucherId = (Integer) resultSet.getObject("voucher_id");
         Integer voucherNumber = V2RepositoryHelpers.getVoucherNumberForId(connection, voucherId);
@@ -533,6 +538,50 @@ public class V2InvoiceRepository {
             return currency == null ? null : currency.getName();
         } catch (RuntimeException ignored) {
             return null;
+        }
+    }
+
+    private Integer getInvoiceNumberV2(Integer invoiceId, Integer companyId) throws SQLException {
+        if (invoiceId == null || companyId == null) {
+            return null;
+        }
+        try (PreparedStatement statement = connection.prepareStatement(
+                "SELECT number FROM tbl_invoice WHERE id=? AND companyid=?")) {
+            statement.setObject(1, invoiceId);
+            statement.setObject(2, companyId);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (resultSet.next()) {
+                    return (Integer) resultSet.getObject(1);
+                }
+                return null;
+            }
+        }
+    }
+
+    private void validateInterestOriginConsistencyV2(SSInvoice invoice, Integer companyId) {
+        SSInvoiceType type = invoice.getType();
+        Integer originInvoiceNumber = invoice.getOriginInvoiceNumber();
+
+        if (type == SSInvoiceType.INTEREST && originInvoiceNumber == null) {
+            throw new IllegalArgumentException("Interest invoice requires origin invoice number.");
+        }
+        if (type != SSInvoiceType.INTEREST && originInvoiceNumber != null) {
+            throw new IllegalArgumentException("Only interest invoices may reference origin invoice number.");
+        }
+        if (originInvoiceNumber == null) {
+            return;
+        }
+        if (invoice.getNumber() != null && invoice.getNumber().equals(originInvoiceNumber)) {
+            throw new IllegalArgumentException("Invoice cannot reference itself as origin invoice.");
+        }
+        try {
+            Integer originInvoiceId = getInvoiceIdV2(originInvoiceNumber, companyId);
+            if (originInvoiceId == null) {
+                throw new IllegalArgumentException(
+                        "Origin invoice '" + originInvoiceNumber + "' does not exist in current company.");
+            }
+        } catch (SQLException e) {
+            throw handleFailure("validate invoice origin reference", e);
         }
     }
 

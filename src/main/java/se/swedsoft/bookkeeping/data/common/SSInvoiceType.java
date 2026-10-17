@@ -10,7 +10,7 @@ import se.swedsoft.bookkeeping.gui.util.SSBundle;
  * Time: 09:52:04
  */
 public enum SSInvoiceType {
-    NORMAL("invoiceframe.typename.1"), CASH  ("invoiceframe.typename.2");
+    NORMAL("invoiceframe.typename.1"), CASH("invoiceframe.typename.2"), INTEREST("invoiceframe.typename.4");
 
     // Constant for serialization versioning.
     static final long serialVersionUID = 1L;

@@ -57,6 +57,7 @@ public class SSInvoice extends SSSale {
 
     private String iOrderNumbers;
     private String iJournalNumbers;
+    private Integer iOriginInvoiceNumber;
 
     // //////////////////////////////////////////////////
 
@@ -97,7 +98,7 @@ public class SSInvoice extends SSSale {
     public SSInvoice(SSInvoiceType iInvoiceType) {
         this();
 
-        iType = iInvoiceType;
+        setType(iInvoiceType);
         if (iType == SSInvoiceType.CASH) {
             getCashPaymentTerm().ifPresent(this::setPaymentTerm);
         }
@@ -161,6 +162,7 @@ public class SSInvoice extends SSSale {
         iOCRNumber = iInvoice.iOCRNumber;
         iOrderNumbers = iInvoice.iOrderNumbers;
         iJournalNumbers = iInvoice.iJournalNumbers;
+        iOriginInvoiceNumber = iInvoice.iOriginInvoiceNumber;
         iVoucher = new SSVoucher(iInvoice.iVoucher);
     }
 
@@ -205,6 +207,9 @@ public class SSInvoice extends SSSale {
      */
     public void setType(SSInvoiceType iType) {
         this.iType = iType;
+        if (iType == SSInvoiceType.CASH) {
+            iInterestInvoiced = true;
+        }
     }
 
     // //////////////////////////////////////////////////
@@ -435,6 +440,14 @@ public class SSInvoice extends SSSale {
         this.iJournalNumbers = iJournalNumbers;
     }
 
+    public Integer getOriginInvoiceNumber() {
+        return iOriginInvoiceNumber;
+    }
+
+    public void setOriginInvoiceNumber(Integer iOriginInvoiceNumber) {
+        this.iOriginInvoiceNumber = iOriginInvoiceNumber;
+    }
+
     /**
      *
      * @return
@@ -556,9 +569,17 @@ public class SSInvoice extends SSSale {
         BigDecimal iRoundingSum = SSInvoiceMath.getRounding(this);
 
         // Add the total sum to the voucher
-        if (iType == SSInvoiceType.NORMAL) {
+        if (iType == SSInvoiceType.NORMAL || iType == SSInvoiceType.INTEREST) {
+            SSAccount iCustomerClaimAccount = getDefaultAccount(iAccountPlan, SSDefaultAccount.CustomerClaim)
+                    .orElse(null);
+            if (iCustomerClaimAccount == null) {
+                iCustomerClaimAccount = SSDefaultAccount.CustomerClaim.getAccount(iAccountPlan);
+            }
+            if (iCustomerClaimAccount == null) {
+                iCustomerClaimAccount = new SSAccount(SSDefaultAccount.CustomerClaim.getDefaultAccountNumber());
+            }
             iVoucher.addVoucherRow(
-                    getDefaultAccount(iAccountPlan, SSDefaultAccount.CustomerClaim).orElse(null),
+                    iCustomerClaimAccount,
                     iTotalSum, null);
         }
         if (iType == SSInvoiceType.CASH) {
@@ -652,6 +673,7 @@ public class SSInvoice extends SSSale {
         sb.append(", iOCRNumber='").append(iOCRNumber).append('\'');
         sb.append(", iOrderNumbers='").append(iOrderNumbers).append('\'');
         sb.append(", iJournalNumbers='").append(iJournalNumbers).append('\'');
+        sb.append(", iOriginInvoiceNumber=").append(iOriginInvoiceNumber);
         sb.append(", iPaymentDay=").append(iPaymentDay);
         sb.append(", iStockInfluencing=").append(iStockInfluencing);
         sb.append(", iType=").append(iType);

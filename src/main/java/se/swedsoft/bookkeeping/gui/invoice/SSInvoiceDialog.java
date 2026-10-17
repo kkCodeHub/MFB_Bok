@@ -270,7 +270,7 @@ public class SSInvoiceDialog {
         iNew.setDueDate();
         iNew.setEntered(false);
         iNew.setPrinted(false);
-        iNew.setInterestInvoiced(false);
+        iNew.setInterestInvoiced(iNew.getType() == SSInvoiceType.CASH);
         iNew.setOCRNumber(null);
         iNew.setNumRemainders(0);
 

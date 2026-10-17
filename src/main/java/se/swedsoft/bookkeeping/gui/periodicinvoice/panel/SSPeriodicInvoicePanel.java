@@ -714,7 +714,7 @@ public class SSPeriodicInvoicePanel {
         // Lagerför
         iInvoice.setStockInfluencing(isStockInfluencing.isSelected());
         // Räntefakturerad
-        iInvoice.setInterestInvoiced(false);
+        iInvoice.setInterestInvoiced(iInvoice.getType() == SSInvoiceType.CASH);
 
         // Generera verifikationen
         iInvoice.generateVoucher();

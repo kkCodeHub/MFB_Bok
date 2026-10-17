@@ -5,15 +5,20 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import se.swedsoft.bookkeeping.calc.math.SSInvoiceMath;
 import se.swedsoft.bookkeeping.data.SSInvoice;
 import se.swedsoft.bookkeeping.data.SSNewAccountingYear;
 import se.swedsoft.bookkeeping.data.SSNewCompany;
+import se.swedsoft.bookkeeping.data.SSAccount;
 import se.swedsoft.bookkeeping.data.SSVoucher;
+import se.swedsoft.bookkeeping.data.SSVoucherRow;
 import se.swedsoft.bookkeeping.data.base.SSSaleRow;
+import se.swedsoft.bookkeeping.data.common.SSDefaultAccount;
 import se.swedsoft.bookkeeping.data.common.SSInvoiceType;
 import se.swedsoft.bookkeeping.data.common.SSTaxCode;
 import se.swedsoft.bookkeeping.data.common.SSUnit;
 import se.swedsoft.bookkeeping.data.system.SSDB;
+import se.swedsoft.bookkeeping.gui.invoice.util.SSInterestInvoiceTableModel;
 import se.swedsoft.bookkeeping.persistence.v2.V2InvoiceRepository;
 
 import java.math.BigDecimal;
@@ -27,6 +32,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * Integration tests for invoice repository wiring in schema V2.
@@ -211,6 +217,108 @@ class SSInvoiceV2RepositoryTest {
 
         Repositories.invoices().delete(fetched.get());
         Repositories.vouchers().delete(voucher);
+    }
+
+    @Test
+    void interestInvoicePersistsOriginInvoiceNumber() {
+        SSInvoice originInvoice = invoice("INV-REPO-CUST-006", "Origin Invoice");
+        originInvoice.setType(SSInvoiceType.NORMAL);
+        originInvoice.getRows().add(invoiceRow("P-INV-REPO-007", "Origin row", new BigDecimal("220.00"), 1, 3010));
+        Repositories.invoices().add(originInvoice);
+
+        SSInvoice interestInvoice = invoice("INV-REPO-CUST-007", "Interest Invoice");
+        interestInvoice.setType(SSInvoiceType.INTEREST);
+        interestInvoice.setOriginInvoiceNumber(originInvoice.getNumber());
+        interestInvoice.getRows().add(invoiceRow("P-INV-REPO-008", "Interest row", new BigDecimal("40.00"), 1, 3041));
+
+        Repositories.invoices().add(interestInvoice);
+
+        se.swedsoft.bookkeeping.data.system.SSEventTriggerSyncContext.clearCachedLists();
+        Optional<SSInvoice> fetched = Repositories.invoices().findByInvoice(interestInvoice);
+
+        assertThat(fetched).isPresent();
+        assertThat(fetched.get().getType()).isEqualTo(SSInvoiceType.INTEREST);
+        assertThat(fetched.get().getOriginInvoiceNumber()).isEqualTo(originInvoice.getNumber());
+
+        Repositories.invoices().delete(fetched.get());
+        Repositories.invoices().delete(originInvoice);
+    }
+
+    @Test
+    void addRejectsInterestInvoiceWithoutOriginInvoiceNumber() {
+        SSInvoice interestInvoice = invoice("INV-REPO-CUST-008", "Interest Without Origin");
+        interestInvoice.setType(SSInvoiceType.INTEREST);
+        interestInvoice.setOriginInvoiceNumber(null);
+
+        assertThatThrownBy(() -> Repositories.invoices().add(interestInvoice))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("requires origin invoice number");
+    }
+
+    @Test
+    void addRejectsOriginInvoiceNumberForNonInterestInvoice() {
+        SSInvoice normalInvoice = invoice("INV-REPO-CUST-009", "Normal With Origin");
+        normalInvoice.setType(SSInvoiceType.NORMAL);
+        normalInvoice.setOriginInvoiceNumber(12345);
+
+        assertThatThrownBy(() -> Repositories.invoices().add(normalInvoice))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Only interest invoices may reference origin invoice number");
+    }
+
+    @Test
+    void interestInvoiceTableModelCreatesInterestInvoiceWithOriginLink() {
+        SSInvoice sourceInvoice = invoice("INV-REPO-CUST-010", "Interest Source Invoice");
+        sourceInvoice.setType(SSInvoiceType.NORMAL);
+        sourceInvoice.setInterestInvoiced(false);
+        sourceInvoice.getRows().add(invoiceRow("P-INV-REPO-009", "Source row", new BigDecimal("600.00"), 1, 3010));
+        Repositories.invoices().add(sourceInvoice);
+
+        SSAccount account = new SSAccount(3041);
+        account.setDescription("Ränteintäkter");
+        SSInterestInvoiceTableModel model = new SSInterestInvoiceTableModel(List.of(sourceInvoice));
+
+        List<SSInvoice> interestInvoices = model.getInterestInvoices("Ränta", account, new int[] {0});
+
+        assertThat(interestInvoices).hasSize(1);
+        SSInvoice interestInvoice = interestInvoices.get(0);
+        assertThat(interestInvoice.getType()).isEqualTo(SSInvoiceType.INTEREST);
+        assertThat(interestInvoice.getOriginInvoiceNumber()).isEqualTo(sourceInvoice.getNumber());
+
+        Optional<SSInvoice> updatedSource = Repositories.invoices().findByInvoice(sourceInvoice);
+        assertThat(updatedSource).isPresent();
+        assertThat(updatedSource.get().isInterestInvoiced()).isTrue();
+
+        Repositories.invoices().delete(sourceInvoice);
+    }
+
+    @Test
+    void interestInvoiceVoucherUsesCustomerClaimAsDebit() {
+        SSInvoice interestInvoice = invoice("INV-REPO-CUST-011", "Interest Voucher Invoice");
+        interestInvoice.setType(SSInvoiceType.INTEREST);
+        interestInvoice.setOriginInvoiceNumber(1000);
+        interestInvoice.setCurrencyRate(BigDecimal.ONE);
+
+        SSSaleRow row = new SSSaleRow();
+        row.setDescription("Interest");
+        row.setTaxCode(SSTaxCode.TAXRATE_0);
+        row.setQuantity(10);
+        row.setUnitprice(new BigDecimal("123.45"));
+        row.setAccountNr(8311);
+        interestInvoice.setRows(row);
+
+        SSVoucher voucher = interestInvoice.generateVoucher();
+
+        Integer customerClaimAccount = SSDefaultAccount.CustomerClaim.getDefaultAccountNumber();
+
+        SSVoucherRow debitRow = voucher.getRows().stream()
+                .filter(voucherRow -> customerClaimAccount.equals(voucherRow.getAccountNr()))
+                .filter(voucherRow -> voucherRow.getDebet() != null)
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("Missing customer-claim debit row for interest invoice"));
+
+        assertThat(debitRow.getDebet()).isEqualByComparingTo(SSInvoiceMath.getTotalSum(interestInvoice));
+        assertThat(debitRow.getAccountNr()).isEqualTo(customerClaimAccount);
     }
 
     private static SSInvoice invoice(String customerNr, String customerName) {
