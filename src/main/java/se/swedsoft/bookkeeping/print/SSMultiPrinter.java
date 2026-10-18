@@ -6,10 +6,13 @@ import net.sf.jasperreports.engine.JasperReport;
 import se.swedsoft.bookkeeping.gui.util.model.SSDefaultTableModel;
 import se.swedsoft.bookkeeping.print.util.SSDefaultJasperDataSource;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.ResourceBundle;
+import java.util.StringJoiner;
 
 
 /**
@@ -47,6 +50,8 @@ public class SSMultiPrinter extends SSPrinter {
 
     private List<SSSubReport> iSubReports;
 
+    private List<String> iSubReportPreviewKeys;
+
     private String iPreviewKey;
 
     /**
@@ -54,6 +59,7 @@ public class SSMultiPrinter extends SSPrinter {
      */
     public SSMultiPrinter() {
         iSubReports = new LinkedList<>();
+        iSubReportPreviewKeys = new ArrayList<>();
 
         setMargins(0, 0, 0, 0);
         setDetail("multireport.jrxml");
@@ -139,13 +145,10 @@ public class SSMultiPrinter extends SSPrinter {
         SSSubReport iSubReport = new SSSubReport();
 
         pReport.generateReport();
-
-        if (iPreviewKey == null) {
-            String iSubReportPreviewKey = pReport.getPreviewKey();
-
-            if (iSubReportPreviewKey != null) {
-                iPreviewKey = getClass().getName() + ":" + iSubReportPreviewKey;
-            }
+        String iSubReportPreviewKey = pReport.getPreviewKey();
+        if (iSubReportPreviewKey != null && !iSubReportPreviewKey.trim().isEmpty()) {
+            iSubReportPreviewKeys.add(iSubReportPreviewKey);
+            updatePreviewKey();
         }
 
         iSubReport.iName = pReport.getTitle();
@@ -155,6 +158,21 @@ public class SSMultiPrinter extends SSPrinter {
         iSubReport.iBundle = pReport.getBundle();
 
         iSubReports.add(iSubReport);
+    }
+
+    private void updatePreviewKey() {
+        if (iSubReportPreviewKeys.isEmpty()) {
+            iPreviewKey = null;
+            return;
+        }
+        List<String> iSortedKeys = new ArrayList<>(iSubReportPreviewKeys);
+        Collections.sort(iSortedKeys);
+        StringJoiner iJoiner = new StringJoiner("|");
+
+        for (String iKey : iSortedKeys) {
+            iJoiner.add(iKey);
+        }
+        iPreviewKey = getClass().getName() + ":" + iJoiner;
     }
 
     @Override

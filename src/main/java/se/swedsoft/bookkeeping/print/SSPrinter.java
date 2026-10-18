@@ -383,6 +383,26 @@ public abstract class SSPrinter {
     }
 
     /**
+     * Shows preview with frame listener and optional output/e-mail callbacks.
+     *
+     * @param iMainFrame owning frame
+     * @param listener frame lifecycle listener
+     * @param iOnOutputAction callback run once on first save/print action
+     * @param iOnEmailAction callback run when e-mail action is chosen
+     * @param iShowEmailButton true if the e-mail button should be visible
+     */
+    public void preview(SSMainFrame iMainFrame, InternalFrameListener listener,
+                        Runnable iOnOutputAction, Runnable iOnEmailAction,
+                        boolean iShowEmailButton) {
+        iReport.setPreviewKey(getPreviewKey());
+        iReport.addParameter("title", getTitle());
+        iReport.addParameter("subtitle", getSubTitle());
+        iReport.setModel(getModel());
+
+        iReport.viewReport(iMainFrame, listener, iOnOutputAction, iOnEmailAction, iShowEmailButton);
+    }
+
+    /**
      *
      * @param iMainFrame
      * @param iCloseListener

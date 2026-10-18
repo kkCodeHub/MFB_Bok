@@ -373,6 +373,16 @@ public class SSInvoicePrinter extends SSPrinter {
     }
 
     @Override
+    protected String getPreviewKey() {
+        String iInvoiceKey = iInvoice == null || iInvoice.getNumber() == null
+                ? "no-number"
+                : iInvoice.getNumber().toString();
+        String iLocaleKey = iLocale == null ? "no-locale" : iLocale.toLanguageTag();
+
+        return getClass().getName() + ":" + iInvoiceKey + ":" + iLocaleKey;
+    }
+
+    @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder();
 

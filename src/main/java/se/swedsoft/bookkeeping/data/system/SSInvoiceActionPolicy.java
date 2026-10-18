@@ -1,6 +1,7 @@
 package se.swedsoft.bookkeeping.data.system;
 
 import se.swedsoft.bookkeeping.calc.math.SSCreditInvoiceMath;
+import se.swedsoft.bookkeeping.calc.math.SSInvoiceMath;
 import se.swedsoft.bookkeeping.calc.math.SSInpaymentMath;
 import se.swedsoft.bookkeeping.data.SSCreditInvoice;
 import se.swedsoft.bookkeeping.data.SSInvoice;
@@ -178,6 +179,21 @@ public final class SSInvoiceActionPolicy {
      */
     public static boolean canSelectForReminder(SSInvoice pInvoice) {
         return canPrint(pInvoice);
+    }
+
+    /**
+     * Returns true when a reminder can be created for the invoice.
+     *
+     * <p>Reminder requires that invoice is printable, due date has passed and saldo is positive.</p>
+     *
+     * @param pInvoice invoice to evaluate
+     * @return true if reminder creation is allowed
+     */
+    public static boolean canCreateReminder(SSInvoice pInvoice) {
+        verifyNotNull("invoice", pInvoice);
+        return canSelectForReminder(pInvoice)
+                && SSInvoiceMath.expired(pInvoice)
+                && SSInvoiceMath.getSaldo(pInvoice.getNumber()).signum() > 0;
     }
 
     /**

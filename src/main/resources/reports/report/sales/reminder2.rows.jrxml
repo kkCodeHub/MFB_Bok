@@ -74,14 +74,14 @@
 				<textFieldExpression><![CDATA[$R{reminderreport.column.7}]]></textFieldExpression>
 			</textField>
 			<textField isBlankWhenNull="true">
-				<reportElement x="340" y="2" width="80" height="12" uuid="88d2e401-17be-4141-8d37-647464d1399b"/>
-				<textElement textAlignment="Right">
+				<reportElement x="370" y="2" width="80" height="12" uuid="88d2e401-17be-4141-8d37-647464d1399b"/>
+				<textElement textAlignment="Center">
 					<font size="8"/>
 				</textElement>
 				<textFieldExpression><![CDATA["Påminnelseavgift"]]></textFieldExpression>
 			</textField>
 			<textField isBlankWhenNull="true">
-				<reportElement x="420" y="2" width="80" height="12" uuid="23500649-b123-462b-a6a5-dce1a0d8fb40"/>
+				<reportElement x="450" y="2" width="50" height="12" uuid="23500649-b123-462b-a6a5-dce1a0d8fb40"/>
 				<textElement textAlignment="Right">
 					<font size="8"/>
 				</textElement>

@@ -1923,7 +1923,7 @@ public class SSReportFactory {    private static final Logger LOG = LoggerFactor
      */
     public static void ReminderReport(final SSMainFrame iMainFrame, final List<SSInvoice> iInvoices) {
         final List<SSInvoice> iAllowedInvoices = iInvoices.stream()
-                .filter(SSInvoiceActionPolicy::canSelectForReminder)
+                .filter(SSInvoiceActionPolicy::canCreateReminder)
                 .collect(Collectors.toList());
         if (iAllowedInvoices.isEmpty()) {
             return;
@@ -1989,9 +1989,59 @@ public class SSReportFactory {    private static final Logger LOG = LoggerFactor
 
                             iMultiPrinter.addReport(iPrinter);
                         }
-                        iMultiPrinter.preview(iMainFrame, iRegisterAdapter);
+                        Map.Entry<SSCustomer, List<SSInvoice>> iSingleCustomerEntry = iInvoicesPerCustomer.size() == 1
+                                ? iInvoicesPerCustomer.entrySet().iterator().next()
+                                : null;
+                        Runnable iEmailAction = null;
+                        if (iSingleCustomerEntry != null) {
+                            SSCustomer iCustomer = iSingleCustomerEntry.getKey();
+                            List<SSInvoice> iCustomerInvoices = iSingleCustomerEntry.getValue();
+
+                            iEmailAction = () -> {
+                                if (iCustomer == null || !SSMail.isOk(iCustomer)) {
+                                    return;
+                                }
+                                sendReminderByEmail(iCustomerInvoices, iCustomer, iLanguage);
+                            };
+                        }
+                        iMultiPrinter.preview(iMainFrame, iRegisterAdapter, null, iEmailAction, true);
 
                     });
+    }
+
+    private static boolean sendReminderByEmail(List<SSInvoice> iInvoices, SSCustomer iCustomer, Locale iLanguage) {
+        if (iInvoices == null || iInvoices.isEmpty() || iCustomer == null) {
+            return false;
+        }
+        SSMultiPrinter iPrinter = new SSMultiPrinter();
+        SSReminderPrinter iReminderPrinter = new SSReminderPrinter(iInvoices, iCustomer, iLanguage);
+
+        iPrinter.addReport(iReminderPrinter);
+        iPrinter.generateReport();
+        iPrinter.getPrinter();
+        String iFileName = "paminnelse.pdf";
+        if (!PDF_FILE_DIR.exists()) {
+            PDF_FILE_DIR.mkdirs();
+        }
+        try {
+            JasperExportManager.exportReportToPdfFile(iPrinter.getPrinter(),
+                    new File(PDF_FILE_DIR, iFileName).getPath());
+        } catch (JRException e) {
+            LOG.error("Unexpected error", e);
+        }
+        String iSubject = "Betalningspåminnelse från " + se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.getCurrentCompany().getName();
+
+        try {
+            if (!SSMail.sendMail(iCustomer.getEMail(), iSubject, iFileName)) {
+                return false;
+            }
+        } catch (MessagingException e) {
+            LOG.error("Unexpected error", e);
+            new SSErrorDialog(SSMainFrame.getInstance(), "mail.somethingwrong");
+            return false;
+        }
+        SSInformationDialog.showDialog(SSMainFrame.getInstance(), "mail.success");
+        return true;
     }
 
     /**

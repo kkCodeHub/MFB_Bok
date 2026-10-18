@@ -259,7 +259,7 @@ public class SSInvoiceFrame extends SSDefaultTableFrame {
                         List<SSInvoice> iSelected = iModel.getObjects(iTable.getSelectedRows());
 
                         iSelected = getInvoices(iSelected);
-                        iSelected.removeIf(iInvoice -> !SSInvoiceActionPolicy.canSelectForReminder(iInvoice));
+                        iSelected.removeIf(iInvoice -> !SSInvoiceActionPolicy.canCreateReminder(iInvoice));
                         if (!iSelected.isEmpty()) {
                             SSReportFactory.ReminderReport(getMainFrame(), iSelected);
                             // updateFrame();
@@ -301,7 +301,7 @@ public class SSInvoiceFrame extends SSDefaultTableFrame {
                 List<SSInvoice> iSelected = iModel.getObjects(iTable.getSelectedRows());
 
                 iSelected = getInvoices(iSelected);
-                iSelected.removeIf(iInvoice -> !SSInvoiceActionPolicy.canSelectForReminder(iInvoice));
+                iSelected.removeIf(iInvoice -> !SSInvoiceActionPolicy.canCreateReminder(iInvoice));
                 if (!iSelected.isEmpty()) {
                     SSReportFactory.ReminderReport(getMainFrame(), iSelected);
                 }
@@ -467,9 +467,7 @@ public class SSInvoiceFrame extends SSDefaultTableFrame {
             for (SSInvoice iInvoice : iInvoices) {
                 if (SSInvoiceMath.iSaldoMap != null
                         && SSInvoiceMath.iSaldoMap.containsKey(iInvoice.getNumber())) {
-                    if (SSInvoiceMath.iSaldoMap.get(iInvoice.getNumber()).signum() != 0
-                            && SSInvoiceMath.expired(iInvoice)
-                            && SSInvoiceActionPolicy.canSelectForReminder(iInvoice)) {
+                    if (SSInvoiceActionPolicy.canCreateReminder(iInvoice)) {
                         iFiltered.add(iInvoice);
                     }
                 }
@@ -650,8 +648,7 @@ public class SSInvoiceFrame extends SSDefaultTableFrame {
         for (SSInvoice iInvoice : iInvoices) {
             SSInvoice iCurrent = getInvoice(iInvoice);
             if (iCurrent == null
-                    || !SSInvoiceMath.expired(iCurrent)
-                    || !SSInvoiceActionPolicy.canSelectForReminder(iCurrent)) {
+                    || !SSInvoiceActionPolicy.canCreateReminder(iCurrent)) {
                 return false;
             }
         }

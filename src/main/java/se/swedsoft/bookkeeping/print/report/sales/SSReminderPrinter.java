@@ -292,6 +292,29 @@ public class SSReminderPrinter extends SSPrinter {
     }
 
     @Override
+    protected String getPreviewKey() {
+        List<Integer> iInvoiceNumbers = new ArrayList<>();
+
+        for (SSInvoice iInvoice : iInvoices) {
+            if (iInvoice != null && iInvoice.getNumber() != null) {
+                iInvoiceNumbers.add(iInvoice.getNumber());
+            }
+        }
+        Collections.sort(iInvoiceNumbers);
+        StringJoiner iJoiner = new StringJoiner(",");
+
+        for (Integer iInvoiceNumber : iInvoiceNumbers) {
+            iJoiner.add(iInvoiceNumber.toString());
+        }
+        String iCustomerKey = iCustomer == null || iCustomer.getNumber() == null
+                ? "no-customer"
+                : iCustomer.getNumber();
+        String iLocaleKey = iLocale == null ? "no-locale" : iLocale.toLanguageTag();
+
+        return getClass().getName() + ":" + iCustomerKey + ":" + iJoiner + ":" + iLocaleKey;
+    }
+
+    @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder();
 
