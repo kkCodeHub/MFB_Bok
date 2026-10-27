@@ -318,6 +318,46 @@ class SSInvoiceActionPolicyV2IntegrationTest {
         Repositories.invoices().delete(invoice);
     }
 
+    @Test
+    void inpaymentSelectionExcludesZeroAndNegativeSaldoInvoices() {
+        SSInvoice positiveSaldoInvoice = persistInvoiceWithBalance("POL-IP-001", "Positive Saldo Customer");
+        SSInvoice zeroSaldoInvoice = persistInvoiceWithBalance("POL-IP-002", "Zero Saldo Customer");
+        SSInvoice negativeSaldoInvoice = persistInvoiceWithBalance("POL-IP-003", "Negative Saldo Customer");
+
+        SSInpayment zeroSaldoInpayment = new SSInpayment();
+        zeroSaldoInpayment.setLocalDate(LocalDate.of(2025, 8, 1));
+        SSInpaymentRow zeroSaldoRow = new SSInpaymentRow();
+        zeroSaldoRow.setInvoiceNr(zeroSaldoInvoice.getNumber());
+        zeroSaldoRow.setValue(new BigDecimal("1000.00"));
+        zeroSaldoRow.setCurrencyRate(BigDecimal.ONE);
+        zeroSaldoInpayment.getRows().add(zeroSaldoRow);
+        Repositories.inpayments().add(zeroSaldoInpayment);
+
+        SSInpayment negativeSaldoInpayment = new SSInpayment();
+        negativeSaldoInpayment.setLocalDate(LocalDate.of(2025, 8, 2));
+        SSInpaymentRow negativeSaldoRow = new SSInpaymentRow();
+        negativeSaldoRow.setInvoiceNr(negativeSaldoInvoice.getNumber());
+        negativeSaldoRow.setValue(new BigDecimal("1100.00"));
+        negativeSaldoRow.setCurrencyRate(BigDecimal.ONE);
+        negativeSaldoInpayment.getRows().add(negativeSaldoRow);
+        Repositories.inpayments().add(negativeSaldoInpayment);
+
+        SSEventTriggerSyncContext.clearCachedLists();
+        List<SSInvoice> selectableInvoices = SSInvoiceMath.getNonPayedOrCreditedInvoices(
+                List.of(positiveSaldoInvoice, zeroSaldoInvoice, negativeSaldoInvoice));
+
+        assertThat(selectableInvoices)
+                .extracting(SSInvoice::getNumber)
+                .contains(positiveSaldoInvoice.getNumber())
+                .doesNotContain(zeroSaldoInvoice.getNumber(), negativeSaldoInvoice.getNumber());
+
+        Repositories.inpayments().delete(zeroSaldoInpayment);
+        Repositories.inpayments().delete(negativeSaldoInpayment);
+        Repositories.invoices().delete(positiveSaldoInvoice);
+        Repositories.invoices().delete(zeroSaldoInvoice);
+        Repositories.invoices().delete(negativeSaldoInvoice);
+    }
+
     private static SSInvoice persistInvoice(String customerNr, String customerName) {
         SSInvoice invoice = invoiceTemplate(customerNr, customerName);
         invoice.getRows().add(invoiceRow("P-" + customerNr, "Policy row", new BigDecimal("500.00"), 1, 3010));

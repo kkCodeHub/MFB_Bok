@@ -276,6 +276,8 @@ public class V2InvoiceRepository {
         }
 
         try {
+            clearInterestInvoicedFlagOnOriginInvoiceV2(invoice, currentCompany.getId());
+
             Integer invoiceId = getInvoiceIdV2(invoice.getNumber(), currentCompany.getId());
             if (invoiceId != null) {
                 try (PreparedStatement deleteRows = connection.prepareStatement(
@@ -296,6 +298,30 @@ public class V2InvoiceRepository {
             SSEventTriggerSyncContext.triggerAction("DELETEINVOICE", "TBL_INVOICE", String.valueOf(invoice.getNumber()));
         } catch (SQLException e) {
             throw handleFailure("delete invoice '" + invoice.getNumber() + "'", e);
+        }
+    }
+
+    private void clearInterestInvoicedFlagOnOriginInvoiceV2(SSInvoice invoice, Integer companyId) throws SQLException {
+        if (invoice == null || invoice.getType() != SSInvoiceType.INTEREST) {
+            return;
+        }
+
+        Integer originInvoiceNumber = invoice.getOriginInvoiceNumber();
+        if (originInvoiceNumber == null || companyId == null) {
+            return;
+        }
+
+        Integer originInvoiceId = getInvoiceIdV2(originInvoiceNumber, companyId);
+        if (originInvoiceId == null) {
+            return;
+        }
+
+        try (PreparedStatement statement = connection.prepareStatement(
+                "UPDATE tbl_invoice SET interest_invoiced=? WHERE id=? AND companyid=?")) {
+            statement.setObject(1, false);
+            statement.setObject(2, originInvoiceId);
+            statement.setObject(3, companyId);
+            statement.executeUpdate();
         }
     }
 

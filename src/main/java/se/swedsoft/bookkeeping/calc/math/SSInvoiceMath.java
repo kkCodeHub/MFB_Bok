@@ -417,7 +417,7 @@ public class SSInvoiceMath extends SSSaleMath {    private static final Logger L
         for (SSInvoice iInvoice : iInvoices) {
             BigDecimal iSaldo = getSaldo(iInvoice.getNumber());
 
-            if (iSaldo.signum() != 0 && SSInvoiceActionPolicy.canRegisterInpayment(iInvoice)) {
+            if (iSaldo.signum() > 0 && SSInvoiceActionPolicy.canRegisterInpayment(iInvoice)) {
                 iFiltered.add(iInvoice);
             }
         }

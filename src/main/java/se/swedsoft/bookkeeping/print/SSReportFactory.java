@@ -2249,6 +2249,51 @@ public class SSReportFactory {    private static final Logger LOG = LoggerFactor
         return true;
     }
 
+    static String buildInpaymentJournalVoucherDescription(Integer pJournalNumber, Collection<Integer> pInvoiceNumbers) {
+        String iDescription = String.format(
+                SSBundle.getBundle().getString("inpaymentjournal.voucher.description"),
+                pJournalNumber);
+        String iInvoiceNumbers = joinInpaymentInvoiceNumbers(pInvoiceNumbers);
+
+        if (iInvoiceNumbers.isEmpty()) {
+            return iDescription;
+        }
+        return iDescription + ", "
+                + String.format(
+                        SSBundle.getBundle().getString("inpaymentjournal.voucher.invoicedescription"),
+                        iInvoiceNumbers);
+    }
+
+    private static Set<Integer> collectInpaymentInvoiceNumbers(List<SSInpayment> pInpayments) {
+        Set<Integer> iInvoiceNumbers = new LinkedHashSet<>();
+
+        if (pInpayments == null || pInpayments.isEmpty()) {
+            return iInvoiceNumbers;
+        }
+        for (SSInpayment iInpayment : pInpayments) {
+            if (iInpayment == null || iInpayment.getRows() == null) {
+                continue;
+            }
+            for (SSInpaymentRow iRow : iInpayment.getRows()) {
+                if (iRow == null || iRow.getInvoiceNr() == null) {
+                    continue;
+                }
+                iInvoiceNumbers.add(iRow.getInvoiceNr());
+            }
+        }
+        return iInvoiceNumbers;
+    }
+
+    static String joinInpaymentInvoiceNumbers(Collection<Integer> pInvoiceNumbers) {
+        if (pInvoiceNumbers == null || pInvoiceNumbers.isEmpty()) {
+            return "";
+        }
+        return pInvoiceNumbers.stream()
+                .filter(Objects::nonNull)
+                .map(String::valueOf)
+                .collect(Collectors.joining(", "));
+    }
+
     private static void persistJournaledInvoice(SSInvoice pInvoice) {
         if (pInvoice instanceof SSCreditInvoice) {
             se.swedsoft.bookkeeping.data.system.SSSalesContext.updateCreditInvoice((SSCreditInvoice) pInvoice);
@@ -2346,11 +2391,9 @@ public class SSReportFactory {    private static final Logger LOG = LoggerFactor
 
         SSVoucher iVoucher = new SSVoucher();
 
-        iVoucher.setDescription(
-                String.format(
-                        SSBundle.getBundle().getString(
-                                "inpaymentjournal.voucher.description"),
-                                iNumber));
+        iVoucher.setDescription(buildInpaymentJournalVoucherDescription(
+                iNumber,
+                collectInpaymentInvoiceNumbers(iFiltered)));
         iVoucher.setLocalDate(iTo);
 
         for (SSInpayment iInpayment : iFiltered) {
@@ -2363,7 +2406,7 @@ public class SSReportFactory {    private static final Logger LOG = LoggerFactor
         final SSVoucher iVoucher1 = SSVoucherMath.compress(iVoucher);
         iVoucher1.setSeries(
                 SSAccountingContext.resolveVoucherSeriesForEventCode(
-                        SSAccountingContext.VOUCHER_EVENT_CODE_SUPPLIER_INVOICE));
+                        SSAccountingContext.VOUCHER_EVENT_CODE_INPAYMENT));
         assignNextVoucherNumberForSeries(iVoucher1);
 
         final ActionListener iCloseListener = e -> {

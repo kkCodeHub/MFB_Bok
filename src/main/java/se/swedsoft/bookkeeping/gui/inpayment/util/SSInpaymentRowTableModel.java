@@ -2,6 +2,7 @@ package se.swedsoft.bookkeeping.gui.inpayment.util;
 
 
 import se.swedsoft.bookkeeping.calc.math.SSInpaymentMath;
+import se.swedsoft.bookkeeping.calc.math.SSInvoiceMath;
 import se.swedsoft.bookkeeping.data.SSInpaymentRow;
 import se.swedsoft.bookkeeping.data.SSInvoice;
 import se.swedsoft.bookkeeping.data.common.SSCurrency;
@@ -15,6 +16,7 @@ import se.swedsoft.bookkeeping.gui.util.table.model.SSTableModel;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
 import java.math.BigDecimal;
+import java.util.Optional;
 
 
 /**
@@ -167,12 +169,16 @@ public class SSInpaymentRowTableModel extends SSTableModel<SSInpaymentRow> {
             SSBundle.getBundle().getString("outpaymentrowtable.column.4")) {
         @Override
         public Object getValue(SSInpaymentRow iObject) {
-            return iObject.getValue();
+            SSInvoice iInvoice = iObject.getInvoice(se.swedsoft.bookkeeping.data.system.SSSalesContext.getInvoices());
+            if (iInvoice == null) {
+                return iObject.getValue();
+            }
+            return SSInpaymentMath.getInpaymentAmountForInvoice(iInvoice);
         }
 
         @Override
         public void setValue(SSInpaymentRow iOutpaymentRow, Object iValue) {
-            iOutpaymentRow.setValue((BigDecimal) iValue);
+            // Fakturabelopp följer fakturans saldo och sätts via fakturaval.
         }
 
         @Override
@@ -229,12 +235,12 @@ public class SSInpaymentRowTableModel extends SSTableModel<SSInpaymentRow> {
             SSBundle.getBundle().getString("outpaymentrowtable.column.6")) {
         @Override
         public Object getValue(SSInpaymentRow iObject) {
-            return iObject.getLocalValue().orElse(null);
+            return iObject.getValue();
         }
 
         @Override
         public void setValue(SSInpaymentRow iObject, Object iValue) {
-            iObject.setLocalValue((BigDecimal) iValue);
+            iObject.setValue((BigDecimal) iValue);
 
         }
 

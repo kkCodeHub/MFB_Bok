@@ -20,8 +20,8 @@ import se.swedsoft.bookkeeping.gui.util.table.editors.SSInvoiceCellEditor;
 import se.swedsoft.bookkeeping.gui.voucher.util.SSVoucherRowTableModel;
 
 import javax.swing.*;
+import javax.swing.event.ChangeListener;
 import javax.swing.event.TableModelEvent;
-import javax.swing.event.TableModelListener;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -36,6 +36,8 @@ import java.math.BigDecimal;
  * Time: 11:24:03
  */
 public class SSInpaymentPanel {
+    private static final int INVOICE_COLUMN_INDEX = 0;
+    private static final int KONTERING_TAB_INDEX = 3;
 
     private SSInpayment iInpayment;
 
@@ -69,6 +71,12 @@ public class SSInpaymentPanel {
 
     private SSVoucherRowTableModel iDifferenceTableModel;
 
+    private boolean iAutoUpdateDescriptionFromInvoice;
+    private boolean iVoucherGenerated;
+    private boolean iReadOnlyMode;
+    protected JTabbedPane iTabbedPane;
+    private ChangeListener iTabbedPaneChangeListener;
+
     /**
      *
      * @param iDialog
@@ -79,7 +87,7 @@ public class SSInpaymentPanel {
         iModel.addColumn(SSInpaymentRowTableModel.COLUMN_INVOICE, true);
         iModel.addColumn(SSInpaymentRowTableModel.COLUMN_CURRENCY);
         iModel.addColumn(SSInpaymentRowTableModel.COLUMN_INVOICE_CURRENCYRATE);
-        iModel.addColumn(SSInpaymentRowTableModel.COLUMN_VALUE, true);
+        iModel.addColumn(SSInpaymentRowTableModel.COLUMN_VALUE);
         iModel.addColumn(SSInpaymentRowTableModel.COLUMN_CURRENCYRATE, true);
         iModel.addColumn(SSInpaymentRowTableModel.COLUMN_PAYED, true);
         iModel.addColumn(SSInpaymentRowTableModel.COLUMN_CURRENCYRATEDIFFERENCE);
@@ -190,15 +198,17 @@ public class SSInpaymentPanel {
             }
         };
 
-        iRefreshVoucher.addActionListener(e -> {
+        iRefreshVoucher.addActionListener(e -> refreshVoucherPreview());
+        iTabbedPaneChangeListener = e -> {
+            if (iTabbedPane.getSelectedIndex() == KONTERING_TAB_INDEX) {
+                refreshVoucherPreview();
+            }
+        };
+        iTabbedPane.addChangeListener(iTabbedPaneChangeListener);
 
-                SSVoucher iVoucher = iInpayment.generateVoucher();
+        iEntered.setEnabled(false);
 
-                iVoucherTableModel.setVoucher(iVoucher, false);
-
-            });
-
-        iModel.addTableModelListener(e -> updateSumFields());
+        iModel.addTableModelListener(this::handleTableModelChange);
 
         SwingUtilities.invokeLater(() -> iDate.getEditor().getComponent(0).requestFocusInWindow());
 
@@ -328,8 +338,6 @@ public class SSInpaymentPanel {
         iInpayment.setText(iText.getText());
         // Standardkonton
         iInpayment.setDefaultAccounts(iDefaultAccounts.getDefaultAccounts());
-        // Bokförd
-        iInpayment.setEntered(iEntered.isSelected());
 
         // Generate the voucher
         iInpayment.generateVoucher();
@@ -361,8 +369,96 @@ public class SSInpaymentPanel {
         iDifferenceTableModel.setVoucher(iInpayment.getDifference(), false);
 
         iModel.setObjects(iInpayment.getRows());
+        iVoucherGenerated = false;
 
         updateSumFields();
+    }
+
+    public boolean isVoucherGenerated() {
+        return iVoucherGenerated;
+    }
+
+    public boolean isReadOnlyMode() {
+        return iReadOnlyMode;
+    }
+
+    public void setReadOnlyMode(boolean pReadOnlyMode) {
+        iReadOnlyMode = pReadOnlyMode;
+
+        setEditableState(iPanel, !pReadOnlyMode);
+        iButtonPanel.getCancelButton().setEnabled(true);
+        iButtonPanel.getOkButton().setEnabled(!pReadOnlyMode);
+        iEntered.setEnabled(false);
+    }
+
+    public void setAutoUpdateDescriptionFromInvoice(boolean pEnableAutoUpdate) {
+        iAutoUpdateDescriptionFromInvoice = pEnableAutoUpdate;
+        updateDescriptionFromInvoices();
+    }
+
+    private void refreshVoucherPreview() {
+        if (iInpayment == null) {
+            return;
+        }
+        SSVoucher iVoucher = iInpayment.generateVoucher();
+        iVoucherTableModel.setVoucher(iVoucher, false);
+        iVoucherGenerated = true;
+    }
+
+    private void setEditableState(Component pComponent, boolean pEnabled) {
+        if (pComponent == null) {
+            return;
+        }
+
+        if (pComponent instanceof JTextField
+                || pComponent instanceof JTextArea
+                || pComponent instanceof JCheckBox
+                || pComponent instanceof JComboBox
+                || pComponent instanceof JTable
+                || pComponent instanceof AbstractButton) {
+            pComponent.setEnabled(pEnabled);
+        }
+
+        if (pComponent instanceof Container) {
+            for (Component iChild : ((Container) pComponent).getComponents()) {
+                setEditableState(iChild, pEnabled);
+            }
+        }
+    }
+
+    private void handleTableModelChange(TableModelEvent pEvent) {
+        updateSumFields();
+
+        if (isInvoiceChange(pEvent)) {
+            updateDescriptionFromInvoices();
+        }
+    }
+
+    private boolean isInvoiceChange(TableModelEvent pEvent) {
+        if (!iAutoUpdateDescriptionFromInvoice) {
+            return false;
+        }
+        if (pEvent == null) {
+            return true;
+        }
+        int iEventType = pEvent.getType();
+
+        if (iEventType == TableModelEvent.INSERT || iEventType == TableModelEvent.DELETE) {
+            return true;
+        }
+        if (iEventType == TableModelEvent.UPDATE) {
+            int iColumn = pEvent.getColumn();
+            return iColumn == INVOICE_COLUMN_INDEX || iColumn == TableModelEvent.ALL_COLUMNS;
+        }
+
+        return false;
+    }
+
+    private void updateDescriptionFromInvoices() {
+        if (!iAutoUpdateDescriptionFromInvoice || iInpayment == null) {
+            return;
+        }
+        iText.setText(iInpayment.getDefaultDescription().orElse(""));
     }
 
     /**
@@ -370,9 +466,10 @@ public class SSInpaymentPanel {
      *
      */
     private void updateSumFields() {
-        BigDecimal iSum = SSInpaymentMath.getSum(iInpayment);
+        BigDecimal iSum = iInpayment == null ? BigDecimal.ZERO : SSInpaymentMath.getSum(iInpayment);
 
         this.iSum.setValue(iSum);
+        iButtonPanel.getOkButton().setEnabled(iSum.signum() != 0);
     }
 
     /**
@@ -405,6 +502,11 @@ public class SSInpaymentPanel {
         }
         iRefreshVoucher.removeAll();
         iRefreshVoucher = null;
+        if (iTabbedPane != null && iTabbedPaneChangeListener != null) {
+            iTabbedPane.removeChangeListener(iTabbedPaneChangeListener);
+        }
+        iTabbedPane = null;
+        iTabbedPaneChangeListener = null;
         iSum = null;
         iDifferenceTable.dispose();
         iDifferenceTable = null;

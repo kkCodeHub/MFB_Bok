@@ -245,8 +245,34 @@ class SSInvoiceV2RepositoryTest {
     }
 
     @Test
+    void deletingInterestInvoiceClearsOriginInvoiceInterestFlag() {
+        SSInvoice originInvoice = invoice("INV-REPO-CUST-008", "Origin Invoice With Interest Flag");
+        originInvoice.setType(SSInvoiceType.NORMAL);
+        originInvoice.setInterestInvoiced(true);
+        originInvoice.getRows().add(invoiceRow("P-INV-REPO-010", "Origin row", new BigDecimal("180.00"), 1, 3010));
+        Repositories.invoices().add(originInvoice);
+
+        SSInvoice interestInvoice = invoice("INV-REPO-CUST-009", "Interest Invoice To Delete");
+        interestInvoice.setType(SSInvoiceType.INTEREST);
+        interestInvoice.setOriginInvoiceNumber(originInvoice.getNumber());
+        interestInvoice.getRows().add(invoiceRow("P-INV-REPO-011", "Interest row", new BigDecimal("24.00"), 1, 3041));
+        Repositories.invoices().add(interestInvoice);
+
+        Integer originNumber = originInvoice.getNumber();
+        Repositories.invoices().delete(interestInvoice);
+
+        se.swedsoft.bookkeeping.data.system.SSEventTriggerSyncContext.clearCachedLists();
+        Optional<SSInvoice> refreshedOrigin = Repositories.invoices().findByInvoice(originInvoice);
+        assertThat(refreshedOrigin).isPresent();
+        assertThat(refreshedOrigin.get().isInterestInvoiced()).isFalse();
+        assertThat(loadInterestFlag(originNumber)).isFalse();
+
+        Repositories.invoices().delete(originInvoice);
+    }
+
+    @Test
     void addRejectsInterestInvoiceWithoutOriginInvoiceNumber() {
-        SSInvoice interestInvoice = invoice("INV-REPO-CUST-008", "Interest Without Origin");
+        SSInvoice interestInvoice = invoice("INV-REPO-CUST-010", "Interest Without Origin");
         interestInvoice.setType(SSInvoiceType.INTEREST);
         interestInvoice.setOriginInvoiceNumber(null);
 
@@ -371,6 +397,23 @@ class SSInvoiceV2RepositoryTest {
             throw new IllegalStateException("Could not read cancelled flag for invoice " + invoiceNumber, e);
         }
         throw new IllegalStateException("Invoice not found when reading cancelled flag: " + invoiceNumber);
+    }
+
+    private static boolean loadInterestFlag(Integer invoiceNumber) {
+        Integer companyId = SSDB.getInstance().getCurrentCompany().getId();
+        try (PreparedStatement statement = connection.prepareStatement(
+                "SELECT interest_invoiced FROM tbl_invoice WHERE number=? AND companyid=?")) {
+            statement.setObject(1, invoiceNumber);
+            statement.setObject(2, companyId);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (resultSet.next()) {
+                    return resultSet.getBoolean(1);
+                }
+            }
+        } catch (Exception e) {
+            throw new IllegalStateException("Could not read interest flag for invoice " + invoiceNumber, e);
+        }
+        throw new IllegalStateException("Invoice not found when reading interest flag: " + invoiceNumber);
     }
 
     private static int countInvoiceRows(Integer invoiceNumber) {

@@ -48,12 +48,6 @@ public class SSInpaymentMath {
      * @return the converted value
      */
     public static BigDecimal convertToLocal(SSInpaymentRow iRow, BigDecimal iValue) {
-        BigDecimal iCurrencyRate = iRow.getCurrencyRate();
-
-        if (iCurrencyRate != null) {
-            iValue = iValue.multiply(iCurrencyRate);
-        }
-
         return iValue;
     }
 
@@ -242,6 +236,24 @@ public class SSInpaymentMath {
     }
 
     /**
+     * Resolve default inpayment amount from invoice saldo.
+     * Negative saldo is clamped to zero.
+     *
+     * @param iInvoice the invoice
+     * @return default inpayment amount
+     */
+    public static BigDecimal getInpaymentAmountForInvoice(SSInvoice iInvoice) {
+        if (iInvoice == null) {
+            return BigDecimal.ZERO.setScale(2);
+        }
+        BigDecimal iSaldo = SSInvoiceMath.getSaldo(iInvoice);
+        if (iSaldo.signum() < 0) {
+            return BigDecimal.ZERO.setScale(2);
+        }
+        return iSaldo;
+    }
+
+    /**
      * Get the difference between the value of the sales in the sales currency and the payed value, in the company currency such as
      *
      * return (Value of row) * (payment currency rate - sales currency rate)
@@ -250,15 +262,13 @@ public class SSInpaymentMath {
      * @return the currency rate difference
      */
     public static Optional<BigDecimal> getCurrencyRateDifference(SSInpaymentRow iInpaymentRow) {
-        BigDecimal iPaymentRate = iInpaymentRow.getCurrencyRate();
-        BigDecimal iCurrencyRate = iInpaymentRow.getInvoiceCurrencyRate();
-        BigDecimal iValue = iInpaymentRow.getValue();
+        Optional<BigDecimal> iInvoiceSaldo = getSaldo(iInpaymentRow);
+        BigDecimal iPaymentValue = iInpaymentRow.getValue();
 
-        if (iPaymentRate == null || iCurrencyRate == null || iValue == null) {
+        if (iInvoiceSaldo.isEmpty() || iPaymentValue == null) {
             return Optional.empty();
         }
-
-        return Optional.of(iValue.multiply(iPaymentRate.subtract(iCurrencyRate)));
+        return Optional.of(iInvoiceSaldo.get().subtract(iPaymentValue));
     }
 
     /**

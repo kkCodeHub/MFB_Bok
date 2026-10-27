@@ -170,6 +170,18 @@ class SSInpaymentV2IntegrationTest {
         assertThat(all).extracting(SSInpayment::getNumber).doesNotContain(inpaymentNumber);
     }
 
+    @Test
+    void generatedVoucherDescriptionContainsInvoiceNumbers() {
+        SSInpayment inpayment = inpayment("Voucher description test");
+        inpayment.setNumber(42);
+        inpayment.getRows().add(row(10101, "SEK", "1.000000", "500.00", "1.000000"));
+        inpayment.getRows().add(row(10102, "SEK", "1.000000", "300.00", "1.000000"));
+        inpayment.getRows().add(row(10101, "SEK", "1.000000", "200.00", "1.000000"));
+
+        assertThat(inpayment.generateVoucher().getDescription())
+                .isEqualTo("Kontering för inbetalning 42, Faktura 10101, 10102");
+    }
+
     private static SSInpayment inpayment(String text) {
         SSInpayment inpayment = new SSInpayment();
         inpayment.setLocalDate(LocalDate.of(2025, 7, 30));
@@ -203,5 +215,4 @@ class SSInpaymentV2IntegrationTest {
         return company.getId();
     }
 }
-
 

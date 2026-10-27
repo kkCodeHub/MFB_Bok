@@ -361,6 +361,15 @@ public class SSInpayment implements SSTableSearchable {
         return false;
     }
 
+    public Optional<String> getDefaultDescription() {
+        Optional<String> iJoinedInvoiceNumbers = getJoinedInvoiceNumbers();
+        if (iJoinedInvoiceNumbers.isEmpty()) {
+            return Optional.empty();
+        }
+        String iTemplate = SSBundle.getBundle().getString("inpaymentframe.defaultdescription");
+        return Optional.of(String.format(iTemplate, iJoinedInvoiceNumbers.get()));
+    }
+
     // //////////////////////////////////////////////////
 
     public String toString() {
@@ -393,39 +402,33 @@ public class SSInpayment implements SSTableSearchable {
      * @return
      */
     public SSVoucher generateVoucher() {
-        String iDescription = SSBundle.getBundle().getString(
+        String iDescriptionTemplate = SSBundle.getBundle().getString(
                 "inpaymentframe.voucherdescription");
+        String iInvoiceDescriptionTemplate = SSBundle.getBundle().getString(
+                "inpaymentframe.voucherinvoicedescription");
 
         SSAccountPlan iAccountPlan = se.swedsoft.bookkeeping.data.system.SSAccountingContext.getCurrentAccountPlan();
 
         BigDecimal iSum = SSInpaymentMath.getSum(this);
-        BigDecimal iCurrencyRateDifference = SSInpaymentMath.getCurrencyRateDifference(
-                this);
         BigDecimal iDifferenceSum = SSVoucherMath.getCreditMinusDebetSum(iDifference);
 
-        iSum = iSum.subtract(iCurrencyRateDifference);
         iSum = iSum.subtract(iDifferenceSum);
 
         iVoucher = new SSVoucher();
         iVoucher.setLocalDate(SSDateUtil.today());
         iVoucher.setNumber(0);
-        iVoucher.setDescription(String.format(iDescription, iNumber));
+        String iDescription = String.format(iDescriptionTemplate, iNumber);
+
+        Optional<String> iJoinedInvoiceNumbers = getJoinedInvoiceNumbers();
+        if (iJoinedInvoiceNumbers.isPresent()) {
+            iDescription += ", " + String.format(iInvoiceDescriptionTemplate, iJoinedInvoiceNumbers.get());
+        }
+        iVoucher.setDescription(iDescription);
 
         // Add the sum
         iVoucher.addVoucherRow(
                 getDefaultAccount(iAccountPlan, SSDefaultAccount.CustomerClaim).orElse(null),
                 iSum.negate());
-
-        // Add the currency change if not zero
-        if (iCurrencyRateDifference.signum() > 0) {
-            iVoucher.addVoucherRow(
-                    getDefaultAccount(iAccountPlan, SSDefaultAccount.CurrencyProfit).orElse(null),
-                    iCurrencyRateDifference.negate());
-        } else {
-            iVoucher.addVoucherRow(
-                    getDefaultAccount(iAccountPlan, SSDefaultAccount.CurrencyLoss).orElse(null),
-                    iCurrencyRateDifference.negate());
-        }
 
         // Add all rows from the difference voucher
         for (SSVoucherRow iVoucherRow : iDifference.getRows()) {
@@ -447,6 +450,29 @@ public class SSInpayment implements SSTableSearchable {
         iVoucher = SSVoucherMath.compress(iVoucher);
 
         return iVoucher;
+    }
+
+    private Optional<String> getJoinedInvoiceNumbers() {
+        Set<Integer> iInvoiceNumbers = new LinkedHashSet<>();
+
+        for (SSInpaymentRow iRow : getRows()) {
+            Integer iInvoiceNumber = iRow.getInvoiceNr();
+            if (iInvoiceNumber != null) {
+                iInvoiceNumbers.add(iInvoiceNumber);
+            }
+        }
+        if (iInvoiceNumbers.isEmpty()) {
+            return Optional.empty();
+        }
+
+        StringBuilder iJoinedInvoiceNumbers = new StringBuilder();
+        for (Integer iInvoiceNumber : iInvoiceNumbers) {
+            if (iJoinedInvoiceNumbers.length() > 0) {
+                iJoinedInvoiceNumbers.append(", ");
+            }
+            iJoinedInvoiceNumbers.append(iInvoiceNumber);
+        }
+        return Optional.of(iJoinedInvoiceNumbers.toString());
     }
 
 }

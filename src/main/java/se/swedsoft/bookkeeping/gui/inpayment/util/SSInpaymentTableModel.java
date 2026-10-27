@@ -5,6 +5,7 @@ import se.swedsoft.bookkeeping.calc.math.SSInpaymentMath;
 import se.swedsoft.bookkeeping.data.SSInpayment;
 import se.swedsoft.bookkeeping.data.SSProduct;
 import se.swedsoft.bookkeeping.gui.util.SSBundle;
+import se.swedsoft.bookkeeping.gui.util.graphics.SSIcon;
 import se.swedsoft.bookkeeping.gui.util.model.SSDefaultTableModel;
 import se.swedsoft.bookkeeping.gui.util.table.SSTable;
 import se.swedsoft.bookkeeping.gui.util.table.editors.SSBigDecimalCellRenderer;
@@ -15,6 +16,7 @@ import se.swedsoft.bookkeeping.util.SSDateUtil;
 import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
+import javax.swing.ImageIcon;
 
 
 /**
@@ -38,6 +40,7 @@ public class SSInpaymentTableModel extends SSDefaultTableModel<SSInpayment> {
      */
     public SSInpaymentTableModel(List<SSInpayment> pObjects) {
         super(pObjects);
+        addColumn("");
         addColumn(SSBundle.getBundle().getString("inpaymenttable.column.1"));
         addColumn(SSBundle.getBundle().getString("inpaymenttable.column.2"));
         addColumn(SSBundle.getBundle().getString("inpaymenttable.column.3"));
@@ -57,18 +60,24 @@ public class SSInpaymentTableModel extends SSDefaultTableModel<SSInpayment> {
 
         switch (columnIndex) {
         case 0:
-            value = iInpayment.getNumber();
+            value = iInpayment.isEntered()
+                    ? SSIcon.getIcon("ICON_ENTERED16", SSIcon.IconState.NORMAL)
+                    : null;
             break;
 
         case 1:
-            value = SSDateUtil.toDate(iInpayment.getLocalDate());
+            value = iInpayment.getNumber();
             break;
 
         case 2:
-            value = iInpayment.getText();
+            value = SSDateUtil.toDate(iInpayment.getLocalDate());
             break;
 
         case 3:
+            value = iInpayment.getText();
+            break;
+
+        case 4:
             value = SSInpaymentMath.getSum(iInpayment);
             break;
         }
@@ -80,15 +89,18 @@ public class SSInpaymentTableModel extends SSDefaultTableModel<SSInpayment> {
     public Class<?> getColumnClass(int columnIndex) {
         switch (columnIndex) {
         case 0:
-            return String.class;
+            return ImageIcon.class;
 
         case 1:
-            return Date.class;
-
-        case 2:
             return String.class;
 
+        case 2:
+            return Date.class;
+
         case 3:
+            return String.class;
+
+        case 4:
             return BigDecimal.class;
         }
         return super.getColumnClass(columnIndex);
@@ -99,10 +111,11 @@ public class SSInpaymentTableModel extends SSDefaultTableModel<SSInpayment> {
      * @param iTable
      */
     public static void setupTable(SSTable iTable) {
-        iTable.getColumnModel().getColumn(0).setPreferredWidth(100);
-        iTable.getColumnModel().getColumn(1).setPreferredWidth(110);
-        iTable.getColumnModel().getColumn(2).setPreferredWidth(470);
-        iTable.getColumnModel().getColumn(3).setPreferredWidth(95);
+        iTable.getColumnModel().getColumn(0).setPreferredWidth(20);
+        iTable.getColumnModel().getColumn(1).setPreferredWidth(100);
+        iTable.getColumnModel().getColumn(2).setPreferredWidth(110);
+        iTable.getColumnModel().getColumn(3).setPreferredWidth(470);
+        iTable.getColumnModel().getColumn(4).setPreferredWidth(95);
 
         iTable.setDefaultRenderer(Date.class, new SSDateCellRenderer());
 

@@ -8,6 +8,7 @@ import se.swedsoft.bookkeeping.gui.inpayment.util.SSInpaymentTableModel;
 import se.swedsoft.bookkeeping.gui.util.SSBundle;
 import se.swedsoft.bookkeeping.gui.util.components.SSButton;
 import se.swedsoft.bookkeeping.gui.util.components.SSMenuButton;
+import se.swedsoft.bookkeeping.gui.util.dialogs.SSInformationDialog;
 import se.swedsoft.bookkeeping.gui.util.dialogs.SSErrorDialog;
 import se.swedsoft.bookkeeping.gui.util.dialogs.SSQueryDialog;
 import se.swedsoft.bookkeeping.gui.util.frame.SSDefaultTableFrame;
@@ -238,6 +239,7 @@ public class SSInpaymentFrame extends SSDefaultTableFrame {
         int iResponce = iDialog.getResponce();
 
         if (iResponce == JOptionPane.YES_OPTION) {
+            boolean iBlockedDelete = false;
             for (SSInpayment iInpayment : delete) {
                     SSInpayment iCurrentInpayment = getInpayment(iInpayment);
 
@@ -246,9 +248,16 @@ public class SSInpaymentFrame extends SSDefaultTableFrame {
                         iModel.delete(iInpayment);
                         continue;
                     }
+                    if (iCurrentInpayment.isEntered()) {
+                        iBlockedDelete = true;
+                        continue;
+                    }
 
                     Repositories.inpayments().delete(iCurrentInpayment);
                     iModel.delete(iInpayment);
+            }
+            if (iBlockedDelete) {
+                SSInformationDialog.showDialog(getMainFrame(), "inpaymentframe.deletelocked");
             }
         }
     }

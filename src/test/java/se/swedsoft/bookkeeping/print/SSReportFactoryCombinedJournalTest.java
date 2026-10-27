@@ -161,6 +161,20 @@ class SSReportFactoryCombinedJournalTest {
         assertThat(messageShown[0]).isFalse();
     }
 
+    @Test
+    void buildInpaymentJournalVoucherDescriptionIncludesUniqueInvoiceNumbers() {
+        String description = SSReportFactory.buildInpaymentJournalVoucherDescription(77, List.of(1001, 1002, 1003));
+
+        assertThat(description).isEqualTo("Inbetalningsjournal 77, Faktura 1001, 1002, 1003");
+    }
+
+    @Test
+    void buildInpaymentJournalVoucherDescriptionFallsBackWhenNoInvoiceNumbersExist() {
+        String description = SSReportFactory.buildInpaymentJournalVoucherDescription(78, List.of());
+
+        assertThat(description).isEqualTo("Inbetalningsjournal 78");
+    }
+
     private static SSInvoice invoice(LocalDate date, boolean entered, boolean cancelled) {
         SSInvoice invoice = new SSInvoice();
         invoice.setNumber(1000 + date.getDayOfMonth());

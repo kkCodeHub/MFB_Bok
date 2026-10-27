@@ -63,6 +63,12 @@ class SSAccountingContextVoucherSeriesResolverTest {
     }
 
     @Test
+    void shouldResolveSeriesFromCurrentYearMappingForInpaymentEvent() {
+        assertThat(SSAccountingContext.resolveVoucherSeriesForEventCode(
+                SSAccountingContext.VOUCHER_EVENT_CODE_INPAYMENT)).isEqualTo("C");
+    }
+
+    @Test
     void shouldFallbackToSeriesAWhenEventCodeIsUnknown() {
         assertThat(SSAccountingContext.resolveVoucherSeriesForEventCode("UNKNOWN")).isEqualTo("A");
     }
