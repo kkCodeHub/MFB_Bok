@@ -170,6 +170,29 @@ class SSOutpaymentV2IntegrationTest {
         assertThat(all).extracting(SSOutpayment::getNumber).doesNotContain(outpaymentNumber);
     }
 
+    @Test
+    void generatedDefaultDescriptionContainsInvoiceNumbers() {
+        SSOutpayment outpayment = outpayment("Default description test");
+        outpayment.getRows().add(row(20101, "SEK", "1.000000", "500.00", "1.000000"));
+        outpayment.getRows().add(row(20102, "SEK", "1.000000", "300.00", "1.000000"));
+        outpayment.getRows().add(row(20101, "SEK", "1.000000", "200.00", "1.000000"));
+
+        assertThat(outpayment.getDefaultDescription())
+                .contains("Utbetalning Leverantörsfaktura 20101, 20102");
+    }
+
+    @Test
+    void generatedVoucherDescriptionContainsInvoiceNumbers() {
+        SSOutpayment outpayment = outpayment("Voucher description test");
+        outpayment.setNumber(42);
+        outpayment.getRows().add(row(20101, "SEK", "1.000000", "500.00", "1.000000"));
+        outpayment.getRows().add(row(20102, "SEK", "1.000000", "300.00", "1.000000"));
+        outpayment.getRows().add(row(20101, "SEK", "1.000000", "200.00", "1.000000"));
+
+        assertThat(outpayment.generateVoucher().getDescription())
+                .isEqualTo("Kontering för utbetalning 42, Faktura 20101, 20102");
+    }
+
     private static SSOutpayment outpayment(String text) {
         SSOutpayment outpayment = new SSOutpayment();
         outpayment.setLocalDate(LocalDate.of(2025, 8, 12));
@@ -203,5 +226,4 @@ class SSOutpaymentV2IntegrationTest {
         return company.getId();
     }
 }
-
 

@@ -845,6 +845,7 @@ public class SSReportFactory {    private static final Logger LOG = LoggerFactor
 
         final List<SSInpayment> iInpayments = iDialog.getElementsToPrint();
         final boolean           isDateSelected = iDialog.isDateSelected();
+        final boolean           isCustomerSelected = iDialog.isCustomerSelected();
         final boolean           isInvoiceSelected = iDialog.isInvoiceSelected();
 
         SSProgressDialog.runProgress(iMainFrame,
@@ -858,6 +859,15 @@ public class SSReportFactory {    private static final Logger LOG = LoggerFactor
 
                             iPrinter.addParameter("dateFrom", SSDateUtil.toDate(iDateFrom));
                             iPrinter.addParameter("dateTo", SSDateUtil.toDate(iDateTo));
+                        }
+                        if (isCustomerSelected) {
+                            SSCustomer iCustomer = iDialog.getCustomer();
+
+                            iPrinter.addParameter("periodTitle",
+                                    SSBundle.getBundle().getString(
+                                    "inpaymentlistreport.customertitle"));
+                            iPrinter.addParameter("periodText",
+                                    iCustomer == null ? null : iCustomer.getNumber() + " " + iCustomer.getName());
                         }
                         if (isInvoiceSelected) {
                             SSInvoice iInvoice = iDialog.getInvoice();
@@ -889,6 +899,7 @@ public class SSReportFactory {    private static final Logger LOG = LoggerFactor
 
         final List<SSOutpayment> iInpayments = iDialog.getElementsToPrint();
         final boolean           isDateSelected = iDialog.isDateSelected();
+        final boolean           isSupplierSelected = iDialog.isSupplierSelected();
         final boolean           isInvoiceSelected = iDialog.isInvoiceSelected();
 
         SSProgressDialog.runProgress(iMainFrame,
@@ -899,6 +910,15 @@ public class SSReportFactory {    private static final Logger LOG = LoggerFactor
                         if (isDateSelected) {
                             iPrinter.addParameter("dateFrom", SSDateUtil.toDate(iDialog.getLocalDateFrom()));
                             iPrinter.addParameter("dateTo", SSDateUtil.toDate(iDialog.getLocalDateTo()));
+                        }
+                        if (isSupplierSelected) {
+                            SSSupplier iSupplier = iDialog.getSupplier();
+
+                            iPrinter.addParameter("periodTitle",
+                                    SSBundle.getBundle().getString(
+                                    "outpaymentlistreport.suppliertitle"));
+                            iPrinter.addParameter("periodText",
+                                    iSupplier == null ? null : iSupplier.getNumber() + " " + iSupplier.getName());
                         }
                         if (isInvoiceSelected) {
                             SSSupplierInvoice iInvoice = iDialog.getInvoice();

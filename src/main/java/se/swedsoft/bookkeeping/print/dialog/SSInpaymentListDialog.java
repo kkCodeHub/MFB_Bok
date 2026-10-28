@@ -4,9 +4,11 @@ package se.swedsoft.bookkeeping.print.dialog;
 import se.swedsoft.bookkeeping.calc.math.SSInpaymentMath;
 import se.swedsoft.bookkeeping.calc.util.SSFilter;
 import se.swedsoft.bookkeeping.calc.util.SSFilterFactory;
+import se.swedsoft.bookkeeping.data.SSCustomer;
 import se.swedsoft.bookkeeping.data.SSInpayment;
 import se.swedsoft.bookkeeping.data.SSInvoice;
 import se.swedsoft.bookkeeping.gui.SSMainFrame;
+import se.swedsoft.bookkeeping.gui.customer.util.SSCustomerTableModel;
 import se.swedsoft.bookkeeping.gui.invoice.util.SSInvoiceTableModel;
 import se.swedsoft.bookkeeping.gui.util.SSBundle;
 import se.swedsoft.bookkeeping.gui.util.SSButtonPanel;
@@ -23,7 +25,9 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.time.LocalDate;
 import java.util.Date;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 
 /**
@@ -37,8 +41,10 @@ public class SSInpaymentListDialog extends SSDialog {
     private SSButtonPanel iButtonPanel;
 
     private JCheckBox iCheckDate;
+    private JCheckBox iCheckCustomer;
     private JCheckBox iCheckInvoice;
 
+    private SSTableComboBox<SSCustomer> iCustomer;
     private SSTableComboBox<SSInvoice> iInvoice;
     private SSDateChooser iToDate;
     private SSDateChooser iFromDate;
@@ -58,11 +64,15 @@ public class SSInpaymentListDialog extends SSDialog {
 
 	getRootPane().setDefaultButton(iButtonPanel.getOkButton());
 
+        iCustomer.setModel(createCustomerDropDownModel());
+        iCustomer.setSearchColumns(0);
+
         iInvoice.setModel(SSInvoiceTableModel.getDropDownModel());
         iInvoice.setSearchColumns(0);
 
         ChangeListener iChangeListener = e -> {
 
+                iCustomer.setEnabled(iCheckCustomer.isSelected());
                 iInvoice.setEnabled(iCheckInvoice.isSelected());
 
                 iFromDate.setEnabled(iCheckDate.isSelected());
@@ -71,6 +81,7 @@ public class SSInpaymentListDialog extends SSDialog {
             };
 
         iCheckDate.addChangeListener(iChangeListener);
+        iCheckCustomer.addChangeListener(iChangeListener);
         iCheckInvoice.addChangeListener(iChangeListener);
 
         iChangeListener.stateChanged(null);
@@ -95,7 +106,18 @@ public class SSInpaymentListDialog extends SSDialog {
         SSFilterFactory<SSInpayment> iFactory = new SSFilterFactory<>(
                 iInpayments);
 
-        // Filter by a customer
+        // Filter by customer
+        if (iCheckCustomer.isSelected() && iCustomer.getSelected() != null) {
+            final SSCustomer iCustomer = this.iCustomer.getSelected();
+
+            iFactory.applyFilter(new SSFilter<>() {
+                public boolean applyFilter(SSInpayment iInpayment) {
+                    return SSInpaymentMath.hasCustomer(iInpayment, iCustomer);
+                }
+            });
+        }
+
+        // Filter by invoice
         if (iCheckInvoice.isSelected() && iInvoice.getSelected() != null) {
             final SSInvoice iInvoice = this.iInvoice.getSelected();
 
@@ -127,6 +149,10 @@ public class SSInpaymentListDialog extends SSDialog {
      */
     public boolean isDateSelected() {
         return iCheckDate.isSelected();
+    }
+
+    public boolean isCustomerSelected() {
+        return iCheckCustomer.isSelected();
     }
 
     /**
@@ -169,14 +195,49 @@ public class SSInpaymentListDialog extends SSDialog {
         return iInvoice.getSelected();
     }
 
+    public SSCustomer getCustomer() {
+        return iCustomer.getSelected();
+    }
+
+    private SSCustomerTableModel createCustomerDropDownModel() {
+        SSCustomerTableModel iModel = new SSCustomerTableModel(getCustomersWithInpayments());
+
+        iModel.addColumn(SSCustomerTableModel.COLUMN_NUMBER);
+        iModel.addColumn(SSCustomerTableModel.COLUMN_NAME);
+
+        return iModel;
+    }
+
+    private List<SSCustomer> getCustomersWithInpayments() {
+        List<SSInpayment> iInpayments = Repositories.inpayments().findAll();
+        List<SSCustomer> iCustomers = se.swedsoft.bookkeeping.data.system.SSSalesContext.getCustomers();
+        Set<SSCustomer> iCustomersWithInpayments = new LinkedHashSet<>();
+
+        for (SSInpayment iInpayment : iInpayments) {
+            for (SSInvoice iInvoice : iInpayment.getInvoices()) {
+                SSCustomer iCustomer = iInvoice.getCustomer(iCustomers);
+                if (iCustomer != null) {
+                    iCustomersWithInpayments.add(iCustomer);
+                }
+            }
+        }
+
+        return iCustomersWithInpayments.stream()
+                .filter(iCustomer -> iCustomer != null && iCustomer.getNumber() != null)
+                .sorted((pLeft, pRight) -> pLeft.getNumber().compareTo(pRight.getNumber()))
+                .toList();
+    }
+
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder();
 
         sb.append("se.swedsoft.bookkeeping.print.dialog.SSInpaymentListDialog");
         sb.append("{iButtonPanel=").append(iButtonPanel);
+        sb.append(", iCheckCustomer=").append(iCheckCustomer);
         sb.append(", iCheckDate=").append(iCheckDate);
         sb.append(", iCheckInvoice=").append(iCheckInvoice);
+        sb.append(", iCustomer=").append(iCustomer);
         sb.append(", iFromDate=").append(iFromDate);
         sb.append(", iInvoice=").append(iInvoice);
         sb.append(", iPanel=").append(iPanel);

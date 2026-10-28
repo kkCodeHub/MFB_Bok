@@ -34,6 +34,7 @@ public final class SSAccountingContext {
     private static final String DEFAULT_VOUCHER_SERIES = "A";
     public static final String VOUCHER_EVENT_CODE_CUSTOMER_INVOICE = "KF";
     public static final String VOUCHER_EVENT_CODE_INPAYMENT = "IB";
+    public static final String VOUCHER_EVENT_CODE_OUTPAYMENT = "UB";
     public static final String VOUCHER_EVENT_CODE_SUPPLIER_INVOICE = "LF";
 
     private SSAccountingContext() {

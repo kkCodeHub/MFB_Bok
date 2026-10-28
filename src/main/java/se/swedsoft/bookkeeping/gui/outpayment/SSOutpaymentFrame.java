@@ -8,6 +8,7 @@ import se.swedsoft.bookkeeping.gui.outpayment.util.SSOutpaymentTableModel;
 import se.swedsoft.bookkeeping.gui.util.SSBundle;
 import se.swedsoft.bookkeeping.gui.util.components.SSButton;
 import se.swedsoft.bookkeeping.gui.util.components.SSMenuButton;
+import se.swedsoft.bookkeeping.gui.util.dialogs.SSInformationDialog;
 import se.swedsoft.bookkeeping.gui.util.dialogs.SSErrorDialog;
 import se.swedsoft.bookkeeping.gui.util.dialogs.SSQueryDialog;
 import se.swedsoft.bookkeeping.gui.util.frame.SSDefaultTableFrame;
@@ -19,7 +20,6 @@ import se.swedsoft.bookkeeping.print.SSReportFactory;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.util.List;
 
 
@@ -150,11 +150,13 @@ public class SSOutpaymentFrame extends SSDefaultTableFrame {
         iTable = new SSTable();
 
         iModel = new SSOutpaymentTableModel();
+        iModel.addColumn(SSOutpaymentTableModel.COLUMN_ENTERED);
         iModel.addColumn(SSOutpaymentTableModel.COLUMN_NUMBER);
         iModel.addColumn(SSOutpaymentTableModel.COLUMN_DATE);
         iModel.addColumn(SSOutpaymentTableModel.COLUMN_TEXT);
         iModel.addColumn(SSOutpaymentTableModel.COLUMN_SUM);
         iModel.setupTable(iTable);
+        SSOutpaymentTableModel.setupStatusTable(iTable);
 
         iTable.addDblClickListener(
                 e -> {
@@ -239,6 +241,7 @@ public class SSOutpaymentFrame extends SSDefaultTableFrame {
         int iResponce = iDialog.getResponce();
 
         if (iResponce == JOptionPane.YES_OPTION) {
+            boolean iBlockedDelete = false;
             for (SSOutpayment iOutpayment : delete) {
                 SSOutpayment iCurrentOutpayment = getOutpayment(iOutpayment);
 
@@ -247,9 +250,16 @@ public class SSOutpaymentFrame extends SSDefaultTableFrame {
                     iModel.delete(iOutpayment);
                     continue;
                 }
+                if (iCurrentOutpayment.isEntered()) {
+                    iBlockedDelete = true;
+                    continue;
+                }
 
                 Repositories.outpayments().delete(iCurrentOutpayment);
                 iModel.delete(iOutpayment);
+            }
+            if (iBlockedDelete) {
+                SSInformationDialog.showDialog(getMainFrame(), "outpaymentframe.deletelocked");
             }
         }
     }

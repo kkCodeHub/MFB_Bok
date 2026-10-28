@@ -169,12 +169,16 @@ public class SSOutpaymentRowTableModel extends SSTableModel<SSOutpaymentRow> {
             SSBundle.getBundle().getString("outpaymentrowtable.column.4")) {
         @Override
         public Object getValue(SSOutpaymentRow iObject) {
-            return iObject.getValue();
+            SSSupplierInvoice iInvoice = iObject.getSupplierInvoice(Repositories.supplierInvoices().findAll());
+            if (iInvoice == null) {
+                return iObject.getValue();
+            }
+            return SSOutpaymentMath.getOutpaymentAmountForInvoice(iInvoice);
         }
 
         @Override
         public void setValue(SSOutpaymentRow iOutpaymentRow, Object iValue) {
-            iOutpaymentRow.setValue((BigDecimal) iValue);
+            // Fakturabelopp följer leverantörsfakturans saldo och sätts via fakturaval.
         }
 
         @Override
@@ -237,12 +241,12 @@ public class SSOutpaymentRowTableModel extends SSTableModel<SSOutpaymentRow> {
             SSBundle.getBundle().getString("outpaymentrowtable.column.6")) {
         @Override
         public Object getValue(SSOutpaymentRow iObject) {
-            return iObject.getLocalValue().orElse(null);
+            return iObject.getValue();
         }
 
         @Override
         public void setValue(SSOutpaymentRow iObject, Object iValue) {
-            iObject.setLocalValue((BigDecimal) iValue);
+            iObject.setValue((BigDecimal) iValue);
 
         }
 
@@ -258,7 +262,7 @@ public class SSOutpaymentRowTableModel extends SSTableModel<SSOutpaymentRow> {
     };
 
     /**
-     * Value column
+     * Remaining saldo column (shown as "Kursdifferens" in UI for backward compatibility).
      */
     public static SSTableColumn<SSOutpaymentRow> COLUMN_CURRENCYRATEDIFFERENCE = new SSTableColumn<>(
             SSBundle.getBundle().getString("outpaymentrowtable.column.7")) {

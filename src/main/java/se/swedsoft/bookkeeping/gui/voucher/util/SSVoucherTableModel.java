@@ -8,15 +8,17 @@ package se.swedsoft.bookkeeping.gui.voucher.util;
 import se.swedsoft.bookkeeping.calc.math.SSVoucherMath;
 import se.swedsoft.bookkeeping.data.SSVoucher;
 import se.swedsoft.bookkeeping.data.system.SSAccountingContext;
-import se.swedsoft.bookkeeping.data.system.SSDB;
 import se.swedsoft.bookkeeping.gui.util.SSBundle;
 import se.swedsoft.bookkeeping.gui.util.table.model.SSTableColumn;
 import se.swedsoft.bookkeeping.gui.util.table.model.SSTableModel;
 import se.swedsoft.bookkeeping.util.SSDateUtil;
 
 import java.math.BigDecimal;
+import java.util.HashMap;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 
 /**
@@ -25,6 +27,7 @@ import java.util.List;
  */
 
 public class SSVoucherTableModel extends SSTableModel<SSVoucher> {
+    private final Map<String, BigDecimal> iVoucherSumCache = new HashMap<>();
 
     /**
      * Default constructor.
@@ -233,6 +236,9 @@ public class SSVoucherTableModel extends SSTableModel<SSVoucher> {
             SSBundle.getBundle().getString("vouchertable.column.6")) {
         @Override
         public Object getValue(SSVoucher iVoucher) {
+            if (getModel() instanceof SSVoucherTableModel) {
+                return ((SSVoucherTableModel) getModel()).getCachedVoucherSum(iVoucher);
+            }
             return SSVoucherMath.getCreditSum(iVoucher);
         }
 
@@ -276,12 +282,57 @@ public class SSVoucherTableModel extends SSTableModel<SSVoucher> {
                     && currentSeries != null
                     && originalSeries != null
                     && currentSeries.equalsIgnoreCase(originalSeries)) {
+                invalidateCachedVoucherSum(current);
                 vouchers.set(index, updated);
+                invalidateCachedVoucherSum(updated);
                 fireTableRowsUpdated(index, index);
                 return index;
             }
         }
         return -1;
+    }
+
+    @Override
+    public void setObjects(List<SSVoucher> pObjects) {
+        clearCachedVoucherSums();
+        super.setObjects(pObjects);
+    }
+
+    @Override
+    @SuppressWarnings({"unchecked", "varargs"})
+    public void setObjects(SSVoucher... pObjects) {
+        clearCachedVoucherSums();
+        super.setObjects(pObjects);
+    }
+
+    private BigDecimal getCachedVoucherSum(SSVoucher voucher) {
+        if (voucher == null) {
+            return BigDecimal.ZERO;
+        }
+        String key = buildVoucherCacheKey(voucher);
+        BigDecimal cached = iVoucherSumCache.get(key);
+        if (cached != null) {
+            return cached;
+        }
+        BigDecimal sum = SSVoucherMath.getCreditSum(voucher);
+        iVoucherSumCache.put(key, sum);
+        return sum;
+    }
+
+    private void clearCachedVoucherSums() {
+        iVoucherSumCache.clear();
+    }
+
+    private void invalidateCachedVoucherSum(SSVoucher voucher) {
+        iVoucherSumCache.remove(buildVoucherCacheKey(voucher));
+    }
+
+    private String buildVoucherCacheKey(SSVoucher voucher) {
+        String series = voucher == null || voucher.getSeries() == null
+                ? ""
+                : voucher.getSeries().trim().toUpperCase(Locale.ROOT);
+        int number = voucher == null ? 0 : voucher.getNumber();
+        return series + ":" + number;
     }
 
 }

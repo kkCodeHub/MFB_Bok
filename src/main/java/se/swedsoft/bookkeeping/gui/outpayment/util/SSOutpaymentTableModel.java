@@ -4,11 +4,16 @@ package se.swedsoft.bookkeeping.gui.outpayment.util;
 import se.swedsoft.bookkeeping.calc.math.SSOutpaymentMath;
 import se.swedsoft.bookkeeping.data.SSOutpayment;
 import se.swedsoft.bookkeeping.gui.util.SSBundle;
+import se.swedsoft.bookkeeping.gui.util.graphics.SSIcon;
+import se.swedsoft.bookkeeping.gui.util.table.SSTable;
+import se.swedsoft.bookkeeping.gui.util.table.editors.SSBigDecimalCellRenderer;
+import se.swedsoft.bookkeeping.gui.util.table.editors.SSDateCellRenderer;
 import se.swedsoft.bookkeeping.gui.util.table.model.SSTableColumn;
 import se.swedsoft.bookkeeping.gui.util.table.model.SSTableModel;
 import se.swedsoft.bookkeeping.persistence.Repositories;
 import se.swedsoft.bookkeeping.util.SSDateUtil;
 
+import javax.swing.ImageIcon;
 import java.math.BigDecimal;
 import java.util.Date;
 
@@ -61,6 +66,31 @@ public class SSOutpaymentTableModel extends SSTableModel<SSOutpayment> {
         @Override
         public int getDefaultWidth() {
             return 100;
+        }
+    };
+
+    /**
+     * Entered status column
+     */
+    public static SSTableColumn<SSOutpayment> COLUMN_ENTERED = new SSTableColumn<>("") {
+        @Override
+        public Object getValue(SSOutpayment iObject) {
+            return iObject.isEntered()
+                    ? SSIcon.getIcon("ICON_ENTERED16", SSIcon.IconState.NORMAL)
+                    : null;
+        }
+
+        @Override
+        public void setValue(SSOutpayment iObject, Object iValue) {}
+
+        @Override
+        public Class getColumnClass() {
+            return ImageIcon.class;
+        }
+
+        @Override
+        public int getDefaultWidth() {
+            return 20;
         }
     };
 
@@ -141,5 +171,16 @@ public class SSOutpaymentTableModel extends SSTableModel<SSOutpayment> {
             return 120;
         }
     };
+
+    public static void setupStatusTable(SSTable iTable) {
+        iTable.getColumnModel().getColumn(0).setPreferredWidth(20);
+        iTable.getColumnModel().getColumn(1).setPreferredWidth(100);
+        iTable.getColumnModel().getColumn(2).setPreferredWidth(110);
+        iTable.getColumnModel().getColumn(3).setPreferredWidth(470);
+        iTable.getColumnModel().getColumn(4).setPreferredWidth(95);
+
+        iTable.setDefaultRenderer(Date.class, new SSDateCellRenderer());
+        iTable.setDefaultRenderer(BigDecimal.class, new SSBigDecimalCellRenderer(2));
+    }
 
 }

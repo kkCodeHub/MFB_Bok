@@ -1,12 +1,11 @@
 package se.swedsoft.bookkeeping.data;
 
 
-import se.swedsoft.bookkeeping.calc.math.SSSupplierInvoiceMath;
+import se.swedsoft.bookkeeping.calc.math.SSOutpaymentMath;
 import se.swedsoft.bookkeeping.data.common.SSCurrency;
 import se.swedsoft.bookkeeping.gui.util.table.SSTableSearchable;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.List;
 import java.util.Optional;
 
@@ -176,12 +175,10 @@ public class SSOutpaymentRow implements SSTableSearchable {
      * @return
      */
     public Optional<BigDecimal> getLocalValue() {
-
-        if (iCurrencyRate == null || iValue == null) {
+        if (iValue == null) {
             return Optional.empty();
         }
-
-        return Optional.of(iCurrencyRate.multiply(iValue));
+        return Optional.of(iValue);
     }
 
     /**
@@ -192,11 +189,7 @@ public class SSOutpaymentRow implements SSTableSearchable {
      * @param iLocalValue
      */
     public void setLocalValue(BigDecimal iLocalValue) {
-        if (iCurrencyRate == null || iValue == null) {
-            return;
-        }
-
-        iCurrencyRate = iLocalValue.divide(iValue, 5, RoundingMode.HALF_UP);
+        iValue = iLocalValue;
     }
 
     // //////////////////////////////////////////////////
@@ -226,7 +219,7 @@ public class SSOutpaymentRow implements SSTableSearchable {
         iInvoiceNr = iInvoice == null ? null : iInvoice.getNumber();
 
         if (iInvoice != null) {
-            BigDecimal iSaldo = SSSupplierInvoiceMath.getSaldo(iInvoice.getNumber());
+            BigDecimal iSaldo = SSOutpaymentMath.getOutpaymentAmountForInvoice(iInvoice);
 
             iInvoiceCurrency = iInvoice.getCurrency();
             iInvoiceCurrencyRate = iInvoice.getCurrencyRate();

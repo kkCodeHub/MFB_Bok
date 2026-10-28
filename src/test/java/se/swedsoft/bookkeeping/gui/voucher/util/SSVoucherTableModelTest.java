@@ -1,8 +1,12 @@
 package se.swedsoft.bookkeeping.gui.voucher.util;
 
 import org.junit.jupiter.api.Test;
+import se.swedsoft.bookkeeping.data.SSAccount;
 import se.swedsoft.bookkeeping.data.SSVoucher;
+import se.swedsoft.bookkeeping.data.SSVoucherRow;
 
+import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -29,5 +33,45 @@ class SSVoucherTableModelTest {
         assertThat(model.getValueAt(0, 1)).isEqualTo(10);
         assertThat(SSVoucherTableModel.COLUMN_SERIES.getDefaultWidth())
                 .isEqualTo(SSVoucherTableModel.COLUMN_NUMBER.getDefaultWidth());
+    }
+
+    @Test
+    void sumCacheShouldRefreshWhenReplacingVoucher() {
+        SSVoucher original = createVoucher("A", 10, "100.00");
+        SSVoucher updated = createVoucher("A", 10, "250.00");
+
+        SSVoucherTableModel model = new SSVoucherTableModel(new ArrayList<>(List.of(original)));
+        model.addColumn(SSVoucherTableModel.COLUMN_SUM);
+
+        assertThat((BigDecimal) model.getValueAt(0, 0)).isEqualByComparingTo("100.00");
+
+        model.replaceVoucher(original, updated);
+
+        assertThat((BigDecimal) model.getValueAt(0, 0)).isEqualByComparingTo("250.00");
+    }
+
+    @Test
+    void sumCacheShouldClearWhenReplacingObjectList() {
+        SSVoucher firstListVoucher = createVoucher("A", 12, "120.00");
+        SSVoucher secondListVoucher = createVoucher("A", 12, "320.00");
+
+        SSVoucherTableModel model = new SSVoucherTableModel(List.of(firstListVoucher));
+        model.addColumn(SSVoucherTableModel.COLUMN_SUM);
+
+        assertThat((BigDecimal) model.getValueAt(0, 0)).isEqualByComparingTo("120.00");
+
+        model.setObjects(List.of(secondListVoucher));
+
+        assertThat((BigDecimal) model.getValueAt(0, 0)).isEqualByComparingTo("320.00");
+    }
+
+    private static SSVoucher createVoucher(String series, int number, String credit) {
+        SSVoucher voucher = new SSVoucher(number);
+        voucher.setSeries(series);
+        SSVoucherRow row = new SSVoucherRow();
+        row.setAccount(new SSAccount(1910));
+        row.setCredit(new BigDecimal(credit));
+        voucher.addVoucherRow(row);
+        return voucher;
     }
 }

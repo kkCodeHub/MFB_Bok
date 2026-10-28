@@ -517,6 +517,34 @@ public class SSSupplierInvoiceMath {
         return iFiltered;
     }
 
+    /**
+     * Returns supplier invoices that currently have a positive saldo.
+     *
+     * @return list of invoices with saldo > 0
+     */
+    public static List<SSSupplierInvoice> getInvoicesWithPositiveSaldo() {
+        return getInvoicesWithPositiveSaldo(Repositories.supplierInvoices().findAll());
+    }
+
+    /**
+     * Returns supplier invoices that currently have a positive saldo.
+     *
+     * @param iInvoices source invoices
+     * @return list of invoices with saldo > 0
+     */
+    public static List<SSSupplierInvoice> getInvoicesWithPositiveSaldo(List<SSSupplierInvoice> iInvoices) {
+        List<SSSupplierInvoice> iFiltered = new LinkedList<>();
+
+        for (SSSupplierInvoice iInvoice : iInvoices) {
+            BigDecimal iSaldo = getSaldo(iInvoice.getNumber());
+
+            if (iSaldo.signum() > 0) {
+                iFiltered.add(iInvoice);
+            }
+        }
+        return iFiltered;
+    }
+
     public static Map<String, Integer> getStockInfluencing(List<SSSupplierInvoice> iSupplierInvoices) {
         Map<String, Integer> iSupplierInvoiceCount = new HashMap<>();
         List<String> iParcelProducts = new LinkedList<>();

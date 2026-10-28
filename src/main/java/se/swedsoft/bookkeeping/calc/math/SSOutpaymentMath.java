@@ -40,26 +40,20 @@ public class SSOutpaymentMath {
     }
 
     /**
-     * Convers a value from a row currency to the company currency
+     * Outpayments are handled in a single currency. No conversion is applied.
      *
-     * @param iRow
-     * @param iValue
-     * @return the converted value
+     * @param iRow   the outpayment row
+     * @param iValue the amount
+     * @return the same amount
      */
     public static BigDecimal convertToLocal(SSOutpaymentRow iRow, BigDecimal iValue) {
-        BigDecimal iCurrencyRate = iRow.getCurrencyRate();
-
-        if (iCurrencyRate != null) {
-            iValue = iValue.multiply(iCurrencyRate);
-        }
-
         return iValue;
     }
 
     /**
-     * Get the sum for the outpayment in the payment currency
+     * Get the sum for the outpayment in the single outpayment currency.
      *
-     * @param iOutpayment
+     * @param iOutpayment the outpayment
      * @return the sum
      */
     public static BigDecimal getSum(SSOutpayment iOutpayment) {
@@ -70,9 +64,6 @@ public class SSOutpaymentMath {
             BigDecimal iValue = iRow.getValue();
 
             if (iValue != null) {
-                // Convert to the local currency
-                iValue = convertToLocal(iRow, iValue);
-
                 iSum = iSum.add(iValue);
             }
         }
@@ -82,30 +73,61 @@ public class SSOutpaymentMath {
     }
 
     /**
-     * Get the difference between the value of the sales in the sales currency and the payed value, in the company currency such as
+     * Get remaining supplier invoice saldo after the row payment is applied.
      *
-     * return (Value of row) * (payment currency rate - sales currency rate)
-     *
-     * @param iOutpaymentRow
-     * @return the currency rate difference
+     * @param iOutpaymentRow the outpayment row
+     * @return remaining saldo after payment
      */
     public static Optional<BigDecimal> getCurrencyRateDifference(SSOutpaymentRow iOutpaymentRow) {
-        BigDecimal iPaymentRate = iOutpaymentRow.getCurrencyRate();
-        BigDecimal iCurrencyRate = iOutpaymentRow.getInvoiceCurrencyRate();
-        BigDecimal iValue = iOutpaymentRow.getValue();
+        Optional<BigDecimal> iInvoiceSaldo = getSaldo(iOutpaymentRow);
+        BigDecimal iPaymentValue = iOutpaymentRow.getValue();
 
-        if (iPaymentRate == null || iCurrencyRate == null || iValue == null) {
+        if (iInvoiceSaldo.isEmpty() || iPaymentValue == null) {
             return Optional.empty();
         }
 
-        return Optional.of(iValue.multiply(iCurrencyRate.subtract(iPaymentRate)));
+        return Optional.of(iInvoiceSaldo.get().subtract(iPaymentValue));
     }
 
     /**
-     * Get the currency rate difference for the whole inpayment, in the company currency
+     * Get the saldo for the supplier invoice of the current row in the invoice currency, returns empty if no invoice.
      *
-     * @param iOutpayment
-     * @return the currency rate difference
+     * @param iOutpaymentRow the outpayment row
+     * @return the saldo
+     */
+    public static Optional<BigDecimal> getSaldo(SSOutpaymentRow iOutpaymentRow) {
+        SSSupplierInvoice iInvoice = iOutpaymentRow.getSupplierInvoice(Repositories.supplierInvoices().findAll());
+
+        if (iInvoice == null) {
+            return Optional.empty();
+        }
+
+        return Optional.of(SSSupplierInvoiceMath.getSaldo(iInvoice.getNumber()));
+    }
+
+    /**
+     * Resolve default outpayment amount from supplier invoice saldo.
+     * Negative saldo is clamped to zero.
+     *
+     * @param iInvoice the supplier invoice
+     * @return default outpayment amount
+     */
+    public static BigDecimal getOutpaymentAmountForInvoice(SSSupplierInvoice iInvoice) {
+        if (iInvoice == null) {
+            return BigDecimal.ZERO.setScale(2);
+        }
+        BigDecimal iSaldo = SSSupplierInvoiceMath.getSaldo(iInvoice);
+        if (iSaldo.signum() < 0) {
+            return BigDecimal.ZERO.setScale(2);
+        }
+        return iSaldo;
+    }
+
+    /**
+     * Get total remaining saldo after payment across all outpayment rows.
+     *
+     * @param iOutpayment the outpayment
+     * @return summed remaining saldo
      */
     public static BigDecimal getCurrencyRateDifference(SSOutpayment iOutpayment) {
         BigDecimal iSum = new BigDecimal(0);
