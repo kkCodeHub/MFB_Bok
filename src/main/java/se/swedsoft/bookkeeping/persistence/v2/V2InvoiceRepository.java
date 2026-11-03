@@ -193,12 +193,12 @@ public class V2InvoiceRepository {
                     "INSERT INTO tbl_invoice(" +
                             "number,companyid,vdate,customer_nr,customer_name,our_contact,your_contact," +
                             "delay_interest,currency_code,payment_term,delivery_term,delivery_way,tax_free," +
-                            "sale_text,eu_sale_commodity,eu_sale_third_part,printed,invoice_type,origin_invoice_id,currency_rate," +
+                            "sale_text,eu_sale_commodity,eu_sale_third_part,printed,print_swish,print_subtext,file_subtext,subtext_size,invoice_type,origin_invoice_id,currency_rate," +
                             "payment_day,your_order_number,ocr_number,entered,cancelled,num_reminders,interest_invoiced," +
                             "stock_influencing,order_numbers,journal_numbers,voucher_id,inv_addr_name,inv_addr_address," +
                             "inv_addr_street,inv_addr_zipcode,inv_addr_city,inv_addr_country,del_addr_name," +
                             "del_addr_address,del_addr_street,del_addr_zipcode,del_addr_city,del_addr_country) " +
-                            "VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                            "VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
                     Statement.RETURN_GENERATED_KEYS)) {
                 int i = 1;
                 insertStatement.setObject(i++, invoice.getNumber());
@@ -242,7 +242,7 @@ public class V2InvoiceRepository {
                     "UPDATE tbl_invoice SET " +
                             "vdate=?,customer_nr=?,customer_name=?,our_contact=?,your_contact=?," +
                             "delay_interest=?,currency_code=?,payment_term=?,delivery_term=?,delivery_way=?," +
-                            "tax_free=?,sale_text=?,eu_sale_commodity=?,eu_sale_third_part=?,printed=?," +
+                            "tax_free=?,sale_text=?,eu_sale_commodity=?,eu_sale_third_part=?,printed=?,print_swish=?,print_subtext=?,file_subtext=?,subtext_size=?," +
                             "invoice_type=?,origin_invoice_id=?,currency_rate=?,payment_day=?,your_order_number=?,ocr_number=?," +
                             "entered=?,cancelled=?,num_reminders=?,interest_invoiced=?,stock_influencing=?,order_numbers=?," +
                             "journal_numbers=?,voucher_id=?,inv_addr_name=?,inv_addr_address=?,inv_addr_street=?,inv_addr_zipcode=?," +
@@ -453,6 +453,10 @@ public class V2InvoiceRepository {
         statement.setObject(index++, invoice.getEuSaleCommodity());
         statement.setObject(index++, invoice.getEuSaleThirdPartCommodity());
         statement.setObject(index++, invoice.isPrinted());
+        statement.setObject(index++, invoice.isPrintSwish());
+        statement.setObject(index++, invoice.isPrintSubtext());
+        statement.setObject(index++, invoice.getFileSubtext());
+        statement.setObject(index++, invoice.getSubtextSize());
         statement.setObject(index++, invoice.getType() == null ? null : invoice.getType().name());
         statement.setObject(index++, getInvoiceIdV2(invoice.getOriginInvoiceNumber(), companyId));
         statement.setObject(index++, invoice.getCurrencyRate());
@@ -491,6 +495,10 @@ public class V2InvoiceRepository {
         invoice.setEuSaleCommodity(resultSet.getBoolean("eu_sale_commodity"));
         invoice.setEuSaleYhirdPartCommodity(resultSet.getBoolean("eu_sale_third_part"));
         invoice.setPrinted(resultSet.getBoolean("printed"));
+        invoice.setPrintSwish(resultSet.getBoolean("print_swish"));
+        invoice.setPrintSubtext(resultSet.getBoolean("print_subtext"));
+        invoice.setFileSubtext(resultSet.getString("file_subtext"));
+        invoice.setSubtextSize(resultSet.getInt("subtext_size"));
 
         String currencyCode = resultSet.getString("currency_code");
         if (currencyCode != null) {

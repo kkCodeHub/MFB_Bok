@@ -76,6 +76,10 @@ class SSCustomerV2IntegrationTest {
         c.setName("V2 Integration AB");
         c.setEMail("v2@integration.se");
         c.setPhone1("08-100200");
+        c.setPrintSwish(true);
+        c.setPrintSubtext(true);
+        c.setFileSubtext("customer-subtext.txt");
+        c.setSubtextSize(18);
 
         SSMasterdataContext.addCustomer(c);
 
@@ -84,6 +88,10 @@ class SSCustomerV2IntegrationTest {
         assertThat(fetched.get().getName()).isEqualTo("V2 Integration AB");
         assertThat(fetched.get().getEMail()).isEqualTo("v2@integration.se");
         assertThat(fetched.get().getPhone1()).isEqualTo("08-100200");
+        assertThat(fetched.get().isPrintSwish()).isTrue();
+        assertThat(fetched.get().isPrintSubtext()).isTrue();
+        assertThat(fetched.get().getFileSubtext()).isEqualTo("customer-subtext.txt");
+        assertThat(fetched.get().getSubtextSize()).isEqualTo(18);
 
         SSMasterdataContext.deleteCustomer(c);
     }
@@ -101,12 +109,20 @@ class SSCustomerV2IntegrationTest {
 
         SSCustomer updatedCustomer = fetched.get();
         updatedCustomer.setName("After V2 Update");
+        updatedCustomer.setPrintSwish(true);
+        updatedCustomer.setPrintSubtext(false);
+        updatedCustomer.setFileSubtext("updated-subtext.txt");
+        updatedCustomer.setSubtextSize(24);
         SSMasterdataContext.updateCustomer(updatedCustomer);
 
         se.swedsoft.bookkeeping.data.system.SSEventTriggerSyncContext.clearCachedLists();
         Optional<SSCustomer> updated = SSMasterdataContext.getCustomer("C-V2-002");
         assertThat(updated).isPresent();
         assertThat(updated.get().getName()).isEqualTo("After V2 Update");
+        assertThat(updated.get().isPrintSwish()).isTrue();
+        assertThat(updated.get().isPrintSubtext()).isFalse();
+        assertThat(updated.get().getFileSubtext()).isEqualTo("updated-subtext.txt");
+        assertThat(updated.get().getSubtextSize()).isEqualTo(24);
 
         SSMasterdataContext.deleteCustomer(updated.get());
         List<SSCustomer> all = SSMasterdataContext.getCustomers();

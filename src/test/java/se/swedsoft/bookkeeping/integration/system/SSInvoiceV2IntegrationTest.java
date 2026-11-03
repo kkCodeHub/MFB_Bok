@@ -104,6 +104,10 @@ class SSInvoiceV2IntegrationTest {
         assertThat(fetched.get().getLocalDate()).isEqualTo(LocalDate.of(2025, 7, 15));
         assertThat(fetched.get().getLocalDueDate()).isEqualTo(LocalDate.of(2025, 8, 14));
         assertThat(fetched.get().getText()).isEqualTo("Invoice text in V2");
+        assertThat(fetched.get().isPrintSwish()).isTrue();
+        assertThat(fetched.get().isPrintSubtext()).isTrue();
+        assertThat(fetched.get().getFileSubtext()).isEqualTo("invoice-subtext.txt");
+        assertThat(fetched.get().getSubtextSize()).isEqualTo(16);
         assertThat(fetched.get().getRows()).hasSize(2);
         assertThat(fetched.get().getRows().get(0).getDescription()).isEqualTo("Consulting");
         assertThat(fetched.get().getRows().get(0).getUnitprice()).isEqualByComparingTo("1250.00");
@@ -159,6 +163,10 @@ class SSInvoiceV2IntegrationTest {
         invoice.setCurrencyRate(new BigDecimal("10.50"));
         invoice.setType(SSInvoiceType.CASH);
         invoice.setText("Invoice text in V2");
+        invoice.setPrintSwish(true);
+        invoice.setPrintSubtext(true);
+        invoice.setFileSubtext("invoice-subtext.txt");
+        invoice.setSubtextSize(16);
         invoice.setYourOrderNumber("ORDER-V2-001");
         return invoice;
     }

@@ -4,6 +4,7 @@
 	<parameter name="invoice.hasdiscount" class="java.lang.Boolean"/>
 	<parameter name="invoice.swishImage" class="java.awt.Image"/>
 	<parameter name="invoice.swishText" class="java.lang.String"/>
+	<parameter name="invoice.text" class="java.lang.String"/>
 	<field name="row.number" class="java.lang.String"/>
 	<field name="row.description" class="java.lang.String"/>
 	<field name="row.count" class="java.math.BigDecimal"/>
@@ -135,9 +136,12 @@
 		<band height="12" splitType="Stretch">
 			<textField>
 				<reportElement x="0" y="0" width="510" height="12" uuid="6b92037a-300c-4dc1-8f17-f41b8a6703c4"/>
-				<box>
+				<box rightPadding="10">
 					<pen lineColor="#000000"/>
-					<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 				</box>
 				<textElement textAlignment="Right" verticalAlignment="Bottom">
 					<font size="8" isBold="false"/>
@@ -147,7 +151,17 @@
 		</band>
 	</pageFooter>
 	<lastPageFooter>
-		<band height="191" splitType="Stretch">
+		<band height="168" splitType="Stretch">
+			<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			<textField textAdjust="StretchHeight" isBlankWhenNull="true">
+				<reportElement positionType="Float" x="10" y="16" width="490" height="50" uuid="66237061-0015-4960-9744-208f4e953049">
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
+				<textElement textAlignment="Left" markup="html">
+					<font size="10"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{invoice.text}]]></textFieldExpression>
+			</textField>
 			<image vAlign="Top" onErrorType="Blank">
 				<reportElement x="390" y="10" width="100" height="151" uuid="d1d7d730-6ae6-4cbd-8e89-2a2aeaeba25f">
 					<property name="com.jaspersoft.studio.unit.height" value="px"/>
@@ -156,8 +170,8 @@
 				<imageExpression><![CDATA[$P{invoice.swishImage}]]></imageExpression>
 			</image>
 			<textField>
-				<reportElement x="30" y="50" width="340" height="30" uuid="19bd104a-4c80-440b-a08d-400ab7d0d386">
-					<printWhenExpression><![CDATA[$P{invoice.swishText} != null]]></printWhenExpression>
+				<reportElement x="30" y="8" width="340" height="30" uuid="19bd104a-4c80-440b-a08d-400ab7d0d386">
+					<printWhenExpression><![CDATA[$P{invoice.swishText} != null && $P{invoice.swishImage} != null]]></printWhenExpression>
 				</reportElement>
 				<textElement textAlignment="Right" verticalAlignment="Middle">
 					<font size="10" isBold="false"/>

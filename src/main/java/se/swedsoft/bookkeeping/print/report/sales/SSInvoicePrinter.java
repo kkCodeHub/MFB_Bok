@@ -1,5 +1,6 @@
 package se.swedsoft.bookkeeping.print.report.sales;
 
+import org.fribok.bookkeeping.app.Path;
 import se.swedsoft.bookkeeping.calc.math.SSInvoiceMath;
 import se.swedsoft.bookkeeping.data.SSCustomer;
 import se.swedsoft.bookkeeping.data.SSInvoice;
@@ -15,10 +16,14 @@ import se.swedsoft.bookkeeping.print.util.SSQuantityPrintUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.math.RoundingMode;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.io.File;
 
 import se.swedsoft.bookkeeping.util.SSDateUtil;
 
@@ -101,6 +106,7 @@ public class SSInvoicePrinter extends SSPrinter {
         addParameter("number", iInvoice.getNumber());
         addParameter("date", SSDateUtil.toDate(iInvoice.getLocalDate()));
         addParameter("text", iInvoice.getText());
+        addParameter("invoice.text", getInvoiceTextForReport());
         if (getClass().equals(SSInvoicePrinter.class)) {
             int iCustomerInvoiceTextbox = iCompany.getCustomerInvoiceTextbox();
             boolean iLiten = iCustomerInvoiceTextbox == 0;
@@ -223,6 +229,22 @@ public class SSInvoicePrinter extends SSPrinter {
 
         SSSalePrinterUtils.addParameterForSwishImage(iCompany, this);
 
+    }
+
+    private String getInvoiceTextForReport() {
+        String iInvoiceText = iInvoice.getText();
+        if (iInvoiceText == null || iInvoiceText.trim().isEmpty()) {
+            return null;
+        }
+
+        File iInvoiceTextFile = new File(Path.get(Path.APP_DATA), "InvoiceText" + File.separator + "HavbergText.txt");
+        try {
+            return Files.readString(iInvoiceTextFile.toPath(), StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            String iMessage = "Kunde inte läsa fakturatextfilen: " + iInvoiceTextFile.getAbsolutePath();
+            LOG.error(iMessage, e);
+            throw new IllegalStateException(iMessage, e);
+        }
     }
 
     /**

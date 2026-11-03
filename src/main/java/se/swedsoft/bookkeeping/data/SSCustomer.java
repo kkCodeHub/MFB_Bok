@@ -60,6 +60,14 @@ public class SSCustomer implements SSTableSearchable {
     private boolean        iVatFreeSale;
     // Göm enhetspris på följesedel
     private boolean        iHideUnitprice;
+    // Skriv ut Swish-referens
+    private boolean        iPrintSwish;
+    // Skriv ut undertext
+    private boolean        iPrintSubtext;
+    // Filnamn / referens för undertext
+    private String         iFileSubtext;
+    // Storlek på undertext
+    private int            iSubtextSize;
 
     // Fakureringsvaluta
     private SSCurrency     iInvoiceCurrency;
@@ -127,6 +135,10 @@ public class SSCustomer implements SSTableSearchable {
         iEuSaleYhirdPartCommodity = iCustomer.iEuSaleYhirdPartCommodity;
         iVatFreeSale = iCustomer.iVatFreeSale;
         iHideUnitprice = iCustomer.iHideUnitprice;
+        iPrintSwish = iCustomer.iPrintSwish;
+        iPrintSubtext = iCustomer.iPrintSubtext;
+        iFileSubtext = iCustomer.iFileSubtext;
+        iSubtextSize = iCustomer.iSubtextSize;
         iInvoiceCurrency = iCustomer.iInvoiceCurrency;
         iPaymentTerm = iCustomer.iPaymentTerm;
         iDeliveryTerm = iCustomer.iDeliveryTerm;
@@ -423,6 +435,38 @@ public class SSCustomer implements SSTableSearchable {
      */
     public void setHideUnitprice(boolean iHideUnitprice) {
         this.iHideUnitprice = iHideUnitprice;
+    }
+
+    public boolean isPrintSwish() {
+        return iPrintSwish;
+    }
+
+    public void setPrintSwish(boolean iPrintSwish) {
+        this.iPrintSwish = iPrintSwish;
+    }
+
+    public boolean isPrintSubtext() {
+        return iPrintSubtext;
+    }
+
+    public void setPrintSubtext(boolean iPrintSubtext) {
+        this.iPrintSubtext = iPrintSubtext;
+    }
+
+    public String getFileSubtext() {
+        return iFileSubtext;
+    }
+
+    public void setFileSubtext(String iFileSubtext) {
+        this.iFileSubtext = iFileSubtext;
+    }
+
+    public int getSubtextSize() {
+        return iSubtextSize;
+    }
+
+    public void setSubtextSize(int iSubtextSize) {
+        this.iSubtextSize = iSubtextSize;
     }
 
     /**

@@ -94,6 +94,10 @@ class SSInvoiceV2RepositoryTest {
     @Test
     void addAndFetchInvoiceViaRepository() {
         SSInvoice invoice = invoice("INV-REPO-CUST-001", "Repo Invoice Customer AB");
+        invoice.setPrintSwish(true);
+        invoice.setPrintSubtext(false);
+        invoice.setFileSubtext("repo-subtext.txt");
+        invoice.setSubtextSize(32);
         invoice.getRows().add(invoiceRow("P-INV-REPO-001", "Repo row", new BigDecimal("1250.00"), 2, 3010));
 
         Repositories.invoices().add(invoice);
@@ -103,6 +107,10 @@ class SSInvoiceV2RepositoryTest {
         Optional<SSInvoice> fetched = Repositories.invoices().findByInvoice(invoice);
         assertThat(fetched).isPresent();
         assertThat(fetched.get().getCustomerName()).isEqualTo("Repo Invoice Customer AB");
+        assertThat(fetched.get().isPrintSwish()).isTrue();
+        assertThat(fetched.get().isPrintSubtext()).isFalse();
+        assertThat(fetched.get().getFileSubtext()).isEqualTo("repo-subtext.txt");
+        assertThat(fetched.get().getSubtextSize()).isEqualTo(32);
         assertThat(fetched.get().getRows()).hasSize(1);
         assertThat(fetched.get().getRows().get(0).getDescription()).isEqualTo("Repo row");
 

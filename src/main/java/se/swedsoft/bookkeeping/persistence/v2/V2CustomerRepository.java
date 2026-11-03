@@ -219,11 +219,12 @@ public class V2CustomerRepository {
                             "number,companyid,name,email,phone,phone2,telefax,registration_number," +
                             "our_contact,your_contact,vat_number,bankgiro,plusgiro,account_number," +
                             "clearing_number,eu_sale_commodity,eu_sale_third_part,vat_free_sale," +
-                            "hide_unitprice,credit_limit,discount,comment,currency_code,payment_term," +
+                            "hide_unitprice,print_swish,print_subtext,file_subtext,subtext_size," +
+                            "credit_limit,discount,comment,currency_code,payment_term," +
                             "delivery_term,delivery_way,inv_addr_name,inv_addr_address,inv_addr_street," +
                             "inv_addr_zipcode,inv_addr_city,inv_addr_country,del_addr_name,del_addr_address," +
                             "del_addr_street,del_addr_zipcode,del_addr_city,del_addr_country) " +
-                            "VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)")) {
+                            "VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)")) {
                 int i = bindCustomer(st, 1, customer, company);
                 st.executeUpdate();
                 connection.commit();
@@ -253,8 +254,8 @@ public class V2CustomerRepository {
                             "name=?,email=?,phone=?,phone2=?,telefax=?,registration_number=?," +
                             "our_contact=?,your_contact=?,vat_number=?,bankgiro=?,plusgiro=?," +
                             "account_number=?,clearing_number=?,eu_sale_commodity=?,eu_sale_third_part=?," +
-                            "vat_free_sale=?,hide_unitprice=?,credit_limit=?,discount=?,comment=?," +
-                            "currency_code=?,payment_term=?,delivery_term=?,delivery_way=?," +
+                            "vat_free_sale=?,hide_unitprice=?,print_swish=?,print_subtext=?,file_subtext=?,subtext_size=?," +
+                            "credit_limit=?,discount=?,comment=?,currency_code=?,payment_term=?,delivery_term=?,delivery_way=?," +
                             "inv_addr_name=?,inv_addr_address=?,inv_addr_street=?,inv_addr_zipcode=?," +
                             "inv_addr_city=?,inv_addr_country=?,del_addr_name=?,del_addr_address=?," +
                             "del_addr_street=?,del_addr_zipcode=?,del_addr_city=?,del_addr_country=? " +
@@ -277,6 +278,10 @@ public class V2CustomerRepository {
                 st.setObject(i++, customer.getEuSaleYhirdPartCommodity());
                 st.setObject(i++, customer.getTaxFree());
                 st.setObject(i++, customer.getHideUnitprice());
+                st.setObject(i++, customer.isPrintSwish());
+                st.setObject(i++, customer.isPrintSubtext());
+                st.setObject(i++, customer.getFileSubtext());
+                st.setObject(i++, customer.getSubtextSize());
                 st.setObject(i++, customer.getCreditLimit());
                 st.setObject(i++, customer.getDiscount());
                 st.setObject(i++, customer.getComment());
@@ -352,6 +357,10 @@ public class V2CustomerRepository {
         c.setEuSaleYhirdPartCommodity(rs.getBoolean("eu_sale_third_part"));
         c.setTaxFree(rs.getBoolean("vat_free_sale"));
         c.setHideUnitprice(rs.getBoolean("hide_unitprice"));
+        c.setPrintSwish(rs.getBoolean("print_swish"));
+        c.setPrintSubtext(rs.getBoolean("print_subtext"));
+        c.setFileSubtext(rs.getString("file_subtext"));
+        c.setSubtextSize(rs.getInt("subtext_size"));
         c.setCreditLimit(rs.getBigDecimal("credit_limit"));
         c.setDiscount(rs.getBigDecimal("discount"));
         c.setComment(rs.getString("comment"));
@@ -399,6 +408,10 @@ public class V2CustomerRepository {
         st.setObject(i++, customer.getEuSaleYhirdPartCommodity());
         st.setObject(i++, customer.getTaxFree());
         st.setObject(i++, customer.getHideUnitprice());
+        st.setObject(i++, customer.isPrintSwish());
+        st.setObject(i++, customer.isPrintSubtext());
+        st.setObject(i++, customer.getFileSubtext());
+        st.setObject(i++, customer.getSubtextSize());
         st.setObject(i++, customer.getCreditLimit());
         st.setObject(i++, customer.getDiscount());
         st.setObject(i++, customer.getComment());

@@ -70,6 +70,10 @@ public class SSCustomerPanel {
 
     private SSInputVerifier iInputVerifier;
     private JCheckBox iHideUnitPrice;
+    private JCheckBox iPrintSwish;
+    private JCheckBox iPrintSubtext;
+    private JComboBox<String> iFileSubtext;
+    private JComboBox<Integer> iSubtextSize;
     private JTextPane iComment;
 
     public SSCustomerPanel(final SSDialog iOwner, boolean iEdit) {
@@ -94,6 +98,9 @@ public class SSCustomerPanel {
         iInvoiceCurrency.getComboBox().setModel(SSCurrencyTableModel.getDropDownModel());
         iInvoiceCurrency.getComboBox().setSearchColumns(0);
         iInvoiceCurrency.setEditingFactory(SSCurrencyTableModel.getEditingFactory(iOwner));
+
+        iFileSubtext.setModel(new DefaultComboBoxModel<>(new String[] {"", "Faktura", "Kundfaktura", "E-post"}));
+        iSubtextSize.setModel(new DefaultComboBoxModel<>(new Integer[] {0, 1, 2, 3, 4, 5, 10}));
 
         iDeliveryWay.getComboBox().setModel(SSDeliveryWayTableModel.getDropDownModel());
         iDeliveryWay.getComboBox().setSearchColumns(0);
@@ -186,6 +193,14 @@ public class SSCustomerPanel {
         iCustomer.setTaxFree(iVatFreeSale.isSelected());
         // Göm enhetspris på följesedel
         iCustomer.setHideUnitprice(iHideUnitPrice.isSelected());
+        iCustomer.setPrintSwish(iPrintSwish.isSelected());
+        iCustomer.setPrintSubtext(iPrintSubtext.isSelected());
+        if (iFileSubtext.getSelectedItem() != null) {
+            iCustomer.setFileSubtext((String) iFileSubtext.getSelectedItem());
+        }
+        if (iSubtextSize.getSelectedItem() != null) {
+            iCustomer.setSubtextSize((Integer) iSubtextSize.getSelectedItem());
+        }
 
         // Fakureringsvaluta
         iCustomer.setInvoiceCurrency(iInvoiceCurrency.getSelected());
@@ -268,6 +283,14 @@ public class SSCustomerPanel {
         iVatFreeSale.setSelected(iCustomer.getTaxFree());
         // Göm enhetspris på följesedel
         iHideUnitPrice.setSelected(iCustomer.getHideUnitprice());
+        iPrintSwish.setSelected(iCustomer.isPrintSwish());
+        iPrintSubtext.setSelected(iCustomer.isPrintSubtext());
+        if (iCustomer.getFileSubtext() != null) {
+            iFileSubtext.setSelectedItem(iCustomer.getFileSubtext());
+        } else {
+            iFileSubtext.setSelectedIndex(0);
+        }
+        iSubtextSize.setSelectedItem(iCustomer.getSubtextSize());
         // Fakureringsvaluta
         iInvoiceCurrency.setSelected(iCustomer.getInvoiceCurrency());
         // Betalningsvilkor

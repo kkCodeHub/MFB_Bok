@@ -1,0 +1,30 @@
+# Plan: Valbar subrapport för kundfakturarader
+
+## Problem och mål
+Nuvarande kundfakturautskrift använder en hårdkodad rad-subrapport (`sales/invoice.rows.jrxml`) via parametern `subreport.report` i `SSInvoicePrinter`.
+Målet är att kunna styra vilken subrapport som används för kundfakturor, medan övriga subrapportvärden (parameter-map, resource bundle, datasource) förblir oförändrade.
+
+## Föreslagen lösning
+1. Införa ett val för kundfaktura-radlayout som **företagsinställning**.
+2. Låta `SSInvoicePrinter` välja subrapportfil dynamiskt när `SSRowReport` byggs.
+3. Behålla samma flöde för:
+   - `subreport.datasource`
+   - `REPORT_PARAMETERS_MAP` / `REPORT_RESOURCE_BUNDLE`
+   - övriga fakturaparametrar
+4. Säkerställa bakåtkompatibel default (`sales/invoice.rows.jrxml`) om inget val är satt.
+
+## Berörda filer (trolig scope)
+- `src/main/java/se/swedsoft/bookkeeping/print/report/sales/SSInvoicePrinter.java`
+- `src/main/java/se/swedsoft/bookkeeping/data/SSNewCompany.java`
+- `src/main/java/se/swedsoft/bookkeeping/gui/company/pages/SSCompanyPageStandardText.java`
+- `src/main/resources/reports/report/sales/*.jrxml` (nya/alternativa radsubrapporter vid behov)
+
+## Todos
+1. Definiera företagsinställning för val av kundfaktura-subrapport (med defaultvariant).
+2. Implementera dynamiskt val av `subreport.report` i `SSInvoicePrinter` utan att ändra övriga subrapportparametrar.
+3. Lägga till/ansluta val i UI + persistens i företagsinställningar.
+4. Verifiera med riktade tester/bygg att normalfaktura fortfarande fungerar med defaultvariant.
+
+## Noteringar
+- I nuläget används redan olika huvudrapporter för vanlig faktura vs OCR-faktura (`SSInvoicePrinter` respektive `SSOCRInvoicePrinter`).
+- Frågan här gäller specifikt raddelens subrapport i kundfakturan.

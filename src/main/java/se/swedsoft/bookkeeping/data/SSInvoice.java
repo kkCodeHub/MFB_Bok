@@ -54,6 +54,10 @@ public class SSInvoice extends SSSale {
     protected boolean iInterestInvoiced;
     // Lagerför
     private boolean iStockInfluencing;
+    private boolean iPrintSwish;
+    private boolean iPrintSubtext;
+    private String iFileSubtext;
+    private int iSubtextSize;
 
     private String iOrderNumbers;
     private String iJournalNumbers;
@@ -157,6 +161,10 @@ public class SSInvoice extends SSSale {
         iEntered = iInvoice.iEntered;
         iCancelled = iInvoice.iCancelled;
         iStockInfluencing = iInvoice.iStockInfluencing;
+        iPrintSwish = iInvoice.iPrintSwish;
+        iPrintSubtext = iInvoice.iPrintSubtext;
+        iFileSubtext = iInvoice.iFileSubtext;
+        iSubtextSize = iInvoice.iSubtextSize;
         iInterestInvoiced = iInvoice.iInterestInvoiced;
         iNumReminders = iInvoice.iNumReminders;
         iOCRNumber = iInvoice.iOCRNumber;
@@ -498,6 +506,38 @@ public class SSInvoice extends SSSale {
      */
     public void setStockInfluencing(boolean iStockInfluencing) {
         this.iStockInfluencing = iStockInfluencing;
+    }
+
+    public boolean isPrintSwish() {
+       return iPrintSwish;
+    }
+
+    public void setPrintSwish(boolean iPrintSwish) {
+       this.iPrintSwish = iPrintSwish;
+    }
+
+    public boolean isPrintSubtext() {
+       return iPrintSubtext;
+    }
+
+    public void setPrintSubtext(boolean iPrintSubtext) {
+       this.iPrintSubtext = iPrintSubtext;
+    }
+
+    public String getFileSubtext() {
+       return iFileSubtext;
+    }
+
+    public void setFileSubtext(String iFileSubtext) {
+       this.iFileSubtext = iFileSubtext;
+    }
+
+    public int getSubtextSize() {
+       return iSubtextSize;
+    }
+
+    public void setSubtextSize(int iSubtextSize) {
+       this.iSubtextSize = iSubtextSize;
     }
 
     // //////////////////////////////////////////////////

@@ -59,6 +59,7 @@ public class SSSchemaEnsurer {
         applyTargetSchema();
         ensureAccountingYearSnapshotColumns();
         ensureCompanyMailServerColumns();
+        ensureCustomerInvoicePrintFields();
         ensureProductQuantityColumns();
         ensureProductParcelRowsTable();
         ensureTemplateAccountTable();
@@ -144,6 +145,17 @@ public class SSSchemaEnsurer {
      *
      * @throws SQLException if column addition fails
      */
+    private void ensureCustomerInvoicePrintFields() throws SQLException {
+        ensureColumnExists("tbl_customer", "print_swish", "BOOLEAN DEFAULT FALSE");
+        ensureColumnExists("tbl_customer", "print_subtext", "BOOLEAN DEFAULT FALSE");
+        ensureColumnExists("tbl_customer", "file_subtext", "VARCHAR(100)");
+        ensureColumnExists("tbl_customer", "subtext_size", "INTEGER DEFAULT 0");
+        ensureColumnExists("tbl_invoice", "print_swish", "BOOLEAN DEFAULT FALSE");
+        ensureColumnExists("tbl_invoice", "print_subtext", "BOOLEAN DEFAULT FALSE");
+        ensureColumnExists("tbl_invoice", "file_subtext", "VARCHAR(100)");
+        ensureColumnExists("tbl_invoice", "subtext_size", "INTEGER DEFAULT 0");
+    }
+
     private void ensureProductQuantityColumns() throws SQLException {
         ensureColumnExists("tbl_product", "only_whole_quantity", "BOOLEAN DEFAULT FALSE");
     }

@@ -1,0 +1,8 @@
+Här skriver vi en del invormation.<br>
+Det kan var vad som helst som alla behöver veta.<br>
+<br>
+Kan visas i <b>fetstil</b> eller/och med <i>kursiv text</i>.<br>
+Vill man ha <font color="blue" size="3"> färg går det också bra.</font><br>
+<u>Understrykning för att framhäva går också</u>.<br>
+1<br>2<br>3<br>4<br>5<br>6<br>7<br>8<br>9<br>0<br>1<br>2<br>3<br>4<br>
+<font color="red" size="3"><b>Nu äre' slut.</b></font>
