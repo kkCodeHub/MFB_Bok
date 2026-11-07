@@ -145,6 +145,15 @@ public class SSInvoice extends SSSale {
         }
     }
 
+    @Override
+    public void setCustomer(SSCustomer iCustomer) {
+        super.setCustomer(iCustomer);
+        iPrintSwish = iCustomer.isPrintSwish();
+        iPrintSubtext = iCustomer.isPrintSubtext();
+        iFileSubtext = iCustomer.getFileSubtext();
+        iSubtextSize = iCustomer.getSubtextSize();
+    }
+
     // //////////////////////////////////////////////////
 
     /**

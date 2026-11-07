@@ -34,6 +34,9 @@ import se.swedsoft.bookkeeping.util.SSDateUtil;
  */
 public class SSInvoicePrinter extends SSPrinter {
     private static final Logger LOG = LoggerFactory.getLogger(SSInvoicePrinter.class);
+    private static final String INVOICE_TEXT_DIRECTORY = "InvoiceText";
+    private static final String LEGACY_INVOICE_TEXT_FILE = "HavbergText.txt";
+    private static final String DEFAULT_ROWS_REPORT = "sales/invoice.rows.jrxml";
 
     protected SSInvoice iInvoice;
 
@@ -232,12 +235,67 @@ public class SSInvoicePrinter extends SSPrinter {
     }
 
     private String getInvoiceTextForReport() {
+        if (usesStandardInvoiceSubtextBehavior(getClass())) {
+            return resolveStandardInvoiceSubtextText(iInvoice);
+        }
+
         String iInvoiceText = iInvoice.getText();
         if (iInvoiceText == null || iInvoiceText.trim().isEmpty()) {
             return null;
         }
 
-        File iInvoiceTextFile = new File(Path.get(Path.APP_DATA), "InvoiceText" + File.separator + "HavbergText.txt");
+        File iInvoiceTextFile = new File(Path.get(Path.APP_DATA),
+                INVOICE_TEXT_DIRECTORY + File.separator + LEGACY_INVOICE_TEXT_FILE);
+        try {
+            return Files.readString(iInvoiceTextFile.toPath(), StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            String iMessage = "Kunde inte läsa fakturatextfilen: " + iInvoiceTextFile.getAbsolutePath();
+            LOG.error(iMessage, e);
+            throw new IllegalStateException(iMessage, e);
+        }
+    }
+
+    static String resolveRowsTemplateForSubtextSize(int iSubtextSize) {
+        switch (iSubtextSize) {
+        case 1:
+            return "sales/invoice.rows01.jrxml";
+        case 5:
+            return "sales/invoice.rows05.jrxml";
+        case 10:
+            return "sales/invoice.rows10.jrxml";
+        case 19:
+            return "sales/invoice.rows19.jrxml";
+        default:
+            return DEFAULT_ROWS_REPORT;
+        }
+    }
+
+    static boolean usesStandardInvoiceSubtextBehavior(Class<?> iPrinterClass) {
+        return SSInvoicePrinter.class.equals(iPrinterClass);
+    }
+
+    static String resolveRowsTemplateForPrinter(Class<?> iPrinterClass, int iSubtextSize) {
+        return usesStandardInvoiceSubtextBehavior(iPrinterClass)
+                ? resolveRowsTemplateForSubtextSize(iSubtextSize)
+                : DEFAULT_ROWS_REPORT;
+    }
+
+    static String resolveStandardInvoiceSubtextText(SSInvoice iInvoice) {
+        if (iInvoice == null || !iInvoice.isPrintSubtext()) {
+            return null;
+        }
+
+        String iFileName = iInvoice.getFileSubtext();
+        if (iFileName == null || iFileName.trim().isEmpty()) {
+            return null;
+        }
+        if (iFileName.contains("/") || iFileName.contains("\\")) {
+            throw new IllegalArgumentException("Ogiltigt filnamn för fakturatext: " + iFileName);
+        }
+
+        File iInvoiceTextFile = new File(
+                new File(Path.get(Path.APP_DATA), INVOICE_TEXT_DIRECTORY),
+                iFileName);
         try {
             return Files.readString(iInvoiceTextFile.toPath(), StandardCharsets.UTF_8);
         } catch (IOException e) {
@@ -294,11 +352,14 @@ public class SSInvoicePrinter extends SSPrinter {
         public SSRowReport() {
             setMargins(0, 0, 0, 0);
 
-            setColumnHeader("sales/invoice.rows.jrxml");
-            setDetail("sales/invoice.rows.jrxml");
+            String iRowsReport = resolveRowsTemplateForPrinter(SSInvoicePrinter.this.getClass(),
+                    iInvoice.getSubtextSize());
 
-            setPageFooter("sales/invoice.rows.jrxml");
-            setLastPageFooter("sales/invoice.rows.jrxml");
+            setColumnHeader(iRowsReport);
+            setDetail(iRowsReport);
+
+            setPageFooter(iRowsReport);
+            setLastPageFooter(iRowsReport);
 
         }
 

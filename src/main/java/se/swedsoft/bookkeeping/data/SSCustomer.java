@@ -21,6 +21,7 @@ public class SSCustomer implements SSTableSearchable {
 
     // Constant for serialization versioning.
     static final long serialVersionUID = 1L;
+    private static final Integer[] SUBTEXT_SIZE_OPTIONS = new Integer[] {1, 5, 10, 19};
 
     // Kund nr:
     private String      iCustomerNr;
@@ -467,6 +468,23 @@ public class SSCustomer implements SSTableSearchable {
 
     public void setSubtextSize(int iSubtextSize) {
         this.iSubtextSize = iSubtextSize;
+    }
+
+    public static Integer[] getSubtextSizeOptions() {
+        return SUBTEXT_SIZE_OPTIONS.clone();
+    }
+
+    public Integer[] getAvailableSubtextSizeOptions() {
+        return getSubtextSizeOptions();
+    }
+
+    public static boolean isSubtextSizeOption(int iSubtextSize) {
+        for (Integer option : SUBTEXT_SIZE_OPTIONS) {
+            if (option == iSubtextSize) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

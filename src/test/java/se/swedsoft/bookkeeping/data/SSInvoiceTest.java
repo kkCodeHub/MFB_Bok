@@ -257,6 +257,24 @@ class SSInvoiceTest {
         assertThat(invoice.hasCustomer(customer)).isFalse();
     }
 
+    @Test
+    void setCustomerCopiesSubtextAndSwishSettingsFromCustomer() {
+        SSCustomer customer = new SSCustomer();
+        customer.setNumber("C101");
+        customer.setName("Kund 101");
+        customer.setPrintSwish(true);
+        customer.setPrintSubtext(true);
+        customer.setFileSubtext("Kundfaktura");
+        customer.setSubtextSize(19);
+
+        invoice.setCustomer(customer);
+
+        assertThat(invoice.isPrintSwish()).isTrue();
+        assertThat(invoice.isPrintSubtext()).isTrue();
+        assertThat(invoice.getFileSubtext()).isEqualTo("Kundfaktura");
+        assertThat(invoice.getSubtextSize()).isEqualTo(19);
+    }
+
     // ---- copyFrom / copy constructor ----
 
     @Test

@@ -6,7 +6,6 @@ import se.swedsoft.bookkeeping.calc.math.SSProductMath;
 import se.swedsoft.bookkeeping.data.*;
 import se.swedsoft.bookkeeping.data.base.SSSaleRow;
 import se.swedsoft.bookkeeping.data.common.*;
-import se.swedsoft.bookkeeping.data.system.SSDB;
 import se.swedsoft.bookkeeping.data.system.SSMasterdataContext;
 import se.swedsoft.bookkeeping.data.system.SSSalesContext;
 import se.swedsoft.bookkeeping.gui.SSMainFrame;
@@ -39,13 +38,10 @@ import se.swedsoft.bookkeeping.util.SSDateUtil;
 
 import javax.swing.*;
 import javax.swing.event.ChangeListener;
-import javax.swing.event.TableModelEvent;
-import javax.swing.event.TableModelListener;
 import javax.swing.text.DefaultFormatterFactory;
 import javax.swing.text.NumberFormatter;
 import java.awt.*;
 import java.awt.event.*;
-import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -161,6 +157,10 @@ public class SSInvoicePanel {
     protected JTabbedPane iTabbedPane;
     private ChangeListener iTabbedPaneChangeListener;
     private JCheckBox iUseInvoiceForDelivery;
+    private JCheckBox iPrintSwish;
+    private JCheckBox iPrintSubtext;
+    private JComboBox<String> iFileSubtext;
+    private JComboBox<Integer> iSubtextSize;
 
     /**
      *
@@ -277,6 +277,8 @@ public class SSInvoicePanel {
         iCurrency.getComboBox().setModel(SSCurrencyTableModel.getDropDownModel());
         iCurrency.getComboBox().setSearchColumns(0);
         iCurrency.setEditingFactory(SSCurrencyTableModel.getEditingFactory(iOwner));
+        setFileSubtextOptionsAndSelection(null, null);
+        setSubtextSizeOptionsAndSelection(null, 1);
 
         iCurrency.getComboBox().addSelectionListener(
                 new SSSelectionListener<>() {
@@ -744,6 +746,10 @@ public class SSInvoicePanel {
             iEntered.setSelected(iInvoice.isEntered());
             // Utskriven
             iPrinted.setSelected(iInvoice.isPrinted());
+            iPrintSwish.setSelected(iInvoice.isPrintSwish());
+            iPrintSubtext.setSelected(iInvoice.isPrintSubtext());
+            setFileSubtextOptionsAndSelection(iInvoice.getCustomer(), iInvoice.getFileSubtext());
+            setSubtextSizeOptionsAndSelection(iInvoice.getCustomer(), iInvoice.getSubtextSize());
             // Lagerför
             isStockInfluencing.setSelected(iInvoice.isStockInfluencing());
             // Räntefakturerad
@@ -758,7 +764,7 @@ public class SSInvoicePanel {
             iDeliveryAddress.setEnabled(!iUseInvoiceForDelivery.isSelected());
 
             iInputVerifier.update();
-             
+
             iVoucherGenerated = false;
             checkAndDisableUpdateButton();
         } finally {
@@ -821,6 +827,14 @@ public class SSInvoicePanel {
         iInvoice.setStockInfluencing(isStockInfluencing.isSelected());
         // Räntefakturerad
         iInvoice.setInterestInvoiced(iInterestInvoiced.isSelected());
+        iInvoice.setPrintSwish(iPrintSwish.isSelected());
+        iInvoice.setPrintSubtext(iPrintSubtext.isSelected());
+        if (iFileSubtext.getSelectedItem() != null) {
+            iInvoice.setFileSubtext((String) iFileSubtext.getSelectedItem());
+        }
+        if (iSubtextSize.getSelectedItem() != null) {
+            iInvoice.setSubtextSize((Integer) iSubtextSize.getSelectedItem());
+        }
 
         // Only generate voucher if not already generated (via Update button)
         if (!iVoucherGenerated) {
@@ -898,6 +912,65 @@ public class SSInvoicePanel {
         iOrdersForInvoice = iOrdersForInvoice.substring(0,
                 iOrdersForInvoice.lastIndexOf(", "));
         this.iOrders.setText(iOrdersForInvoice);
+    }
+
+    private void setSubtextSizeOptionsAndSelection(SSCustomer iCustomer, int iSelectedSubtextSize) {
+        LinkedHashSet<Integer> iOptions = new LinkedHashSet<>();
+        Integer[] iCustomerOptions = iCustomer == null
+                ? SSCustomer.getSubtextSizeOptions()
+                : iCustomer.getAvailableSubtextSizeOptions();
+
+        Collections.addAll(iOptions, iCustomerOptions);
+
+        if (iSelectedSubtextSize > 0) {
+            iOptions.add(iSelectedSubtextSize);
+        }
+        if (iOptions.isEmpty()) {
+            iOptions.add(1);
+        }
+
+        iSubtextSize.setModel(new DefaultComboBoxModel<>(iOptions.toArray(new Integer[0])));
+        selectSubtextSize(iSelectedSubtextSize);
+    }
+
+    private void selectSubtextSize(int iSubtextSizeValue) {
+        ComboBoxModel iModel = iSubtextSize.getModel();
+        for (int i = 0; i < iModel.getSize(); i++) {
+            Object iCurrent = iModel.getElementAt(i);
+            if (iCurrent instanceof Integer && ((Integer) iCurrent) == iSubtextSizeValue) {
+                iSubtextSize.setSelectedItem(iCurrent);
+                return;
+            }
+        }
+        iSubtextSize.setSelectedIndex(0);
+    }
+
+    private void setFileSubtextOptionsAndSelection(SSCustomer iCustomer, String iSelectedFileSubtext) {
+        DefaultComboBoxModel<String> iModel = createFileSubtextModel(iCustomer, iSelectedFileSubtext);
+        iFileSubtext.setModel(iModel);
+
+        if (iModel.getSize() == 0) {
+            return;
+        }
+
+        if (iSelectedFileSubtext != null && !iSelectedFileSubtext.trim().isEmpty()) {
+            iFileSubtext.setSelectedItem(iSelectedFileSubtext);
+            return;
+        }
+        iFileSubtext.setSelectedIndex(0);
+    }
+
+    private DefaultComboBoxModel<String> createFileSubtextModel(SSCustomer iCustomer, String iSelectedFileSubtext) {
+        LinkedHashSet<String> iOptions = new LinkedHashSet<>(SSInvoiceTextFileOptions.getInvoiceTextFileNames());
+
+        if (iCustomer != null && iCustomer.getFileSubtext() != null && !iCustomer.getFileSubtext().trim().isEmpty()) {
+            iOptions.add(iCustomer.getFileSubtext());
+        }
+        if (iSelectedFileSubtext != null && !iSelectedFileSubtext.trim().isEmpty()) {
+            iOptions.add(iSelectedFileSubtext);
+        }
+
+        return new DefaultComboBoxModel<>(iOptions.toArray(new String[0]));
     }
 
     /**

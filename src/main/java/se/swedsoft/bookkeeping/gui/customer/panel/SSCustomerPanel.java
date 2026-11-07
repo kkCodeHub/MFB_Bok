@@ -10,6 +10,7 @@ import se.swedsoft.bookkeeping.data.system.SSDB;
 import se.swedsoft.bookkeeping.gui.company.panel.SSAdressPanel;
 import se.swedsoft.bookkeeping.gui.util.SSButtonGroup;
 import se.swedsoft.bookkeeping.gui.util.SSButtonPanel;
+import se.swedsoft.bookkeeping.gui.util.SSInvoiceTextFileOptions;
 import se.swedsoft.bookkeeping.gui.util.SSInputVerifier;
 import se.swedsoft.bookkeeping.gui.util.components.SSBigDecimalTextField;
 import se.swedsoft.bookkeeping.gui.util.components.SSEditableTableComboBox;
@@ -99,8 +100,9 @@ public class SSCustomerPanel {
         iInvoiceCurrency.getComboBox().setSearchColumns(0);
         iInvoiceCurrency.setEditingFactory(SSCurrencyTableModel.getEditingFactory(iOwner));
 
-        iFileSubtext.setModel(new DefaultComboBoxModel<>(new String[] {"", "Faktura", "Kundfaktura", "E-post"}));
-        iSubtextSize.setModel(new DefaultComboBoxModel<>(new Integer[] {0, 1, 2, 3, 4, 5, 10}));
+        iFileSubtext.setModel(createFileSubtextModel());
+        iSubtextSize.setModel(new DefaultComboBoxModel<>(SSCustomer.getSubtextSizeOptions()));
+        iSubtextSize.setSelectedItem(1);
 
         iDeliveryWay.getComboBox().setModel(SSDeliveryWayTableModel.getDropDownModel());
         iDeliveryWay.getComboBox().setSearchColumns(0);
@@ -290,7 +292,12 @@ public class SSCustomerPanel {
         } else {
             iFileSubtext.setSelectedIndex(0);
         }
-        iSubtextSize.setSelectedItem(iCustomer.getSubtextSize());
+        int iCustomerSubtextSize = iCustomer.getSubtextSize();
+        if (SSCustomer.isSubtextSizeOption(iCustomerSubtextSize)) {
+            iSubtextSize.setSelectedItem(iCustomerSubtextSize);
+        } else {
+            iSubtextSize.setSelectedItem(1);
+        }
         // Fakureringsvaluta
         iInvoiceCurrency.setSelected(iCustomer.getInvoiceCurrency());
         // Betalningsvilkor
@@ -358,6 +365,7 @@ public class SSCustomerPanel {
                 if (e.getKeyCode() == KeyEvent.VK_ENTER) {
                     SwingUtilities.invokeLater(() -> iName.requestFocusInWindow());
                 }
+
             }
         });
 
@@ -573,6 +581,14 @@ public class SSCustomerPanel {
 
         iInvoiceAddress.addKeyListeners();
         iDeliveryAddress.addKeyListeners();
+    }
+
+    private DefaultComboBoxModel<String> createFileSubtextModel() {
+        DefaultComboBoxModel<String> iModel = new DefaultComboBoxModel<>();
+        for (String iFileName : SSInvoiceTextFileOptions.getInvoiceTextFileNames()) {
+            iModel.addElement(iFileName);
+        }
+        return iModel;
     }
 
     @Override
