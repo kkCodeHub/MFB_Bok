@@ -1,0 +1,23 @@
+<b>	Fet text	<b>Fet</b>
+<i>	Kursiv text	<i>Kursiv</i>
+<u>	Understruken text	<u>Understruken</u>
+<font>	Teckensnitt, färg och storlek	<font color="red">Röd</font>
+<span>	Formatering med CSS	<span style="color:blue">Blå</span>
+<sub>	Nedsänkt text	H<sub>2</sub>O
+<sup>	Upphöjd text	m<sup>2</sup>
+<br>	Radbrytning	Rad 1<br>Rad 2
+<p>	Stycke	<p>Ett stycke</p>
+<ul>	Punktlista	<ul><li>Text</li></ul>
+<ol>	Numrerad lista	<ol><li>Text</li></ol>
+<li>	Listelement	<li>Första punkten</li>
+<a>	Hyperlänk	<a href="https://example.com">Besök</a>
+För <span> finns stöd för följande CSS-egenskaper enligt dokumentationen:
+color	Textfärg	color:red
+background-color	Bakgrundsfärg	background-color:yellow
+font-size	Teckenstorlek	font-size:12pt
+font-weight	Fetstil	font-weight:bold
+font-family	Teckensnitt	font-family:Arial
+Exempel:
+<span style="color:red; font-size:12pt; font-weight:bold;">
+    Nu äre' slut.
+</span>

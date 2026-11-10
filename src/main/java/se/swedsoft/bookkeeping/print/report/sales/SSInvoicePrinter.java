@@ -24,6 +24,7 @@ import java.math.RoundingMode;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.io.File;
+import java.awt.Image;
 
 import se.swedsoft.bookkeeping.util.SSDateUtil;
 
@@ -230,7 +231,8 @@ public class SSInvoicePrinter extends SSPrinter {
         }
         uqrData.append("}");
 
-        SSSalePrinterUtils.addParameterForSwishImage(iCompany, this);
+        addParameter("invoice.swishText", resolveSwishTextForInvoice(iCompany, iInvoice.isPrintSwish()));
+        addParameter("invoice.swishImage", resolveSwishImageForInvoice(iCompany, iInvoice.isPrintSwish()));
 
     }
 
@@ -278,6 +280,14 @@ public class SSInvoicePrinter extends SSPrinter {
         return usesStandardInvoiceSubtextBehavior(iPrinterClass)
                 ? resolveRowsTemplateForSubtextSize(iSubtextSize)
                 : DEFAULT_ROWS_REPORT;
+    }
+
+    static String resolveSwishTextForInvoice(SSNewCompany iCompany, boolean iPrintSwish) {
+        return iPrintSwish ? iCompany.getSwishText() : null;
+    }
+
+    static Image resolveSwishImageForInvoice(SSNewCompany iCompany, boolean iPrintSwish) {
+        return iPrintSwish ? iCompany.getSwishImage().orElse(null) : null;
     }
 
     static String resolveStandardInvoiceSubtextText(SSInvoice iInvoice) {

@@ -16,11 +16,15 @@ import java.math.BigDecimal;
 import java.text.NumberFormat;
 import java.text.ParseException;
 import java.util.EventObject;
+import java.util.function.Consumer;
 
 
 public class SSBigDecimalCellEditor extends AbstractCellEditor implements TableCellEditor {
 
     private JFormattedTextField iTextField;
+    private Consumer<JFormattedTextField> iOnEditingDoubleClick;
+    private boolean iEditingActive;
+    private boolean iOpenCalculatorOnEditStart;
 
     /**
      * Default constructor.
@@ -49,10 +53,23 @@ public class SSBigDecimalCellEditor extends AbstractCellEditor implements TableC
             // implements java.awt.event.MouseListener
             @Override
             public void mouseClicked(MouseEvent e) {
+                if (iEditingActive && e.getClickCount() >= 2 && e.isShiftDown()
+                        && iOnEditingDoubleClick != null) {
+                    iOnEditingDoubleClick.accept(iTextField);
+                    return;
+                }
                 iTextField.selectAll();
             }
         });
 
+    }
+
+    public void setOnEditingDoubleClick(Consumer<JFormattedTextField> onEditingDoubleClick) {
+        iOnEditingDoubleClick = onEditingDoubleClick;
+    }
+
+    public void setToolTipText(String toolTipText) {
+        iTextField.setToolTipText(toolTipText);
     }
 
     @Override
@@ -77,6 +94,7 @@ public class SSBigDecimalCellEditor extends AbstractCellEditor implements TableC
 
     @Override
     public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
+        iEditingActive = true;
 
         if (value instanceof Number) {
             Number iValue = (Number) value;
@@ -87,13 +105,37 @@ public class SSBigDecimalCellEditor extends AbstractCellEditor implements TableC
             iTextField.setValue(null);
             iTextField.selectAll();
         }
+        if (iOpenCalculatorOnEditStart && iOnEditingDoubleClick != null) {
+            iOpenCalculatorOnEditStart = false;
+            SwingUtilities.invokeLater(() -> iOnEditingDoubleClick.accept(iTextField));
+        }
         return iTextField;
+    }
+
+    @Override
+    public boolean stopCellEditing() {
+        iEditingActive = false;
+        iOpenCalculatorOnEditStart = false;
+        return super.stopCellEditing();
+    }
+
+    @Override
+    public void cancelCellEditing() {
+        iEditingActive = false;
+        iOpenCalculatorOnEditStart = false;
+        super.cancelCellEditing();
     }
 
     @Override
     public boolean isCellEditable(EventObject e) {
         if (e instanceof MouseEvent) {
             MouseEvent iMouseEvent = (MouseEvent) e;
+            if (iMouseEvent.getClickCount() >= 2 && iMouseEvent.isShiftDown()
+                    && iOnEditingDoubleClick != null) {
+                iOpenCalculatorOnEditStart = true;
+            } else {
+                iOpenCalculatorOnEditStart = false;
+            }
 
             return iMouseEvent.getClickCount() >= 2;
         }

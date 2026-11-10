@@ -6,10 +6,11 @@
 6<br>
 7<br>
 8<br>
-9<br>
+9<span style="color:blue; background-color:yellow; font-size:12pt; font-weight:bold;">
+    Nu äre' slut.
+</span><br>
 10<br>
-11<br>
-12<br>
+<ol><li>Rad 11</li><li>Rad 12</li></ol>
 13<br>
 14<br>
 15<br>

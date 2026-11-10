@@ -3,9 +3,13 @@ package se.swedsoft.bookkeeping.print.report.sales;
 import org.fribok.bookkeeping.app.Path;
 import org.junit.jupiter.api.Test;
 import se.swedsoft.bookkeeping.data.SSInvoice;
+import se.swedsoft.bookkeeping.data.SSNewCompany;
 
+import java.awt.Image;
+import java.awt.image.BufferedImage;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -42,6 +46,35 @@ class SSInvoicePrinterSubtextBehaviorTest {
                 .isEqualTo("sales/invoice.rows10.jrxml");
         assertThat(SSInvoicePrinter.resolveRowsTemplateForPrinter(TestOcrLikePrinter.class, 10))
                 .isEqualTo("sales/invoice.rows.jrxml");
+    }
+
+    @Test
+    void resolveSwishParametersReturnNullWhenPrintSwishIsDisabled() {
+        SSNewCompany iCompany = new SSNewCompany() {
+            @Override
+            public Optional<Image> getSwishImage() {
+                return Optional.of(new BufferedImage(1, 1, BufferedImage.TYPE_INT_RGB));
+            }
+        };
+        iCompany.setSwishText("Betala med Swish");
+
+        assertThat(SSInvoicePrinter.resolveSwishTextForInvoice(iCompany, false)).isNull();
+        assertThat(SSInvoicePrinter.resolveSwishImageForInvoice(iCompany, false)).isNull();
+    }
+
+    @Test
+    void resolveSwishParametersReturnCompanyValuesWhenPrintSwishIsEnabled() {
+        BufferedImage iImage = new BufferedImage(1, 1, BufferedImage.TYPE_INT_RGB);
+        SSNewCompany iCompany = new SSNewCompany() {
+            @Override
+            public Optional<Image> getSwishImage() {
+                return Optional.of(iImage);
+            }
+        };
+        iCompany.setSwishText("Betala med Swish");
+
+        assertThat(SSInvoicePrinter.resolveSwishTextForInvoice(iCompany, true)).isEqualTo("Betala med Swish");
+        assertThat(SSInvoicePrinter.resolveSwishImageForInvoice(iCompany, true)).isSameAs(iImage);
     }
 
     @Test
