@@ -20,6 +20,7 @@ import se.swedsoft.bookkeeping.gui.util.table.SSTable;
 import se.swedsoft.bookkeeping.gui.util.table.actions.SSDeleteAction;
 import se.swedsoft.bookkeeping.gui.util.table.actions.SSTraversalAction;
 import se.swedsoft.bookkeeping.gui.util.table.editors.SSBigDecimalCellEditor;
+import se.swedsoft.bookkeeping.gui.util.Calculator.SSCalculatorFieldHost;
 import se.swedsoft.bookkeeping.gui.util.Calculator.SwingCalculator;
 import se.swedsoft.bookkeeping.gui.voucher.util.SSVoucherRowTableModel;
 import se.swedsoft.bookkeeping.gui.voucher.util.SSVoucherVerifier;
@@ -113,7 +114,7 @@ public class SSVoucherPanel implements TableModelListener, ListSelectionListener
     private JTextField textField1;
     private SSBigDecimalTextField SSBigDecimalTextField1;
     private SSButton iAddAccountButton;
-    private boolean iDebetCalculatorEnabled;
+    private boolean iDebetCreditCalculatorEnabled;
 
     /**
      *
@@ -137,7 +138,7 @@ public class SSVoucherPanel implements TableModelListener, ListSelectionListener
         iTable.setSelectionForeground(Color.BLACK);
 
         iModel.setupTable(iTable, true);
-        applyDebetCellEditor();
+        applyDebetCreditCellEditor();
         iModel.addTableModelListener(this);
 
         iMarkRowButton.setIcon(
@@ -684,7 +685,7 @@ public class SSVoucherPanel implements TableModelListener, ListSelectionListener
 
         iModel.setObjects(iVoucher.getRows(), iEditing);
         iModel.setupTable(iTable, true);
-        applyDebetCellEditor();
+        applyDebetCreditCellEditor();
 
         populateSeriesOptions();
         iSeries.setEnabled(!iEditing);
@@ -882,63 +883,35 @@ public class SSVoucherPanel implements TableModelListener, ListSelectionListener
 
     public void updateAccounts() {
         iModel.setupTable(iTable);
-        applyDebetCellEditor();
+        applyDebetCreditCellEditor();
         updateVoucherTemplates();
     }
 
-    public void setDebetCalculatorEnabled(boolean enabled) {
-        iDebetCalculatorEnabled = enabled;
-        applyDebetCellEditor();
+    public void setDebetCreditCalculatorEnabled(boolean enabled) {
+        iDebetCreditCalculatorEnabled = enabled;
+        applyDebetCreditCellEditor();
     }
 
-    private void applyDebetCellEditor() {
+    private void applyDebetCreditCellEditor() {
         if (iTable == null || iTable.getColumnModel() == null || iTable.getColumnModel().getColumnCount() <= 2) {
             return;
         }
-
-        SSBigDecimalCellEditor editor = new SSBigDecimalCellEditor(2);
-        if (iDebetCalculatorEnabled) {
-            editor.setOnEditingDoubleClick(this::openCalculatorForDebetEditor);
-            editor.setToolTipText("Skift + dubbelklick för calculator");
+        SSBigDecimalCellEditor debiteditor = new SSBigDecimalCellEditor(2);
+        if (iDebetCreditCalculatorEnabled) {
+            SSCalculatorFieldHost.attachToEditor(debiteditor, iPanel);
         } else {
-            editor.setToolTipText(null);
+            debiteditor.setToolTipText(null);
         }
-        iTable.getColumnModel().getColumn(2).setCellEditor(editor);
-    }
+        iTable.getColumnModel().getColumn(2).setCellEditor(debiteditor);
 
-    private void openCalculatorForDebetEditor(final JFormattedTextField debetField) {
-        String initialValue = "";
-        Object currentValue = debetField.getValue();
-        if (currentValue instanceof Number) {
-            initialValue = new BigDecimal(currentValue.toString())
-                    .setScale(2, RoundingMode.HALF_UP)
-                    .toPlainString();
-        } else if (debetField.getText() != null) {
-            String textValue = debetField.getText().trim().replace(",", ".");
-            try {
-                initialValue = new BigDecimal(textValue)
-                        .setScale(2, RoundingMode.HALF_UP)
-                        .toPlainString();
-            } catch (NumberFormatException ex) {
-                initialValue = textValue;
+        if (iTable.getColumnModel().getColumnCount() > 3) {
+            SSBigDecimalCellEditor creditEditor = new SSBigDecimalCellEditor(2);
+            if (iDebetCreditCalculatorEnabled) {
+                SSCalculatorFieldHost.attachToEditor(creditEditor, iPanel);
             }
+            iTable.getColumnModel().getColumn(3).setCellEditor(creditEditor);
         }
-
-        SwingCalculator.showDialog(SSMainFrame.getInstance(), iPanel, initialValue, result -> {
-            try {
-                BigDecimal value = new BigDecimal(result.replace(',', '.'));
-                debetField.setValue(value);
-                debetField.requestFocusInWindow();
-                debetField.selectAll();
-            } catch (NumberFormatException ex) {
-                JOptionPane.showMessageDialog(iPanel,
-                        "Ogiltigt värde från kalkylatorn: " + result,
-                        "Kalkylatorfel",
-                        JOptionPane.ERROR_MESSAGE);
-            }
-        });
     }
-
     /**
      * Refreshes the voucher template dropdown from the database.
      */

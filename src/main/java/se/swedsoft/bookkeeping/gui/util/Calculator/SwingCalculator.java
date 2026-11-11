@@ -23,7 +23,7 @@ public class SwingCalculator extends SSDialog {
     }
 
     public SwingCalculator(final SSMainFrame iOwner, final Consumer<String> resultCallback) {
-        super(iOwner, "Miniräknare");
+        super(iOwner, "Kalkylator");
         this.resultCallback = resultCallback;
         add(calculatorPanel, BorderLayout.CENTER);
         configureUi();
@@ -51,7 +51,7 @@ public class SwingCalculator extends SSDialog {
         getRootPane().setDefaultButton(btnEquals);
 
         pack();
-        setSize(360, 480);
+        setSize(180, 240);
         setLocationRelativeTo((java.awt.Component) null);
     }
 

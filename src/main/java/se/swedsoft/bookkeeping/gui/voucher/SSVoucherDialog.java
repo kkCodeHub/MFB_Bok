@@ -49,7 +49,7 @@ public class SSVoucherDialog {    private static final Logger LOG = LoggerFactor
         final SSDialog       iDialog = new SSDialog(iMainFrame,
                 SSBundle.getBundle().getString("voucherframe.new.title"));
         final SSVoucherPanel iPanel = new SSVoucherPanel(iDialog);
-        iPanel.setDebetCalculatorEnabled(true);
+        iPanel.setDebetCreditCalculatorEnabled(true);
 
         iPanel.setVoucher(new SSVoucher(), false, false);
         iPanel.setMarkRowButtonVisible(false);
@@ -140,7 +140,7 @@ public class SSVoucherDialog {    private static final Logger LOG = LoggerFactor
         final SSDialog       iDialog = new SSDialog(iMainFrame,
                 SSBundle.getBundle().getString("voucherframe.edit.title"));
         final SSVoucherPanel iPanel = new SSVoucherPanel(iDialog);
-        iPanel.setDebetCalculatorEnabled(false);
+        iPanel.setDebetCreditCalculatorEnabled(true);
         final SSVoucher iOriginalVoucher = new SSVoucher(iVoucher);
 
         iPanel.setMarkRowButtonVisible(true);
@@ -232,7 +232,7 @@ public class SSVoucherDialog {    private static final Logger LOG = LoggerFactor
         final SSDialog       iDialog = new SSDialog(iMainFrame,
                 SSBundle.getBundle().getString("voucherframe.copy.title"));
         final SSVoucherPanel iPanel = new SSVoucherPanel(iDialog);
-        iPanel.setDebetCalculatorEnabled(false);
+        iPanel.setDebetCreditCalculatorEnabled(true);
 
         if (iVoucher.getCorrectedBy() != null) {
             SSInformationDialog.showDialog(iMainFrame, "voucherframe.alreadyedited",
