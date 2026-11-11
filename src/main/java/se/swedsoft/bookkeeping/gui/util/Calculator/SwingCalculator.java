@@ -95,119 +95,89 @@ public class SwingCalculator extends SSDialog {
         }
     }
 
-    // Procentknappen gör om det sista talet till tal / 100.
-    // Exempel: 200 * 15 % blir 200 * (15/100).
-//    private void applyPercent() {
-//        String s = display.getText();
-//        if (s.isEmpty()) return;
-//
-//        int end = s.length();
-//        int start = end;
-//
-//        if (Character.isDigit(s.charAt(end - 1)) || s.charAt(end - 1) == '.') {
-//            while (start > 0) {
-//                char c = s.charAt(start - 1);
-//                if (Character.isDigit(c) || c == '.') start--;
-//                else break;
-//            }
-//            if (start > 0 && s.charAt(start - 1) == '-'
-//                    && (start == 1 || "+-*/(".indexOf(s.charAt(start - 2)) >= 0)) {
-//                start--;
-//            }
-//        } else {
-//            return;
-//        }
-//
-//        String lastNumber = s.substring(start, end);
-//        display.setText(s.substring(0, start) + "(" + lastNumber + "/100)");
-//    }
     private void applyPercent() {
-
         String text = display.getText().trim();
 
-        if (text.isEmpty()) {
+        if (text.isEmpty() || text.endsWith("%")) {
             return;
         }
 
         int end = text.length();
         int start = end;
 
-        // Hitta början på det sista talet
-        if (Character.isDigit(text.charAt(end - 1))
-            || text.charAt(end - 1) == '.') {
-
-            while (start > 0) {
-                char c = text.charAt(start - 1);
-
-                if (Character.isDigit(c) || c == '.') {
-                    start--;
-                } else {
-                    break;
-                }
-            }
-
-        } else {
-            return;
-        }
-
-        String percentValue = text.substring(start, end);
-
-        // Hitta föregående operator
-        int operatorPos = start - 1;
-
-        if (operatorPos < 0) {
-            display.setText("(" + percentValue + "/100)");
-            return;
-        }
-
-        char operator = text.charAt(operatorPos);
-
-        // Multiplikation och division:
-        // Procenten räknas som tal / 100.
-        if (operator == '*' || operator == '/') {
-
-            display.setText(
-                text.substring(0, start)
-                    + "(" + percentValue + "/100)"
-            );
-
-            return;
-        }
-
-        // Addition och subtraktion:
-        // Procenten beräknas på föregående tal.
-        if (operator == '+' || operator == '-') {
-
-            String leftPart = text.substring(0, operatorPos).trim();
-
-            try {
-
-                BigDecimal previousValue =
-                    new Expression(leftPart)
-                        .evaluate()
-                        .getNumberValue();
-
-                BigDecimal percentage =
-                    new BigDecimal(percentValue);
-
-                BigDecimal result =
-                    previousValue.multiply(percentage)
-                        .divide(new BigDecimal("100"));
-
-                display.setText(
-                    text.substring(0, start)
-                        + "(" + result.toPlainString() + ")"
-                );
-
-            } catch (Exception e) {
-                JOptionPane.showMessageDialog(
-                    this,
-                    "Kunde inte beräkna procenten.",
-                    "Fel",
-                    JOptionPane.ERROR_MESSAGE
-                );
+        while (start > 0) {
+            char c = text.charAt(start - 1);
+            if (Character.isDigit(c) || c == '.') {
+                start--;
+            } else {
+                break;
             }
         }
+
+        if (start == end) {
+            return;
+        }
+
+        display.setText(text + "%");
+    }
+
+    private String normalizePercentExpression(String input) {
+        String expression = input.trim().replace(" ", "");
+        if (expression.isEmpty() || !expression.contains("%")) {
+            return expression;
+        }
+
+        int percentIndex = expression.lastIndexOf('%');
+        if (percentIndex != expression.length() - 1) {
+            throw new IllegalArgumentException("Unsupported percent usage");
+        }
+
+        int start = percentIndex;
+        while (start > 0) {
+            char c = expression.charAt(start - 1);
+            if (Character.isDigit(c) || c == '.') {
+                start--;
+            } else {
+                break;
+            }
+        }
+
+        if (start == percentIndex) {
+            throw new IllegalArgumentException("Unsupported percent usage");
+        }
+
+        String percentageValue = expression.substring(start, percentIndex);
+        if (percentageValue.isEmpty()) {
+            throw new IllegalArgumentException("Unsupported percent usage");
+        }
+
+        if (start == 0) {
+            return percentageValue + "/100";
+        }
+
+        char operator = expression.charAt(start - 1);
+        String leftPart = expression.substring(0, start - 1).trim();
+        if (leftPart.isEmpty()) {
+            throw new IllegalArgumentException("Unsupported percent usage");
+        }
+
+        if (operator == '*') {
+            return leftPart + "*(" + percentageValue + "/100)";
+        }
+
+        if (operator == '/') {
+            return leftPart + "/(" + percentageValue + "/100)";
+        }
+
+        if (operator == '+') {
+            return leftPart + "+(" + leftPart + "*" + percentageValue + "/100)";
+        }
+
+        if (operator == '-') {
+            return leftPart + "-(" + leftPart + "*" + percentageValue + "/100)";
+        }
+
+        throw new IllegalArgumentException("Unsupported percent usage");
     }
 
     private void calculate() {
@@ -215,13 +185,18 @@ public class SwingCalculator extends SSDialog {
         if (input.isEmpty()) return;
 
         try {
-            BigDecimal result = new Expression(input).evaluate().getNumberValue();
+            String normalizedInput = normalizePercentExpression(input);
+            BigDecimal result = new Expression(normalizedInput).evaluate().getNumberValue();
             String formattedResult = result.stripTrailingZeros().toPlainString();
             display.setText(formattedResult);
             if (resultCallback != null) {
                 resultCallback.accept(formattedResult);
                 closeDialog(JOptionPane.OK_OPTION);
             }
+        } catch (IllegalArgumentException ex) {
+            JOptionPane.showMessageDialog(this,
+                "Uttrycket kunde inte beräknas.\nKontrollera uttrycket och försök igen.",
+                "Beräkningsfel", JOptionPane.ERROR_MESSAGE);
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(this,
                 "Uttrycket kunde inte beräknas.\nKontrollera uttrycket och försök igen.",
