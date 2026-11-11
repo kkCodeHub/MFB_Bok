@@ -41,7 +41,7 @@ public class SwingCalculator extends SSDialog {
                 btn4, btn5, btn6, btnMultiply,
                 btn1, btn2, btn3, btnMinus,
                 btn0, btnDot, btnEquals, btnPlus,
-                btnOpen, btnClose, btnPercent, btnClear
+                btnOpen, btnClose, btnPercent, btnClear, btnBackspace, btnCancel
         };
         Font buttonFont = new Font("Arial", Font.BOLD, 20);
         for (JButton button : buttons) {
@@ -61,7 +61,7 @@ public class SwingCalculator extends SSDialog {
                 btn4, btn5, btn6, btnMultiply,
                 btn1, btn2, btn3, btnMinus,
                 btn0, btnDot, btnEquals, btnPlus,
-                btnOpen, btnClose, btnPercent, btnClear
+                btnOpen, btnClose, btnPercent, btnClear, btnBackspace, btnCancel
         };
 
         for (JButton button : buttons) {
@@ -79,6 +79,15 @@ public class SwingCalculator extends SSDialog {
                 break;
             case "%":
                 applyPercent();
+                break;
+            case "<X":
+                String currentText = display.getText();
+                if (!currentText.isEmpty()) {
+                    display.setText(currentText.substring(0, currentText.length() - 1));
+                }
+                break;
+            case "Cancel":
+                closeDialog(JOptionPane.CANCEL_OPTION);
                 break;
             default:
                 display.setText(display.getText() + value);
@@ -246,6 +255,7 @@ public class SwingCalculator extends SSDialog {
     private javax.swing.JTextField display;
     private JButton btn0, btn1, btn2, btn3, btn4, btn5, btn6, btn7, btn8, btn9;
     private JButton btnDivide, btnMultiply, btnMinus, btnPlus;
-    private JButton btnDot, btnEquals, btnOpen, btnClose, btnPercent, btnClear;
+    private JButton btnDot, btnEquals, btnOpen, btnClose, btnPercent, btnClear, btnBackspace,
+            btnCancel;
     // End of variables declaration
 }
