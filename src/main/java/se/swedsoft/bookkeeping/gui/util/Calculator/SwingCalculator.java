@@ -3,6 +3,7 @@ package se.swedsoft.bookkeeping.gui.util.Calculator;
 import com.ezylang.evalex.Expression;
 import se.swedsoft.bookkeeping.gui.SSMainFrame;
 import se.swedsoft.bookkeeping.gui.util.dialogs.SSDialog;
+import se.swedsoft.bookkeeping.gui.util.graphics.SSImage;
 
 import java.awt.BorderLayout;
 import java.awt.Font;
@@ -25,6 +26,7 @@ public class SwingCalculator extends SSDialog {
     public SwingCalculator(final SSMainFrame iOwner, final Consumer<String> resultCallback) {
         super(iOwner, "Kalkylator");
         this.resultCallback = resultCallback;
+        this.setIconImages(SSImage.getApplicationIcons());
         add(calculatorPanel, BorderLayout.CENTER);
         configureUi();
         bindButtonActions();
@@ -34,7 +36,7 @@ public class SwingCalculator extends SSDialog {
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         setResizable(false);
 
-        display.setFont(new Font("Arial", Font.PLAIN, 24));
+        display.setFont(new Font("Arial", Font.PLAIN, 18));
 
         JButton[] buttons = {
                 btn7, btn8, btn9, btnDivide,
@@ -43,7 +45,7 @@ public class SwingCalculator extends SSDialog {
                 btn0, btnDot, btnEquals, btnPlus,
                 btnOpen, btnClose, btnPercent, btnClear, btnBackspace, btnCancel
         };
-        Font buttonFont = new Font("Arial", Font.BOLD, 20);
+        Font buttonFont = new Font("Arial", Font.BOLD, 14);
         for (JButton button : buttons) {
             button.setFont(buttonFont);
         }
@@ -51,7 +53,7 @@ public class SwingCalculator extends SSDialog {
         getRootPane().setDefaultButton(btnEquals);
 
         pack();
-        setSize(180, 240);
+        setSize(260, 340);
         setLocationRelativeTo((java.awt.Component) null);
     }
 
@@ -88,6 +90,9 @@ public class SwingCalculator extends SSDialog {
                 break;
             case "Cancel":
                 closeDialog(JOptionPane.CANCEL_OPTION);
+                break;
+            case "─":
+                display.setText(display.getText() + "-");
                 break;
             default:
                 display.setText(display.getText() + value);
