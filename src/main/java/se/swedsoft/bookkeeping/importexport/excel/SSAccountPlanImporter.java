@@ -123,7 +123,7 @@ public class SSAccountPlanImporter {
             return;
         }
 
-        File expectedDir = Path.get(Path.USER_DATA).getCanonicalFile();
+        File expectedDir = new File(Path.get(Path.APP_DATA), "accountplan").getCanonicalFile();
         File selectedFile = file.getCanonicalFile();
         File parent = selectedFile.getParentFile();
         if (parent == null || !parent.equals(expectedDir)) {

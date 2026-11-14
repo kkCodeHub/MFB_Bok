@@ -80,7 +80,7 @@ class SSCustomerPanelSubtextDefaultsTest {
 
         JComboBox<String> fileSubtext = getField(panel, "iFileSubtext", JComboBox.class);
 
-        File directory = new File(Path.get(Path.APP_DATA), "InvoiceText");
+        File directory = new File(Path.get(Path.APP_DATA), "invoiceText");
         File[] files = directory.listFiles(File::isFile);
         if (files == null) {
             files = new File[0];

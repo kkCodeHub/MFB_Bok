@@ -21,9 +21,16 @@ import javax.swing.*;
 import java.awt.Font;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.URISyntaxException;
+import java.nio.file.Files;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.util.Enumeration;
+import java.util.Locale;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,6 +43,9 @@ public class Bookkeeping {    private static final Logger LOG = LoggerFactory.ge
 
 
     public static boolean iRunning;
+    private static final String[] ROOT_DIRS = {"db", "helpjar", "helpweb_cache", "mail", "data"};
+    private static final String[] ROOT_FILES = {"bookkeeping.config", "database.config", "backup-history.properties"};
+    private static final String[] DATA_DIRS = {"accountplan", "invoiceText", "swishQR", "logotype"};
 
     private Bookkeeping() {}
 
@@ -161,6 +171,8 @@ public class Bookkeeping {    private static final Logger LOG = LoggerFactory.ge
                 warning = null;
             }
         }
+        ensureStorageStructure();
+        copyBundledStartupAssets();
 
         // Create and display the main iMainFrame.
         SSMainFrame iMainFrame = SSMainFrame.getInstance();
@@ -223,4 +235,155 @@ public class Bookkeeping {    private static final Logger LOG = LoggerFactory.ge
                             }));
     }
 
+    private static void ensureStorageStructure() {
+        File userRoot = Path.get(Path.USER_DATA);
+        File dataRoot = new File(userRoot, "data");
+
+        for (String rootDirName : ROOT_DIRS) {
+            ensureDirectory(new File(userRoot, rootDirName));
+        }
+
+        for (String dataDirName : DATA_DIRS) {
+            ensureDirectory(new File(dataRoot, dataDirName));
+        }
+
+        for (String rootFileName : ROOT_FILES) {
+            ensureFile(new File(userRoot, rootFileName));
+        }
+    }
+
+    private static void copyBundledStartupAssets() {
+        File dataRoot = new File(Path.get(Path.USER_DATA), "data");
+        File codeSource = resolveCodeSourceLocation();
+        if (codeSource != null && codeSource.isFile()
+                && codeSource.getName().toLowerCase(Locale.ROOT).endsWith(".jar")) {
+            copyBundledAssetsFromJar(codeSource, dataRoot);
+            return;
+        }
+        if (codeSource != null && codeSource.isDirectory()) {
+            copyBundledAssetsFromDirectory(new File(codeSource, "data"), dataRoot);
+            return;
+        }
+        LOG.warn("Unable to resolve startup asset source location.");
+    }
+
+    private static File resolveCodeSourceLocation() {
+        try {
+            return new File(Bookkeeping.class.getProtectionDomain().getCodeSource().getLocation().toURI());
+        } catch (URISyntaxException | SecurityException e) {
+            LOG.warn("Unable to resolve code source location for startup assets", e);
+            return null;
+        }
+    }
+
+    private static void copyBundledAssetsFromDirectory(File sourceDataRoot, File targetDataRoot) {
+        copyFilesWithExtensionIfMissing(new File(sourceDataRoot, "swishQR"),
+                new File(targetDataRoot, "swishQR"), ".png");
+        copyFilesWithExtensionIfMissing(new File(sourceDataRoot, "logotype"),
+                new File(targetDataRoot, "logotype"), ".png");
+        copyFilesWithExtensionIfMissing(new File(sourceDataRoot, "invoiceText"),
+                new File(targetDataRoot, "invoiceText"), ".txt");
+    }
+
+    private static void copyBundledAssetsFromJar(File jarPath, File targetDataRoot) {
+        try (JarFile jarFile = new JarFile(jarPath)) {
+            Enumeration<JarEntry> entries = jarFile.entries();
+            while (entries.hasMoreElements()) {
+                JarEntry entry = entries.nextElement();
+                if (entry.isDirectory()) {
+                    continue;
+                }
+                String name = entry.getName();
+                String lowerName = name.toLowerCase(Locale.ROOT);
+                if (name.startsWith("data/swishQR/") && lowerName.endsWith(".png")) {
+                    copyJarEntryIfMissing(jarFile, entry, new File(targetDataRoot, "swishQR"));
+                } else if (name.startsWith("data/logotype/") && lowerName.endsWith(".png")) {
+                    copyJarEntryIfMissing(jarFile, entry, new File(targetDataRoot, "logotype"));
+                } else if (name.startsWith("data/invoiceText/") && lowerName.endsWith(".txt")) {
+                    copyJarEntryIfMissing(jarFile, entry, new File(targetDataRoot, "invoiceText"));
+                }
+            }
+        } catch (IOException e) {
+            LOG.warn("Unable to copy startup assets from {}", jarPath.getAbsolutePath(), e);
+        }
+    }
+
+    private static void copyFilesWithExtensionIfMissing(File sourceDir, File targetDir, String extension) {
+        if (!sourceDir.isDirectory()) {
+            return;
+        }
+        File[] files = sourceDir.listFiles(file -> file.isFile()
+                && file.getName().toLowerCase(Locale.ROOT).endsWith(extension));
+        if (files == null) {
+            return;
+        }
+        for (File sourceFile : files) {
+            copyFileIfMissing(sourceFile, new File(targetDir, sourceFile.getName()));
+        }
+    }
+
+    private static void copyJarEntryIfMissing(JarFile jarFile, JarEntry entry, File targetDir) {
+        String name = entry.getName();
+        int separator = name.lastIndexOf('/');
+        String fileName = separator >= 0 ? name.substring(separator + 1) : name;
+        File targetFile = new File(targetDir, fileName);
+        if (targetFile.exists()) {
+            return;
+        }
+        ensureDirectory(targetDir);
+        try (InputStream inputStream = jarFile.getInputStream(entry)) {
+            Files.copy(inputStream, targetFile.toPath());
+        } catch (IOException e) {
+            LOG.warn("Unable to copy startup asset {} to {}", entry.getName(), targetFile.getAbsolutePath(), e);
+        }
+    }
+
+    private static void copyFileIfMissing(File sourceFile, File targetFile) {
+        if (targetFile.exists()) {
+            return;
+        }
+        File parent = targetFile.getParentFile();
+        if (parent != null) {
+            ensureDirectory(parent);
+        }
+        try {
+            Files.copy(sourceFile.toPath(), targetFile.toPath());
+        } catch (IOException e) {
+            LOG.warn("Unable to copy startup asset {} to {}",
+                    sourceFile.getAbsolutePath(), targetFile.getAbsolutePath(), e);
+        }
+    }
+
+    private static void ensureDirectory(File directory) {
+        if (directory.exists()) {
+            if (!directory.isDirectory()) {
+                LOG.warn("{} exists but is not a directory", directory.getAbsolutePath());
+            }
+            return;
+        }
+        if (!directory.mkdirs() && !directory.exists()) {
+            LOG.warn("Unable to create directory {}", directory.getAbsolutePath());
+        }
+    }
+
+    private static void ensureFile(File file) {
+        if (file.exists()) {
+            if (!file.isFile()) {
+                LOG.warn("{} exists but is not a file", file.getAbsolutePath());
+            }
+            return;
+        }
+        File parent = file.getParentFile();
+        if (parent != null && !parent.exists() && !parent.mkdirs() && !parent.exists()) {
+            LOG.warn("Unable to create parent directory for {}", file.getAbsolutePath());
+            return;
+        }
+        try {
+            if (!file.createNewFile() && !file.exists()) {
+                LOG.warn("Unable to create file {}", file.getAbsolutePath());
+            }
+        } catch (IOException e) {
+            LOG.warn("Unable to create file {}", file.getAbsolutePath(), e);
+        }
+    }
 }

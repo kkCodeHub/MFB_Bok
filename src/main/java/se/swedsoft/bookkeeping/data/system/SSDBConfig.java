@@ -160,17 +160,23 @@ public class SSDBConfig {    private static final Logger LOG = LoggerFactory.get
                 LOG.warn("Failed to create config directory: {}", parent);
             }
         }
-        if (CONFIG_FILE.createNewFile()) {
+        if (!CONFIG_FILE.exists() && CONFIG_FILE.createNewFile()) {
             LOG.info("Creating database config file.");
+        }
+        if (CONFIG_FILE.length() == 0L) {
+            LOG.info("Initializing database config file.");
+            initializeEmptyConfigFile();
+        }
+    }
 
-            try {
-                DocumentBuilder iBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
-                Document iDocument = iBuilder.newDocument();
-                iDocument.appendChild(iDocument.createElement("database"));
-                writeDocument(iDocument);
-            } catch (ParserConfigurationException | TransformerException ex) {
-                throw new IOException(ex);
-            }
+    private static void initializeEmptyConfigFile() throws IOException {
+        try {
+            DocumentBuilder iBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+            Document iDocument = iBuilder.newDocument();
+            iDocument.appendChild(iDocument.createElement("database"));
+            writeDocument(iDocument);
+        } catch (ParserConfigurationException | TransformerException ex) {
+            throw new IOException(ex);
         }
     }
 

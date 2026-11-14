@@ -289,7 +289,7 @@ public class SSCustomerPanel {
         iPrintSubtext.setSelected(iCustomer.isPrintSubtext());
         if (iCustomer.getFileSubtext() != null) {
             iFileSubtext.setSelectedItem(iCustomer.getFileSubtext());
-        } else {
+        } else if (iFileSubtext.getItemCount() > 0) {
             iFileSubtext.setSelectedIndex(0);
         }
         int iCustomerSubtextSize = iCustomer.getSubtextSize();

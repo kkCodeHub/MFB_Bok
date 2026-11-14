@@ -249,7 +249,7 @@ public class SSAccountPlanFrame extends SSDefaultTableFrame {
         }
 
         SSExcelFileChooser chooser = SSExcelFileChooser.getInstance();
-        File dataDir = Path.get(Path.USER_DATA);
+        File dataDir = new File(Path.get(Path.APP_DATA), "accountplan");
         if (!dataDir.exists()) {
             dataDir.mkdirs();
         }

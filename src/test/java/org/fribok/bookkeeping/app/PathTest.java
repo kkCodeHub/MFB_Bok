@@ -21,7 +21,11 @@ package org.fribok.bookkeeping.app;
 
 import org.junit.jupiter.api.Test;
 
+import java.io.File;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 
 /**
@@ -35,5 +39,17 @@ public class PathTest {
         for (Path path : Path.values()) {
             assertNotNull(Path.get(path));
         }
+    }
+
+    @Test
+    void userDataFolderIsMfbBok() {
+        assertEquals("MFB_Bok", Path.get(Path.USER_DATA).getName());
+    }
+
+    @Test
+    void appDataIsDataFolderUnderUserData() {
+        File expected = new File(Path.get(Path.USER_DATA), "data");
+        assertEquals(expected.getAbsolutePath(), Path.get(Path.APP_DATA).getAbsolutePath());
+        assertTrue(Path.get(Path.APP_DATA).getAbsolutePath().endsWith(File.separator + "data"));
     }
 }

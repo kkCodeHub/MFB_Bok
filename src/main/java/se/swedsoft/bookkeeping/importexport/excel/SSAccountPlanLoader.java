@@ -73,7 +73,7 @@ public final class SSAccountPlanLoader {
             return WorkbookFactory.create(inputStream);
         }
 
-        File file = new File(Path.get(Path.USER_DATA), plan.getExcelPath());
+        File file = new File(new File(Path.get(Path.APP_DATA), "accountplan"), plan.getExcelPath());
         return SSExcelWorkbookReader.openWorkbook(file);
     }
 

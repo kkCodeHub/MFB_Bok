@@ -35,7 +35,7 @@ public class SSAccountPlanDialog {
     }
 
     public static void newDialog(final SSMainFrame iMainFrame) {
-        File dataDir = Path.get(Path.USER_DATA);
+        File dataDir = new File(Path.get(Path.APP_DATA), "accountplan");
         if (!dataDir.exists()) {
             dataDir.mkdirs();
         }

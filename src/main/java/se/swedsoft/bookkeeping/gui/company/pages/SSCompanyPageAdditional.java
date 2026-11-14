@@ -1,6 +1,7 @@
 package se.swedsoft.bookkeeping.gui.company.pages;
 
 
+import org.fribok.bookkeeping.app.Path;
 import se.swedsoft.bookkeeping.data.SSNewCompany;
 import se.swedsoft.bookkeeping.data.system.SSCompanyValidationRules;
 import se.swedsoft.bookkeeping.data.util.SSMailServer;
@@ -13,6 +14,7 @@ import se.swedsoft.bookkeeping.gui.util.filechooser.SSImageFileChooser;
 import javax.swing.*;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -67,6 +69,11 @@ public class SSCompanyPageAdditional extends SSCompanyPage {
             e -> {
 
                 SSImageFileChooser iFileChooser = SSImageFileChooser.getInstance();
+                File iSwishQrDir = new File(Path.get(Path.APP_DATA), "swishQR");
+                if (!iSwishQrDir.exists()) {
+                    iSwishQrDir.mkdirs();
+                }
+                iFileChooser.setCurrentDirectory(iSwishQrDir);
 
                 if (iFileChooser.showDialog(iBrowseForSwishButton)
                     != JFileChooser.APPROVE_OPTION) {

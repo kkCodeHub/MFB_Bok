@@ -17,7 +17,7 @@ public final class SSInvoiceTextFileOptions {
     }
 
     public static List<String> getInvoiceTextFileNames() {
-        File iInvoiceTextDir = new File(Path.get(Path.APP_DATA), "InvoiceText");
+        File iInvoiceTextDir = new File(Path.get(Path.APP_DATA), "invoiceText");
         File[] iFiles = iInvoiceTextDir.listFiles(File::isFile);
 
         if (iFiles == null) {

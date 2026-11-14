@@ -89,7 +89,7 @@ class SSInvoicePrinterSubtextBehaviorTest {
 
     @Test
     void resolveStandardInvoiceSubtextTextReadsSelectedFileWhenEnabled() throws Exception {
-        java.nio.file.Path iInvoiceTextDir = Path.get(Path.APP_DATA).toPath().resolve("InvoiceText");
+        java.nio.file.Path iInvoiceTextDir = Path.get(Path.APP_DATA).toPath().resolve("invoiceText");
         Files.createDirectories(iInvoiceTextDir);
 
         java.nio.file.Path iFile = iInvoiceTextDir.resolve("subtext-test-" + System.nanoTime() + ".txt");

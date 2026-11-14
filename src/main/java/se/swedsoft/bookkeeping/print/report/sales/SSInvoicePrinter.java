@@ -35,7 +35,7 @@ import se.swedsoft.bookkeeping.util.SSDateUtil;
  */
 public class SSInvoicePrinter extends SSPrinter {
     private static final Logger LOG = LoggerFactory.getLogger(SSInvoicePrinter.class);
-    private static final String INVOICE_TEXT_DIRECTORY = "InvoiceText";
+    private static final String INVOICE_TEXT_DIRECTORY = "invoiceText";
     private static final String LEGACY_INVOICE_TEXT_FILE = "HavbergText.txt";
     private static final String DEFAULT_ROWS_REPORT = "sales/invoice.rows.jrxml";
 
