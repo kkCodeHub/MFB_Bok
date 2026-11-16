@@ -1345,7 +1345,7 @@ public class SSReportFactory {    private static final Logger LOG = LoggerFactor
         iPrinter.generateReport();
         iPrinter.getPrinter();
 
-        String iFileName = "faktura.pdf";
+        String iFileName = iPrinter.getFileName() + ".pdf";
         if (!PDF_FILE_DIR.exists()) {
             PDF_FILE_DIR.mkdirs();
         }
@@ -1471,7 +1471,7 @@ public class SSReportFactory {    private static final Logger LOG = LoggerFactor
 
         iPrinter.generateReport();
         iPrinter.getPrinter();
-        String iFileName = "kreditfaktura.pdf";
+        String iFileName = iPrinter.getFileName() + ".pdf";
         if (!PDF_FILE_DIR.exists()) {
             PDF_FILE_DIR.mkdirs();
         }

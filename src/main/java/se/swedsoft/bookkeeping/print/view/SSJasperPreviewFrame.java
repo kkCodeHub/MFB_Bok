@@ -4,7 +4,6 @@ package se.swedsoft.bookkeeping.print.view;
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JasperExportManager;
 import net.sf.jasperreports.engine.JasperPrint;
-import net.sf.jasperreports.engine.JasperPrintManager;
 import net.sf.jasperreports.engine.export.ooxml.JRXlsxExporter;
 import net.sf.jasperreports.export.SimpleExporterInput;
 import net.sf.jasperreports.export.SimpleOutputStreamExporterOutput;
@@ -20,6 +19,7 @@ import se.swedsoft.bookkeeping.gui.util.filechooser.util.SSFilterRTF;
 import se.swedsoft.bookkeeping.gui.util.filechooser.util.SSFilterXLSX;
 import se.swedsoft.bookkeeping.gui.util.frame.SSDefaultTableFrame;
 import se.swedsoft.bookkeeping.print.SSReport;
+import se.swedsoft.bookkeeping.print.util.SSPrintJob;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileFilter;
@@ -102,7 +102,11 @@ public class SSJasperPreviewFrame extends SSDefaultTableFrame implements Propert
                         SSJasperFileChooser iFileChooser = SSJasperFileChooser.getInstance();
 
                         if (iReport != null) {
-                            String iTitle = (String) iReport.getParameter("title");
+                            String iTitle = iReport.getFileName();
+
+                            if (iTitle == null || iTitle.isEmpty()) {
+                                iTitle = (String) iReport.getParameter("title");
+                            }
 
                             iFileChooser.setSelectedFile(new File(iTitle + ".pdf"));
                         } else {
@@ -144,7 +148,7 @@ public class SSJasperPreviewFrame extends SSDefaultTableFrame implements Propert
                         fireOutputAction();
 
                         try {
-                            JasperPrintManager.printReport(iPrinter, true);
+                            SSPrintJob.print(iPrinter, getPrintJobName());
                         } catch (JRException ex) {
                             LOG.error("Unexpected error", ex);
                         }
@@ -401,6 +405,16 @@ public class SSJasperPreviewFrame extends SSDefaultTableFrame implements Propert
         iPageLabel.setText(
                 String.format(bundle.getString("printpreviewframe.pages"), iCurrent,
                 iTotal));
+    }
+
+    private String getPrintJobName() {
+        if (iReport != null && iReport.getFileName() != null && !iReport.getFileName().isEmpty()) {
+            return iReport.getFileName();
+        }
+        if (iPrinter != null && iPrinter.getName() != null) {
+            return iPrinter.getName();
+        }
+        return "Rapport";
     }
 
     /**

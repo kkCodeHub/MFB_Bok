@@ -68,6 +68,8 @@ public class SSReport {    private static final Logger LOG = LoggerFactory.getLo
 
     private String iPreviewKey;
 
+    private String iFileName;
+
     protected Map<String, Object     > iParameters;
 
     protected Map<ReportField, String> iFields;
@@ -85,6 +87,24 @@ public class SSReport {    private static final Logger LOG = LoggerFactory.getLo
         iColumnWidth = 555;
         iParameters = new HashMap<>();
         iFields = new HashMap<>();
+    }
+
+    /**
+     * Sets the suggested file name (without extension), also used as print job name.
+     *
+     * @param pFileName suggested file name, or null to use the report title
+     */
+    public void setFileName(String pFileName) {
+        iFileName = pFileName;
+    }
+
+    /**
+     * Gets the suggested file name (without extension).
+     *
+     * @return the file name, or null if none has been set
+     */
+    public String getFileName() {
+        return iFileName;
     }
 
     /**
@@ -182,6 +202,8 @@ public class SSReport {    private static final Logger LOG = LoggerFactory.getLo
 
             if (iPrinter.getPages().isEmpty()) {
                 iPrinter = getNoPagesReport();
+            } else if (iFileName != null && !iFileName.isEmpty()) {
+                iPrinter.setName(iFileName);
             }
 
         } catch (JRException e) {

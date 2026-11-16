@@ -46,13 +46,29 @@ public enum Path {
     private static final Map<Path, File> path = new EnumMap<>(Path.class);
 
     static {
-        File base = resolveAppBaseDirectory();
-        File userRoot = resolveUserRootDirectory(base);
+        BaseResult baseResult = resolveAppBaseDirectory();
+        File userRoot = resolveUserRootDirectory(baseResult.base, baseResult.launchedFromJar);
 
-        path.put(APP_BASE, base);
+        path.put(APP_BASE, baseResult.base);
         path.put(APP_DATA, new File(userRoot, "data"));
         path.put(USER_DATA, userRoot);
         path.put(USER_CONF, userRoot);
+    }
+
+    /**
+     * Holds the resolved application base directory together with information on
+     * whether the application was launched from a packaged jar file (as opposed to
+     * running from an IDE or the test suite, where the base directory lives under
+     * {@code target} and may be deleted at any time).
+     */
+    private static final class BaseResult {
+        private final File base;
+        private final boolean launchedFromJar;
+
+        private BaseResult(File base, boolean launchedFromJar) {
+            this.base = base;
+            this.launchedFromJar = launchedFromJar;
+        }
     }
 
     /**
@@ -65,31 +81,31 @@ public enum Path {
         return path.get(name);
     }
 
-    private static File resolveAppBaseDirectory() {
+    private static BaseResult resolveAppBaseDirectory() {
         try {
             File location = new File(Path.class.getProtectionDomain().getCodeSource().getLocation().toURI());
             if (location.isFile()) {
                 File fromJavaCommand = resolveBaseFromJavaCommand(location.getAbsoluteFile());
                 if (fromJavaCommand != null) {
-                    return fromJavaCommand;
+                    return new BaseResult(fromJavaCommand, true);
                 }
                 File parent = location.getParentFile();
-                return parent == null ? location.getAbsoluteFile() : parent.getAbsoluteFile();
+                return new BaseResult(parent == null ? location.getAbsoluteFile() : parent.getAbsoluteFile(), true);
             } else if (location.isDirectory()) {
                 File fromJavaCommand = resolveBaseFromJavaCommand(null);
                 if (fromJavaCommand != null) {
-                    return fromJavaCommand;
+                    return new BaseResult(fromJavaCommand, true);
                 }
-                return resolveBaseFromDirectoryLocation(location);
+                return new BaseResult(resolveBaseFromDirectoryLocation(location), false);
             }
         } catch (URISyntaxException | SecurityException e) {
             // Fall back to current working directory.
         }
         File fromJavaCommand = resolveBaseFromJavaCommand(null);
         if (fromJavaCommand != null) {
-            return fromJavaCommand;
+            return new BaseResult(fromJavaCommand, true);
         }
-        return new File("").getAbsoluteFile();
+        return new BaseResult(new File("").getAbsoluteFile(), false);
     }
 
     private static File resolveBaseFromJavaCommand(File codeSourceJarFile) {
@@ -147,12 +163,34 @@ public enum Path {
         return location.getAbsoluteFile();
     }
 
-    private static File resolveUserRootDirectory(File appBase) {
+    private static File resolveUserRootDirectory(File appBase, boolean launchedFromJar) {
         File preferred = new File(appBase, APP_SUBDIR);
+        File systemUserRoot = resolveSystemUserRootDirectory();
+
+        if (launchedFromJar) {
+            // Running from a packaged jar: keep user data next to the jar file, as before.
+            if (canUseDirectory(preferred)) {
+                return preferred;
+            }
+            if (canUseDirectory(systemUserRoot)) {
+                return systemUserRoot;
+            }
+            return preferred.getAbsoluteFile();
+        }
+
+        // Running from an IDE or the test suite: appBase typically lives under
+        // "target", which may be wiped at any time. Prefer the stable, OS-specific
+        // user data directory instead.
+        if (canUseDirectory(systemUserRoot)) {
+            return systemUserRoot;
+        }
         if (canUseDirectory(preferred)) {
             return preferred;
         }
+        return systemUserRoot.getAbsoluteFile();
+    }
 
+    private static File resolveSystemUserRootDirectory() {
         String os = System.getProperty("os.name");
         if (os.startsWith("Windows")) {
             String appdata = System.getenv("LOCALAPPDATA");
@@ -162,24 +200,14 @@ public enum Path {
             if (appdata == null || appdata.isEmpty()) {
                 appdata = System.getProperty("user.home");
             }
-            File fallback = new File(appdata, APP_SUBDIR);
-            if (canUseDirectory(fallback)) {
-                return fallback;
-            }
+            return new File(appdata, APP_SUBDIR);
         } else if (os.startsWith("Mac OS")) {
-            File fallback = new File(System.getProperty("user.home"),
+            return new File(System.getProperty("user.home"),
                     "Library/Application Support/" + APP_SUBDIR);
-            if (canUseDirectory(fallback)) {
-                return fallback;
-            }
-        } else {
-            BaseDirs baseDirs = new BaseDirs();
-            File fallbackData = new File(baseDirs.getUserPath(BaseDirs.Resource.DATA), APP_SUBDIR);
-            if (canUseDirectory(fallbackData)) {
-                return fallbackData;
-            }
         }
-        return preferred.getAbsoluteFile();
+
+        BaseDirs baseDirs = new BaseDirs();
+        return new File(baseDirs.getUserPath(BaseDirs.Resource.DATA), APP_SUBDIR);
     }
 
     private static boolean canUseDirectory(File directory) {

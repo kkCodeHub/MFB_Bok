@@ -241,6 +241,15 @@ public abstract class SSPrinter {
     public abstract String getTitle();
 
     /**
+     * Gets the suggested file name (without extension) for saving and printing this report.
+     *
+     * @return the file name, by default the report title
+     */
+    public String getFileName() {
+        return getTitle();
+    }
+
+    /**
      *  Gets the data model for this report
      *
      * @return  SSDefaultTableModel
@@ -285,6 +294,7 @@ public abstract class SSPrinter {
      */
     public void generateReport() {
         iReport.addParameter("title", getTitle());
+        iReport.setFileName(getFileName());
         iReport.addParameter("subtitle", getSubTitle());
         iReport.setModel(getModel());
 
@@ -297,6 +307,7 @@ public abstract class SSPrinter {
     public void preview() {
         iReport.setPreviewKey(getPreviewKey());
         iReport.addParameter("title", getTitle());
+        iReport.setFileName(getFileName());
         iReport.addParameter("subtitle", getSubTitle());
         iReport.setModel(getModel());
 
@@ -312,6 +323,7 @@ public abstract class SSPrinter {
     public void preview(SSMainFrame iMainFrame) {
         iReport.setPreviewKey(getPreviewKey());
         iReport.addParameter("title", getTitle());
+        iReport.setFileName(getFileName());
         iReport.addParameter("subtitle", getSubTitle());
         iReport.setModel(getModel());
         iReport.viewReport(iMainFrame);
@@ -350,6 +362,7 @@ public abstract class SSPrinter {
                         boolean iShowEmailButton) {
         iReport.setPreviewKey(getPreviewKey());
         iReport.addParameter("title", getTitle());
+        iReport.setFileName(getFileName());
         iReport.addParameter("subtitle", getSubTitle());
         iReport.setModel(getModel());
         iReport.viewReport(iMainFrame, iOnOutputAction, iOnEmailAction, iShowEmailButton);
@@ -362,6 +375,7 @@ public abstract class SSPrinter {
     public void preview(JDialog iDialog) {
         iReport.setPreviewKey(getPreviewKey());
         iReport.addParameter("title", getTitle());
+        iReport.setFileName(getFileName());
         iReport.addParameter("subtitle", getSubTitle());
         iReport.setModel(getModel());
 
@@ -376,6 +390,7 @@ public abstract class SSPrinter {
     public void preview(SSMainFrame iMainFrame, InternalFrameListener listener) {
         iReport.setPreviewKey(getPreviewKey());
         iReport.addParameter("title", getTitle());
+        iReport.setFileName(getFileName());
         iReport.addParameter("subtitle", getSubTitle());
         iReport.setModel(getModel());
 
@@ -396,6 +411,7 @@ public abstract class SSPrinter {
                         boolean iShowEmailButton) {
         iReport.setPreviewKey(getPreviewKey());
         iReport.addParameter("title", getTitle());
+        iReport.setFileName(getFileName());
         iReport.addParameter("subtitle", getSubTitle());
         iReport.setModel(getModel());
 
@@ -423,6 +439,7 @@ public abstract class SSPrinter {
                         final Runnable iOnOutputAction) {
         iReport.setPreviewKey(getPreviewKey());
         iReport.addParameter("title", getTitle());
+        iReport.setFileName(getFileName());
         iReport.addParameter("subtitle", getSubTitle());
         iReport.setModel(getModel());
 

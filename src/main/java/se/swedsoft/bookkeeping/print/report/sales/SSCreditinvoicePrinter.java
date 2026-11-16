@@ -12,6 +12,7 @@ import se.swedsoft.bookkeeping.data.system.SSDB;
 import se.swedsoft.bookkeeping.data.system.SSSalesContext;
 import se.swedsoft.bookkeeping.gui.util.model.SSDefaultTableModel;
 import se.swedsoft.bookkeeping.print.SSPrinter;
+import se.swedsoft.bookkeeping.print.util.SSPrintFileName;
 import se.swedsoft.bookkeeping.print.util.SSQuantityPrintUtil;
 
 import java.math.BigDecimal;
@@ -72,6 +73,17 @@ public class SSCreditinvoicePrinter extends SSPrinter {
         addParameter("title.number", iBundle.getString("creditinvoicereport.title.number"));
 
         return iBundle.getString("creditinvoicereport.title");
+    }
+
+    /**
+     * Gets the suggested file name: document type, number, customer number and year.
+     *
+     * @return file name without extension
+     */
+    @Override
+    public String getFileName() {
+        return SSPrintFileName.build(iBundle.getString("creditinvoicereport.filename"),
+                iCreditInvoice.getNumber(), iCreditInvoice.getCustomerNr(), iCreditInvoice.getLocalDate());
     }
 
     /**

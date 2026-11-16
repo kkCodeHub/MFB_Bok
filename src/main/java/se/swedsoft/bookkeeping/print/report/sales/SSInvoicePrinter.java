@@ -12,6 +12,7 @@ import se.swedsoft.bookkeeping.data.system.SSDB;
 import se.swedsoft.bookkeeping.data.system.SSSalesContext;
 import se.swedsoft.bookkeeping.gui.util.model.SSDefaultTableModel;
 import se.swedsoft.bookkeeping.print.SSPrinter;
+import se.swedsoft.bookkeeping.print.util.SSPrintFileName;
 import se.swedsoft.bookkeeping.print.util.SSQuantityPrintUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -94,6 +95,20 @@ public class SSInvoicePrinter extends SSPrinter {
 
             return iBundle.getString("invoicereport.title.cash");
         }
+    }
+
+    /**
+     * Gets the suggested file name: document type, number, customer number and year.
+     *
+     * @return file name without extension
+     */
+    @Override
+    public String getFileName() {
+        String iKey = iInvoice.getType() == SSInvoiceType.NORMAL
+                ? "invoicereport.filename.normal" : "invoicereport.filename.cash";
+
+        return SSPrintFileName.build(iBundle.getString(iKey), iInvoice.getNumber(), iInvoice.getCustomerNr(),
+                iInvoice.getLocalDate());
     }
 
     /**

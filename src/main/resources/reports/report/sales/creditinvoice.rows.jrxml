@@ -145,4 +145,13 @@
 			</textField>
 		</band>
 	</pageFooter>
+	<lastPageFooter>
+		<band height="1" splitType="Stretch">
+			<line>
+				<reportElement x="0" y="0" width="510" height="1" uuid="b37bdfb0-d5da-4b02-992b-e63b93412992">
+					<printWhenExpression><![CDATA[Boolean.FALSE]]></printWhenExpression>
+				</reportElement>
+			</line>
+		</band>
+	</lastPageFooter>
 </jasperReport>

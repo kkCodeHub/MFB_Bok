@@ -25,6 +25,8 @@ public class SSMultiPrinter extends SSPrinter {
 
         private String iName;
 
+        private String iFileName;
+
         private JasperReport iReport;
 
         private JRDataSource iDataSource;
@@ -76,6 +78,20 @@ public class SSMultiPrinter extends SSPrinter {
             SSSubReport iSubReport = iSubReports.get(0);
 
             return iSubReport.iName;
+        }
+
+        return "";
+    }
+
+    /**
+     * Gets the suggested file name, taken from the first added report.
+     *
+     * @return the file name, or an empty string if no report has been added
+     */
+    @Override
+    public String getFileName() {
+        if (!iSubReports.isEmpty()) {
+            return iSubReports.get(0).iFileName;
         }
 
         return "";
@@ -152,6 +168,7 @@ public class SSMultiPrinter extends SSPrinter {
         }
 
         iSubReport.iName = pReport.getTitle();
+        iSubReport.iFileName = pReport.getFileName();
         iSubReport.iReport = pReport.getReport();
         iSubReport.iDataSource = new SSDefaultJasperDataSource(pReport.getModel());
         iSubReport.iParameters = pReport.getParameters();
