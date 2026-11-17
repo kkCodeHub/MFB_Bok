@@ -22,7 +22,6 @@ public class SSPeriodicInvoiceMath {
 
     /**
      * Returns a list of all new periodic invoices.
-     * @return
      */
     public static Map<SSPeriodicInvoice, List<SSInvoice>> getPeriodicInvoices() {
         List<SSPeriodicInvoice> iPeriodicInvoices = se.swedsoft.bookkeeping.data.system.SSSalesContext.getPeriodicInvoices();
@@ -45,7 +44,6 @@ public class SSPeriodicInvoiceMath {
 
     /**
      *
-     * @return
      */
     public static boolean hasPendingPeriodicInvoices() {
         Map<SSPeriodicInvoice, List<SSInvoice>> iPeriodicInvoices = getPeriodicInvoices();

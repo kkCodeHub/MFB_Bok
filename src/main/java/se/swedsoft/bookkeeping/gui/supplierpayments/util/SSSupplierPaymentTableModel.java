@@ -304,7 +304,6 @@ public class SSSupplierPaymentTableModel extends SSTableModel<SupplierPayment> {
         }
 
         /**
-         * @return
          */
         @Override
         public TableCellEditor getCellEditor() {
@@ -312,7 +311,6 @@ public class SSSupplierPaymentTableModel extends SSTableModel<SupplierPayment> {
         }
 
         /**
-         * @return
          */
         @Override
         public TableCellRenderer getCellRenderer() {

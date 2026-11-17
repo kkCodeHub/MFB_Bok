@@ -248,7 +248,6 @@ public class SSPeriodicInvoiceFrame extends SSDefaultTableFrame {
 
     /*
      *
-     * @return
      */
     public SSTableModel<SSPeriodicInvoice> getModel() {
         return iModel;

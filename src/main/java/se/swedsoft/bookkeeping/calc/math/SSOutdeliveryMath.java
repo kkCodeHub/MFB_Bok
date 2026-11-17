@@ -4,10 +4,8 @@ package se.swedsoft.bookkeeping.calc.math;
 import se.swedsoft.bookkeeping.data.SSOutdelivery;
 import se.swedsoft.bookkeeping.data.SSOutdeliveryRow;
 import se.swedsoft.bookkeeping.data.SSProduct;
-import se.swedsoft.bookkeeping.util.SSDateUtil;
 
 import java.time.LocalDate;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -52,7 +50,6 @@ public class SSOutdeliveryMath {
     /**
      *
      * @param iOutdelivery
-     * @return
      */
     public static Integer getTotalCount(SSOutdelivery iOutdelivery) {
         Integer iCount = 0;
@@ -70,7 +67,6 @@ public class SSOutdeliveryMath {
      *
      * @param iOutdelivery
      * @param iProduct
-     * @return
      */
     public static boolean hasProduct(SSOutdelivery iOutdelivery, SSProduct iProduct) {
 

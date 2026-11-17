@@ -6,7 +6,7 @@ import org.apache.poi.ss.usermodel.Row;
 import java.math.BigDecimal;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Date;
+import java.time.LocalDate;
 
 /**
  * Date: 2006-feb-14
@@ -54,7 +54,6 @@ public class SSExcelRow {
 
     /**
      *
-     * @return
      */
     public int getRow() {
         return iRow;
@@ -63,7 +62,6 @@ public class SSExcelRow {
     /**
      *
      * @param pColumn
-     * @return
      */
     public String getString(int pColumn) {
         if (iRow_POI == null) {
@@ -79,7 +77,6 @@ public class SSExcelRow {
     /**
      *
      * @param pColumn
-     * @return
      */
     public Integer getInteger(int pColumn) {
         try {
@@ -92,7 +89,6 @@ public class SSExcelRow {
     /**
      *
      * @param pColumn
-     * @return
      */
     public Double getDouble(int pColumn) {
         try {
@@ -105,9 +101,8 @@ public class SSExcelRow {
     /**
      *
      * @param pColumn
-     * @return
      */
-    public Date getDate(int pColumn) {
+    public LocalDate getDate(int pColumn) {
         if (iRow_POI == null) {
             return null;
         }
@@ -121,7 +116,6 @@ public class SSExcelRow {
     /**
      *
      * @param pColumn
-     * @return
      */
     public java.util.Optional<BigDecimal> getBigDecimal(int pColumn) {
         if (iRow_POI == null) {

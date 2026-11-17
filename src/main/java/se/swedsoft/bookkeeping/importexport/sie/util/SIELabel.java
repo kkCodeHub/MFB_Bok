@@ -11,7 +11,6 @@ import static se.swedsoft.bookkeeping.importexport.sie.util.SIEType.*;
 
 /**
  *
- * $Id$
  */
 public enum SIELabel {
     // * = Frivillig
@@ -239,7 +238,6 @@ public enum SIELabel {
 
     /**
      *
-     * @return
      */
     public String getName() {
         return iName;
@@ -247,7 +245,6 @@ public enum SIELabel {
 
     /**
      *
-     * @return
      */
     public SIEEntry getEntry() {
         return iEntry;
@@ -255,7 +252,6 @@ public enum SIELabel {
 
     /**
      *
-     * @return
      */
     public SIEType[] getFormats() {
         return iFormats;
@@ -268,7 +264,6 @@ public enum SIELabel {
     /**
      *
      * @param pFormat
-     * @return
      */
     public static List<SIELabel> values(SIEType pFormat) {
         List<SIELabel> iValues = new LinkedList<>();

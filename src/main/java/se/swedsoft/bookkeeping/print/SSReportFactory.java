@@ -45,7 +45,6 @@ import se.swedsoft.bookkeeping.util.SSDateUtil;
 
 
 /**
- * $Id$
  *
  */
 public class SSReportFactory {    private static final Logger LOG = LoggerFactory.getLogger(SSReportFactory.class);
@@ -1290,6 +1289,12 @@ public class SSReportFactory {    private static final Logger LOG = LoggerFactor
                 .filter(SSInvoiceActionPolicy::canPrint)
                 .collect(Collectors.toList());
         if (iAllowedInvoices.isEmpty()) {
+            return;
+        }
+
+        String iBankGiroNumber = se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.getCurrentCompany().getBankGiroNumber();
+        if (iBankGiroNumber == null || iBankGiroNumber.trim().isEmpty()) {
+            new SSInformationDialog(iMainFrame, "ocrinvoice.dialog.nobankgiro");
             return;
         }
 

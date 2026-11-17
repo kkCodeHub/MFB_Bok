@@ -41,7 +41,6 @@ public class SSButtonGroup implements ActionListener {
 
     /**
      *
-     * @return
      */
     public boolean isAllowNoneSelected() {
         return iAllowNoneSelected;

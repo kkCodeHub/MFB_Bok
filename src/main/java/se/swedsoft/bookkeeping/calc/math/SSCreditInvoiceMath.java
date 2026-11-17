@@ -4,7 +4,6 @@ package se.swedsoft.bookkeeping.calc.math;
 import se.swedsoft.bookkeeping.data.*;
 import se.swedsoft.bookkeeping.data.base.SSSaleRow;
 import se.swedsoft.bookkeeping.data.system.SSDB;
-import se.swedsoft.bookkeeping.util.SSDateUtil;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -70,11 +69,10 @@ public class SSCreditInvoiceMath extends SSInvoiceMath {
         return iSums;
     }
 
-    public static HashMap<Integer, BigDecimal> getSumsForInvoices(Date iDate) {
+    public static HashMap<Integer, BigDecimal> getSumsForInvoices(LocalDate localDate) {
         HashMap<Integer, BigDecimal> iSums = new HashMap<>();
 
         List<SSCreditInvoice> iCreditInvoices = se.swedsoft.bookkeeping.data.system.SSSalesContext.getCreditInvoices();
-        LocalDate localDate = SSDateUtil.toLocalDate(iDate);
 
         for (SSCreditInvoice iCreditInvoice : iCreditInvoices) {
             if (iCreditInvoice.getLocalDate() != null && localDate != null
@@ -101,14 +99,13 @@ public class SSCreditInvoiceMath extends SSInvoiceMath {
      * Get the sum for the credit sales in the sales currency up and including to the selected date
      *
      * @param iInvoice
-     * @param iDate
+     * @param localDate
      * @return the sum
      */
-    public static BigDecimal getSumForInvoice(SSInvoice iInvoice, Date iDate) {
+    public static BigDecimal getSumForInvoice(SSInvoice iInvoice, LocalDate localDate) {
         // Get all credit invoices from the db
         List<SSCreditInvoice> iCreditInvoices = se.swedsoft.bookkeeping.data.system.SSSalesContext.getCreditInvoices();
 
-        LocalDate localDate = SSDateUtil.toLocalDate(iDate);
         BigDecimal iSum = new BigDecimal(0);
 
         for (SSCreditInvoice iCreditInvoice : iCreditInvoices) {

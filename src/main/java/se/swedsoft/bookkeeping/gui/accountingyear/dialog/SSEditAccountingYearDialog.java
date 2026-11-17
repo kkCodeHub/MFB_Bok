@@ -1,6 +1,5 @@
 /*
  * 2006-2010
- * $Id$
  */
 package se.swedsoft.bookkeeping.gui.accountingyear.dialog;
 

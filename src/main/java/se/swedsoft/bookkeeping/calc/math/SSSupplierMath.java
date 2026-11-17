@@ -23,7 +23,6 @@ public class SSSupplierMath {
      * Returns the customer claim for the specified cistpmer
      *
      * @param iSupplier
-     * @return
      */
     public static BigDecimal getSupplierDebt(SSSupplier iSupplier) {
         List<SSSupplierInvoice> iInvoices = SSSupplierInvoiceMath.getInvoicesForSupplier(

@@ -102,7 +102,6 @@ public class SSStartingAmountPanel {
 
     /**
      *
-     * @return
      */
     public Map<SSAccount, BigDecimal> getInBalance() {
         Map<SSAccount, BigDecimal> iResult = new HashMap<>();
@@ -145,7 +144,6 @@ public class SSStartingAmountPanel {
 
     /**
      *
-     * @return
      */
     public JPanel getPanel() {
         return iPanel;

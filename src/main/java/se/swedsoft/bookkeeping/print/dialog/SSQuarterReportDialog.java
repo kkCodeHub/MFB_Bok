@@ -13,7 +13,6 @@ import java.time.LocalDate;
 
 
 /**
- * $Id$
  *
  */
 public class SSQuarterReportDialog extends SSDialog {

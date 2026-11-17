@@ -1,6 +1,5 @@
 /*
  * 2005-2010
- * $Id$
  */
 package se.swedsoft.bookkeeping.gui.accountingyear;
 
@@ -221,7 +220,6 @@ public class SSAccountingYearFrame extends SSDefaultTableFrame {
 
     /**
      *
-     * @return
      */
     public SSDefaultTableModel<SSNewAccountingYear> getModel() {
         return iModel;

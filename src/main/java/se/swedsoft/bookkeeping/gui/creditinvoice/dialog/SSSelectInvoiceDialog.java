@@ -21,7 +21,6 @@ import java.util.List;
 
 
 /**
- * $Id$
  *
  */
 public class SSSelectInvoiceDialog extends SSDialog {
@@ -68,7 +67,6 @@ public class SSSelectInvoiceDialog extends SSDialog {
 
     /**
      *
-     * @return
      */
     public JPanel getPanel() {
         return iPanel;
@@ -93,7 +91,6 @@ public class SSSelectInvoiceDialog extends SSDialog {
     /**
      *
      * @param iMainFrame
-     * @return
      */
     public static SSInvoice showDialog(SSMainFrame iMainFrame) {
         SSSelectInvoiceDialog iDialog = new SSSelectInvoiceDialog(iMainFrame);

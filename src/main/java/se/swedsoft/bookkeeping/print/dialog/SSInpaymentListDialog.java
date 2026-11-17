@@ -31,7 +31,6 @@ import java.util.Set;
 
 
 /**
- * $Id$
  *
  */
 public class SSInpaymentListDialog extends SSDialog {
@@ -89,7 +88,6 @@ public class SSInpaymentListDialog extends SSDialog {
 
     /**
      *
-     * @return
      */
     public JPanel getPanel() {
         return iPanel;
@@ -98,7 +96,6 @@ public class SSInpaymentListDialog extends SSDialog {
     /**
      * Returns the invoices to print depending on the user selections
      *
-     * @return
      */
     public List<SSInpayment> getElementsToPrint() {
         List<SSInpayment> iInpayments = Repositories.inpayments().findAll();
@@ -145,7 +142,6 @@ public class SSInpaymentListDialog extends SSDialog {
 
     /**
      *
-     * @return
      */
     public boolean isDateSelected() {
         return iCheckDate.isSelected();
@@ -157,7 +153,6 @@ public class SSInpaymentListDialog extends SSDialog {
 
     /**
      *
-     * @return
      */
     public boolean isInvoiceSelected() {
         return iCheckInvoice.isSelected();
@@ -165,7 +160,6 @@ public class SSInpaymentListDialog extends SSDialog {
 
     /**
      *
-     * @return
      */
     public Date getDateFrom() {
         return SSDateUtil.toDate(getLocalDateFrom());
@@ -173,7 +167,6 @@ public class SSInpaymentListDialog extends SSDialog {
 
     /**
      *
-     * @return
      */
     public Date getDateTo() {
         return SSDateUtil.toDate(getLocalDateTo());
@@ -189,7 +182,6 @@ public class SSInpaymentListDialog extends SSDialog {
 
     /**
      *
-     * @return
      */
     public SSInvoice getInvoice() {
         return iInvoice.getSelected();

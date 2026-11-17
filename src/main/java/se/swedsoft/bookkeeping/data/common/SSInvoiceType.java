@@ -27,7 +27,6 @@ public enum SSInvoiceType {
 
     /**
      *
-     * @return
      */
     public String getResouceName() {
         return iResouceName;
@@ -35,7 +34,6 @@ public enum SSInvoiceType {
 
     /**
      *
-     * @return
      */
     public String getDescription() {
         return SSBundle.getBundle().getString(iResouceName);

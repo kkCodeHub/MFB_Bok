@@ -66,7 +66,6 @@ public class LBinPostTK40 extends LBinPost {
 
     /**
      *
-     * @return
      */
     public String getNumber() {
         return iNumber;
@@ -82,7 +81,6 @@ public class LBinPostTK40 extends LBinPost {
 
     /**
      *
-     * @return
      */
     public String getClearing() {
         return iClearing;
@@ -98,7 +96,6 @@ public class LBinPostTK40 extends LBinPost {
 
     /**
      *
-     * @return
      */
     public String getKonto() {
         return iKonto;
@@ -114,7 +111,6 @@ public class LBinPostTK40 extends LBinPost {
 
     /**
      *
-     * @return
      */
     public String getReference() {
         return iReference;
@@ -130,7 +126,6 @@ public class LBinPostTK40 extends LBinPost {
 
     /**
      *
-     * @return
      */
     public String getLon() {
         return iLon;

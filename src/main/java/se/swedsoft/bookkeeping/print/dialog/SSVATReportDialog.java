@@ -26,7 +26,6 @@ import org.slf4j.LoggerFactory;
 
 
 /**
- * $Id$
  *
  */
 public class SSVATReportDialog extends SSDialog {    private static final Logger LOG = LoggerFactory.getLogger(SSVATReportDialog.class);
@@ -156,7 +155,6 @@ public class SSVATReportDialog extends SSDialog {    private static final Logger
 
     /**
      *
-     * @return
      */
     public int getStartVoucher() {
 	int startVoucher = 1;
@@ -178,7 +176,6 @@ public class SSVATReportDialog extends SSDialog {    private static final Logger
 
     /**
      *
-     * @return
      */
     public SSAccount getAccountR1() {
         return iAccountR1.getSelected();
@@ -186,7 +183,6 @@ public class SSVATReportDialog extends SSDialog {    private static final Logger
 
     /**
      *
-     * @return
      */
     public SSAccount getAccountR2() {
         return iAccountR2.getSelected();
@@ -194,7 +190,6 @@ public class SSVATReportDialog extends SSDialog {    private static final Logger
 
     /**
      *
-     * @return
      */
     public SSAccount getAccountA() {
         return iAccountA.getSelected();

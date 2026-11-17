@@ -34,7 +34,6 @@ import se.swedsoft.bookkeeping.gui.util.table.editors.SSTaxCodeCellEditor;
 import se.swedsoft.bookkeeping.gui.util.table.editors.SSTaxCodeCellRenderer;
 import se.swedsoft.bookkeeping.gui.util.table.model.SSTableColumn;
 import se.swedsoft.bookkeeping.gui.voucher.util.SSVoucherRowTableModel;
-import se.swedsoft.bookkeeping.util.SSDateUtil;
 
 import javax.swing.*;
 import javax.swing.event.ChangeListener;
@@ -593,7 +592,6 @@ public class SSInvoicePanel {
 
     /**
      *
-     * @return
      */
     public boolean isValid() {
         return iInputVerifier.isValid();
@@ -601,7 +599,6 @@ public class SSInvoicePanel {
 
     /**
      *
-     * @return
      */
     public JPanel getPanel() {
         return iPanel;
@@ -773,7 +770,6 @@ public class SSInvoicePanel {
     }
 
     /**
-     * @return
      */
     public SSInvoice getInvoice() {
 
@@ -857,7 +853,6 @@ public class SSInvoicePanel {
 
     /**
      *
-     * @return
      */
     public boolean doSaveCustomerAndProducts() {
         return iSavecustomerandproducts.isSelected();
@@ -873,7 +868,6 @@ public class SSInvoicePanel {
     /**
      *
      * @param iInvoice
-     * @return
      */
     private String getOrderNumbers(SSInvoice iInvoice) {
         String iOrderNumbers = iInvoice.getOrderNumbers();
@@ -1207,7 +1201,6 @@ public class SSInvoicePanel {
 
         /**
          *
-         * @return
          */
         private BigDecimal getExchangeRate() {
             BigDecimal iValue = iCurrencyRate.getValue();
@@ -1238,7 +1231,7 @@ public class SSInvoicePanel {
             }
 
             BigDecimal iInprice = SSProductMath.getInprice(iProduct,
-                    SSDateUtil.toDate(iDate.getLocalDate())).orElse(null);
+                    iDate.getLocalDate()).orElse(null);
             BigDecimal iUnitprice = iRow.getUnitprice();
             BigDecimal iExchangeRate = getExchangeRate();
 

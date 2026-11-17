@@ -6,11 +6,9 @@ import se.swedsoft.bookkeeping.data.SSOutpaymentRow;
 import se.swedsoft.bookkeeping.data.SSSupplierInvoice;
 import se.swedsoft.bookkeeping.data.system.SSDB;
 import se.swedsoft.bookkeeping.persistence.Repositories;
-import se.swedsoft.bookkeeping.util.SSDateUtil;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
@@ -208,12 +206,11 @@ public class SSOutpaymentMath {
         return iSums;
     }
 
-    public static HashMap<Integer, BigDecimal> getSumsForSupplierInvoices(Date iDate) {
+    public static HashMap<Integer, BigDecimal> getSumsForSupplierInvoices(LocalDate localDate) {
         HashMap<Integer, BigDecimal> iSums = new HashMap<>();
 
         // Use SSDB cache instead of Repositories to ensure fresh/updated data
         List<SSOutpayment> iOutpayments = se.swedsoft.bookkeeping.data.system.SSPaymentContext.getOutpayments();
-        LocalDate localDate = SSDateUtil.toLocalDate(iDate);
 
         for (SSOutpayment iOutpayment : iOutpayments) {
             if (iOutpayment.getLocalDate() != null && localDate != null
@@ -237,14 +234,13 @@ public class SSOutpaymentMath {
      * Get the sum of all outpayments for the supplied supplier invoice in the invoice currency up and including to the selected date
      *
      * @param iInvoice
-     * @param iDate
+     * @param localDate
      * @return the sum
      */
-    public static BigDecimal getSumForInvoice(SSSupplierInvoice iInvoice, Date iDate) {
+    public static BigDecimal getSumForInvoice(SSSupplierInvoice iInvoice, LocalDate localDate) {
         // Use SSDB cache instead of Repositories to ensure fresh/updated data
         List<SSOutpayment> iOutpayments = se.swedsoft.bookkeeping.data.system.SSPaymentContext.getOutpayments();
 
-        LocalDate localDate = SSDateUtil.toLocalDate(iDate);
         BigDecimal iSum = new BigDecimal(0);
 
         for (SSOutpayment iOutpayment : iOutpayments) {
@@ -264,7 +260,6 @@ public class SSOutpaymentMath {
      *
      * @param iOutpayment
      * @param iInvoice
-     * @return
      */
     public static boolean hasInvoice(SSOutpayment iOutpayment, SSSupplierInvoice iInvoice) {
 

@@ -28,7 +28,6 @@ import java.util.List;
 
 
 /**
- * $Id$
  *
  */
 public class SSIndeliveryListDialog extends SSDialog {
@@ -81,7 +80,6 @@ public class SSIndeliveryListDialog extends SSDialog {
 
     /**
      *
-     * @return
      */
     public JPanel getPanel() {
         return iPanel;
@@ -90,7 +88,6 @@ public class SSIndeliveryListDialog extends SSDialog {
     /**
      * Returns the invoices to print depending on the user selections
      *
-     * @return
      */
     public List<SSIndelivery> getElementsToPrint() {
         List<SSIndelivery> iIndeliveries = Repositories.indeliveries().findAll();
@@ -125,7 +122,6 @@ public class SSIndeliveryListDialog extends SSDialog {
 
     /**
      *
-     * @return
      */
     public boolean isDateSelected() {
         return iCheckDate.isSelected();
@@ -133,7 +129,6 @@ public class SSIndeliveryListDialog extends SSDialog {
 
     /**
      *
-     * @return
      */
     public boolean isProductSelected() {
         return iCheckProduct.isSelected();
@@ -159,7 +154,6 @@ public class SSIndeliveryListDialog extends SSDialog {
 
     /**
      *
-     * @return
      */
     public SSProduct getProduct() {
         return iProduct.getSelected();

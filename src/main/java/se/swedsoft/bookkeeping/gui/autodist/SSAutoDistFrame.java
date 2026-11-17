@@ -230,7 +230,6 @@ public class SSAutoDistFrame extends SSDefaultTableFrame {
 
     /**
      *
-     * @return
      */
     public SSAutoDistTableModel getModel() {
         return iModel;

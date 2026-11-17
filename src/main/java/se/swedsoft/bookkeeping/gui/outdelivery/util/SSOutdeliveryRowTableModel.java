@@ -33,7 +33,6 @@ public class SSOutdeliveryRowTableModel extends SSEditableTableModel<SSOutdelive
     }
 
     /**
-     * @return
      */
     @Override
     public SSOutdeliveryRow newObject() {

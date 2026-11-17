@@ -16,7 +16,6 @@ public class SIEFile {
     /**
      *
      * @param pFile
-     * @return
      * @throws FileNotFoundException
      * @throws IOException
      */

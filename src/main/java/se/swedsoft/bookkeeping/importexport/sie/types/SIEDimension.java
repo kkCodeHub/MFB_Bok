@@ -55,7 +55,6 @@ public class SIEDimension {    private static final Logger LOG = LoggerFactory.g
 
     /**
      *
-     * @return
      */
     public Integer getNumber() {
         return iNumber;
@@ -71,7 +70,6 @@ public class SIEDimension {    private static final Logger LOG = LoggerFactory.g
 
     /**
      *
-     * @return
      */
     public String getName() {
         return iName;
@@ -95,7 +93,6 @@ public class SIEDimension {    private static final Logger LOG = LoggerFactory.g
 
     /**
      *
-     * @return
      */
     public boolean isReserved() {
         return iReserved;
@@ -140,7 +137,6 @@ public class SIEDimension {    private static final Logger LOG = LoggerFactory.g
      *
      * @param iDimensions
      * @param pNumber
-     * @return
      */
     public static SIEDimension getDimension(List<SIEDimension> iDimensions, int pNumber) {
         for (SIEDimension iDimension: iDimensions) {

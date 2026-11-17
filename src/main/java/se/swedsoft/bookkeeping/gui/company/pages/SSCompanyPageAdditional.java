@@ -24,7 +24,6 @@ import java.util.List;
  * Date: 2006-aug-25
  * Time: 10:14:40
  *
- * $Id$
  *
  */
 public class SSCompanyPageAdditional extends SSCompanyPage {

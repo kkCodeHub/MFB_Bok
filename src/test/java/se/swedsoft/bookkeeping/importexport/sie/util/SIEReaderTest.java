@@ -195,7 +195,7 @@ class SIEReaderTest {
     void nextDateParsesEightDigitDateStringToExpectedDay() {
         SIEReader reader = new SIEReader("20060101");
 
-        LocalDate parsed = SSDateUtil.toLocalDate(reader.nextDate());
+        LocalDate parsed = reader.nextDate();
 
         assertThat(parsed).isEqualTo(LocalDate.of(2006, 1, 1));
     }
@@ -204,7 +204,7 @@ class SIEReaderTest {
     void nextDateNormalizesInvalidDayInMonthUsingJavaDateRules() {
         SIEReader reader = new SIEReader("20060230");
 
-        LocalDate parsed = SSDateUtil.toLocalDate(reader.nextDate());
+        LocalDate parsed = reader.nextDate();
 
         assertThat(parsed).isEqualTo(LocalDate.of(2006, 2, 28));
     }
@@ -213,7 +213,7 @@ class SIEReaderTest {
     void nextDateFallsBackToTodayForInvalidMonth() {
         SIEReader reader = new SIEReader("20061301");
 
-        LocalDate parsed = SSDateUtil.toLocalDate(reader.nextDate());
+        LocalDate parsed = reader.nextDate();
 
         assertThat(parsed).isEqualTo(SSDateUtil.today());
     }
@@ -222,7 +222,7 @@ class SIEReaderTest {
     void nextDateFallsBackToTodayWhenTokenLengthIsNotEight() {
         SIEReader reader = new SIEReader("200601");
 
-        LocalDate parsed = SSDateUtil.toLocalDate(reader.nextDate());
+        LocalDate parsed = reader.nextDate();
 
         assertThat(parsed).isEqualTo(SSDateUtil.today());
     }

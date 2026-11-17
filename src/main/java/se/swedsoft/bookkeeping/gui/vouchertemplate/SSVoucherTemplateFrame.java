@@ -240,7 +240,6 @@ public class SSVoucherTemplateFrame extends SSDefaultTableFrame {
 
     /**
      *
-     * @return
      */
     private SSVoucherTemplate getSelected() {
         int selected = iTable.getSelectedRow();

@@ -24,7 +24,6 @@ public class SSExcelSheet {
 
     /**
      *
-     * @return
      */
     public List<SSExcelRow> getRows() {
         List<SSExcelRow> iList = new LinkedList<>();

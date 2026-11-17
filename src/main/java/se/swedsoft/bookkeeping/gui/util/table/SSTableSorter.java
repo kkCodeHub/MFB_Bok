@@ -1,6 +1,5 @@
 /*
  * 2005-2010
- * $Id$
  */
 package se.swedsoft.bookkeeping.gui.util.table;
 

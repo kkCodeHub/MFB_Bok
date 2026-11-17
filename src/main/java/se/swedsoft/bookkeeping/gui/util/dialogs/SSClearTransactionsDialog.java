@@ -15,7 +15,6 @@ import java.util.Date;
 
 
 /**
- * $Id$
  *
  */
 public class SSClearTransactionsDialog extends SSDialog {
@@ -44,7 +43,6 @@ public class SSClearTransactionsDialog extends SSDialog {
 
     /**
      *
-     * @return
      */
  //   public Date getDate() {
  //       return SSDateUtil.toDate(getLocalDate());

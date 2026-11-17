@@ -114,7 +114,6 @@ public class SSSaleRow implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public String getProductNr() {
         return iProductNr;
@@ -133,7 +132,6 @@ public class SSSaleRow implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public String getDescription() {
         return iDescription;
@@ -142,7 +140,6 @@ public class SSSaleRow implements SSTableSearchable {
     /**
      *
      * @param iLocale
-     * @return
      */
     public String getDescription(Locale iLocale) {
         if (getProduct() != null) {
@@ -167,7 +164,6 @@ public class SSSaleRow implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public BigDecimal getUnitprice() {
         return iUnitprice;
@@ -185,7 +181,6 @@ public class SSSaleRow implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public Integer getQuantity() {
         return iCount;
@@ -203,7 +198,6 @@ public class SSSaleRow implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public SSUnit getUnit() {
         return iUnit;
@@ -221,7 +215,6 @@ public class SSSaleRow implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public BigDecimal getDiscount() {
         return iDiscount;
@@ -248,7 +241,6 @@ public class SSSaleRow implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public SSTaxCode getTaxCode() {
         return iTaxCode;
@@ -266,7 +258,6 @@ public class SSSaleRow implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public Integer getAccountNr() {
         return iAccountNr;
@@ -285,7 +276,6 @@ public class SSSaleRow implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public String getResultUnitNr() {
         return iResultUnitNumber;
@@ -313,7 +303,6 @@ public class SSSaleRow implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public String getProjectNr() {
         return iProjectNumber;
@@ -333,7 +322,6 @@ public class SSSaleRow implements SSTableSearchable {
     /**
      *
      * @param iAccounts
-     * @return
      */
     public SSAccount getAccount(List<SSAccount> iAccounts) {
         if (iAccount == null && iAccountNr != null) {
@@ -365,7 +353,6 @@ public class SSSaleRow implements SSTableSearchable {
     /**
      * Get the product for this row
      *
-     * @return
      */
     public SSProduct getProduct() {
         return getProduct(se.swedsoft.bookkeeping.data.system.SSProductContext.getProducts());
@@ -375,7 +362,6 @@ public class SSSaleRow implements SSTableSearchable {
      * Gets the product for this row
      *
      * @param iProducts
-     * @return
      */
     public SSProduct getProduct(List<SSProduct> iProducts) {
         if (iProduct == null && iProductNr != null) {
@@ -425,7 +411,6 @@ public class SSSaleRow implements SSTableSearchable {
     /**
      *
      * @param iResultUnits
-     * @return
      */
     public SSNewResultUnit getResultUnit(List<SSNewResultUnit> iResultUnits) {
         if (iResultUnit == null) {
@@ -455,7 +440,6 @@ public class SSSaleRow implements SSTableSearchable {
     /**
      *
      * @param iProjects
-     * @return
      */
     public SSNewProject getProject(List<SSNewProject> iProjects) {
         if (iProject == null) {

@@ -147,7 +147,6 @@ public class SSSIEExporter {    private static final Logger LOG = LoggerFactory.
 
     /**
      *
-     * @return
      */
     public SIEType getType() {
         return iType;
@@ -155,7 +154,6 @@ public class SSSIEExporter {    private static final Logger LOG = LoggerFactory.
 
     /**
      *
-     * @return
      */
     public String getComment() {
         return iComment;
@@ -163,7 +161,6 @@ public class SSSIEExporter {    private static final Logger LOG = LoggerFactory.
 
     /**
      *
-     * @return
      */
     public List<String> getLines() {
         return iLines;

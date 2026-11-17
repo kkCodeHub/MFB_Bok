@@ -48,7 +48,6 @@ public class SSConfirmDialog {
     /**
      *
      * @param iFrame
-     * @return
      */
     public int openDialog(JFrame iFrame) {
         Icon iIcon = SSIcon.getIcon("ICON_DIALOG_INFORMATION");
@@ -71,7 +70,6 @@ public class SSConfirmDialog {
     /**
      *
      * @param iDialog
-     * @return
      */
     public int openDialog(JDialog iDialog) {
         Icon iIcon = SSIcon.getIcon("ICON_DIALOG_INFORMATION");

@@ -95,7 +95,6 @@ import org.slf4j.LoggerFactory;
 
 /**
  *
- * @version $Id$
  */
 public class SSMainMenu {    private static final Logger LOG = LoggerFactory.getLogger(SSMainMenu.class);
 
@@ -145,7 +144,6 @@ public class SSMainMenu {    private static final Logger LOG = LoggerFactory.get
 
     /**
      *
-     * @return
      */
     public JMenuBar getMenuBar(){
         return iMenuLoader.getMenuBar("MainMenu");
@@ -945,7 +943,7 @@ public class SSMainMenu {    private static final Logger LOG = LoggerFactory.get
                                 iStockStatusStart.put(iProduct.getNumber(), iStock.getQuantity(iProduct));
                         }
 
-                        Map<Integer, BigDecimal> iSaldoMap = SSInvoiceMath.getSaldos(SSDateUtil.toDate(iDate));
+                        Map<Integer, BigDecimal> iSaldoMap = SSInvoiceMath.getSaldos(iDate);
 
                         for(SSInpayment iInpayment : Repositories.inpayments().findAll()){
                             if(iInpayment.getLocalDate().isBefore(iCutoffDate)){

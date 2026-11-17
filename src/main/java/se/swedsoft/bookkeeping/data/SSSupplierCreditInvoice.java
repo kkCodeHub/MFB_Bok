@@ -126,7 +126,6 @@ public class SSSupplierCreditInvoice extends SSSupplierInvoice {
 
     /**
      *
-     * @return
      */
     public Integer getCreditingNr() {
         return iCreditingNr;
@@ -144,7 +143,6 @@ public class SSSupplierCreditInvoice extends SSSupplierInvoice {
 
     /**
      *
-     * @return
      */
     public SSSupplierInvoice getCrediting() {
         return getCrediting(Repositories.supplierInvoices().findAll());
@@ -153,7 +151,6 @@ public class SSSupplierCreditInvoice extends SSSupplierInvoice {
     /**
      *
      * @param iSupplierInvoices
-     * @return
      */
     public SSSupplierInvoice getCrediting(List<SSSupplierInvoice> iSupplierInvoices) {
         if (iCrediting == null) {
@@ -185,7 +182,6 @@ public class SSSupplierCreditInvoice extends SSSupplierInvoice {
      * Returns if this credit supplier invoice is crediting the specified supplier invoice
      *
      * @param iCrediting
-     * @return
      */
     public boolean isCrediting(SSSupplierInvoice iCrediting) {
         boolean answer = false;
@@ -238,7 +234,6 @@ public class SSSupplierCreditInvoice extends SSSupplierInvoice {
 
     /**
      *
-     * @return
      */
     @Override
     public SSVoucher generateVoucher() {

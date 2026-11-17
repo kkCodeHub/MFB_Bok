@@ -194,7 +194,6 @@ public class SSPurchaseOrder implements SSTableSearchable {
     // //////////////////////////////////////////////////////
     /**
      *
-     * @return
      */
     public Integer getNumber() {
         return iNumber;
@@ -224,7 +223,6 @@ public class SSPurchaseOrder implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public String getSupplierNr() {
         return iSupplierNr;
@@ -240,7 +238,6 @@ public class SSPurchaseOrder implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public String getSupplierName() {
         return iSupplierName;
@@ -270,7 +267,6 @@ public class SSPurchaseOrder implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public SSPaymentTerm getPaymentTerm() {
         return iPaymentTerm;
@@ -286,7 +282,6 @@ public class SSPurchaseOrder implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public SSDeliveryTerm getDeliveryTerm() {
         return iDeliveryTerm;
@@ -302,7 +297,6 @@ public class SSPurchaseOrder implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public SSDeliveryWay getDeliveryWay() {
         return iDeliveryWay;
@@ -318,7 +312,6 @@ public class SSPurchaseOrder implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public String getOurContact() {
         return iOurContact;
@@ -334,7 +327,6 @@ public class SSPurchaseOrder implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public String getYourContact() {
         return iYourContact;
@@ -350,7 +342,6 @@ public class SSPurchaseOrder implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public SSCurrency getCurrency() {
         return iCurrency;
@@ -368,7 +359,6 @@ public class SSPurchaseOrder implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public BigDecimal getCurrencyRate() {
         if (iCurrencyRate != null) {
@@ -394,7 +384,6 @@ public class SSPurchaseOrder implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public SSAddress getDeliveryAddress() {
         return iDeliveryAddress;
@@ -410,7 +399,6 @@ public class SSPurchaseOrder implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public SSAddress getSupplierAddress() {
         return iSupplierAddress;
@@ -434,7 +422,6 @@ public class SSPurchaseOrder implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public String getText() {
         return iText;
@@ -444,7 +431,6 @@ public class SSPurchaseOrder implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public boolean isPrinted() {
         return iPrinted;
@@ -469,7 +455,6 @@ public class SSPurchaseOrder implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public List<SSPurchaseOrderRow> getRows() {
         return iRows;
@@ -485,7 +470,6 @@ public class SSPurchaseOrder implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public SSSupplier getSupplier() {
         return getSupplier(se.swedsoft.bookkeeping.data.system.SSPurchaseContext.getSuppliers());
@@ -494,7 +478,6 @@ public class SSPurchaseOrder implements SSTableSearchable {
     /**
      *
      * @param iSuppliers
-     * @return
      */
     public SSSupplier getSupplier(List<SSSupplier> iSuppliers) {
         if (iSupplier == null) {
@@ -529,7 +512,6 @@ public class SSPurchaseOrder implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public Map<SSDefaultAccount, Integer> getDefaultAccounts() {
         if (iDefaultAccounts == null) {
@@ -550,7 +532,6 @@ public class SSPurchaseOrder implements SSTableSearchable {
     // //////////////////////////////////////////////////
     /**
      *
-     * @return
      */
     public Integer getInvoiceNr() {
         return iInvoiceNr;
@@ -569,7 +550,6 @@ public class SSPurchaseOrder implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public SSSupplierInvoice getInvoice() {
         return getInvoice(Repositories.supplierInvoices().findAll());
@@ -578,7 +558,6 @@ public class SSPurchaseOrder implements SSTableSearchable {
     /**
      *
      * @param iInvoices
-     * @return
      */
     public SSSupplierInvoice getInvoice(List<SSSupplierInvoice> iInvoices) {
         if (iInvoice == null && iInvoiceNr != null) {
@@ -604,7 +583,6 @@ public class SSPurchaseOrder implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public boolean isStockInfluencing() {
         return iStockInfluencing;
@@ -692,7 +670,6 @@ public class SSPurchaseOrder implements SSTableSearchable {
     /**
      *  Returns true of this order has the specified supplier
      * @param iSupplier
-     * @return
      */
     public boolean hasSupplier(SSSupplier iSupplier) {
         return iSupplierNr != null && iSupplierNr.equals(iSupplier.getNumber());

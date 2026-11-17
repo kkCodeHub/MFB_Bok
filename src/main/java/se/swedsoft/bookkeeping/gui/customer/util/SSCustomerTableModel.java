@@ -244,7 +244,6 @@ public class SSCustomerTableModel extends SSTableModel<SSCustomer> {
 
     /**
      *
-     * @return
      */
     public static SSCustomerTableModel getDropDownModel() {
         SSCustomerTableModel iModel = new SSCustomerTableModel();

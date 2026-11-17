@@ -30,7 +30,6 @@ import static se.swedsoft.bookkeeping.print.SSReport.ReportField.*;
 
 /**
  *
- * $Id$
  */
 public abstract class SSPrinter {
 
@@ -79,14 +78,6 @@ public abstract class SSPrinter {
         DateFormat iFormat = DateFormat.getDateInstance(DateFormat.SHORT);
 
         iReport.addParameter(pName, pDate == null ? pDate : iFormat.format(pDate));
-    }
-
-    /**
-     *
-     * @param iParameters
-     */
-    public void addParameters(Map<String, Object> iParameters) {
-        iReport.addParameters(iParameters);
     }
 
     /**
@@ -218,7 +209,6 @@ public abstract class SSPrinter {
 
     /**
      *
-     * @return
      */
     public ResourceBundle getBundle() {
         return iBundle;
@@ -283,7 +273,6 @@ public abstract class SSPrinter {
 
     /**
      *
-     * @return
      */
     public Map<String, Object> getParameters() {
         return iReport.getParameters();

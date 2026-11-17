@@ -21,7 +21,6 @@ import java.util.List;
 
 
 /**
- * $Id$
  *
  */
 public class SSCompanySettingsDialog extends SSDialog implements ListSelectionListener {

@@ -472,7 +472,6 @@ public class SSVoucherPanel implements TableModelListener, ListSelectionListener
 
     /**
      *
-     * @return
      */
     public boolean doReopen() {
         return iReopenDialog.isSelected();
@@ -714,7 +713,6 @@ public class SSVoucherPanel implements TableModelListener, ListSelectionListener
 
     /**
      *
-     * @return
      */
     public SSVoucher getVoucher() {
         return iVoucher;
@@ -722,7 +720,6 @@ public class SSVoucherPanel implements TableModelListener, ListSelectionListener
 
     /**
      *
-     * @return
      */
     public boolean isValid() {
         return iVerifier.isValid();
@@ -775,7 +772,6 @@ public class SSVoucherPanel implements TableModelListener, ListSelectionListener
 
     /**
      *
-     * @return
      */
     public boolean isStoreAsTemplate() {
         return iStoreAsTemplate.isSelected();

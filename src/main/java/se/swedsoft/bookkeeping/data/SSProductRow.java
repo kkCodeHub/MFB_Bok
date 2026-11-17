@@ -46,7 +46,6 @@ public class SSProductRow  {
 
     /**
      *
-     * @return
      */
     public String getProductNr() {
         return iProductNr;
@@ -65,7 +64,6 @@ public class SSProductRow  {
 
     /**
      *
-     * @return
      */
     public String getDescription() {
         if (iDescription == null && iProduct != null) {
@@ -87,7 +85,6 @@ public class SSProductRow  {
 
     /**
      *
-     * @return
      */
     public Integer getQuantity() {
         return iCount;
@@ -105,7 +102,6 @@ public class SSProductRow  {
 
     /**
      *
-     * @return
      */
     public SSProduct getProduct() {
         return getProduct(se.swedsoft.bookkeeping.data.system.SSProductContext.getProducts());
@@ -114,7 +110,6 @@ public class SSProductRow  {
     /**
      *
      * @param iProducts
-     * @return
      */
     public SSProduct getProduct(List<SSProduct> iProducts) {
         if (iProduct == null) {
@@ -156,7 +151,6 @@ public class SSProductRow  {
 
     /**
      * A row is isValid of the product and count is set
-     * @return
      */
     public boolean isValidRow() {
         return iProductNr != null && iCount != null;

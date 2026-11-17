@@ -70,7 +70,6 @@ public class SSPurchaseOrderRow  {
 
     /**
      *
-     * @return
      */
     public String getProductNr() {
         return iProductNr;
@@ -89,7 +88,6 @@ public class SSPurchaseOrderRow  {
 
     /**
      *
-     * @return
      */
     public String getDescription() {
         return iDescription;
@@ -106,7 +104,6 @@ public class SSPurchaseOrderRow  {
     /**
      *
      * @param iLocale
-     * @return
      */
     public String getDescription(Locale iLocale) {
         if (getProduct() != null) {
@@ -123,7 +120,6 @@ public class SSPurchaseOrderRow  {
 
     /**
      *
-     * @return
      */
     public String getSupplierArticleNr() {
         return iSupplierArticleNr;
@@ -141,7 +137,6 @@ public class SSPurchaseOrderRow  {
 
     /**
      *
-     * @return
      */
     public BigDecimal getUnitPrice() {
         return iUnitprice;
@@ -159,7 +154,6 @@ public class SSPurchaseOrderRow  {
 
     /**
      *
-     * @return
      */
     public Integer getQuantity() {
         return iQuantity;
@@ -177,7 +171,6 @@ public class SSPurchaseOrderRow  {
 
     /**
      *
-     * @return
      */
     public SSUnit getUnit() {
         return iUnit;
@@ -195,7 +188,6 @@ public class SSPurchaseOrderRow  {
 
     /**
      *
-     * @return
      */
     public SSProduct getProduct() {
         return getProduct(se.swedsoft.bookkeeping.data.system.SSProductContext.getProducts());
@@ -204,7 +196,6 @@ public class SSPurchaseOrderRow  {
     /**
      *
      * @param iProducts
-     * @return
      */
     public SSProduct getProduct(List<SSProduct> iProducts) {
         if (iProduct == null && iProductNr != null) {
@@ -240,7 +231,6 @@ public class SSPurchaseOrderRow  {
 
     /**
      *
-     * @return
      */
     public Integer getAccountNr() {
         return iAccountNr;

@@ -27,7 +27,6 @@ import java.util.StringTokenizer;
 
 /**
  * @author Kevin Krammer, <kevin.krammer@gmx.at>
- * @version $Id$
  */
 public class BaseDirs {
     public enum Resource {

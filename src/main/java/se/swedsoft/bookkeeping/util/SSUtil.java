@@ -9,7 +9,6 @@ import java.util.Scanner;
  *
  * @author jensli
  *
- * $Id$
  *
  */
 public class SSUtil {

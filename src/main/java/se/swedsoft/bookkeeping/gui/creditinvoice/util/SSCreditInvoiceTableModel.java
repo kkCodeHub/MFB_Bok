@@ -52,7 +52,6 @@ public class SSCreditInvoiceTableModel extends SSTableModel<SSCreditInvoice> {
 
     /**
      *
-     * @return
      */
     public static SSCreditInvoiceTableModel getDropDownModel() {
         SSCreditInvoiceTableModel iModel = new SSCreditInvoiceTableModel();

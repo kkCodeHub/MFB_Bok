@@ -78,7 +78,6 @@ public class SSOutpaymentRow implements SSTableSearchable {
     // //////////////////////////////////////////////////
     /**
      *
-     * @return
      */
     public Integer getInvoiceNr() {
         return iInvoiceNr;
@@ -97,7 +96,6 @@ public class SSOutpaymentRow implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public SSCurrency getInvoiceCurrency() {
         return iInvoiceCurrency;
@@ -115,7 +113,6 @@ public class SSOutpaymentRow implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public BigDecimal getInvoiceCurrencyRate() {
         return iInvoiceCurrencyRate;
@@ -133,7 +130,6 @@ public class SSOutpaymentRow implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public BigDecimal getValue() {
         return iValue;
@@ -159,7 +155,6 @@ public class SSOutpaymentRow implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public BigDecimal getCurrencyRate() {
         return iCurrencyRate;
@@ -172,7 +167,6 @@ public class SSOutpaymentRow implements SSTableSearchable {
      *
      * iValue * iCurrencyRate
      *
-     * @return
      */
     public Optional<BigDecimal> getLocalValue() {
         if (iValue == null) {
@@ -197,7 +191,6 @@ public class SSOutpaymentRow implements SSTableSearchable {
     /**
      *
      * @param iInvoices
-     * @return
      */
     public SSSupplierInvoice getSupplierInvoice(List<SSSupplierInvoice> iInvoices) {
         if (iInvoice == null && iInvoiceNr != null) {

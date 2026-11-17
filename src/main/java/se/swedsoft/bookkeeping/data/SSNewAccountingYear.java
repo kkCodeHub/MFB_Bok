@@ -1,6 +1,5 @@
 /*
  * 2005-2010
- * $Id$
  */
 package se.swedsoft.bookkeeping.data;
 
@@ -277,7 +276,6 @@ public class SSNewAccountingYear implements SSTableSearchable {
      *
      * @param pAccount
      *
-     * @return
      */
     public BigDecimal getInBalance(SSAccount pAccount) {
         if (iInBalance == null) {

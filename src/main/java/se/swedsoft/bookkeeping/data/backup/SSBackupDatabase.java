@@ -32,7 +32,6 @@ public class SSBackupDatabase {    private static final Logger LOG = LoggerFacto
 
     /**
      *
-     * @return
      */
     public static SSBackupDatabase getInstance() {
         if (cInstance == null) {

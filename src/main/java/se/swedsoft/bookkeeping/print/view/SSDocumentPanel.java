@@ -58,7 +58,6 @@ public class SSDocumentPanel {
 
     /**
      *
-     * @return
      */
     public JPanel getPanel() {
         return iPanel;

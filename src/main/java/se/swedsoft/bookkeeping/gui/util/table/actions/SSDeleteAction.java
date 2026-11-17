@@ -35,7 +35,6 @@ public abstract class SSDeleteAction {
     /**
      *
      * @param iPosition
-     * @return
      */
     protected abstract Point doDelete(Point iPosition);
 

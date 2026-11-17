@@ -323,7 +323,6 @@ public class SSPeriodicInvoiceDialog {
     /**
      *
      * @param iMainFrame
-     * @return
      */
     public static boolean pendingPeriodicInvoicesDialog(SSMainFrame iMainFrame) {
         Map<SSPeriodicInvoice, List<SSInvoice>> iPeriodicInvoices = SSPeriodicInvoiceMath.getPeriodicInvoices();

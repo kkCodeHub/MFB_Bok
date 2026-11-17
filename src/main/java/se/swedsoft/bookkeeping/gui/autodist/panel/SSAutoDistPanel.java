@@ -199,7 +199,6 @@ public class SSAutoDistPanel {
 
     /**
      *
-     * @return
      */
     public JPanel getPanel() {
         return iPanel;
@@ -207,7 +206,6 @@ public class SSAutoDistPanel {
 
     /**
      *
-     * @return
      */
     public SSAutoDist getAutoDist() {
         // Text

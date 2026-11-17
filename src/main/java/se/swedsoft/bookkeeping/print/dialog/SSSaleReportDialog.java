@@ -16,7 +16,6 @@ import static se.swedsoft.bookkeeping.print.report.SSSaleReportPrinter.SortingMo
 
 
 /**
- * $Id$
  *
  */
 public class SSSaleReportDialog extends SSDialog {
@@ -66,7 +65,6 @@ public class SSSaleReportDialog extends SSDialog {
 
     /**
      *
-     * @return
      */
     public JPanel getPanel() {
         return iPanel;
@@ -74,7 +72,6 @@ public class SSSaleReportDialog extends SSDialog {
 
     /**
      *
-     * @return
      */
     public SortingMode getSortingMode() {
         return (SortingMode) iSort.getSelectedItem();
@@ -82,7 +79,6 @@ public class SSSaleReportDialog extends SSDialog {
 
     /**
      *
-     * @return
      */
     public boolean getAscending() {
         return iSortAscending.isSelected();
@@ -90,7 +86,6 @@ public class SSSaleReportDialog extends SSDialog {
 
     /**
      *
-     * @return
      */
     public LocalDate getLocalFrom() {
         return iFromDate.getLocalDate();
@@ -98,7 +93,6 @@ public class SSSaleReportDialog extends SSDialog {
 
     /**
      *
-     * @return
      */
     public LocalDate getLocalTo() {
         return iToDate.getLocalDate();

@@ -4,7 +4,6 @@ package se.swedsoft.bookkeeping.calc.math;
 import se.swedsoft.bookkeeping.data.*;
 import se.swedsoft.bookkeeping.data.system.SSDB;
 import se.swedsoft.bookkeeping.persistence.Repositories;
-import se.swedsoft.bookkeeping.util.SSDateUtil;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -63,14 +62,13 @@ public class SSSupplierCreditInvoiceMath {
      * Get the sum for the credit sales in the sales currency up and including to the selected date
      *
      * @param iInvoice
-     * @param iDate
+     * @param localDate
      * @return the sum
      */
-    public static BigDecimal getSumForInvoice(SSSupplierInvoice iInvoice, Date iDate) {
+    public static BigDecimal getSumForInvoice(SSSupplierInvoice iInvoice, LocalDate localDate) {
         // Get all credit invoices from the db
         List<SSSupplierCreditInvoice> iCreditInvoices = Repositories.supplierCreditInvoices().findAll();
 
-        LocalDate localDate = SSDateUtil.toLocalDate(iDate);
         BigDecimal iSum = new BigDecimal(0);
 
         for (SSSupplierCreditInvoice iCreditInvoice : iCreditInvoices) {
@@ -112,9 +110,8 @@ public class SSSupplierCreditInvoiceMath {
         return iSums;
     }
 
-    public static HashMap<Integer, BigDecimal> getSumsForSupplierInvoices(Date iDate) {
+    public static HashMap<Integer, BigDecimal> getSumsForSupplierInvoices(LocalDate localDate) {
         HashMap<Integer, BigDecimal> iSums = new HashMap<>();
-        LocalDate localDate = SSDateUtil.toLocalDate(iDate);
 
         List<SSSupplierCreditInvoice> iSupplierCreditInvoices = Repositories.supplierCreditInvoices().findAll();
 

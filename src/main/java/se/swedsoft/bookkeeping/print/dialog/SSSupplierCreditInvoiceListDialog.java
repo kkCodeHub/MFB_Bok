@@ -27,7 +27,6 @@ import java.util.List;
 
 
 /**
- * $Id$
  *
  */
 public class SSSupplierCreditInvoiceListDialog extends SSDialog {
@@ -79,7 +78,6 @@ public class SSSupplierCreditInvoiceListDialog extends SSDialog {
 
     /**
      *
-     * @return
      */
     public JPanel getPanel() {
         return iPanel;
@@ -88,7 +86,6 @@ public class SSSupplierCreditInvoiceListDialog extends SSDialog {
     /**
      * Returns the invoices to print depending on the user selections
      *
-     * @return
      */
     public List<SSSupplierCreditInvoice> getElementsToPrint() {
         List<SSSupplierCreditInvoice> iInvoices = Repositories.supplierCreditInvoices().findAll();

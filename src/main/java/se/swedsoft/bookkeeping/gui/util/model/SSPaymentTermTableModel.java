@@ -52,7 +52,6 @@ public class SSPaymentTermTableModel extends SSTableModel<SSPaymentTerm> {
 
     /**
      *
-     * @return
      */
     public static SSPaymentTermTableModel getDropDownModel() {
         SSPaymentTermTableModel iModel = new SSPaymentTermTableModel();
@@ -140,7 +139,6 @@ public class SSPaymentTermTableModel extends SSTableModel<SSPaymentTerm> {
     /**
      *
      * @param iOwner
-     * @return
      */
     public static SSEditableTableComboBox.EditingFactory<SSPaymentTerm> getEditingFactory(final JDialog iOwner) {
         return new SSEditableTableComboBox.EditingFactory<SSPaymentTerm>() {

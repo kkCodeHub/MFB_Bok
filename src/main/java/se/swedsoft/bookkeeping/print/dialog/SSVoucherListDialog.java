@@ -28,7 +28,6 @@ import java.sql.SQLException;
 
 
 /**
- * $Id$
  *
  */
 public class SSVoucherListDialog extends SSDialog {
@@ -136,7 +135,6 @@ public class SSVoucherListDialog extends SSDialog {
 
     /**
      *
-     * @return
      */
     public JPanel getPanel() {
         return iPanel;
@@ -144,7 +142,6 @@ public class SSVoucherListDialog extends SSDialog {
 
     /**
      *
-     * @return
      */
     public SSVoucherRange getVoucherRange() {
         return SSVoucherRange.ALL_VOUCHERS;
@@ -196,7 +193,6 @@ public class SSVoucherListDialog extends SSDialog {
 
     /**
      *
-     * @return
      */
     public Integer getNumberFrom() {
         Integer iSelected = (Integer) iFromVoucher.getSelectedItem();
@@ -205,7 +201,6 @@ public class SSVoucherListDialog extends SSDialog {
 
     /**
      *
-     * @return
      */
     public Integer getNumberTo() {
         Integer iSelected = (Integer) iToVoucher.getSelectedItem();
@@ -214,7 +209,6 @@ public class SSVoucherListDialog extends SSDialog {
 
     /**
      *
-     * @return
      */
     public Date getDateFrom() {
         return SSDateUtil.toDate(iFromDate.getLocalDate());
@@ -222,7 +216,6 @@ public class SSVoucherListDialog extends SSDialog {
 
     /**
      *
-     * @return
      */
     public Date getDateTo() {
         return SSDateUtil.toDate(iToDate.getLocalDate());
@@ -230,7 +223,6 @@ public class SSVoucherListDialog extends SSDialog {
 
     /**
      *
-     * @return
      */
     public boolean isNumberSelected() {
         return true;
@@ -238,7 +230,6 @@ public class SSVoucherListDialog extends SSDialog {
 
     /**
      *
-     * @return
      */
     public boolean isDateSelected() {
         return true;
@@ -247,7 +238,6 @@ public class SSVoucherListDialog extends SSDialog {
     /**
      * Returns the invoices to print depending on the user selections
      *
-     * @return
      */
     public List<SSVoucher> getElementsToPrint() {
 

@@ -198,7 +198,6 @@ public class SSOwnReportFrame extends SSDefaultTableFrame {
 
     /**
      *
-     * @return
      */
     public SSTableModel<SSOwnReport> getModel() {
         return iModel;

@@ -182,7 +182,6 @@ public class SSAutoDistRow implements SSTableSearchable {
     /**
      *
      * @param iAccounts
-     * @return
      */
     public SSAccount getAccount(List<SSAccount> iAccounts) {
         if (iAccount == null && iAccountNr != null) {
@@ -229,7 +228,6 @@ public class SSAutoDistRow implements SSTableSearchable {
     /**
      *
      * @param iResultUnits
-     * @return
      */
     public SSNewResultUnit getResultUnit(List<SSNewResultUnit> iResultUnits) {
         if (iResultUnit == null && iResultUnitNr != null) {

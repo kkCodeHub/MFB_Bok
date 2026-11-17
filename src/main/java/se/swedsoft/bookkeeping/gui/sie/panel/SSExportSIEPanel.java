@@ -40,7 +40,6 @@ public class SSExportSIEPanel {
 
     /**
      *
-     * @return
      */
     public String getComment() {
         String text = iComment.getText();
@@ -54,7 +53,6 @@ public class SSExportSIEPanel {
 
     /**
      *
-     * @return
      */
     public SIEType getType() {
         if (iSIERadio1.isSelected()) {
@@ -91,7 +89,6 @@ public class SSExportSIEPanel {
 
     /**
      *
-     * @return
      */
     public JPanel getPanel() {
         return iPanel;

@@ -14,7 +14,6 @@ public class SSXMLFileChooser extends SSFileChooser {
 
     /**
      *
-     * @return
      */
     public static SSXMLFileChooser getInstance() {
         if (cInstance == null) {

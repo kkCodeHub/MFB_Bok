@@ -516,7 +516,6 @@ public class SSPeriodicInvoicePanel {
 
     /**
      *
-     * @return
      */
     public boolean isValid() {
         return iInputVerifier.isValid();
@@ -524,7 +523,6 @@ public class SSPeriodicInvoicePanel {
 
     /**
      *
-     * @return
      */
     public JPanel getPanel() {
         return iPanel;
@@ -641,7 +639,6 @@ public class SSPeriodicInvoicePanel {
     }
 
     /**
-     * @return
      */
     public SSPeriodicInvoice getPeriodicInvoice() {
         // Första faktueringsdatum
@@ -729,7 +726,6 @@ public class SSPeriodicInvoicePanel {
 
     /**
      *
-     * @return
      */
     public boolean doSaveCustomerAndProducts() {
         return iSavecustomerandproducts.isSelected();

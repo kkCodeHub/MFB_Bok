@@ -13,7 +13,6 @@ import java.io.File;
  * Show the backup dialog.
  * 2006
  * @author Andreas Lago
- * @version $Id$
  */
 public class SSBackupDialog {
     private final JFrame parent;

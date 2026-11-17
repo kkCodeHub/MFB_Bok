@@ -1,6 +1,8 @@
 package se.swedsoft.bookkeeping.gui.util.Calculator;
 
 import com.ezylang.evalex.Expression;
+import com.ezylang.evalex.EvaluationException;
+import com.ezylang.evalex.parser.ParseException;
 import se.swedsoft.bookkeeping.gui.SSMainFrame;
 import se.swedsoft.bookkeeping.gui.util.dialogs.SSDialog;
 import se.swedsoft.bookkeeping.gui.util.graphics.SSImage;
@@ -198,11 +200,7 @@ public class SwingCalculator extends SSDialog {
                 resultCallback.accept(formattedResult);
                 closeDialog(JOptionPane.OK_OPTION);
             }
-        } catch (IllegalArgumentException ex) {
-            JOptionPane.showMessageDialog(this,
-                "Uttrycket kunde inte beräknas.\nKontrollera uttrycket och försök igen.",
-                "Beräkningsfel", JOptionPane.ERROR_MESSAGE);
-        } catch (Exception ex) {
+        } catch (EvaluationException | ParseException | RuntimeException ex) {
             JOptionPane.showMessageDialog(this,
                 "Uttrycket kunde inte beräknas.\nKontrollera uttrycket och försök igen.",
                 "Beräkningsfel", JOptionPane.ERROR_MESSAGE);

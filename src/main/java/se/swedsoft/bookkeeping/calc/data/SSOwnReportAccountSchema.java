@@ -29,7 +29,6 @@ public class SSOwnReportAccountSchema {
 
     /**
      * Returns the result groups
-     * @return
      */
     public List<SSOwnReportAccountGroup> getResultGroups() {
         return iResultGroups;

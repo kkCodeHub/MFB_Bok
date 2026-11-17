@@ -10,7 +10,6 @@ import java.util.Locale;
 
 
 /**
- * $Id$
  *
  */
 public class SSLanguageDialog extends SSDialog {
@@ -64,7 +63,6 @@ public class SSLanguageDialog extends SSDialog {
 
     /**
      *
-     * @return
      */
     public Locale getLanguage() {
         if (iLanguageRadioSwedish.isSelected()) {

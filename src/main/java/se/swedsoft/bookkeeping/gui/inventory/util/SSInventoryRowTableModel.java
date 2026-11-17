@@ -44,7 +44,6 @@ public class SSInventoryRowTableModel extends SSEditableTableModel<SSInventoryRo
     }
 
     /**
-     * @return
      */
     @Override
     public SSInventoryRow newObject() {

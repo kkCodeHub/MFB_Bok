@@ -7,14 +7,12 @@ import se.swedsoft.bookkeeping.util.SSDateUtil;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 
 
 /**
  *
- * $Id$
  *
  * @author Roger Björnstedt
  */
@@ -92,7 +90,6 @@ public class SSVoucherTemplate implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public String getDescription() {
         return iDescription;
@@ -108,22 +105,6 @@ public class SSVoucherTemplate implements SSTableSearchable {
 
     // //////////////////////////////////////////////////////////////////
 
-    /**
-     *
-     * @return
-     */
-    public Date getDate() {
-        return SSDateUtil.toDate(iDate);
-    }
-
-    /**
-     *
-     * @param iDate
-     */
-    public void setDate(Date iDate) {
-        this.iDate = SSDateUtil.toLocalDateTime(iDate);
-    }
-
     public LocalDateTime getLocalDateTime() {
         return iDate;
     }
@@ -136,7 +117,6 @@ public class SSVoucherTemplate implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public List<SSVoucherTemplateRow> getRows() {
         return iRows;
@@ -163,7 +143,6 @@ public class SSVoucherTemplate implements SSTableSearchable {
     }
 
     /**
-     * @return
      */
     public String toRenderString() {
         return iDescription;
@@ -200,7 +179,6 @@ public class SSVoucherTemplate implements SSTableSearchable {
 
         /**
          *
-         * @return
          */
         public Integer getAccountNr() {
             return iAccountNr;
@@ -219,7 +197,6 @@ public class SSVoucherTemplate implements SSTableSearchable {
 
         /**
          *
-         * @return
          */
         public BigDecimal getDebet() {
             return iDebet ? new BigDecimal(0) : null;
@@ -227,7 +204,6 @@ public class SSVoucherTemplate implements SSTableSearchable {
 
         /**
          *
-         * @return
          */
         public BigDecimal getCredit() {
             return iDebet ? null : new BigDecimal(0);
@@ -255,7 +231,6 @@ public class SSVoucherTemplate implements SSTableSearchable {
 
         /**
          *
-         * @return
          */
         public SSAccount getAccount() {
             return getAccount(se.swedsoft.bookkeeping.data.system.SSAccountingContext.getAccounts());
@@ -264,7 +239,6 @@ public class SSVoucherTemplate implements SSTableSearchable {
         /**
          *
          * @param iAccounts
-         * @return
          */
         public SSAccount getAccount(List<SSAccount> iAccounts) {
             if (iAccount == null && iAccountNr != null) {

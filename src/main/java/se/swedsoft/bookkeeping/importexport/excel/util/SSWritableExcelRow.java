@@ -6,9 +6,7 @@ import org.apache.poi.ss.usermodel.Row;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.Date;
 
-import se.swedsoft.bookkeeping.util.SSDateUtil;
 import java.util.LinkedList;
 import java.util.List;
 import org.slf4j.Logger;
@@ -40,7 +38,6 @@ public class SSWritableExcelRow {
     /**
      *
      * @param pCount
-     * @return
      */
     public List<SSWritableExcelCell> getCells(int pCount) {
         List<SSWritableExcelCell> iList = new LinkedList<>();
@@ -53,7 +50,6 @@ public class SSWritableExcelRow {
 
     /**
      *
-     * @return
      */
     public int getRow() {
         return iRow;
@@ -131,15 +127,6 @@ public class SSWritableExcelRow {
         }
     }
 
-    /**
-     *
-     * @param iColumn
-     * @param pValue
-     */
-    public void setDate(int iColumn, Date pValue) {
-        setDate(iColumn, SSDateUtil.toLocalDate(pValue));
-    }
-
     public void setDate(int iColumn, LocalDate pValue) {
         try {
             Cell iCell = iRow_POI.createCell(iColumn);
@@ -151,16 +138,6 @@ public class SSWritableExcelRow {
         } catch (RuntimeException e) {
             LOG.error("Unexpected error", e);
         }
-    }
-
-    /**
-     *
-     * @param iColumn
-     * @param pValue
-     * @param iCellStyle
-     */
-    public void setDate(int iColumn, Date pValue, CellStyle iCellStyle) {
-        setDate(iColumn, SSDateUtil.toLocalDate(pValue), iCellStyle);
     }
 
     public void setDate(int iColumn, LocalDate pValue, CellStyle iCellStyle) {

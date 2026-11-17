@@ -60,7 +60,7 @@ public class SIEEntryVerifikation implements SIEEntry {
 
         String     iSerie = iReader.nextString();
         Integer    iNumber = iReader.nextInteger().orElse(null);
-        java.util.Date iDate = iReader.hasNextDate() ? iReader.nextDate() : SSDateUtil.toDate(SSDateUtil.today());
+        LocalDate iDate = iReader.hasNextDate() ? iReader.nextDate() : SSDateUtil.today();
         String     iDescription = iReader.hasNextString() ? iReader.nextString() : null;
 
         if (iNumber == null) {
@@ -72,7 +72,7 @@ public class SIEEntryVerifikation implements SIEEntry {
         if (iImporter.shouldKeepImportedVoucherNumber()) {
             iVoucher.setNumber(iNumber);
         }
-        iVoucher.setLocalDate(SSDateUtil.toLocalDate(iDate));
+        iVoucher.setLocalDate(iDate);
         iVoucher.setDescription(iDescription);
 
         while (iReader.hasNextLine()) {

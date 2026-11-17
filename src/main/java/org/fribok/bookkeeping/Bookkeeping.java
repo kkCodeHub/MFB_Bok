@@ -37,7 +37,6 @@ import org.slf4j.LoggerFactory;
 
 /**
  *
- * @version $Id$
  */
 public class Bookkeeping {    private static final Logger LOG = LoggerFactory.getLogger(Bookkeeping.class);
 

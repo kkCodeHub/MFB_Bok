@@ -12,9 +12,8 @@ import se.swedsoft.bookkeeping.importexport.sie.util.SIEReader;
 import se.swedsoft.bookkeeping.importexport.sie.util.SIEWriter;
 import se.swedsoft.bookkeeping.importexport.util.SSExportException;
 import se.swedsoft.bookkeeping.importexport.util.SSImportException;
-import se.swedsoft.bookkeeping.util.SSDateUtil;
 
-import java.util.Date;
+import java.time.LocalDate;
 
 import static se.swedsoft.bookkeeping.importexport.sie.util.SIEReader.SIEDataType.INT;
 import static se.swedsoft.bookkeeping.importexport.sie.util.SIEReader.SIEDataType.STRING;
@@ -45,12 +44,12 @@ public class SIEEntryRAR implements SIEEntry {
         }
 
         int        iYear = iReader.nextInteger().orElse(0);
-        Date       iFrom = iReader.nextDate();
-        Date       iTo = iReader.nextDate();
+        LocalDate  iFrom = iReader.nextDate();
+        LocalDate  iTo = iReader.nextDate();
 
         if (iYear == 0 && iCurrentYearData != null) {
-            iCurrentYearData.setLocalFrom(SSDateUtil.toLocalDate(iFrom));
-            iCurrentYearData.setLocalTo(SSDateUtil.toLocalDate(iTo));
+            iCurrentYearData.setLocalFrom(iFrom);
+            iCurrentYearData.setLocalTo(iTo);
             se.swedsoft.bookkeeping.data.system.SSAccountingContext.updateAccountingYear(iCurrentYearData);
         }
 

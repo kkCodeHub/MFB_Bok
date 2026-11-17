@@ -52,7 +52,6 @@ public class SSDeliveryWayTableModel extends SSTableModel<SSDeliveryWay> {
 
     /**
      *
-     * @return
      */
     public static SSDeliveryWayTableModel getDropDownModel() {
         SSDeliveryWayTableModel iModel = new SSDeliveryWayTableModel();
@@ -115,7 +114,6 @@ public class SSDeliveryWayTableModel extends SSTableModel<SSDeliveryWay> {
     /**
      *
      * @param iOwner
-     * @return
      */
     public static SSEditableTableComboBox.EditingFactory<SSDeliveryWay> getEditingFactory(final JDialog iOwner) {
         return new SSEditableTableComboBox.EditingFactory<SSDeliveryWay>() {

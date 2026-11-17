@@ -193,7 +193,6 @@ public class SSOutpaymentFrame extends SSDefaultTableFrame {
 
     /**
      *
-     * @return
      */
     public SSTableModel<SSOutpayment> getModel() {
         return iModel;

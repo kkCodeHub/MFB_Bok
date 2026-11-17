@@ -23,7 +23,6 @@ import java.util.List;
 
 
 /**
- * $Id$
  *
  */
 public class SSProjectResultSetupDialog extends SSDialog {
@@ -114,7 +113,6 @@ public class SSProjectResultSetupDialog extends SSDialog {
 
     /**
      *
-     * @return
      */
     public SSNewProject getProject() {
         if (iRadioSingle.isSelected()) {

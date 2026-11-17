@@ -1129,7 +1129,6 @@ public class SSDB {
 
     /**
      *
-     * @return
      */
     public List<SSInventory> loadInventories() {
         if (iInventories != null) {
@@ -1154,7 +1153,6 @@ public class SSDB {
 
     /**
      *
-     * @return
      */
     public List<SSIndelivery> loadIndeliveries() {
         if (iIndeliveries != null) {
@@ -1178,7 +1176,6 @@ public class SSDB {
 
     /**
      *
-     * @return
      */
     public List<SSOutdelivery> loadOutdeliveries() {
         if (iOutdeliveries != null) {

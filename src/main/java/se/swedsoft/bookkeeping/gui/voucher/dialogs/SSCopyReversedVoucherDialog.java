@@ -14,7 +14,6 @@ import java.awt.event.ActionListener;
 
 
 /**
- * $Id$
  *
  */
 public class SSCopyReversedVoucherDialog extends SSDialog {
@@ -39,7 +38,6 @@ public class SSCopyReversedVoucherDialog extends SSDialog {
 
     /**
      *
-     * @return
      */
     public JPanel getPanel() {
         return iPanel;
@@ -47,7 +45,6 @@ public class SSCopyReversedVoucherDialog extends SSDialog {
 
     /**
      *
-     * @return
      */
     public boolean getCopyInverse() {
         return iCopyReverse.isSelected();
@@ -57,7 +54,6 @@ public class SSCopyReversedVoucherDialog extends SSDialog {
      *
      * @param iMainFrame
      * @param iVoucher
-     * @return
      */
     public static Boolean showDialog(final SSMainFrame iMainFrame, SSVoucher iVoucher) {
         SSCopyReversedVoucherDialog iDialog = new SSCopyReversedVoucherDialog(iMainFrame);

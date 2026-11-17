@@ -225,7 +225,6 @@ public class SSPurchaseOrderPanel {
 
     /**
      *
-     * @return
      */
     public boolean isValid() {
         return iInputVerifier.isValid();
@@ -233,7 +232,6 @@ public class SSPurchaseOrderPanel {
 
     /**
      *
-     * @return
      */
     public JPanel getPanel() {
         return iPanel;
@@ -308,7 +306,6 @@ public class SSPurchaseOrderPanel {
     }
 
     /**
-     * @return
      */
     public SSPurchaseOrder getOrder() {
         // Offertdatum

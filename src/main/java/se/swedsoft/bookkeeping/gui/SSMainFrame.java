@@ -1,6 +1,5 @@
 /*
  * 2005-2010
- * $Id$
  */
 package se.swedsoft.bookkeeping.gui;
 
@@ -26,7 +25,6 @@ import org.slf4j.LoggerFactory;
 /**
  * This class implements the main frame as well as the main program.
  *
- * $Id$
  */
 public class SSMainFrame extends JFrame {    private static final Logger LOG = LoggerFactory.getLogger(SSMainFrame.class);
 
@@ -35,7 +33,6 @@ public class SSMainFrame extends JFrame {    private static final Logger LOG = L
 
     /**
      * Returns the instance of the main frame
-     * @return
      */
     public static SSMainFrame getInstance() {
         if (java.awt.GraphicsEnvironment.isHeadless()) {

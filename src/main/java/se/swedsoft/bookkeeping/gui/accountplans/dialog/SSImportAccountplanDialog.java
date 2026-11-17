@@ -16,7 +16,6 @@ import java.awt.event.ActionListener;
 
 
 /**
- * $Id$
  *
  */
 public class SSImportAccountplanDialog extends SSDialog {
@@ -66,7 +65,6 @@ public class SSImportAccountplanDialog extends SSDialog {
 
     /**
      *
-     * @return
      */
     public JPanel getPanel() {
         return iPanel;
@@ -90,7 +88,6 @@ public class SSImportAccountplanDialog extends SSDialog {
 
     /**
      *
-     * @return
      */
     public SSAccountPlan geAccountPlan() {
         return iAccountPlan.getSelected();
@@ -98,7 +95,6 @@ public class SSImportAccountplanDialog extends SSDialog {
 
     /**
      *
-     * @return
      */
     public boolean isSRUSelected() {
         return iCheckSRU.isSelected();
@@ -106,7 +102,6 @@ public class SSImportAccountplanDialog extends SSDialog {
 
     /**
      *
-     * @return
      */
     public boolean isRECSelected() {
         return iCheckREC.isSelected();
@@ -114,7 +109,6 @@ public class SSImportAccountplanDialog extends SSDialog {
 
     /**
      *
-     * @return
      */
     public boolean isVATSelected() {
         return iCheckVAT.isSelected();

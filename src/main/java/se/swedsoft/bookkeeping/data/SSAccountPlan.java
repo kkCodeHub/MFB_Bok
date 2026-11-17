@@ -1,6 +1,5 @@
 /*
  * 2005-2010
- * $Id$
  */
 package se.swedsoft.bookkeeping.data;
 
@@ -147,7 +146,6 @@ public class SSAccountPlan implements Cloneable, SSTableSearchable {
     // /////////////////////////////////////////////////////////////////////////
     /**
      *
-     * @return
      */
     public String getBaseName() {
         return iBaseName;
@@ -202,7 +200,6 @@ public class SSAccountPlan implements Cloneable, SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public String getAssessementYear() {
         return iAssessementYear;
@@ -313,7 +310,6 @@ public class SSAccountPlan implements Cloneable, SSTableSearchable {
     /**
      *
      * @param pAccount
-     * @return
      */
     public boolean removeAccount(SSAccount pAccount) {
         if (pAccount.isActive() && iActiveAccounts != null) {
@@ -436,7 +432,6 @@ public class SSAccountPlan implements Cloneable, SSTableSearchable {
     }
 
     /**
-     * @return
      */
     public String toRenderString() {
         return iName;

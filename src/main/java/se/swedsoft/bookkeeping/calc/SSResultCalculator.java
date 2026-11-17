@@ -6,7 +6,6 @@ import se.swedsoft.bookkeeping.calc.math.SSVoucherMath;
 import se.swedsoft.bookkeeping.calc.util.SSCalculatorException;
 import se.swedsoft.bookkeeping.data.*;
 import se.swedsoft.bookkeeping.data.system.SSDB;
-import se.swedsoft.bookkeeping.util.SSDateUtil;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -87,16 +86,6 @@ public class SSResultCalculator {
 
         iResultunitChange = new HashMap<>();
         iResultunitChangePeriod = new HashMap<>();
-    }
-
-    /**
-     * @deprecated use {@link #SSResultCalculator(SSNewAccountingYear, LocalDate, LocalDate, SSNewProject, SSNewResultUnit)}
-     */
-    @Deprecated
-    public SSResultCalculator(SSNewAccountingYear pYearData, Date pFrom, Date pTo,
-                              SSNewProject pProject, SSNewResultUnit pResultUnit) {
-        this(pYearData, SSDateUtil.toLocalDate(pFrom), SSDateUtil.toLocalDate(pTo), pProject,
-                pResultUnit);
     }
 
     /**
@@ -188,7 +177,6 @@ public class SSResultCalculator {
      *
      * @param pRowProject
      * @param pProject
-     * @return
      */
     private boolean inProject(SSNewProject pRowProject, SSNewProject pProject) {
         return (pRowProject != null) && !pRowProject.isConcluded(iTo)
@@ -199,7 +187,6 @@ public class SSResultCalculator {
      *
      * @param pRowResultUnit
      * @param pResultUnit
-     * @return
      */
     private boolean inResultUnit(SSNewResultUnit pRowResultUnit, SSNewResultUnit pResultUnit) {
         return (pRowResultUnit != null)
@@ -209,7 +196,6 @@ public class SSResultCalculator {
     /**
      * Change for all accounts over the year
      *
-     * @return
      */
     public Map<SSAccount, BigDecimal> getChange() {
         return iChange;
@@ -218,7 +204,6 @@ public class SSResultCalculator {
     /**
      * Change for all accounts over the period
      *
-     * @return
      */
     public Map<SSAccount, BigDecimal> getChangePeriod() {
         return iChangePeriod;
@@ -227,7 +212,6 @@ public class SSResultCalculator {
     /**
      * Change for the period according to budget
      *
-     * @return
      */
     public Map<SSAccount, BigDecimal> getChangeBudget() {
         return iChangeBudget;
@@ -236,7 +220,6 @@ public class SSResultCalculator {
     /**
      * Change for the same period last year
      *
-     * @return
      */
     public Map<SSAccount, BigDecimal> getChangeLastYear() {
         return iChangePrevYear;
@@ -245,7 +228,6 @@ public class SSResultCalculator {
     /**
      * Change for the projects over all years
      *
-     * @return
      */
     public Map<SSAccount, BigDecimal> getProjectChange() {
         return iProjectChange;
@@ -254,7 +236,6 @@ public class SSResultCalculator {
     /**
      * Change for projects over the period
      *
-     * @return
      */
     public Map<SSAccount, BigDecimal> getProjectChangePeriod() {
         return iProjectChangePeriod;
@@ -263,7 +244,6 @@ public class SSResultCalculator {
     /**
      * Change for the resultunits over all years
      *
-     * @return
      */
     public Map<SSAccount, BigDecimal> getResultunitChange() {
         return iResultunitChange;
@@ -272,7 +252,6 @@ public class SSResultCalculator {
     /**
      * Change for resultunits over the period
      *
-     * @return
      */
     public Map<SSAccount, BigDecimal> getResultunitChangePeriod() {
         return iResultunitChangePeriod;
@@ -283,7 +262,6 @@ public class SSResultCalculator {
      *
      * @param a
      * @param b
-     * @return
      */
     public Map<SSAccount, BigDecimal> getDeviation(Map<SSAccount, BigDecimal> a, Map<SSAccount, BigDecimal> b) {
 

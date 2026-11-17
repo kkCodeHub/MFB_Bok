@@ -32,7 +32,6 @@ import org.slf4j.LoggerFactory;
 
 
 /**
- * $Id$
  *
  */
 public class SSSupplierPaymentDialog extends SSDialog {    private static final Logger LOG = LoggerFactory.getLogger(SSSupplierPaymentDialog.class);
@@ -138,7 +137,7 @@ public class SSSupplierPaymentDialog extends SSDialog {    private static final 
                         }
                         SupplierPaymentConfig.setOurBankGiroAccount(iOurBankGiroNumber.getText());
                         SupplierPaymentConfig.setMessage(iMessage.getText());
-                        SupplierPaymentConfig.setMessageDate(SSDateUtil.toDate(iDate));
+                        SupplierPaymentConfig.setMessageDate(iDate);
 
                         try {
                             SSSupplierPaymentExporter.Export(iFileChooser.getSelectedFile(),

@@ -23,7 +23,6 @@ public class SSAccountPlanRowTableModel extends SSEditableTableModel<SSAccount> 
 
     /**
      *
-     * @return
      */
     @Override
     public SSAccount newObject() {
@@ -148,7 +147,6 @@ public class SSAccountPlanRowTableModel extends SSEditableTableModel<SSAccount> 
 
         /**
          *
-         * @return
          */
         @Override
         public Class getColumnClass() {
@@ -157,7 +155,6 @@ public class SSAccountPlanRowTableModel extends SSEditableTableModel<SSAccount> 
 
         /**
          *
-         * @return
          */
         @Override
         public int getDefaultWidth() {
@@ -165,7 +162,6 @@ public class SSAccountPlanRowTableModel extends SSEditableTableModel<SSAccount> 
         }
 
         /**
-         * @return
          */
         @Override
         public TableCellEditor getCellEditor() {
@@ -173,7 +169,6 @@ public class SSAccountPlanRowTableModel extends SSEditableTableModel<SSAccount> 
         }
 
         /**
-         * @return
          */
         @Override
         public TableCellRenderer getCellRenderer() {

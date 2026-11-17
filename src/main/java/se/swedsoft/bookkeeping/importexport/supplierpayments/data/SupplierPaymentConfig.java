@@ -1,7 +1,7 @@
 package se.swedsoft.bookkeeping.importexport.supplierpayments.data;
 
 
-import java.util.Date;
+import java.time.LocalDate;
 
 
 /**
@@ -16,7 +16,7 @@ public class SupplierPaymentConfig {
 
     private static String iMessage;
 
-    private static Date iMessageDate;
+    private static LocalDate iMessageDate;
 
     private SupplierPaymentConfig() {}
 
@@ -24,7 +24,6 @@ public class SupplierPaymentConfig {
 
     /**
      *
-     * @return
      */
     public static String getOurBankGiroAccount() {
         return iOurBankGiroAccount;
@@ -42,7 +41,6 @@ public class SupplierPaymentConfig {
 
     /**
      *
-     * @return
      */
     public static String getMessage() {
         return iMessage;
@@ -60,9 +58,8 @@ public class SupplierPaymentConfig {
 
     /**
      *
-     * @return
      */
-    public static Date getMessageDate() {
+    public static LocalDate getMessageDate() {
         return iMessageDate;
     }
 
@@ -70,7 +67,7 @@ public class SupplierPaymentConfig {
      *
      * @param iMessageDate
      */
-    public static void setMessageDate(Date iMessageDate) {
+    public static void setMessageDate(LocalDate iMessageDate) {
         SupplierPaymentConfig.iMessageDate = iMessageDate;
     }
 }

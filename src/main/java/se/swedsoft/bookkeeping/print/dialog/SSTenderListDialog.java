@@ -28,7 +28,6 @@ import java.util.List;
 
 
 /**
- * $Id$
  *
  */
 public class SSTenderListDialog extends SSDialog {
@@ -88,7 +87,6 @@ public class SSTenderListDialog extends SSDialog {
 
     /**
      *
-     * @return
      */
     public JPanel getPanel() {
         return iPanel;
@@ -97,7 +95,6 @@ public class SSTenderListDialog extends SSDialog {
     /**
      * Returns the invoices to print depending on the user selections
      *
-     * @return
      */
     public List<SSTender> getTendersToPrint() {
         final List<SSCustomer> iCustomers = se.swedsoft.bookkeeping.data.system.SSSalesContext.getCustomers();

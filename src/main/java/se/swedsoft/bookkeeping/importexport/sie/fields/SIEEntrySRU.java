@@ -18,7 +18,6 @@ import org.slf4j.LoggerFactory;
 
 /**
  *
- * $Id$
  *
  */
 public class SIEEntrySRU implements SIEEntry {

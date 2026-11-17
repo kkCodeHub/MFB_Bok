@@ -82,7 +82,6 @@ public class SSStandardTextPanel extends JPanel {
 
     /**
      *
-     * @return
      */
     public JPanel getPanel() {
         return iPanel;

@@ -1,6 +1,5 @@
 /*
  * 2005-2010
- * $Id$
  */
 package se.swedsoft.bookkeeping.data;
 
@@ -8,12 +7,10 @@ package se.swedsoft.bookkeeping.data;
 import se.swedsoft.bookkeeping.data.base.SSSaleRow;
 import se.swedsoft.bookkeeping.data.system.SSDB;
 import se.swedsoft.bookkeeping.gui.util.table.SSTableSearchable;
-import se.swedsoft.bookkeeping.util.SSDateUtil;
 
 import java.math.BigDecimal;
 import java.text.DateFormat;
 import java.time.LocalDate;
-import java.util.Date;
 import java.util.List;
 
 
@@ -62,7 +59,6 @@ public class SSNewProject implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public String getNumber() {
         return iNumber;
@@ -80,7 +76,6 @@ public class SSNewProject implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public String getName() {
         return iName;
@@ -98,7 +93,6 @@ public class SSNewProject implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public String getDescription() {
         return iDescription;
@@ -116,7 +110,6 @@ public class SSNewProject implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public boolean getConcluded() {
         return iConcluded;
@@ -132,22 +125,6 @@ public class SSNewProject implements SSTableSearchable {
 
     // /////////////////////////////////////////////////////////////////////////
 
-    /**
-     *
-     * @return
-     */
-    public Date getConcludedDate() {
-        return SSDateUtil.toDate(iConcludedDate);
-    }
-
-    /**
-     *
-     * @param pConcluded
-     */
-    public void setConcludedDate(Date pConcluded) {
-        iConcludedDate = SSDateUtil.toLocalDate(pConcluded);
-    }
-
     public LocalDate getLocalConcludedDate() {
         return iConcludedDate;
     }
@@ -161,7 +138,6 @@ public class SSNewProject implements SSTableSearchable {
     /**
      *
      * @param iDate
-     * @return
      */
     /**
      * Returns true if this project is concluded on or before {@code iDate}.
@@ -197,7 +173,6 @@ public class SSNewProject implements SSTableSearchable {
     /**
      *
      * @param obj
-     * @return
      */
     public boolean equals(Object obj) {
         if (obj instanceof SSNewProject) {
@@ -208,7 +183,6 @@ public class SSNewProject implements SSTableSearchable {
     }
 
     /**
-     * @return
      */
     public String toRenderString() {
         return iNumber;

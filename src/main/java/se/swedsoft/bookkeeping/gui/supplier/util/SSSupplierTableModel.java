@@ -49,7 +49,6 @@ public class SSSupplierTableModel extends SSTableModel<SSSupplier> {
 
     /**
      *
-     * @return
      */
     public static SSTableModel<SSSupplier> getDropDownModel() {
         SSSupplierTableModel iModel = new SSSupplierTableModel();

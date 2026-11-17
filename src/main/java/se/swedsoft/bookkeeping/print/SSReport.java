@@ -126,14 +126,6 @@ public class SSReport {    private static final Logger LOG = LoggerFactory.getLo
 
     /**
      *
-     * @param iParameters
-     */
-    public void addParameters(Map<String, Object> iParameters) {
-        iParameters.putAll(iParameters);
-    }
-
-    /**
-     *
      * @param pName
      * @param pField
      */
@@ -428,7 +420,6 @@ public class SSReport {    private static final Logger LOG = LoggerFactory.getLo
      * @param pVariables
      * @param pGroups
      * @param pStyles
-     * @return
      * @throws SSException
      */
     private JRBand getField(ReportField pField, List<JRField> pFields, List<JRParameter> pParameters, List<JRVariable> pVariables, List<JRGroup> pGroups, List<JRStyle> pStyles) throws SSException {
@@ -507,7 +498,6 @@ public class SSReport {    private static final Logger LOG = LoggerFactory.getLo
      * @param pVariables
      * @param pGroups
      * @param pStyles
-     * @return
      * @throws SSException
      */
     private JRSection getDetailField(List<JRField> pFields, List<JRParameter> pParameters, List<JRVariable> pVariables, List<JRGroup> pGroups, List<JRStyle> pStyles) throws SSException {
@@ -605,7 +595,6 @@ public class SSReport {    private static final Logger LOG = LoggerFactory.getLo
     /**
      * Generates an empty report
      *
-     * @return
      */
     private JasperPrint getEmptyReport() {
         JasperDesign iDesign = new JasperDesign();
@@ -627,7 +616,6 @@ public class SSReport {    private static final Logger LOG = LoggerFactory.getLo
 
     /**
      *
-     * @return
      */
     public JasperPrint getPrinter() {
         return iPrinter;
@@ -635,7 +623,6 @@ public class SSReport {    private static final Logger LOG = LoggerFactory.getLo
 
     /**
      *
-     * @return
      */
     public JasperReport getReport() {
         return iReport;
@@ -643,7 +630,6 @@ public class SSReport {    private static final Logger LOG = LoggerFactory.getLo
 
     /**
      *
-     * @return
      */
     public Map<String, Object> getParameters() {
         return iParameters;
@@ -652,7 +638,6 @@ public class SSReport {    private static final Logger LOG = LoggerFactory.getLo
     /**
      *
      * @param iName
-     * @return
      * @param iName
      */
     public Object getParameter(String iName) {
@@ -701,7 +686,6 @@ public class SSReport {    private static final Logger LOG = LoggerFactory.getLo
 
     /**
      *
-     * @return
      */
     public SSDefaultJasperDataSource getDataSource() {
         return iDataSource;

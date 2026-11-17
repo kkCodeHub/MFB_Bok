@@ -427,7 +427,8 @@ public class V2VoucherRepository {
                     row.setResultUnitNr(resultSet.getString("result_unit_number"));
                     row.setDebet(resultSet.getBigDecimal("debet"));
                     row.setCredit(resultSet.getBigDecimal("credit"));
-                    row.setEditedDate(resultSet.getDate("edited_date"));
+                    java.sql.Date iEditedDate = resultSet.getDate("edited_date");
+                    row.setLocalEditedDate(iEditedDate == null ? null : iEditedDate.toLocalDate());
                     row.setEditedSignature(resultSet.getString("edited_signature"));
                     row.setCrossed(resultSet.getBoolean("crossed"));
                     row.setAdded(resultSet.getBoolean("added"));
@@ -458,10 +459,10 @@ public class V2VoucherRepository {
                 insert.setObject(4, row.getResultUnitNr());
                 insert.setObject(5, row.getDebet());
                 insert.setObject(6, row.getCredit());
-                if (row.getEditedDate() == null) {
+                if (row.getLocalEditedDate() == null) {
                     insert.setNull(7, Types.DATE);
                 } else {
-                    insert.setObject(7, new java.sql.Date(row.getEditedDate().getTime()));
+                    insert.setObject(7, java.sql.Date.valueOf(row.getLocalEditedDate()));
                 }
                 insert.setObject(8, row.getEditedSignature());
                 insert.setObject(9, row.isCrossed());

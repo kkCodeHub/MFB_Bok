@@ -2,7 +2,6 @@ package se.swedsoft.bookkeeping.data.util;
 
 
 /**
- * $Id$
  *
  * Contains the data needed to send a mail. Immutable.
  *

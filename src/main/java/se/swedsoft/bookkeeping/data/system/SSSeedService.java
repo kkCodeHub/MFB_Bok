@@ -31,6 +31,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
@@ -74,7 +75,7 @@ public class SSSeedService {
         String raw = requiredText(node, fieldName);
         try {
             return LocalDate.parse(raw);
-        } catch (Exception e) {
+        } catch (DateTimeParseException e) {
             throw new IllegalStateException("Invalid date '" + raw + "' in field '" + fieldName + "'.", e);
         }
     }
@@ -86,7 +87,7 @@ public class SSSeedService {
         }
         try {
             return Optional.of(LocalDate.parse(raw));
-        } catch (Exception e) {
+        } catch (DateTimeParseException e) {
             throw new IllegalStateException("Invalid date '" + raw + "' in field '" + fieldName + "'.", e);
         }
     }
@@ -290,7 +291,7 @@ public class SSSeedService {
                 connection.rollback();
             } catch (SQLException ignored) {
             }
-        } catch (Exception e) {
+        } catch (IOException | RuntimeException e) {
             LOG.error("Unexpected error during JSON seeding", e);
             try {
                 connection.rollback();
@@ -569,7 +570,7 @@ public class SSSeedService {
                 }
 
                 Repositories.vouchers().addWithAutoNumber(voucher);
-            } catch (Exception e) {
+            } catch (RuntimeException e) {
                 LOG.warn("Skipping voucher '{}': {}",
                         SSJsonSeedDataLoader.getStringFieldOrNull(verNode, "Beskrivning"), e.getMessage());
             }
@@ -631,7 +632,7 @@ public class SSSeedService {
                 if (!invoice.getRows().isEmpty()) {
                     Repositories.invoices().add(invoice);
                 }
-            } catch (Exception e) {
+            } catch (RuntimeException e) {
                 LOG.warn("Skipping invoice node: {}", e.getMessage());
             }
         }

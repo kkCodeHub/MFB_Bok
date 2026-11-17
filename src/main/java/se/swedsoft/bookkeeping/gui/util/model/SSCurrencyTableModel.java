@@ -55,7 +55,6 @@ public class SSCurrencyTableModel extends SSTableModel<SSCurrency> {
 
     /**
      *
-     * @return
      */
     public static SSCurrencyTableModel getDropDownModel() {
         return getDropDownModel(SSMasterdataContext.getCurrencies());
@@ -64,7 +63,6 @@ public class SSCurrencyTableModel extends SSTableModel<SSCurrency> {
     /**
      *
      * @param iCurrencies
-     * @return
      */
     public static SSCurrencyTableModel getDropDownModel(List<SSCurrency> iCurrencies) {
         SSCurrencyTableModel iModel = new SSCurrencyTableModel(iCurrencies);
@@ -154,7 +152,6 @@ public class SSCurrencyTableModel extends SSTableModel<SSCurrency> {
         }
 
         /**
-         * @return
          */
         @Override
         public TableCellRenderer getCellRenderer() {
@@ -165,7 +162,6 @@ public class SSCurrencyTableModel extends SSTableModel<SSCurrency> {
     /**
      *
      * @param iOwner
-     * @return
      */
     public static SSEditableTableComboBox.EditingFactory<SSCurrency> getEditingFactory(final JDialog iOwner) {
 

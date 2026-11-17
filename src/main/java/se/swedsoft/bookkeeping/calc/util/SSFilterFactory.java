@@ -55,7 +55,6 @@ public class SSFilterFactory<T> {
 
     /**
      *
-     * @return
      */
     public List<T> getObjects() {
         return iObjects;
@@ -75,7 +74,6 @@ public class SSFilterFactory<T> {
      *
      * @param iObjects
      * @param iFilter
-     * @return
      */
     public static <T> List<T> doFilter(List<T> iObjects, SSFilter<T> iFilter) {
         SSFilterFactory<T> iFactory = new SSFilterFactory<>(iObjects);

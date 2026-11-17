@@ -111,7 +111,6 @@ public class SSMainBookDialog extends SSDialog {
 
     /**
      *
-     * @return
      */
     public SSAccount getAccountFrom() {
         return iFromAccount.getSelected();
@@ -119,7 +118,6 @@ public class SSMainBookDialog extends SSDialog {
 
     /**
      *
-     * @return
      */
     public SSAccount getAccountTo() {
 
@@ -128,7 +126,6 @@ public class SSMainBookDialog extends SSDialog {
 
     /**
      *
-     * @return
      */
     public SSNewProject getProject() {
         if (iCheckProject.isSelected()) {
@@ -140,7 +137,6 @@ public class SSMainBookDialog extends SSDialog {
 
     /**
      *
-     * @return
      */
     public SSNewResultUnit getResultUnit() {
         if (iCheckResultunit.isSelected()) {
@@ -152,7 +148,6 @@ public class SSMainBookDialog extends SSDialog {
 
     /**
      *
-     * @return
      */
     public boolean isProjectSelected() {
         return iCheckProject.isSelected();
@@ -160,7 +155,6 @@ public class SSMainBookDialog extends SSDialog {
 
     /**
      *
-     * @return
      */
     public boolean isResultUnitSelected() {
         return iCheckResultunit.isSelected();

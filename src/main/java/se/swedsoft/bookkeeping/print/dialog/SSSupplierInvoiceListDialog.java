@@ -28,7 +28,6 @@ import se.swedsoft.bookkeeping.util.SSDateUtil;
 
 
 /**
- * $Id$
  *
  */
 public class SSSupplierInvoiceListDialog extends SSDialog {
@@ -89,7 +88,6 @@ public class SSSupplierInvoiceListDialog extends SSDialog {
 
     /**
      *
-     * @return
      */
     public JPanel getPanel() {
         return iPanel;
@@ -98,7 +96,6 @@ public class SSSupplierInvoiceListDialog extends SSDialog {
     /**
      * Returns the invoices to print depending on the user selections
      *
-     * @return
      */
     public List<SSSupplierInvoice> getElementsToPrint() {
         List<SSSupplierInvoice> iInvoices = Repositories.supplierInvoices().findAll();

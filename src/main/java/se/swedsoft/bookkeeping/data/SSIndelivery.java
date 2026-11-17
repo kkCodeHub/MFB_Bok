@@ -5,7 +5,6 @@ import se.swedsoft.bookkeeping.persistence.Repositories;
 import se.swedsoft.bookkeeping.util.SSDateUtil;
 
 import java.time.LocalDate;
-import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -21,7 +20,7 @@ public class SSIndelivery  {
 
     private Integer iNumber;
 
-    private Date iDate;
+    private LocalDate iDate;
 
     private String iText;
 
@@ -31,7 +30,7 @@ public class SSIndelivery  {
      *
      */
     public SSIndelivery() {
-        iDate = SSDateUtil.toDate(SSDateUtil.today());
+        iDate = SSDateUtil.today();
         iText = null;
         iRows = new LinkedList<>();
 
@@ -84,7 +83,6 @@ public class SSIndelivery  {
 
     /**
      *
-     * @return
      */
     public Integer getNumber() {
         return iNumber;
@@ -100,35 +98,18 @@ public class SSIndelivery  {
 
     // /////////////////////////////////////////////////////////////////////////////////////
 
-    /**
-     *
-     * @return
-     */
-    public Date getDate() {
+    public LocalDate getLocalDate() {
         return iDate;
     }
 
-    public LocalDate getLocalDate() {
-        return SSDateUtil.toLocalDate(iDate);
-    }
-
-    /**
-     *
-     * @param iDate
-     */
-    public void setDate(Date iDate) {
-        this.iDate = iDate;
-    }
-
     public void setLocalDate(LocalDate iDate) {
-        this.iDate = SSDateUtil.toDate(iDate);
+        this.iDate = iDate;
     }
 
     // /////////////////////////////////////////////////////////////////////////////////////
 
     /**
      *
-     * @return
      */
     public String getText() {
         return iText;
@@ -146,7 +127,6 @@ public class SSIndelivery  {
 
     /**
      *
-     * @return
      */
     public List<SSIndeliveryRow> getRows() {
         return iRows;

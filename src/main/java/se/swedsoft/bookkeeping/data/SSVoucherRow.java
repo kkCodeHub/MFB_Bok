@@ -1,6 +1,5 @@
 /*
  * 2005-2010
- * $Id$
  */
 package se.swedsoft.bookkeeping.data;
 
@@ -9,7 +8,7 @@ import se.swedsoft.bookkeeping.data.system.SSDB;
 import se.swedsoft.bookkeeping.util.SSDateUtil;
 
 import java.math.BigDecimal;
-import java.util.Date;
+import java.time.LocalDate;
 import java.util.List;
 
 
@@ -29,7 +28,7 @@ public class SSVoucherRow implements Cloneable {
 
     private BigDecimal iCredit;
 
-    private Date iEditedDate;
+    private LocalDate iEditedDate;
 
     private String iEditedSignature;
 
@@ -137,7 +136,6 @@ public class SSVoucherRow implements Cloneable {
 
     /**
      *
-     * @return
      */
     public Integer getAccountNr() {
         return iAccountNr;
@@ -156,7 +154,6 @@ public class SSVoucherRow implements Cloneable {
 
     /**
      *
-     * @return
      */
     public String getResultUnitNr() {
         return iResultUnitNumber;
@@ -175,7 +172,6 @@ public class SSVoucherRow implements Cloneable {
 
     /**
      *
-     * @return
      */
     public String getProjectNr() {
         return iProjectNumber;
@@ -203,7 +199,6 @@ public class SSVoucherRow implements Cloneable {
 
     /**
      *
-     * @return
      */
     public BigDecimal getDebet() {
         return iDebet;
@@ -221,7 +216,6 @@ public class SSVoucherRow implements Cloneable {
 
     /**
      *
-     * @return
      */
     public BigDecimal getCredit() {
         return iCredit;
@@ -239,9 +233,8 @@ public class SSVoucherRow implements Cloneable {
 
     /**
      *
-     * @return
      */
-    public Date getEditedDate() {
+    public LocalDate getLocalEditedDate() {
         return iEditedDate;
     }
 
@@ -249,7 +242,7 @@ public class SSVoucherRow implements Cloneable {
      *
      * @param pEditedDate
      */
-    public void setEditedDate(Date pEditedDate) {
+    public void setLocalEditedDate(LocalDate pEditedDate) {
         iEditedDate = pEditedDate;
     }
 
@@ -257,7 +250,6 @@ public class SSVoucherRow implements Cloneable {
 
     /**
      *
-     * @return
      */
     public String getEditedSignature() {
         return iEditedSignature;
@@ -275,7 +267,6 @@ public class SSVoucherRow implements Cloneable {
 
     /**
      *
-     * @return
      */
     public boolean isCrossed() {
         return iCrossed;
@@ -295,7 +286,7 @@ public class SSVoucherRow implements Cloneable {
      */
     public void setCrossed(String pSignature) {
         iCrossed = true;
-        iEditedDate = SSDateUtil.toDate(SSDateUtil.now());
+        iEditedDate = SSDateUtil.today();
         iEditedSignature = pSignature;
     }
 
@@ -303,7 +294,6 @@ public class SSVoucherRow implements Cloneable {
 
     /**
      *
-     * @return
      */
     public boolean isAdded() {
         return iAdded;
@@ -323,7 +313,7 @@ public class SSVoucherRow implements Cloneable {
      */
     public void setAdded(String pSignature) {
         iAdded = true;
-        iEditedDate = SSDateUtil.toDate(SSDateUtil.now());
+        iEditedDate = SSDateUtil.today();
         iEditedSignature = pSignature;
     }
 
@@ -331,7 +321,6 @@ public class SSVoucherRow implements Cloneable {
 
     /**
      *
-     * @return
      */
     public SSAccount getAccount() {
         return getAccount(se.swedsoft.bookkeeping.data.system.SSAccountingContext.getAccounts());
@@ -340,7 +329,6 @@ public class SSVoucherRow implements Cloneable {
     /**
      *
      * @param iAccounts
-     * @return
      */
     public SSAccount getAccount(List<SSAccount> iAccounts) {
         if (iAccount == null && iAccountNr != null) {
@@ -367,7 +355,6 @@ public class SSVoucherRow implements Cloneable {
 
     /**
      *
-     * @return
      */
     public SSNewProject getProject() {
         return getProject(se.swedsoft.bookkeeping.data.system.SSProjectContext.getProjects());
@@ -376,7 +363,6 @@ public class SSVoucherRow implements Cloneable {
     /**
      *
      * @param iProjects
-     * @return
      */
     public SSNewProject getProject(List<SSNewProject> iProjects) {
         if (iProject == null && iProjectNumber != null) {
@@ -403,7 +389,6 @@ public class SSVoucherRow implements Cloneable {
 
     /**
      *
-     * @return
      */
     public SSNewResultUnit getResultUnit() {
         return getResultUnit(se.swedsoft.bookkeeping.data.system.SSResultUnitContext.getResultUnits());
@@ -413,7 +398,6 @@ public class SSVoucherRow implements Cloneable {
     /**
      *
      * @param iResultUnits
-     * @return
      */
     public SSNewResultUnit getResultUnit(List<SSNewResultUnit> iResultUnits) {
         if (iResultUnit == null && iResultUnitNumber != null) {
@@ -469,7 +453,6 @@ public class SSVoucherRow implements Cloneable {
     /**
      * Get the value of the row, such as a debet is positive and a credit is negative
      *
-     * @return
      */
     public BigDecimal getValue() {
         if (iDebet != null) {
@@ -485,7 +468,6 @@ public class SSVoucherRow implements Cloneable {
 
     /**
      *
-     * @return
      */
     public boolean isDebet() {
         return iDebet != null;
@@ -551,7 +533,6 @@ public class SSVoucherRow implements Cloneable {
     /**
      *
      * @param iAccount
-     * @return
      */
     public boolean hasAccount(SSAccount iAccount) {
         return (iAccountNr != null) && iAccountNr.equals(iAccount.getNumber());

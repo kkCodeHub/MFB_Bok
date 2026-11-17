@@ -23,7 +23,6 @@ public class SSCustomerMath {
      * Returns the customer claim for the specified cistpmer
      *
      * @param iCustomer
-     * @return
      */
     public static BigDecimal getCustomerClain(SSCustomer iCustomer) {
         List<SSInvoice> iInvoices = SSInvoiceMath.getInvoicesForCustomer(iCustomer);

@@ -602,7 +602,6 @@ public class SSOrderFrame extends SSDefaultTableFrame {    private static final 
 
     /**
      *
-     * @return
      */
     public SSOrderTableModel getModel() {
         return iModel;

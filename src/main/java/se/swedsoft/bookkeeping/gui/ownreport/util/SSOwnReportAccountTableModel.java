@@ -22,7 +22,6 @@ public class SSOwnReportAccountTableModel extends SSEditableTableModel<SSOwnRepo
 
     /**
      *
-     * @return
      */
     @Override
     public SSOwnReportAccountRow newObject() {

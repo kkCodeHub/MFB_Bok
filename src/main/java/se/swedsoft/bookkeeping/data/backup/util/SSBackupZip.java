@@ -107,7 +107,6 @@ public class SSBackupZip {
     /**
      *
      * @param pFilename
-     * @return
      * @throws FileNotFoundException
      * @throws IOException
      */
@@ -201,7 +200,6 @@ public class SSBackupZip {
      *
      * @throws FileNotFoundException
      * @throws IOException
-     * @return
      */
     public static boolean extractFile(String pFilename, ArchiveFile iFile) throws FileNotFoundException, IOException {
 

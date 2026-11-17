@@ -27,7 +27,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.time.LocalDate;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -296,9 +295,9 @@ public class SSSIEImporter {    private static final Logger LOG = LoggerFactory.
             if (SIELabel.SIE_RAR.getName().equals(iLabel) && iReader.hasNextInteger()) {
                 int iRar = iReader.nextInteger().orElse(Integer.MIN_VALUE);
                 if (iRar == 0 && iReader.hasNextDate()) {
-                    iData.iRar0From = SSDateUtil.toLocalDate(iReader.nextDate());
+                    iData.iRar0From = iReader.nextDate();
                     if (iReader.hasNextDate()) {
-                        iData.iRar0To = SSDateUtil.toLocalDate(iReader.nextDate());
+                        iData.iRar0To = iReader.nextDate();
                     }
                 }
             }
@@ -506,7 +505,7 @@ public class SSSIEImporter {    private static final Logger LOG = LoggerFactory.
             String iSerie = iReader.nextString();
             String iNormalizedSeries = SIEEntryVerifikation.normalizeVoucherSeries(iSerie);
             Integer iNumber = iReader.nextInteger().orElse(null);
-            Date iDate = iReader.hasNextDate() ? iReader.nextDate() : SSDateUtil.toDate(SSDateUtil.today());
+            LocalDate iDate = iReader.hasNextDate() ? iReader.nextDate() : SSDateUtil.today();
 
             if (iNumber == null) {
                 throw new SSImportException(
@@ -521,7 +520,7 @@ public class SSSIEImporter {    private static final Logger LOG = LoggerFactory.
                                 + ". Importen avbryts och inga verifikationer lases in.");
             }
 
-            LocalDate iVoucherDate = SSDateUtil.toLocalDate(iDate);
+            LocalDate iVoucherDate = iDate;
             SSNewAccountingYear iVoucherYear =
                     se.swedsoft.bookkeeping.data.system.SSAccountingContext.resolveAccountingYearForVoucherDate(
                             iVoucherDate);
@@ -561,14 +560,14 @@ public class SSSIEImporter {    private static final Logger LOG = LoggerFactory.
 
             iReader.nextString();
             Integer iNumber = iReader.nextInteger().orElse(null);
-            Date iDate = iReader.hasNextDate() ? iReader.nextDate() : SSDateUtil.toDate(SSDateUtil.today());
+            LocalDate iDate = iReader.hasNextDate() ? iReader.nextDate() : SSDateUtil.today();
 
             if (iNumber == null) {
                 throw new SSImportException(
                         SSBundleString.getString("sieimport.fielderror", iReader.peekLine()));
             }
 
-            LocalDate iVoucherDate = SSDateUtil.toLocalDate(iDate);
+            LocalDate iVoucherDate = iDate;
             if (iVoucherDate.isBefore(iOpenYear.getLocalFrom()) || iVoucherDate.isAfter(iOpenYear.getLocalTo())) {
                 throw new IllegalArgumentException(String.format(
                         "Verifikationsdatum %s ligger utanfor oppet bokforingsar %s - %s.",
@@ -694,7 +693,6 @@ public class SSSIEImporter {    private static final Logger LOG = LoggerFactory.
     /**
      *
      * @param iLines
-     * @return
      */
     private static List<List<String>> getParsedLines(List<String> iLines) {
         List<List<String>> iParsedLines = new LinkedList<>();
@@ -776,7 +774,6 @@ public class SSSIEImporter {    private static final Logger LOG = LoggerFactory.
 
     /**
      *
-     * @return
      */
     public SIEType getType() {
         return iType;
@@ -784,7 +781,6 @@ public class SSSIEImporter {    private static final Logger LOG = LoggerFactory.
 
     /**
      *
-     * @return
      */
     public List<SIEDimension> getDimensions() {
         return iDimensions;
@@ -793,7 +789,6 @@ public class SSSIEImporter {    private static final Logger LOG = LoggerFactory.
     /**
      *
      * @param pNumber
-     * @return
      */
     public SIEDimension getDimension(int pNumber) {
         return SIEDimension.getDimension(iDimensions, pNumber);
@@ -809,7 +804,6 @@ public class SSSIEImporter {    private static final Logger LOG = LoggerFactory.
 
     /**
      *
-     * @return
      */
     public SIEFactory getFactory() {
         return iFactory;
@@ -825,7 +819,6 @@ public class SSSIEImporter {    private static final Logger LOG = LoggerFactory.
 
     /**
      *
-     * @return
      */
     public List<String> getLines() {
         return iLines;

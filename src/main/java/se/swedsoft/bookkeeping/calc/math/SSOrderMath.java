@@ -27,7 +27,6 @@ public class SSOrderMath extends SSTenderMath {
      *
      * @param iOrders
      * @param iCustomerNr
-     * @return
      */
     public static List<SSOrder> getOrdersByCustomerNr(List<SSOrder> iOrders, String iCustomerNr) {
 
@@ -40,7 +39,6 @@ public class SSOrderMath extends SSTenderMath {
      * Returns all the orders without any invoice
      *
      * @param iOrders
-     * @return
      */
     public static List<SSOrder> getOrdersWithoutInvoice(List<SSOrder> iOrders) {
 
@@ -76,7 +74,6 @@ public class SSOrderMath extends SSTenderMath {
     /**
      *
      * @param iOrder
-     * @return
      */
     public static Map<SSProduct, Integer> getProductCount(SSOrder iOrder) {
         List<SSProduct> iProducts = se.swedsoft.bookkeeping.data.system.SSProductContext.getProducts();
@@ -107,7 +104,6 @@ public class SSOrderMath extends SSTenderMath {
     /**
      *
      * @param iOrders
-     * @return
      */
     public static Map<SSProduct, Integer> getProductCount(List<SSOrder> iOrders) {
 

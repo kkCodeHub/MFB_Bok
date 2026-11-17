@@ -41,7 +41,6 @@ public class SSSaldoCalculator {    private static final Logger LOG = LoggerFact
      *
      * @param pYearData
      * @param pMonth
-     * @return
      */
     public static Map<SSAccount, BigDecimal> getSaldo(SSNewAccountingYear pYearData, SSMonth pMonth) {
         List<SSVoucher> iVouchers = pYearData.getVouchers();
@@ -78,7 +77,6 @@ public class SSSaldoCalculator {    private static final Logger LOG = LoggerFact
      * @param pYearData
      * @param pProject
      * @param pMonth
-     * @return
      */
     public static Map<SSAccount, BigDecimal> getSaldo(SSNewAccountingYear pYearData, SSNewProject pProject, SSMonth pMonth) {
         List<SSVoucher> iVouchers = pYearData.getVouchers();
@@ -119,7 +117,6 @@ public class SSSaldoCalculator {    private static final Logger LOG = LoggerFact
      * @param pYearData
      * @param pResultUnit
      * @param pMonth
-     * @return
      */
     public static Map<SSAccount, BigDecimal> getSaldo(SSNewAccountingYear pYearData, SSNewResultUnit pResultUnit, SSMonth pMonth) {
         List<SSVoucher> iVouchers = pYearData.getVouchers();
@@ -158,7 +155,6 @@ public class SSSaldoCalculator {    private static final Logger LOG = LoggerFact
     /**
      *
      * @param pYearData
-     * @return
      */
     public static Map<SSMonth, Map<SSAccount, BigDecimal>> getSaldo(SSNewAccountingYear pYearData) {
         List<SSMonth> iMonths = SSMonth.splitYearIntoMonths(pYearData);
@@ -177,7 +173,6 @@ public class SSSaldoCalculator {    private static final Logger LOG = LoggerFact
      *
      * @param pYearData
      * @param pProject
-     * @return
      */
     public static Map<SSMonth, Map<SSAccount, BigDecimal>> getSaldo(SSNewAccountingYear pYearData, SSNewProject pProject) {
         List<SSMonth> iMonths = SSMonth.splitYearIntoMonths(pYearData);
@@ -197,7 +192,6 @@ public class SSSaldoCalculator {    private static final Logger LOG = LoggerFact
      *
      * @param pYearData
      * @param pResultUnit
-     * @return
      */
     public static Map<SSMonth, Map<SSAccount, BigDecimal>> getSaldo(SSNewAccountingYear pYearData, SSNewResultUnit pResultUnit) {
         List<SSMonth> iMonths = SSMonth.splitYearIntoMonths(pYearData);

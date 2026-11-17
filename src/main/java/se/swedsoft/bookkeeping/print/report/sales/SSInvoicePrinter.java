@@ -32,7 +32,6 @@ import se.swedsoft.bookkeeping.util.SSDateUtil;
 
 /**
  *
- * $Id$
  */
 public class SSInvoicePrinter extends SSPrinter {
     private static final Logger LOG = LoggerFactory.getLogger(SSInvoicePrinter.class);
@@ -77,7 +76,6 @@ public class SSInvoicePrinter extends SSPrinter {
     /**
      * Gets the title file for this repport
      *
-     * @return
      */
     @Override
     public String getTitle() {
@@ -332,7 +330,6 @@ public class SSInvoicePrinter extends SSPrinter {
 
     /**
      *
-     * @return
      */
     @Override
     protected SSDefaultTableModel getModel() {

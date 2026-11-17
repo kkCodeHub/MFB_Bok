@@ -235,7 +235,6 @@ public class SSSupplierInvoice implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public Integer getNumber() {
         return iNumber;
@@ -300,7 +299,6 @@ public class SSSupplierInvoice implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public String getSupplierNr() {
         return iSupplierNr;
@@ -318,7 +316,6 @@ public class SSSupplierInvoice implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public String getSupplierName() {
         return iSupplierName;
@@ -336,7 +333,6 @@ public class SSSupplierInvoice implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public String getReferencenumber() {
         return iReferencenumber;
@@ -354,7 +350,6 @@ public class SSSupplierInvoice implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public SSCurrency getCurrency() {
         return iCurrency;
@@ -372,7 +367,6 @@ public class SSSupplierInvoice implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public BigDecimal getCurrencyRate() {
         return iCurrencyRate;
@@ -390,7 +384,6 @@ public class SSSupplierInvoice implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public BigDecimal getTaxSum() {
         if (iTaxSum == null) {
@@ -429,7 +422,6 @@ public class SSSupplierInvoice implements SSTableSearchable {
     /**
      *
      * @param iSuppliers
-     * @return
      */
     public SSSupplier getSupplier(List<SSSupplier> iSuppliers) {
         if (iSupplier == null) {
@@ -464,7 +456,6 @@ public class SSSupplierInvoice implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public List<SSSupplierInvoiceRow> getRows() {
         return iRows;
@@ -521,7 +512,6 @@ public class SSSupplierInvoice implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public Map<SSDefaultAccount, Integer> getDefaultAccounts() {
         if (iDefaultAccounts == null) {
@@ -538,7 +528,6 @@ public class SSSupplierInvoice implements SSTableSearchable {
      *
      * @param iAccountPlan
      * @param iDefaultAccount
-     * @return
      */
     public Optional<SSAccount> getDefaultAccount(SSAccountPlan iAccountPlan, SSDefaultAccount iDefaultAccount) {
         Integer iAccountNumber = getDefaultAccount(iDefaultAccount);
@@ -553,7 +542,6 @@ public class SSSupplierInvoice implements SSTableSearchable {
     /**
      *
      * @param iDefaultAccount
-     * @return
      */
     public Integer getDefaultAccount(SSDefaultAccount iDefaultAccount) {
         if (iDefaultAccounts != null && iDefaultAccounts.containsKey(iDefaultAccount)) {
@@ -578,7 +566,6 @@ public class SSSupplierInvoice implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public SSVoucher getVoucher() {
         return iVoucher;
@@ -596,7 +583,6 @@ public class SSSupplierInvoice implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public SSVoucher getCorrection() {
         return iCorrection;
@@ -614,7 +600,6 @@ public class SSSupplierInvoice implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public boolean isEntered() {
         return iEntered;
@@ -639,7 +624,6 @@ public class SSSupplierInvoice implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public boolean isCancelled() {
         return iCancelled;
@@ -671,7 +655,6 @@ public class SSSupplierInvoice implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public boolean isBGCEntered() {
         return iBGCEntered;
@@ -696,7 +679,6 @@ public class SSSupplierInvoice implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public boolean isStockInfluencing() {
         return iStockInfluencing;
@@ -752,7 +734,6 @@ public class SSSupplierInvoice implements SSTableSearchable {
     /**
      *
      * @param iSupplier
-     * @return
      */
     public boolean hasSupplier(SSSupplier iSupplier) {
         return (iSupplierNr != null) && iSupplierNr.equals(iSupplier.getNumber());
@@ -761,7 +742,6 @@ public class SSSupplierInvoice implements SSTableSearchable {
     /**
      *
      * @param iProduct
-     * @return
      */
     public boolean hasProduct(SSProduct iProduct) {
         for (SSSupplierInvoiceRow iRow : iRows) {
@@ -774,7 +754,6 @@ public class SSSupplierInvoice implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public SSVoucher generateVoucher() {
         iVoucher = new SSVoucher();

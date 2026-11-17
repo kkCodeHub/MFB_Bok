@@ -62,7 +62,6 @@ public class SSBackupTableModel extends SSTableModel<SSBackup> {
         }
 
         /**
-         * @return
          */
         @Override
         public TableCellRenderer getCellRenderer() {

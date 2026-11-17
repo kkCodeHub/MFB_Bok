@@ -98,7 +98,6 @@ public class SSAutoDist implements SSTableSearchable {
     // //////////////////////////////////////////////////
     /**
      *
-     * @return
      */
     public Integer getNumber() {
         return iAccountNumber;
@@ -116,7 +115,6 @@ public class SSAutoDist implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public String getDescription() {
         return iDescription;
@@ -134,7 +132,6 @@ public class SSAutoDist implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public List<SSAutoDistRow> getRows() {
         if (iRows == null) {

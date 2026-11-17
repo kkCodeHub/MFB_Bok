@@ -11,7 +11,6 @@ import java.util.Map;
 
 /**
  * Date: 2006-feb-15
- * @version $Id$
  */
 public class SSAccountPlanType implements SSTableSearchable {
 
@@ -85,7 +84,6 @@ public class SSAccountPlanType implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public String getSchema() {
         if (schema == null) {

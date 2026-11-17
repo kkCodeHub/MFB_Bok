@@ -5,11 +5,10 @@ import se.swedsoft.bookkeeping.data.SSAccount;
 import se.swedsoft.bookkeeping.data.SSMonth;
 import se.swedsoft.bookkeeping.data.SSNewAccountingYear;
 import se.swedsoft.bookkeeping.data.system.SSCompanyYearContext;
-import se.swedsoft.bookkeeping.util.SSDateUtil;
 
 import java.math.BigDecimal;
 import java.math.MathContext;
-import java.util.Date;
+import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -98,10 +97,9 @@ public class SSOwnReportAccountRow  {
         return iSum;
     }
 
-    public BigDecimal getSumForMonths(Date iFrom, Date iTo) {
+    public BigDecimal getSumForMonths(LocalDate iFrom, LocalDate iTo) {
         BigDecimal iSum = new BigDecimal(0);
-        List<SSMonth> iMonths = SSMonth.splitYearIntoMonths(
-                SSDateUtil.toLocalDate(iFrom), SSDateUtil.toLocalDate(iTo));
+        List<SSMonth> iMonths = SSMonth.splitYearIntoMonths(iFrom, iTo);
 
         for (SSMonth iMonth : iMonths) {
             if (iBudget.containsKey(iMonth)) {

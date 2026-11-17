@@ -10,7 +10,6 @@ import java.util.Locale;
 
 
 /**
- * $Id$
  *
  */
 public class SSOCRInvoiceDialog extends SSDialog {
@@ -45,7 +44,6 @@ public class SSOCRInvoiceDialog extends SSDialog {
 
     /**
      *
-     * @return
      */
     public Locale getLanguage() {
         if (iLanguageRadioSwedish.isSelected()) {

@@ -425,7 +425,6 @@ public class SSSupplierInvoiceFrame extends SSDefaultTableFrame {
 
     /**
      *
-     * @return
      */
     public SSTableModel getModel() {
         return iModel;

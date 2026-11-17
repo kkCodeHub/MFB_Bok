@@ -6,7 +6,6 @@ import se.swedsoft.bookkeeping.calc.util.SSCalculatorException;
 import se.swedsoft.bookkeeping.data.*;
 import se.swedsoft.bookkeeping.data.system.SSDB;
 import se.swedsoft.bookkeeping.gui.ownreport.util.SSOwnReportAccountRow;
-import se.swedsoft.bookkeeping.util.SSDateUtil;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -65,16 +64,6 @@ public class SSOwnReportCalculator {
         iChangePeriod = new HashMap<>();
         iChangeBudget = new HashMap<>();
 
-    }
-
-    /**
-     * @deprecated use {@link #SSOwnReportCalculator(LocalDate, LocalDate, SSOwnReport, SSNewProject, SSNewResultUnit)}
-     */
-    @Deprecated
-    public SSOwnReportCalculator(Date pFrom, Date pTo, SSOwnReport pOwnReport,
-                                 SSNewProject pProject, SSNewResultUnit pResultUnit) {
-        this(SSDateUtil.toLocalDate(pFrom), SSDateUtil.toLocalDate(pTo), pOwnReport, pProject,
-                pResultUnit);
     }
 
     /**
@@ -139,8 +128,7 @@ public class SSOwnReportCalculator {
         // Fill the budget map
         for (SSOwnReportRow iOwnReportRow : iOwnReport.getHeadings()) {
             for (SSOwnReportAccountRow iAccountRow : iOwnReportRow.getAccountRows()) {
-                BigDecimal iSum = iAccountRow.getSumForMonths(SSDateUtil.toDate(iFrom),
-                        SSDateUtil.toDate(iTo));
+                BigDecimal iSum = iAccountRow.getSumForMonths(iFrom, iTo);
 
                 if (iSum != null) {
                     addValueToMap(iChangeBudget, iAccountRow.getAccount(), iSum);
@@ -153,7 +141,6 @@ public class SSOwnReportCalculator {
      *
      * @param pRowProject
      * @param pProject
-     * @return
      */
     private boolean inProject(SSNewProject pRowProject, SSNewProject pProject) {
         return pRowProject != null && !pRowProject.isConcluded(iTo)
@@ -164,7 +151,6 @@ public class SSOwnReportCalculator {
      *
      * @param pRowResultUnit
      * @param pResultUnit
-     * @return
      */
     private boolean inResultUnit(SSNewResultUnit pRowResultUnit, SSNewResultUnit pResultUnit) {
         return pRowResultUnit != null && pRowResultUnit.equals(pResultUnit);
@@ -173,13 +159,11 @@ public class SSOwnReportCalculator {
     /**
      * Change for all accounts over the year
      *
-     * @return
      */
 
     /**
      * Change for all accounts over the period
      *
-     * @return
      */
     public Map<SSAccount, BigDecimal> getChangePeriod() {
         return iChangePeriod;
@@ -188,7 +172,6 @@ public class SSOwnReportCalculator {
     /**
      * Change for the period according to budget
      *
-     * @return
      */
     public Map<SSAccount, BigDecimal> getChangeBudget() {
         return iChangeBudget;
@@ -199,7 +182,6 @@ public class SSOwnReportCalculator {
      *
      * @param a
      * @param b
-     * @return
      */
     public Map<SSAccount, BigDecimal> getDeviation(Map<SSAccount, BigDecimal> a, Map<SSAccount, BigDecimal> b) {
 

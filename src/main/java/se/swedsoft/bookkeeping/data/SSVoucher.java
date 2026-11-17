@@ -1,6 +1,5 @@
 /*
  * 2005-2010
- * $Id$
  */
 package se.swedsoft.bookkeeping.data;
 
@@ -102,7 +101,6 @@ public class SSVoucher implements Cloneable, SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public int getNumber() {
         return iNumber;
@@ -177,7 +175,6 @@ public class SSVoucher implements Cloneable, SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public String getDescription() {
         return iDescription;
@@ -195,7 +192,6 @@ public class SSVoucher implements Cloneable, SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public SSVoucher getCorrects() {
         return iCorrects;
@@ -213,7 +209,6 @@ public class SSVoucher implements Cloneable, SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public SSVoucher getCorrectedBy() {
         return iCorrectedBy;
@@ -231,7 +226,6 @@ public class SSVoucher implements Cloneable, SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public List<SSVoucherRow> getRows() {
         return iVoucherRows;
@@ -291,7 +285,6 @@ public class SSVoucher implements Cloneable, SSTableSearchable {
     /**
      *
      * @param row
-     * @return
      */
     public boolean removeVoucherRow(SSVoucherRow row) {
         return iVoucherRows.remove(row);

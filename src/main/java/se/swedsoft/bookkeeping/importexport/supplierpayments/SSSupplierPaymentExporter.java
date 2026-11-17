@@ -70,7 +70,6 @@ public class SSSupplierPaymentExporter {    private static final Logger LOG = Lo
     /**
      *
      * @param iPayments
-     * @return
      */
     public static List<LBinPost> getPosts(List<SupplierPayment> iPayments) {
         List<LBinPost> iPosts = new LinkedList<>();
@@ -87,7 +86,6 @@ public class SSSupplierPaymentExporter {    private static final Logger LOG = Lo
      *
      * @param iPayments
      * @param iCurrency
-     * @return
      */
     public static List<LBinPost> getAvsnitt(List<SupplierPayment> iPayments, String iCurrency) {
         List<SupplierPayment> iFiltered = SupplierPayment.getPayments(iPayments, iCurrency);

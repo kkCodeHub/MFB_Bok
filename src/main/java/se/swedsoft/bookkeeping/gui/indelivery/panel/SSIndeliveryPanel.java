@@ -134,7 +134,6 @@ public class SSIndeliveryPanel {
 
     /**
      *
-     * @return
      */
     public JPanel getPanel() {
         return iPanel;
@@ -142,7 +141,6 @@ public class SSIndeliveryPanel {
 
     /**
      *
-     * @return
      */
     public SSIndelivery getIndelivery() {
         // Text

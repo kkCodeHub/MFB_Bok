@@ -34,7 +34,6 @@ public class SSOwnReportAccountGroup {
 
     /**
      *
-     * @return
      */
     public Integer getId() {
         return iId;
@@ -54,7 +53,6 @@ public class SSOwnReportAccountGroup {
 
     /**
      *
-     * @return
      */
     public List<SSAccount> getAccounts() {
         return iAccounts;
@@ -62,7 +60,6 @@ public class SSOwnReportAccountGroup {
 
     /**
      *
-     * @return
      */
     public String getName() {
         return iName;
@@ -78,7 +75,6 @@ public class SSOwnReportAccountGroup {
 
     /**
      *
-     * @return
      */
     public List<SSOwnReportAccountGroup> getGroups() {
         return iGroups;
@@ -140,7 +136,6 @@ public class SSOwnReportAccountGroup {
     /**
      *
      * @param iAccounts
-     * @return
      */
 
     /* public List<SSAccount> getGroupAccounts(List<SSAccount> iAccounts){

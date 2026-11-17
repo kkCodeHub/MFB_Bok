@@ -5,6 +5,7 @@ import se.swedsoft.bookkeeping.data.SSMonth;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.time.LocalDate;
 import java.util.*;
 import java.util.Optional;
 
@@ -149,7 +150,6 @@ public class SIEReader implements Iterator<String> {
     /**
      *
      * @param pDataTypes
-     * @return
      */
     public boolean hasFields(SIEDataType... pDataTypes) {
 
@@ -185,7 +185,6 @@ public class SIEReader implements Iterator<String> {
 
     /**
      *
-     * @return
      */
     public boolean hasNextString() {
         return iValues.hasNext();
@@ -193,7 +192,6 @@ public class SIEReader implements Iterator<String> {
 
     /**
      *
-     * @return
      */
     public boolean hasNextInteger() {
         return iValues.hasNextInteger();
@@ -201,7 +199,6 @@ public class SIEReader implements Iterator<String> {
 
     /**
      *
-     * @return
      */
     public boolean hasNextFloat() {
         return iValues.hasNextFloat();
@@ -209,7 +206,6 @@ public class SIEReader implements Iterator<String> {
 
     /**
      *
-     * @return
      */
     public boolean hasNextDouble() {
         return iValues.hasNextDouble();
@@ -217,7 +213,6 @@ public class SIEReader implements Iterator<String> {
 
     /**
      *
-     * @return
      */
     public boolean hasNextBoolean() {
         return iValues.hasNextBoolean();
@@ -225,7 +220,6 @@ public class SIEReader implements Iterator<String> {
 
     /**
      *
-     * @return
      */
     public boolean hasNextBigInteger() {
         return iValues.hasNextBigInteger();
@@ -233,7 +227,6 @@ public class SIEReader implements Iterator<String> {
 
     /**
      *
-     * @return
      */
     public boolean hasNextBigDecimal() {
         return iValues.hasNextBigDecimal();
@@ -241,7 +234,6 @@ public class SIEReader implements Iterator<String> {
 
     /**
      *
-     * @return
      */
     public boolean hasNextArray() {
         return iValues.hasNextArray();
@@ -249,7 +241,6 @@ public class SIEReader implements Iterator<String> {
 
     /**
      *
-     * @return
      */
     public boolean hasNextDate() {
         return iValues.hasNextDate();
@@ -257,7 +248,6 @@ public class SIEReader implements Iterator<String> {
 
     /**
      *
-     * @return
      */
     public boolean hasNextMonth() {
         return iValues.hasNextMonth();
@@ -265,7 +255,6 @@ public class SIEReader implements Iterator<String> {
 
     /**
      *
-     * @return
      */
     public String nextString() {
         return iValues.next();
@@ -273,7 +262,6 @@ public class SIEReader implements Iterator<String> {
 
     /**
      *
-     * @return
      */
     public Optional<Integer> nextInteger() {
         return iValues.nextInteger();
@@ -281,7 +269,6 @@ public class SIEReader implements Iterator<String> {
 
     /**
      *
-     * @return
      */
     public Float nextFloat() {
         return iValues.nextFloat();
@@ -289,7 +276,6 @@ public class SIEReader implements Iterator<String> {
 
     /**
      *
-     * @return
      */
     public Double nextDouble() {
         return iValues.nextDouble();
@@ -297,7 +283,6 @@ public class SIEReader implements Iterator<String> {
 
     /**
      *
-     * @return
      */
     public boolean nextBoolean() {
         return iValues.nextBoolean();
@@ -305,7 +290,6 @@ public class SIEReader implements Iterator<String> {
 
     /**
      *
-     * @return
      */
     public BigInteger nextBigInteger() {
         return iValues.nextBigInteger();
@@ -313,7 +297,6 @@ public class SIEReader implements Iterator<String> {
 
     /**
      *
-     * @return
      */
     public BigDecimal nextBigDecimal() {
         return iValues.nextBigDecimal();
@@ -321,7 +304,6 @@ public class SIEReader implements Iterator<String> {
 
     /**
      *
-     * @return
      */
     public List<String> nextArray() {
         return iValues.nextArray();
@@ -329,15 +311,13 @@ public class SIEReader implements Iterator<String> {
 
     /**
      *
-     * @return
      */
-    public Date nextDate() {
+    public LocalDate nextDate() {
         return iValues.nextDate();
     }
 
     /**
      *
-     * @return
      */
     public SSMonth nextMonth() {
         return iValues.nextMonth();

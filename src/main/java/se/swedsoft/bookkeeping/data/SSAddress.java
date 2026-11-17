@@ -1,6 +1,5 @@
 /*
  * 2005-2010
- * $Id$
  */
 package se.swedsoft.bookkeeping.data;
 
@@ -85,7 +84,6 @@ public class SSAddress  {
 
     /**
      *
-     * @return
      */
     public String getName() {
         return iName;
@@ -103,7 +101,6 @@ public class SSAddress  {
 
     /**
      *
-     * @return
      */
     public String getAddress1() {
         return iAddress;
@@ -121,7 +118,6 @@ public class SSAddress  {
 
     /**
      *
-     * @return
      */
     public String getAddress2() {
         return iStreet;
@@ -139,7 +135,6 @@ public class SSAddress  {
 
     /**
      *
-     * @return
      */
     public String getZipCode() {
         return iZipCode;
@@ -157,7 +152,6 @@ public class SSAddress  {
 
     /**
      *
-     * @return
      */
     public String getCity() {
         return iCity;
@@ -175,7 +169,6 @@ public class SSAddress  {
 
     /**
      *
-     * @return
      */
     public String getCountry() {
         return iCountry;
@@ -192,7 +185,6 @@ public class SSAddress  {
     // ////////////////////////////////////////////////////
     /**
      *
-     * @return
      */
     public String getPostalAddress() {
         return iZipCode + ' ' + iCity;
@@ -216,7 +208,6 @@ public class SSAddress  {
     /**
      *
      * @param obj
-     * @return
      */
     public boolean equals(Object obj) {
         if (obj instanceof SSAddress) {
@@ -233,7 +224,6 @@ public class SSAddress  {
 
     /**
      *
-     * @return
      */
     public String toString() {
         StringBuilder sb = new StringBuilder();

@@ -14,7 +14,7 @@ import se.swedsoft.bookkeeping.util.SSDateUtil;
 import java.io.File;
 import java.io.IOException;
 import java.text.DateFormat;
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static se.swedsoft.bookkeeping.data.backup.util.SSBackupZip.ArchiveFile;
@@ -33,16 +33,15 @@ public class SSBackupFactory {    private static final Logger LOG = LoggerFactor
 
     /**
      *
-     * @return
      */
     public static String getDefaultFileName() {
-        Date iDate = SSDateUtil.toDate(SSDateUtil.now());
+        LocalDateTime iNow = SSDateUtil.now();
 
         DateFormat iDateFormat = DateFormat.getDateInstance(DateFormat.SHORT);
         DateFormat iTimeFormat = DateFormat.getTimeInstance(DateFormat.SHORT);
 
-        String iFileName = "backup." + iDateFormat.format(iDate) + '.'
-                + iTimeFormat.format(iDate) + ".zip";
+        String iFileName = "backup." + iDateFormat.format(SSDateUtil.toDate(iNow)) + '.'
+                + iTimeFormat.format(SSDateUtil.toDate(iNow)) + ".zip";
 
         iFileName = iFileName.replace(":", "");
         iFileName = iFileName.replace("-", "");
@@ -53,16 +52,16 @@ public class SSBackupFactory {    private static final Logger LOG = LoggerFactor
     /**
      *
      * @param iCompany
-     * @return
      */
     public static String getDefaultFileName(SSNewCompany iCompany) {
-        Date iDate = SSDateUtil.toDate(SSDateUtil.now());
+        LocalDateTime iNow = SSDateUtil.now();
 
         DateFormat iDateFormat = DateFormat.getDateInstance(DateFormat.SHORT);
         DateFormat iTimeFormat = DateFormat.getTimeInstance(DateFormat.SHORT);
 
         String iFileName = "backup." + iCompany.getName() + '.'
-                + iDateFormat.format(iDate) + '.' + iTimeFormat.format(iDate) + ".zip";
+                + iDateFormat.format(SSDateUtil.toDate(iNow)) + '.'
+                + iTimeFormat.format(SSDateUtil.toDate(iNow)) + ".zip";
 
         iFileName = iFileName.replace(":", "");
         iFileName = iFileName.replace("-", "");

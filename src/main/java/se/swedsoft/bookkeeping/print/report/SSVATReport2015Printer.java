@@ -20,7 +20,6 @@ import org.slf4j.LoggerFactory;
 
 
 /**
- * $Id$
  *
  * Med importmoms gällande från 1 januari 2015
  */
@@ -72,7 +71,6 @@ public class SSVATReport2015Printer extends SSPrinter {    private static final 
     /**
      * Gets the title file for this repport
      *
-     * @return
      */
     @Override
     public String getTitle() {
@@ -115,7 +113,6 @@ public class SSVATReport2015Printer extends SSPrinter {    private static final 
     /**
      *
      * @param group
-     * @return
      */
     private String getVATCodesForGroup(Integer group) {
         // Returnerar text som skrivs på momsrapport och visar momskod.
@@ -223,7 +220,6 @@ public class SSVATReport2015Printer extends SSPrinter {    private static final 
     /**
      *
      * @param group
-     * @return
      */
     private BigDecimal getValueForGroup(Integer group) {
 
@@ -573,7 +569,6 @@ public class SSVATReport2015Printer extends SSPrinter {    private static final 
      *
      * @param iSums
      * @param iVATCodes
-     * @return
      */
     private BigDecimal getSumForAccounts(Map<SSAccount, BigDecimal> iSums, String... iVATCodes) {
         BigDecimal iSum = new BigDecimal(0);
@@ -596,7 +591,6 @@ public class SSVATReport2015Printer extends SSPrinter {    private static final 
      *
      * @param iAccount
      * @param iVATCodes
-     * @return
      */
     private boolean hasVATCode(SSAccount iAccount, String... iVATCodes) {
 

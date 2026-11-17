@@ -1,6 +1,5 @@
 /*
  * 2005-2010
- * $Id$
  */
 package se.swedsoft.bookkeeping.gui.resultunit;
 
@@ -190,7 +189,6 @@ public class SSResultUnitFrame extends SSDefaultTableFrame {
 
     /**
      *
-     * @return
      */
     private SSNewResultUnit getSelected() {
         int selected = iTable.getSelectedRow();

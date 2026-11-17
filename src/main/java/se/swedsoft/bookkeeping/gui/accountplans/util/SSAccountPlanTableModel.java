@@ -35,7 +35,6 @@ public class SSAccountPlanTableModel extends SSTableModel<SSAccountPlan> {
 
     /**
      *
-     * @return
      */
     public static SSTableModel<SSAccountPlan> getDropDownModel() {
         SSAccountPlanTableModel iModel = new SSAccountPlanTableModel();

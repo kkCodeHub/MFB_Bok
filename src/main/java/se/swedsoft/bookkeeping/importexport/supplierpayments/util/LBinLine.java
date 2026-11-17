@@ -5,7 +5,6 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
-import java.util.Date;
 
 import se.swedsoft.bookkeeping.util.SSDateUtil;
 
@@ -61,7 +60,6 @@ public class LBinLine {
 
     /**
      *
-     * @return
      */
     public int getPosition() {
         return iPosition;
@@ -69,7 +67,6 @@ public class LBinLine {
 
     /**
      *
-     * @return
      */
     public int getLength() {
         return iChars.length;
@@ -144,17 +141,16 @@ public class LBinLine {
      * @param iFormat
      * @return the new position
      */
-    public int append(Date iDate, int iLength, String iFormat) {
+    public int append(LocalDate iDate, int iLength, String iFormat) {
         DateTimeFormatter iDateFormat = DateTimeFormatter.ofPattern(iFormat);
 
-        return append(SSDateUtil.toLocalDate(iDate).format(iDateFormat), iLength, ' ');
+        return append(iDate.format(iDateFormat), iLength, ' ');
     }
 
     /**
      *
      * @param iValue
      * @param iLength
-     * @return
      */
     public int append(BigDecimal iValue, int iLength) {
         String iText = Long.toString(Math.round(iValue.doubleValue() * 100));
@@ -166,7 +162,6 @@ public class LBinLine {
      *
      * @param iValue
      * @param iLength
-     * @return
      */
     public int append(int iValue, int iLength) {
         String iText = Integer.toString(iValue);
@@ -179,7 +174,6 @@ public class LBinLine {
     /**
      *
      * @param iStart
-     * @return
      */
     public String readString(int iStart) {
         return String.valueOf(iChars[iStart - 1]);
@@ -190,7 +184,6 @@ public class LBinLine {
      *
      * @param iStart
      * @param iEnd
-     * @return
      */
     public String readString(int iStart, int iEnd) {
         String iField = "";
@@ -208,17 +201,16 @@ public class LBinLine {
      * @param iStart
      * @param iEnd
      * @param iFormat
-     * @return
      */
-    public Date readDate(int iStart, int iEnd, String iFormat) {
+    public LocalDate readDate(int iStart, int iEnd, String iFormat) {
         DateTimeFormatter iDateFormat = DateTimeFormatter.ofPattern(iFormat);
 
         String iValue = readString(iStart, iEnd);
 
         try {
-            return SSDateUtil.toDate(LocalDate.parse(iValue, iDateFormat));
+            return LocalDate.parse(iValue, iDateFormat);
         } catch (DateTimeParseException e) {
-            return SSDateUtil.toDate(SSDateUtil.today());
+            return SSDateUtil.today();
         }
     }
 
@@ -226,7 +218,6 @@ public class LBinLine {
      *
      * @param iStart
      * @param iEnd
-     * @return
      */
     public BigDecimal readBigDecimal(int iStart, int iEnd) {
         String iText = readString(iStart, iEnd);
@@ -244,7 +235,6 @@ public class LBinLine {
      *
      * @param iStart
      * @param iEnd
-     * @return
      */
     public Integer readInteger(int iStart, int iEnd) {
         String iValue = readString(iStart, iEnd);
@@ -258,7 +248,6 @@ public class LBinLine {
 
     /**
      *
-     * @return
      */
     public String toString() {
         return new String(iChars);

@@ -18,7 +18,6 @@ public abstract class LBinPost {
 
     /**
      *
-     * @return
      */
     public boolean isEmpty() {
         return false;

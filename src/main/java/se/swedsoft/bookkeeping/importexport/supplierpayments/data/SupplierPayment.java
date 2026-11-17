@@ -10,7 +10,6 @@ import se.swedsoft.bookkeeping.util.SSDateUtil;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -55,7 +54,6 @@ public class SupplierPayment {
 
     /**
      *
-     * @return
      */
     public SSSupplierInvoice getSupplierInvoice() {
         return iInvoice;
@@ -73,7 +71,6 @@ public class SupplierPayment {
 
     /**
      *
-     * @return
      */
     public BigDecimal getValue() {
         if (iValue == null) {
@@ -94,7 +91,6 @@ public class SupplierPayment {
 
     /**
      *
-     * @return
      */
     public String getAccount() {
         return iAccount;
@@ -112,7 +108,6 @@ public class SupplierPayment {
 
     /**
      *
-     * @return
      */
     public PaymentMethod getPaymentMethod() {
         return iPaymentMethod;
@@ -128,22 +123,6 @@ public class SupplierPayment {
 
     // //////////////////////////////////////////////////////////////////////////////////////
 
-    /**
-     *
-     * @return
-     */
-    public Date getDate() {
-        return SSDateUtil.toDate(iDate);
-    }
-
-    /**
-     *
-     * @param iDate
-     */
-    public void setDate(Date iDate) {
-        this.iDate = SSDateUtil.toLocalDate(iDate);
-    }
-
     public LocalDate getLocalDate() {
         return iDate;
     }
@@ -156,7 +135,6 @@ public class SupplierPayment {
 
     /**
      *
-     * @return
      */
     public Integer getNumber() {
         return iInvoice.getNumber();
@@ -164,7 +142,6 @@ public class SupplierPayment {
 
     /**
      *
-     * @return
      */
     public String getReference() {
         return iInvoice.getReferencenumber();
@@ -172,7 +149,6 @@ public class SupplierPayment {
 
     /**
      *
-     * @return
      */
     public String getCurrency() {
         return iCurrency;
@@ -182,7 +158,6 @@ public class SupplierPayment {
 
     /**
      *
-     * @return
      */
     public SSSupplier getSupplier() {
         return iInvoice.getSupplier(se.swedsoft.bookkeeping.data.system.SSPurchaseContext.getSuppliers());
@@ -190,7 +165,6 @@ public class SupplierPayment {
 
     /**
      *
-     * @return
      */
     public String getBankGiro() {
         SSSupplier iSupplier = iInvoice.getSupplier(se.swedsoft.bookkeeping.data.system.SSPurchaseContext.getSuppliers());
@@ -200,7 +174,6 @@ public class SupplierPayment {
 
     /**
      *
-     * @return
      */
     public String getPlusGiro() {
         SSSupplier iSupplier = iInvoice.getSupplier(se.swedsoft.bookkeeping.data.system.SSPurchaseContext.getSuppliers());
@@ -210,7 +183,6 @@ public class SupplierPayment {
 
     /**
      *
-     * @return
      */
     public String getKonto() {
         SSSupplier iSupplier = iInvoice.getSupplier(se.swedsoft.bookkeeping.data.system.SSPurchaseContext.getSuppliers());
@@ -220,7 +192,6 @@ public class SupplierPayment {
 
     /**
      *
-     * @return
      */
     public Integer getOutpaymentNumber() {
         SSSupplier iSupplier = iInvoice.getSupplier(se.swedsoft.bookkeeping.data.system.SSPurchaseContext.getSuppliers());
@@ -230,7 +201,6 @@ public class SupplierPayment {
 
     /**
      *
-     * @return
      */
     public SSAddress getAddress() {
         SSSupplier iSupplier = iInvoice.getSupplier(se.swedsoft.bookkeeping.data.system.SSPurchaseContext.getSuppliers());
@@ -242,7 +212,6 @@ public class SupplierPayment {
      *
      * @param iPayments
      * @param iCurrency
-     * @return
      */
     public static List<SupplierPayment> getPayments(List<SupplierPayment> iPayments, String iCurrency) {
         List<SupplierPayment> iFiltered = new LinkedList<>();

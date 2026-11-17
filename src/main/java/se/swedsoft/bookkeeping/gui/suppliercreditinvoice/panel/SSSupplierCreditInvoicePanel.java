@@ -386,7 +386,6 @@ public class SSSupplierCreditInvoicePanel {
 
     /**
      *
-     * @return
      */
     public boolean isValid() {
         return iInputVerifier.isValid();
@@ -465,7 +464,6 @@ public class SSSupplierCreditInvoicePanel {
 
     /**
      *
-     * @return
      */
     public JPanel getPanel() {
         return iPanel;
@@ -571,7 +569,6 @@ public class SSSupplierCreditInvoicePanel {
     }
 
     /**
-     * @return
      */
     public SSSupplierCreditInvoice getSupplierCreditInvoice() {
         // Offertdatum

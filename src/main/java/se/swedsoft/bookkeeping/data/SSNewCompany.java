@@ -186,7 +186,6 @@ public class SSNewCompany  {    private static final Logger LOG = LoggerFactory.
 
     /**
      *
-     * @return
      */
     public SSAddress getAddress() {
         return iAddress;
@@ -212,7 +211,6 @@ public class SSNewCompany  {    private static final Logger LOG = LoggerFactory.
 
     /**
      *
-     * @return
      */
     public SSAddress getDeliveryAddress() {
         return iDeliveryAddress;
@@ -230,7 +228,6 @@ public class SSNewCompany  {    private static final Logger LOG = LoggerFactory.
 
     /**
      *
-     * @return
      */
     public Map<SSStandardText, String> getStandardTexts() {
         if (iStandardTexts == null) {
@@ -242,7 +239,6 @@ public class SSNewCompany  {    private static final Logger LOG = LoggerFactory.
     /**
      *
      * @param iStandardtext
-     * @return
      */
     public Optional<String> getStandardText(SSStandardText iStandardtext) {
         if (iStandardTexts != null) {
@@ -287,7 +283,6 @@ public class SSNewCompany  {    private static final Logger LOG = LoggerFactory.
 
     /**
      *
-     * @return
      */
     public Map<SSDefaultAccount, Integer> getDefaultAccounts() {
         if (iDefaultAccounts == null) {
@@ -299,7 +294,6 @@ public class SSNewCompany  {    private static final Logger LOG = LoggerFactory.
     /**
      *
      * @param iDefaultAccount
-     * @return
      */
     public Integer getDefaultAccount(SSDefaultAccount iDefaultAccount) {
         if (iDefaultAccounts != null && iDefaultAccounts.containsKey(iDefaultAccount)) {
@@ -313,7 +307,6 @@ public class SSNewCompany  {    private static final Logger LOG = LoggerFactory.
      *
      * @param iAccountPlan
      * @param iDefaultAccount
-     * @return
      */
     public Optional<SSAccount> getDefaultAccount(SSAccountPlan iAccountPlan, SSDefaultAccount iDefaultAccount) {
         Integer iAccountNumber = iDefaultAccounts.get(iDefaultAccount);
@@ -337,7 +330,6 @@ public class SSNewCompany  {    private static final Logger LOG = LoggerFactory.
 
     /**
      *
-     * @return
      */
     public String getName() {
         return iName;
@@ -355,7 +347,6 @@ public class SSNewCompany  {    private static final Logger LOG = LoggerFactory.
 
     /**
      *
-     * @return
      */
     public String getPhone() {
         return iPhone;
@@ -373,7 +364,6 @@ public class SSNewCompany  {    private static final Logger LOG = LoggerFactory.
 
     /**
      *
-     * @return
      */
     public String getPhone2() {
         return iPhone2;
@@ -391,7 +381,6 @@ public class SSNewCompany  {    private static final Logger LOG = LoggerFactory.
 
     /**
      *
-     * @return
      */
     public String getTelefax() {
         return iTelefax;
@@ -409,7 +398,6 @@ public class SSNewCompany  {    private static final Logger LOG = LoggerFactory.
 
     /**
      *
-     * @return
      */
     public String getResidence() {
         return iResidence;
@@ -427,7 +415,6 @@ public class SSNewCompany  {    private static final Logger LOG = LoggerFactory.
 
     /**
      *
-     * @return
      */
     public String getEMail() {
         return iEMail;
@@ -445,7 +432,6 @@ public class SSNewCompany  {    private static final Logger LOG = LoggerFactory.
 
     /**
      *
-     * @return
      */
     public String getHomepage() {
         return iWebAddress;
@@ -465,7 +451,6 @@ public class SSNewCompany  {    private static final Logger LOG = LoggerFactory.
 
     /**
      *
-     * @return
      */
     public String getSMTP() {
         return iSMTPAddress;
@@ -483,7 +468,6 @@ public class SSNewCompany  {    private static final Logger LOG = LoggerFactory.
 
     /**
      *
-     * @return
      */
     public String getContactPerson() {
         return iContactPerson;
@@ -501,7 +485,6 @@ public class SSNewCompany  {    private static final Logger LOG = LoggerFactory.
 
     /**
      *
-     * @return
      */
     public boolean getTaxRegistered() {
         return iTaxRegistered;
@@ -519,7 +502,6 @@ public class SSNewCompany  {    private static final Logger LOG = LoggerFactory.
 
     /**
      *
-     * @return
      */
     public String getCorporateID() {
         return iCorporateID;
@@ -537,7 +519,6 @@ public class SSNewCompany  {    private static final Logger LOG = LoggerFactory.
 
     /**
      *
-     * @return
      */
     public String getLogotype() {
         return iLogotype;
@@ -553,7 +534,6 @@ public class SSNewCompany  {    private static final Logger LOG = LoggerFactory.
 
     /**
      *
-     * @return
      */
     public String getSwishImagePath() {
         return iSwishImagePath;
@@ -585,7 +565,6 @@ public class SSNewCompany  {    private static final Logger LOG = LoggerFactory.
 
     /**
      *
-     * @return
      */
     public String getVATNumber() {
         return iVATNumber;
@@ -603,7 +582,6 @@ public class SSNewCompany  {    private static final Logger LOG = LoggerFactory.
 
     /**
      *
-     * @return
      */
     public String getBank() {
         return iBank;
@@ -621,7 +599,6 @@ public class SSNewCompany  {    private static final Logger LOG = LoggerFactory.
 
     /**
      *
-     * @return
      */
     public String getBankGiroNumber() {
         return iBankAccountNumber;
@@ -639,7 +616,6 @@ public class SSNewCompany  {    private static final Logger LOG = LoggerFactory.
 
     /**
      *
-     * @return
      */
     public String getPlusGiroNumber() {
         return iPlusAccountNumber;
@@ -657,7 +633,6 @@ public class SSNewCompany  {    private static final Logger LOG = LoggerFactory.
 
     /**
      *
-     * @return
      */
     public String getIBAN() {
         return iIBAN;
@@ -675,7 +650,6 @@ public class SSNewCompany  {    private static final Logger LOG = LoggerFactory.
 
     /**
      *
-     * @return
      */
     public String getBIC() {
         return iSwift;
@@ -693,7 +667,6 @@ public class SSNewCompany  {    private static final Logger LOG = LoggerFactory.
 
     /**
      *
-     * @return
      */
     public String getVolumeUnit() {
         if (iVolumeUnit == null) {
@@ -715,7 +688,6 @@ public class SSNewCompany  {    private static final Logger LOG = LoggerFactory.
 
     /**
      *
-     * @return
      */
     public String getWeightUnit() {
         if (iWeightUnit == null) {
@@ -737,7 +709,6 @@ public class SSNewCompany  {    private static final Logger LOG = LoggerFactory.
 
     /**
      *
-     * @return
      */
     public SSCurrency getCurrency() {
         return iCurrency;
@@ -755,7 +726,6 @@ public class SSNewCompany  {    private static final Logger LOG = LoggerFactory.
 
     /**
      *
-     * @return
      */
     public SSUnit getStandardUnit() {
         return iStandardUnit;
@@ -773,7 +743,6 @@ public class SSNewCompany  {    private static final Logger LOG = LoggerFactory.
 
     /**
      *
-     * @return
      */
     public BigDecimal getDelayInterest() {
         return iDelayintrest;
@@ -791,7 +760,6 @@ public class SSNewCompany  {    private static final Logger LOG = LoggerFactory.
 
     /**
      *
-     * @return
      */
     public BigDecimal getReminderfee() {
         return iReminderfee;
@@ -809,7 +777,6 @@ public class SSNewCompany  {    private static final Logger LOG = LoggerFactory.
 
     /**
      *
-     * @return
      */
     public BigDecimal getTaxRate1() {
         if (iTaxrate1 == null) {
@@ -830,7 +797,6 @@ public class SSNewCompany  {    private static final Logger LOG = LoggerFactory.
 
     /**
      *
-     * @return
      */
     public BigDecimal getTaxRate2() {
         if (iTaxrate2 == null) {
@@ -851,7 +817,6 @@ public class SSNewCompany  {    private static final Logger LOG = LoggerFactory.
 
     /**
      *
-     * @return
      */
     public BigDecimal getTaxRate3() {
         if (iTaxrate3 == null) {
@@ -905,7 +870,6 @@ public class SSNewCompany  {    private static final Logger LOG = LoggerFactory.
     /**
      *
      * @param iTaxCode
-     * @return
      */
     public Optional<BigDecimal> getTaxRate(SSTaxCode iTaxCode) {
         if (iTaxCode == SSTaxCode.TAXRATE_1) {
@@ -924,7 +888,6 @@ public class SSNewCompany  {    private static final Logger LOG = LoggerFactory.
 
     /**
      *
-     * @return
      */
     public String getEstimatedDelivery() {
         return iEstimatedDelivery;
@@ -1051,7 +1014,6 @@ public class SSNewCompany  {    private static final Logger LOG = LoggerFactory.
 
     /**
      *
-     * @return
      */
     public SSAutoIncrement getAutoIncrement() {
         if (iAutoIncrement == null) {
@@ -1062,7 +1024,6 @@ public class SSNewCompany  {    private static final Logger LOG = LoggerFactory.
 
     /**
      *
-     * @return
      */
     public Optional<Image> getLogoImage() {
         return loadImage(iLogotype);
@@ -1070,7 +1031,6 @@ public class SSNewCompany  {    private static final Logger LOG = LoggerFactory.
 
     /**
      *
-     * @return
      */
     public Optional<Image> getSwishImage() {
         return loadImage(iSwishImagePath);

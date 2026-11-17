@@ -32,7 +32,6 @@ import java.util.List;
  * Class to launch web browsers.
  * Should support GNU/Linux, Mac OS X, other Unix-variants and Windows
  * @author Stefan Kangas
- * @version $Id$
  */
 public class BrowserLaunch {
 

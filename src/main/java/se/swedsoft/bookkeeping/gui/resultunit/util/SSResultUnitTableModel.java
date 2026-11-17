@@ -39,7 +39,6 @@ public class SSResultUnitTableModel extends SSTableModel<SSNewResultUnit> {
 
     /**
      *
-     * @return
      */
     public static SSResultUnitTableModel getDropDownModel() {
         SSResultUnitTableModel iModel = new SSResultUnitTableModel();
@@ -53,7 +52,6 @@ public class SSResultUnitTableModel extends SSTableModel<SSNewResultUnit> {
     /**
      *
      * @param iResultUnits
-     * @return
      */
     public static SSResultUnitTableModel getDropDownModel(List<SSNewResultUnit> iResultUnits) {
         SSResultUnitTableModel iModel = new SSResultUnitTableModel(iResultUnits);

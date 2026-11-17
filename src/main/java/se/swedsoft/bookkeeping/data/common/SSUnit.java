@@ -62,7 +62,6 @@ public class SSUnit implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public String getDescription() {
         return iDescription;
@@ -103,7 +102,6 @@ public class SSUnit implements SSTableSearchable {
     /**
      * Returns the default units
      *
-     * @return
      */
     public static List<SSUnit> getDefaultUnits() {
         List<SSUnit> iUnits = new LinkedList<>();
@@ -120,7 +118,6 @@ public class SSUnit implements SSTableSearchable {
     /**
      *
      * @param iValue
-     * @return
      */
     public static Optional<SSUnit> decode(String iValue) {
         List<SSUnit> iUnits = se.swedsoft.bookkeeping.data.system.SSMasterdataContext.getUnits();

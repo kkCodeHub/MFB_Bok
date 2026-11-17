@@ -83,7 +83,6 @@ public class SSPurchaseSuggestionTableModel extends SSTableModel<SSPurchaseSugge
 
     /**
      *
-     * @return
      */
     public List<SSProduct> getSelected() {
         List<SSProduct> iSelected = new LinkedList<>();
@@ -116,7 +115,6 @@ public class SSPurchaseSuggestionTableModel extends SSTableModel<SSPurchaseSugge
 
     /**
      *  Vald
-     * @return
      */
     public SSTableColumn<Entry> getSelectionColumn() {
         return new SSTableColumn<>(

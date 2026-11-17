@@ -146,7 +146,6 @@ public class SSOutpaymentRowTableModel extends SSTableModel<SSOutpaymentRow> {
         }
 
         /**
-         * @return
          */
         @Override
         public TableCellEditor getCellEditor() {
@@ -154,7 +153,6 @@ public class SSOutpaymentRowTableModel extends SSTableModel<SSOutpaymentRow> {
         }
 
         /**
-         * @return
          */
         @Override
         public TableCellRenderer getCellRenderer() {
@@ -218,7 +216,6 @@ public class SSOutpaymentRowTableModel extends SSTableModel<SSOutpaymentRow> {
         }
 
         /**
-         * @return
          */
         @Override
         public TableCellEditor getCellEditor() {
@@ -226,7 +223,6 @@ public class SSOutpaymentRowTableModel extends SSTableModel<SSOutpaymentRow> {
         }
 
         /**
-         * @return
          */
         @Override
         public TableCellRenderer getCellRenderer() {

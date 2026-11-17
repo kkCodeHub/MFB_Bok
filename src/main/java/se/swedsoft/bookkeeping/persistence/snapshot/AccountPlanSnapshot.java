@@ -46,7 +46,7 @@ public class AccountPlanSnapshot {
             } else {
                 return bytes;
             }
-        } catch (Exception e) {
+        } catch (IOException | RuntimeException e) {
             throw new RuntimeException("Failed to serialize account plan", e);
         }
     }
@@ -73,7 +73,7 @@ public class AccountPlanSnapshot {
 
             String csv = new String(decompressed, StandardCharsets.UTF_8);
             return deserializeFromCSV(csv);
-        } catch (Exception e) {
+        } catch (IOException | RuntimeException e) {
             throw new RuntimeException("Failed to deserialize account plan", e);
         }
     }

@@ -30,7 +30,6 @@ import java.util.Optional;
 
 /**
  *
- * $Id$
  */
 public class SSDBConfig {    private static final Logger LOG = LoggerFactory.getLogger(SSDBConfig.class);
 

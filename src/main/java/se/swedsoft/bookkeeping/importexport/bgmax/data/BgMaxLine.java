@@ -27,7 +27,6 @@ public class BgMaxLine {
 
     /**
      *
-     * @return
      */
     public String getTransaktionsKod() {
         return getField(1, 2);
@@ -36,7 +35,6 @@ public class BgMaxLine {
     /**
      *
      * @param iStart
-     * @return
      */
     public String getField(int iStart) {
         return String.valueOf(iChars[iStart]);
@@ -47,7 +45,6 @@ public class BgMaxLine {
      *
      * @param iStart
      * @param iEnd
-     * @return
      */
     public String getField(int iStart, int iEnd) {
         String iField = "";

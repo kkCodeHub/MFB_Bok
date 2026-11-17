@@ -16,7 +16,6 @@ import java.util.Date;
 
 
 /**
- * $Id$
  *
  */
 public class SSCustomerclaimDialog extends SSDialog {

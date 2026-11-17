@@ -145,7 +145,6 @@ public class SSInpaymentRowTableModel extends SSTableModel<SSInpaymentRow> {
         }
 
         /**
-         * @return
          */
         @Override
         public TableCellEditor getCellEditor() {
@@ -153,7 +152,6 @@ public class SSInpaymentRowTableModel extends SSTableModel<SSInpaymentRow> {
         }
 
         /**
-         * @return
          */
         @Override
         public TableCellRenderer getCellRenderer() {

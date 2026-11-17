@@ -102,7 +102,6 @@ public class SSDateCellEditor extends AbstractCellEditor implements TableCellEdi
 
     /**
      *
-     * @return
      */
     public Date getDate() {
         return iDate;

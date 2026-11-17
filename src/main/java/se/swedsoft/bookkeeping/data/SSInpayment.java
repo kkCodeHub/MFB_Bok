@@ -134,7 +134,6 @@ public class SSInpayment implements SSTableSearchable {
     // //////////////////////////////////////////////////
     /**
      *
-     * @return
      */
     public Integer getNumber() {
         return iNumber;
@@ -168,7 +167,6 @@ public class SSInpayment implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public String getText() {
         return iText;
@@ -186,7 +184,6 @@ public class SSInpayment implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public Map<SSDefaultAccount, Integer> getDefaultAccounts() {
 
@@ -205,7 +202,6 @@ public class SSInpayment implements SSTableSearchable {
      *
      * @param iAccountPlan
      * @param iDefaultAccount
-     * @return
      */
     public Optional<SSAccount> getDefaultAccount(SSAccountPlan iAccountPlan, SSDefaultAccount iDefaultAccount) {
         Integer iAccountNumber = iDefaultAccounts.get(iDefaultAccount);
@@ -220,7 +216,6 @@ public class SSInpayment implements SSTableSearchable {
     /**
      *
      * @param iDefaultAccount
-     * @return
      */
     public Integer getDefaultAccount(SSDefaultAccount iDefaultAccount) {
         return iDefaultAccounts.get(iDefaultAccount);
@@ -238,7 +233,6 @@ public class SSInpayment implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public List<SSInpaymentRow> getRows() {
         if (iRows == null) {
@@ -259,7 +253,6 @@ public class SSInpayment implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public SSVoucher getVoucher() {
         return iVoucher;
@@ -277,7 +270,6 @@ public class SSInpayment implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public SSVoucher getDifference() {
         if (iDifference == null) {
@@ -299,7 +291,6 @@ public class SSInpayment implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public boolean isEntered() {
         return iEntered;
@@ -399,7 +390,6 @@ public class SSInpayment implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public SSVoucher generateVoucher() {
         String iDescriptionTemplate = SSBundle.getBundle().getString(

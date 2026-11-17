@@ -117,7 +117,6 @@ public class SSSupplierInvoiceRow  implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public String getProductNr() {
         return iProductNr;
@@ -135,7 +134,6 @@ public class SSSupplierInvoiceRow  implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public String getDescription() {
         return iDescription;
@@ -153,7 +151,6 @@ public class SSSupplierInvoiceRow  implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public BigDecimal getUnitprice() {
         return iUnitprice;
@@ -171,7 +168,6 @@ public class SSSupplierInvoiceRow  implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public BigDecimal getUnitFreight() {
         return iUnitFreight;
@@ -188,7 +184,6 @@ public class SSSupplierInvoiceRow  implements SSTableSearchable {
     // //////////////////////////////////////////////////
     /**
      *
-     * @return
      */
     public Integer getQuantity() {
         return iQuantity;
@@ -206,7 +201,6 @@ public class SSSupplierInvoiceRow  implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public SSUnit getUnit() {
         return iUnit;
@@ -224,7 +218,6 @@ public class SSSupplierInvoiceRow  implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public Integer getAccountNr() {
         return iAccountNr;
@@ -243,7 +236,6 @@ public class SSSupplierInvoiceRow  implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public String getResultUnitNr() {
         return iResultUnitNumber;
@@ -271,7 +263,6 @@ public class SSSupplierInvoiceRow  implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public String getProjectNr() {
         return iProjectNumber;
@@ -291,7 +282,6 @@ public class SSSupplierInvoiceRow  implements SSTableSearchable {
     /**
      *
      * @param iAccounts
-     * @return
      */
     public SSAccount getAccount(List<SSAccount> iAccounts) {
         if (iAccount == null && iAccountNr != null) {
@@ -323,7 +313,6 @@ public class SSSupplierInvoiceRow  implements SSTableSearchable {
     /**
      * Get the product for this row
      *
-     * @return
      */
     public SSProduct getProduct() {
         return getProduct(se.swedsoft.bookkeeping.data.system.SSProductContext.getProducts());
@@ -333,7 +322,6 @@ public class SSSupplierInvoiceRow  implements SSTableSearchable {
      * Gets the product for this row
      *
      * @param iProducts
-     * @return
      */
     public SSProduct getProduct(List<SSProduct> iProducts) {
         if (iProduct == null) {
@@ -373,7 +361,6 @@ public class SSSupplierInvoiceRow  implements SSTableSearchable {
     /**
      *
      * @param iResultUnits
-     * @return
      */
     public SSNewResultUnit getResultUnit(List<SSNewResultUnit> iResultUnits) {
         if (iResultUnit == null) {
@@ -403,7 +390,6 @@ public class SSSupplierInvoiceRow  implements SSTableSearchable {
     /**
      *
      * @param iProjects
-     * @return
      */
     public SSNewProject getProject(List<SSNewProject> iProjects) {
         if (iProject == null) {

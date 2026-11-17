@@ -74,7 +74,6 @@ public class SSMonth   {
 
     /**
      *
-     * @return
      */
     public String getName() {
         int iMonth = iFrom.getMonthValue() - 1;
@@ -88,7 +87,6 @@ public class SSMonth   {
     /**
      *  Breaks a year into it's months
      * @param pYearData
-     * @return
      */
     public static List<SSMonth> splitYearIntoMonths(SSNewAccountingYear pYearData) {
         return splitYearIntoMonths(pYearData.getLocalFrom(), pYearData.getLocalTo());

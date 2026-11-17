@@ -52,7 +52,6 @@ public class SSUnitTableModel extends SSTableModel<SSUnit> {
 
     /**
      *
-     * @return
      */
     public static SSUnitTableModel getDropDownModel() {
         SSUnitTableModel iModel = new SSUnitTableModel();
@@ -115,7 +114,6 @@ public class SSUnitTableModel extends SSTableModel<SSUnit> {
     /**
      *
      * @param iOwner
-     * @return
      */
     public static SSEditableTableComboBox.EditingFactory<SSUnit> getEditingFactory(final JDialog iOwner) {
         return new SSEditableTableComboBox.EditingFactory<SSUnit>() {

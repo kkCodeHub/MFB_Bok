@@ -12,7 +12,6 @@ import java.util.Date;
 
 
 /**
- * $Id$
  *
  */
 public class SSResultPrinterSetupPanel {
@@ -31,7 +30,6 @@ public class SSResultPrinterSetupPanel {
 
     /**
      *
-     * @return
      */
     public JPanel getPanel() {
         return iPanel;
@@ -75,7 +73,6 @@ public class SSResultPrinterSetupPanel {
 
     /**
      *
-     * @return
      */
     public boolean getPrintBudget() {
         return iBudgetCheckbox.isSelected();
@@ -91,7 +88,6 @@ public class SSResultPrinterSetupPanel {
 
     /**
      *
-     * @return
      */
     public boolean getPrintLastyear() {
         return iLastyearCheckBox.isSelected();

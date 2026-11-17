@@ -65,7 +65,6 @@ public class SSCurrency implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public String getName() {
         return iCode;
@@ -83,7 +82,6 @@ public class SSCurrency implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public String getDescription() {
         return iDescription;
@@ -101,7 +99,6 @@ public class SSCurrency implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public BigDecimal getExchangeRate() {
         if (iExchangeRate == null) {
@@ -120,7 +117,6 @@ public class SSCurrency implements SSTableSearchable {
 
     // /////////////////////////////////////////////////////////////////////////
     /**
-     * @return
      */
     public String toRenderString() {
         return iCode;

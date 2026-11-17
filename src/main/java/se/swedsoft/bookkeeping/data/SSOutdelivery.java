@@ -5,7 +5,6 @@ import se.swedsoft.bookkeeping.persistence.Repositories;
 import se.swedsoft.bookkeeping.util.SSDateUtil;
 
 import java.time.LocalDate;
-import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -21,7 +20,7 @@ public class SSOutdelivery  {
 
     private Integer iNumber;
 
-    private Date iDate;
+    private LocalDate iDate;
 
     private String iText;
 
@@ -41,7 +40,7 @@ public class SSOutdelivery  {
      * @param autoIncrement whether to call {@link #doAutoIncrement()}
      */
     public SSOutdelivery(boolean autoIncrement) {
-        iDate = SSDateUtil.toDate(SSDateUtil.today());
+        iDate = SSDateUtil.today();
         iText = null;
         iRows = new LinkedList<>();
         if (autoIncrement) {
@@ -95,7 +94,6 @@ public class SSOutdelivery  {
 
     /**
      *
-     * @return
      */
     public Integer getNumber() {
         return iNumber;
@@ -111,35 +109,18 @@ public class SSOutdelivery  {
 
     // /////////////////////////////////////////////////////////////////////////////////////
 
-    /**
-     *
-     * @return
-     */
-    public Date getDate() {
+    public LocalDate getLocalDate() {
         return iDate;
     }
 
-    public LocalDate getLocalDate() {
-        return SSDateUtil.toLocalDate(iDate);
-    }
-
-    /**
-     *
-     * @param iDate
-     */
-    public void setDate(Date iDate) {
-        this.iDate = iDate;
-    }
-
     public void setLocalDate(LocalDate iDate) {
-        this.iDate = SSDateUtil.toDate(iDate);
+        this.iDate = iDate;
     }
 
     // /////////////////////////////////////////////////////////////////////////////////////
 
     /**
      *
-     * @return
      */
     public String getText() {
         return iText;
@@ -157,7 +138,6 @@ public class SSOutdelivery  {
 
     /**
      *
-     * @return
      */
     public List<SSOutdeliveryRow> getRows() {
         return iRows;

@@ -5,11 +5,10 @@ import se.swedsoft.bookkeeping.importexport.supplierpayments.data.SupplierPaymen
 import se.swedsoft.bookkeeping.importexport.supplierpayments.util.LBinLine;
 import se.swedsoft.bookkeeping.util.SSDateUtil;
 
-import java.util.Date;
+import java.time.LocalDate;
 
 
 /**
- * $Id$
  *
  * Öppningspost
  */
@@ -17,8 +16,8 @@ public class LBinPostTK11 extends LBinPost {
 
     private String iCurrency;
     private String iBankGiroNr;
-    private Date   iDate;
-    private Date   iPaymentDate;
+    private LocalDate   iDate;
+    private LocalDate   iPaymentDate;
     private String iText;
 
     /**
@@ -32,7 +31,7 @@ public class LBinPostTK11 extends LBinPost {
      */
     public LBinPostTK11(String iCurrency) {
         iBankGiroNr = SupplierPaymentConfig.getOurBankGiroAccount().replaceAll("-", "");
-        iDate = SSDateUtil.toDate(SSDateUtil.today());
+        iDate = SSDateUtil.today();
         this.iCurrency = iCurrency;
         iText = "LEVERANTÖRSBETALNINGAR";
     }
@@ -69,7 +68,6 @@ public class LBinPostTK11 extends LBinPost {
 
     /**
      *
-     * @return
      */
     public String getiCurrency() {
         return iCurrency;
@@ -85,7 +83,6 @@ public class LBinPostTK11 extends LBinPost {
 
     /**
      *
-     * @return
      */
     public String getBankGiroNr() {
         return iBankGiroNr;
@@ -101,9 +98,8 @@ public class LBinPostTK11 extends LBinPost {
 
     /**
      *
-     * @return
      */
-    public Date getDate() {
+    public LocalDate getDate() {
         return iDate;
     }
 
@@ -111,15 +107,14 @@ public class LBinPostTK11 extends LBinPost {
      *
      * @param iDate
      */
-    public void setDate(Date iDate) {
+    public void setDate(LocalDate iDate) {
         this.iDate = iDate;
     }
 
     /**
      *
-     * @return
      */
-    public Date getPaymentDate() {
+    public LocalDate getPaymentDate() {
         return iPaymentDate;
     }
 
@@ -127,13 +122,12 @@ public class LBinPostTK11 extends LBinPost {
      *
      * @param iPaymentDate
      */
-    public void setPaymentDate(Date iPaymentDate) {
+    public void setPaymentDate(LocalDate iPaymentDate) {
         this.iPaymentDate = iPaymentDate;
     }
 
     /**
      *
-     * @return
      */
     public String getText() {
         return iText;

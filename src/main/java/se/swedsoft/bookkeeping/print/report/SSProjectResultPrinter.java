@@ -54,7 +54,6 @@ public class SSProjectResultPrinter extends SSResultPrinter {
 
     /**
      *
-     * @return
      */
     @Override
     protected SSResultCalculator getCalculator() {
@@ -77,7 +76,6 @@ public class SSProjectResultPrinter extends SSResultPrinter {
     /**
      * Gets the title file for this repport
      *
-     * @return
      */
     @Override
     public String getTitle() {

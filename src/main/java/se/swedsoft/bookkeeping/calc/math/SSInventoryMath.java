@@ -4,10 +4,8 @@ package se.swedsoft.bookkeeping.calc.math;
 import se.swedsoft.bookkeeping.data.SSInventory;
 import se.swedsoft.bookkeeping.data.SSInventoryRow;
 import se.swedsoft.bookkeeping.data.SSProduct;
-import se.swedsoft.bookkeeping.util.SSDateUtil;
 
 import java.time.LocalDate;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -53,7 +51,6 @@ public class SSInventoryMath {
      *
      * @param iInventory
      * @param iProduct
-     * @return
      */
     public static boolean hasProduct(SSInventory iInventory, SSProduct iProduct) {
 

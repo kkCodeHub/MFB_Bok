@@ -30,7 +30,6 @@ import org.slf4j.LoggerFactory;
  * User: Andreas Lago
  * Date: 2007-mar-29
  * Time: 15:16:52
- * $Id$
  */
 public class SSOrderExporter {    private static final Logger LOG = LoggerFactory.getLogger(SSOrderExporter.class);
 

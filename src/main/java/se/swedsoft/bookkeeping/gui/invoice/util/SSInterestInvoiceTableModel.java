@@ -31,7 +31,6 @@ import java.util.List;
  * User: Andreas Lago
  * Date: 2006-mar-21
  * Time: 10:34:35
- * $Id$
  */
 public class SSInterestInvoiceTableModel extends SSDefaultTableModel<SSInvoice> {
     private static final int DEFAULT_QUANTITY_TENTHS = 10;
@@ -111,7 +110,7 @@ public class SSInterestInvoiceTableModel extends SSDefaultTableModel<SSInvoice> 
             break;
 
         case 4:
-            value = SSInpaymentMath.getLastInpaymentForInvoice(iInvoice);
+            value = SSDateUtil.toDate(SSInpaymentMath.getLastInpaymentForInvoice(iInvoice));
             break;
 
         case 5:
@@ -325,7 +324,6 @@ public class SSInterestInvoiceTableModel extends SSDefaultTableModel<SSInvoice> 
 
         /**
          *
-         * @return
          */
         public String getDescription() {
             return SSBundle.getBundle().getString(iBundleName);

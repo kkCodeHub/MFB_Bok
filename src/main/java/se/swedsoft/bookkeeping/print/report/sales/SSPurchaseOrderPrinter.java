@@ -57,7 +57,6 @@ public class SSPurchaseOrderPrinter extends SSPrinter {
     /**
      * Gets the title file for this repport
      *
-     * @return
      */
     @Override
     public String getTitle() {
@@ -121,7 +120,6 @@ public class SSPurchaseOrderPrinter extends SSPrinter {
 
     /**
      *
-     * @return
      */
     @Override
     protected SSDefaultTableModel getModel() {

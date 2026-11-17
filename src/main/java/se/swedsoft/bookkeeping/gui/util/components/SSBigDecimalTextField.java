@@ -73,7 +73,6 @@ public class SSBigDecimalTextField extends JFormattedTextField {
 
     /**
      *
-     * @return
      */
     public String getAppendText() {
         return iAppendText;
@@ -98,7 +97,6 @@ public class SSBigDecimalTextField extends JFormattedTextField {
 
     /**
      *
-     * @return
      */
     public int getFractionDigits() {
         return iFormat.getMaximumFractionDigits();

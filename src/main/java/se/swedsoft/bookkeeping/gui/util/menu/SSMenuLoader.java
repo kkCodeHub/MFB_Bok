@@ -22,7 +22,6 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Date: 2006-feb-27
- * @version $Id$
  */
 public class SSMenuLoader {    private static final Logger LOG = LoggerFactory.getLogger(SSMenuLoader.class);
 

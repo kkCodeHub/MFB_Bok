@@ -59,7 +59,6 @@ public class SSDeliveryWay implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public String getDescription() {
         return iDescription;
@@ -99,7 +98,6 @@ public class SSDeliveryWay implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public static List<SSDeliveryWay> getDefaultDeliveryWays() {
         List<SSDeliveryWay> iDeliveryWays = new LinkedList<>();

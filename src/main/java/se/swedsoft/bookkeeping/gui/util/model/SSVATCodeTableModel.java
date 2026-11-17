@@ -44,7 +44,6 @@ public class SSVATCodeTableModel extends SSTableModel<SSVATCode> {
 
     /**
      *
-     * @return
      */
     public static SSVATCodeTableModel getDropDownModel() {
         return getDropDownModel(SSVATCode.getValues());
@@ -53,7 +52,6 @@ public class SSVATCodeTableModel extends SSTableModel<SSVATCode> {
     /**
      *
      * @param iVATCodes
-     * @return
      */
     public static SSVATCodeTableModel getDropDownModel(List<SSVATCode> iVATCodes) {
         SSVATCodeTableModel iModel = new SSVATCodeTableModel(iVATCodes);

@@ -173,7 +173,6 @@ public abstract class SSSale implements SSTableSearchable {
     // //////////////////////////////////////////////////
     /**
      *
-     * @return
      */
     public Integer getNumber() {
         return iNumber;
@@ -212,7 +211,6 @@ public abstract class SSSale implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public String getCustomerNr() {
         return iCustomerNr;
@@ -230,7 +228,6 @@ public abstract class SSSale implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public String getCustomerName() {
         return iCustomerName;
@@ -248,7 +245,6 @@ public abstract class SSSale implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public String getOurContactPerson() {
         return iOurContactPerson;
@@ -266,7 +262,6 @@ public abstract class SSSale implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public String getYourContactPerson() {
         return iYourContactPerson;
@@ -284,7 +279,6 @@ public abstract class SSSale implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public BigDecimal getDelayInterest() {
         if (iDelayInterest == null) {
@@ -305,7 +299,6 @@ public abstract class SSSale implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public SSCurrency getCurrency() {
         return iCurrency;
@@ -323,7 +316,6 @@ public abstract class SSSale implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public SSPaymentTerm getPaymentTerm() {
         return iPaymentTerm;
@@ -341,7 +333,6 @@ public abstract class SSSale implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public SSDeliveryTerm getDeliveryTerm() {
         return iDeliveryTerm;
@@ -359,7 +350,6 @@ public abstract class SSSale implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public SSDeliveryWay getDeliveryWay() {
         return iDeliveryWay;
@@ -377,7 +367,6 @@ public abstract class SSSale implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public boolean getTaxFree() {
         return iTaxFree;
@@ -395,7 +384,6 @@ public abstract class SSSale implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public BigDecimal getTaxRate1() {
         if (iTaxRate1 == null) {
@@ -416,7 +404,6 @@ public abstract class SSSale implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public BigDecimal getTaxRate2() {
         if (iTaxRate2 == null) {
@@ -440,7 +427,6 @@ public abstract class SSSale implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public BigDecimal getTaxRate3() {
         if (iTaxRate3 == null) {
@@ -461,7 +447,6 @@ public abstract class SSSale implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public boolean getEuSaleCommodity() {
         return iEuSaleCommodity;
@@ -479,7 +464,6 @@ public abstract class SSSale implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public boolean getEuSaleThirdPartCommodity() {
         return iEuSaleYhirdPartCommodity;
@@ -497,7 +481,6 @@ public abstract class SSSale implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public String getText() {
         return iText;
@@ -515,7 +498,6 @@ public abstract class SSSale implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public boolean isPrinted() {
         return iPrinted;
@@ -540,7 +522,6 @@ public abstract class SSSale implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public SSAddress getInvoiceAddress() {
         return iInvoiceAddress;
@@ -558,7 +539,6 @@ public abstract class SSSale implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public SSAddress getDeliveryAddress() {
         return iDeliveryAddress;
@@ -576,7 +556,6 @@ public abstract class SSSale implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public Map<SSDefaultAccount, Integer> getDefaultAccounts() {
         if (iDefaultAccounts == null) {
@@ -589,7 +568,6 @@ public abstract class SSSale implements SSTableSearchable {
      *
      * @param iAccountPlan
      * @param iDefaultAccount
-     * @return
      */
     public Optional<SSAccount> getDefaultAccount(SSAccountPlan iAccountPlan, SSDefaultAccount iDefaultAccount) {
         Integer iAccountNumber = getDefaultAccount(iDefaultAccount);
@@ -604,7 +582,6 @@ public abstract class SSSale implements SSTableSearchable {
     /**
      *
      * @param iDefaultAccount
-     * @return
      */
     public Integer getDefaultAccount(SSDefaultAccount iDefaultAccount) {
         if (iDefaultAccounts != null && iDefaultAccounts.containsKey(iDefaultAccount)) {
@@ -629,7 +606,6 @@ public abstract class SSSale implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public List<SSSaleRow> getRows() {
         if (iRows == null) {
@@ -659,7 +635,6 @@ public abstract class SSSale implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public SSCustomer getCustomer() {
         return getCustomer(se.swedsoft.bookkeeping.data.system.SSSalesContext.getCustomers());
@@ -668,7 +643,6 @@ public abstract class SSSale implements SSTableSearchable {
     /**
      *
      * @param iCustomers
-     * @return
      */
     public SSCustomer getCustomer(List<SSCustomer> iCustomers) {
         if (iCustomer == null) {

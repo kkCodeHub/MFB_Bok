@@ -14,13 +14,11 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.DateFormat;
 import java.time.LocalDate;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
 
 /**
- * $Id$
  */
 public class SSVATUtil {
     private SSVATUtil() {}
@@ -56,21 +54,6 @@ public class SSVATUtil {
         accounts.add(account);
         creditMinusDebetSum.put(account, new BigDecimal(0));
         debetMinusCreditSum.put(account, new BigDecimal(0));
-    }
-
-    /**
-     * @param name
-     * @param iDateFrom
-     * @param iDateTo
-     * @param iAccountR1 The account with the VAT code R1
-     * @param iAccountR2 The account with the VAT code R2
-     * @param iAccountA The account with the VAT code A
-     *
-     * @return The voucher
-     */
-    public static SSVoucher generateVATVoucher(String name, Date iDateFrom, Date iDateTo, SSAccount iAccountR1, SSAccount iAccountR2, SSAccount iAccountA) {
-        return generateVATVoucher(name, SSDateUtil.toLocalDate(iDateFrom), SSDateUtil.toLocalDate(iDateTo),
-                iAccountR1, iAccountR2, iAccountA);
     }
 
     public static SSVoucher generateVATVoucher(String name, LocalDate iDateFrom, LocalDate iDateTo, SSAccount iAccountR1, SSAccount iAccountR2, SSAccount iAccountA) {

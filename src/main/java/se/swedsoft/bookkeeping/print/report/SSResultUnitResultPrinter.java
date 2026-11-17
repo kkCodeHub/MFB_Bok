@@ -61,7 +61,6 @@ public class SSResultUnitResultPrinter extends SSResultPrinter {
     /**
      * Gets the title file for this repport
      *
-     * @return
      */
     @Override
     public String getTitle() {
@@ -70,7 +69,6 @@ public class SSResultUnitResultPrinter extends SSResultPrinter {
 
     /**
      *
-     * @return
      */
     @Override
     protected SSResultCalculator getCalculator() {

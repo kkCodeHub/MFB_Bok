@@ -1,6 +1,5 @@
 /*
  * 2005-2010
- * $Id$
  */
 package se.swedsoft.bookkeeping.gui.project.util;
 
@@ -73,7 +72,6 @@ public class SSProjectTableModel extends SSTableModel<SSNewProject> {
 
     /**
      *
-     * @return
      */
     public static SSProjectTableModel getDropDownModel() {
         SSProjectTableModel iModel = new SSProjectTableModel();
@@ -87,7 +85,6 @@ public class SSProjectTableModel extends SSTableModel<SSNewProject> {
     /**
      *
      * @param iProjects
-     * @return
      */
     public static SSProjectTableModel getDropDownModel(List<SSNewProject> iProjects) {
         SSProjectTableModel iModel = new SSProjectTableModel(iProjects);

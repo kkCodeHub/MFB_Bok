@@ -66,7 +66,6 @@ public class SSPaymentTerm implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public String getDescription() {
         return iDescription;
@@ -160,7 +159,6 @@ public class SSPaymentTerm implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public static List<SSPaymentTerm> getDefaultPaymentTerms() {
         List<SSPaymentTerm> iPaymentTerms = new LinkedList<>();

@@ -10,7 +10,6 @@ import java.net.URISyntaxException;
 /**
  * Class to store data about a mail server. Immutable.
  *
- * $Id$
  *
  * @author jensli
  * @author ljo
@@ -39,7 +38,6 @@ public class SSMailServer  {
      * @param connectionSecurity
      * @param username
      * @param password
-     * @return
      * @throws SSMailServerException
      */
     public static SSMailServer makeIfValid(String name, String host,

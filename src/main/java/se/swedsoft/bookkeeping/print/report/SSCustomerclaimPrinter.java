@@ -36,7 +36,7 @@ public class SSCustomerclaimPrinter extends SSPrinter {
      * @param iInvoices
      */
     public SSCustomerclaimPrinter(LocalDate iDate, List<SSInvoice> iInvoices) {
-        iSaldos = SSInvoiceMath.getSaldo(iInvoices, SSDateUtil.toDate(iDate));
+        iSaldos = SSInvoiceMath.getSaldo(iInvoices, iDate);
 
         setPageHeader("header_period.jrxml");
         setColumnHeader("customerclaim.jrxml");
@@ -50,7 +50,6 @@ public class SSCustomerclaimPrinter extends SSPrinter {
     /**
      * Gets the title file for this repport
      *
-     * @return
      */
     @Override
     public String getTitle() {

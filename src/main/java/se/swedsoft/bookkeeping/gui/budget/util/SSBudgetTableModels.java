@@ -63,7 +63,6 @@ public class SSBudgetTableModels {
              *
              * @param rowIndex
              * @param columnIndex
-             * @return
              */
             public Object getValueAt(int rowIndex, int columnIndex) {
 
@@ -108,7 +107,6 @@ public class SSBudgetTableModels {
              *
              * @param rowIndex
              * @param columnIndex
-             * @return
              */
             @Override
             public boolean isCellEditable(int rowIndex, int columnIndex) {

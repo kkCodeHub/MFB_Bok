@@ -16,7 +16,6 @@ import java.util.Date;
 
 
 /**
- * $Id$
  *
  */
 public class SSAccountsrecievableDialog extends SSDialog {

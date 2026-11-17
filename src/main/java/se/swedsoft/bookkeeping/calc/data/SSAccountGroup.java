@@ -37,7 +37,6 @@ public class SSAccountGroup  {
 
     /**
      *
-     * @return
      */
     public Integer getId() {
         return iId;
@@ -61,7 +60,6 @@ public class SSAccountGroup  {
 
     /**
      *
-     * @return
      */
     public Integer getFromAccount() {
         if (iFromAccount == null && iGroups != null) {
@@ -78,7 +76,6 @@ public class SSAccountGroup  {
 
     /**
      *
-     * @return
      */
     public Integer getToAccount() {
         if (iToAccount == null && iGroups != null) {
@@ -103,7 +100,6 @@ public class SSAccountGroup  {
 
     /**
      *
-     * @return
      */
     public String getBundle() {
         return iBundle;
@@ -119,7 +115,6 @@ public class SSAccountGroup  {
 
     /**
      *
-     * @return
      */
     public List<SSAccountGroup> getGroups() {
         return iGroups;
@@ -183,7 +178,6 @@ public class SSAccountGroup  {
     /**
      *
      * @param iAccounts
-     * @return
      */
     public List<SSAccount> getGroupAccounts(List<SSAccount> iAccounts) {
         List<SSAccount> iGroupAccounts = new LinkedList<>();

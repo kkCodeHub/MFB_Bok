@@ -187,7 +187,6 @@ public class SSDefaultAccountPanel extends JPanel {
 
     /**
      *
-     * @return
      */
     public JPanel getPanel() {
         return iPanel;
@@ -222,7 +221,6 @@ public class SSDefaultAccountPanel extends JPanel {
 
     /**
      *
-     * @return
      */
     public Map<SSDefaultAccount, Integer> getDefaultAccounts() {
 

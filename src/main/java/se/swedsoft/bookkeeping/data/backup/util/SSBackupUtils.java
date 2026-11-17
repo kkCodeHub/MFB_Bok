@@ -23,7 +23,6 @@ public class SSBackupUtils {
 
     /**
      *
-     * @return
      */
     public static List<ArchiveFile> getFiles() {
 
@@ -50,7 +49,6 @@ public class SSBackupUtils {
     /**
      *
      * @param pCompany
-     * @return
      */
     public static List<ArchiveFile> getFiles(SSSystemCompany pCompany) {
         List<ArchiveFile> iFiles = new LinkedList<>();
@@ -70,7 +68,6 @@ public class SSBackupUtils {
      *
      * @param pFilename
      * @param iDirectory
-     * @return
      * @throws FileNotFoundException
      * @throws IOException
      */

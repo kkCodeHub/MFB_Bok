@@ -1,6 +1,5 @@
 /*
  * 2005-2010
- * $Id$
  */
 package se.swedsoft.bookkeeping.gui.voucher.util;
 
@@ -56,7 +55,6 @@ public class SSVoucherTableModel extends SSTableModel<SSVoucher> {
 
     /**
      *
-     * @return
      */
     public static SSVoucherTableModel getDropDownModel() {
         SSVoucherTableModel iModel = new SSVoucherTableModel();

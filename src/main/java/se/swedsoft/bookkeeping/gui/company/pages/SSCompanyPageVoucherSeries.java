@@ -165,7 +165,7 @@ public class SSCompanyPageVoucherSeries extends SSCompanyPage {
             if (year != null && year.getLocalFrom() != null && year.getLocalTo() != null) {
                 return year.getLocalFrom().toString() + " - " + year.getLocalTo().toString();
             }
-        } catch (Exception ex) {
+        } catch (RuntimeException ex) {
             LOG.error("Failed to get accounting year date range", ex);
         }
         return "Okänt bokföringsår";
@@ -411,7 +411,7 @@ public class SSCompanyPageVoucherSeries extends SSCompanyPage {
                     iService = new V2VoucherSeriesService(conn);
                     LOG.info("Service created successfully");
                 }
-            } catch (Exception ex) {
+            } catch (RuntimeException ex) {
                 LOG.error("Failed to create service", ex);
             }
         }

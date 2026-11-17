@@ -157,7 +157,6 @@ public class SSOrder extends SSSale {
     // //////////////////////////////////////////////////
     /**
      *
-     * @return
      */
     public String getYourOrderNumber() {
         return iYourOrderNumber;
@@ -175,7 +174,6 @@ public class SSOrder extends SSSale {
 
     /**
      *
-     * @return
      */
     public String getEstimatedDelivery() {
         return iEstimatedDelivery;
@@ -198,7 +196,6 @@ public class SSOrder extends SSSale {
 
     /**
      *
-     * @return
      */
     public boolean getHideUnitprice() {
         return iHideUnitprice;
@@ -208,7 +205,6 @@ public class SSOrder extends SSSale {
 
     /**
      *
-     * @return
      */
     public Integer getInvoiceNr() {
         return iInvoiceNr;
@@ -240,7 +236,6 @@ public class SSOrder extends SSSale {
 
     /**
      *
-     * @return
      */
     public BigDecimal getCurrencyRate() {
         if (iCurrencyRate != null) {
@@ -266,7 +261,6 @@ public class SSOrder extends SSSale {
     // //////////////////////////////////////////////////
     /**
      *
-     * @return
      */
     public SSInvoice getInvoice() {
         return getInvoice(se.swedsoft.bookkeeping.data.system.SSSalesContext.getInvoices());
@@ -275,7 +269,6 @@ public class SSOrder extends SSSale {
     /**
      *
      * @param iInvoices
-     * @return
      */
     public SSInvoice getInvoice(List<SSInvoice> iInvoices) {
         if (iInvoice == null && iInvoiceNr != null) {
@@ -304,7 +297,6 @@ public class SSOrder extends SSSale {
     /**
      *
      * @param iPeriodicInvoices
-     * @return
      */
     public SSPeriodicInvoice getPeriodicInvoice(List<SSPeriodicInvoice> iPeriodicInvoices) {
         if (iPeriodicInvoice == null && iPeriodicInvoiceNr != null) {
@@ -332,7 +324,6 @@ public class SSOrder extends SSSale {
 
     /**
      *
-     * @return
      */
     public SSPurchaseOrder getPurchaseOrder() {
         return getPurchaseOrder(Repositories.purchaseOrders().findAll());
@@ -341,7 +332,6 @@ public class SSOrder extends SSSale {
     /**
      *
      * @param iPurchaseOrders
-     * @return
      */
     public SSPurchaseOrder getPurchaseOrder(List<SSPurchaseOrder> iPurchaseOrders) {
         if (iPurchaseOrder == null && iPurchaseOrderNr != null) {

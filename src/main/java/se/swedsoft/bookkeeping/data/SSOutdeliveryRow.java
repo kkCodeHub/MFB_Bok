@@ -58,7 +58,6 @@ public class SSOutdeliveryRow  {
 
     /**
      *
-     * @return
      */
     public String getProductNr() {
         return iProductNr;
@@ -76,7 +75,6 @@ public class SSOutdeliveryRow  {
 
     /**
      *
-     * @return
      */
     public Integer getChange() {
         return iChange;
@@ -94,7 +92,6 @@ public class SSOutdeliveryRow  {
 
     /**
      *
-     * @return
      */
     public SSProduct getProduct() {
         if (iProduct == null && iProductNr != null) {
@@ -125,7 +122,6 @@ public class SSOutdeliveryRow  {
      * Returns true if the product is the same as in this row
      *
      * @param iProduct
-     * @return
      */
     public boolean hasProduct(SSProduct iProduct) {
         return iProductNr != null && iProductNr.equals(iProduct.getNumber());

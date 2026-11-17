@@ -281,7 +281,6 @@ public class SSSaleMath {
      *
      * @param iSale
      * @param iProduct
-     * @return
      */
     public static Integer getProductCount(SSSale iSale, SSProduct iProduct) {
         Integer iCount = 0;
@@ -377,7 +376,6 @@ public class SSSaleMath {
      *
      * @param iSale
      * @param iRow
-     * @return
      */
     public static Optional<SSSaleRow> getMatchingRow(SSSale iSale, SSSaleRow iRow) {
 
@@ -399,7 +397,6 @@ public class SSSaleMath {
     /**
      *
      * @param iSale
-     * @return
      */
     public static boolean hasDiscount(SSSale iSale) {
         for (SSSaleRow iRow : iSale.getRows()) {

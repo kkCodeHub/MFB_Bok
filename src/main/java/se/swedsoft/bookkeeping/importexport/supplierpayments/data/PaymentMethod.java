@@ -25,7 +25,6 @@ public enum PaymentMethod {
 
     /**
      *
-     * @return
      */
     public String getDescription() {
         return SSBundle.getBundle().getString(iBundleName);

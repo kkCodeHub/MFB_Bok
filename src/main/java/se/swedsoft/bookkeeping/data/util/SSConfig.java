@@ -19,7 +19,6 @@ import org.slf4j.LoggerFactory;
 /**
  * Date: 2006-mar-13
  * Time: 09:11:46
- * @version $Id$
  */
 public class SSConfig  {    private static final Logger LOG = LoggerFactory.getLogger(SSConfig.class);
 
@@ -39,7 +38,6 @@ public class SSConfig  {    private static final Logger LOG = LoggerFactory.getL
 
     /**
      * Get the current instance
-     * @return
      */
     public static SSConfig getInstance() {
         if (cInstance == null) {
@@ -70,7 +68,6 @@ public class SSConfig  {    private static final Logger LOG = LoggerFactory.getL
     /**
      *
      * @param pProperty
-     * @return
      */
     public synchronized Object get(String pProperty) {
         return iSettings.get(pProperty);
@@ -80,7 +77,6 @@ public class SSConfig  {    private static final Logger LOG = LoggerFactory.getL
      *
      * @param pProperty
      * @param pDefault
-     * @return
      */
     public synchronized Object get(String pProperty, Object pDefault) {
         Object iValue = iSettings.get(pProperty);

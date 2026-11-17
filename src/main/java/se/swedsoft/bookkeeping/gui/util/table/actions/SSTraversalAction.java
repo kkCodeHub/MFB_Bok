@@ -35,7 +35,6 @@ public abstract class SSTraversalAction {
     /**
      *
      * @param iPosition
-     * @return
      */
     protected abstract Point doTraversal(Point iPosition);
 

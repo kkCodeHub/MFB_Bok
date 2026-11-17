@@ -434,7 +434,6 @@ public class SSPurchaseOrderFrame extends SSDefaultTableFrame {
 
     /**
      *
-     * @return
      */
     public SSPurchaseOrderTableModel getModel() {
         return iModel;

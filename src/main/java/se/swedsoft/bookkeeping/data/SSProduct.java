@@ -165,7 +165,6 @@ public class SSProduct implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public String getNumber() {
         return iNumber;
@@ -183,7 +182,6 @@ public class SSProduct implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public String getDescription() {
         return iDescription;
@@ -200,7 +198,6 @@ public class SSProduct implements SSTableSearchable {
     /**
      *
      * @param iLocale
-     * @return
      */
     public Optional<String> getDescription(Locale iLocale) {
         if (iDescriptions == null) {
@@ -294,7 +291,6 @@ public class SSProduct implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public Map<Locale, String> getDescriptions() {
         if (iDescriptions == null) {
@@ -316,7 +312,6 @@ public class SSProduct implements SSTableSearchable {
 
      /**
       *
-      * @return
       */
      public BigDecimal getSellingPrice() {
          iUnitprice = iUnitprice.setScale(2, RoundingMode.HALF_UP);
@@ -335,7 +330,6 @@ public class SSProduct implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public SSTaxCode getTaxCode() {
         return iTaxCode;
@@ -343,7 +337,6 @@ public class SSProduct implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public Optional<BigDecimal> getTaxRate() {
         SSNewCompany iCompany = se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.getCurrentCompany();
@@ -366,7 +359,6 @@ public class SSProduct implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public String getWarehouseLocation() {
         return iWarehouseLocation;
@@ -384,7 +376,6 @@ public class SSProduct implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public Integer getOrderpoint() {
         return iOrderpoint;
@@ -402,7 +393,6 @@ public class SSProduct implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public Integer getOrdercount() {
         return iOrdercount;
@@ -420,7 +410,6 @@ public class SSProduct implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public BigDecimal getPurchasePrice() {
         return iPurchasePrice;
@@ -448,7 +437,6 @@ public class SSProduct implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public BigDecimal getUnitFreight() {
         return iFreight;
@@ -466,7 +454,6 @@ public class SSProduct implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public String getSupplierNr() {
         return iSupplierNr;
@@ -486,7 +473,6 @@ public class SSProduct implements SSTableSearchable {
     /**
      *
      * @param iSuppliers
-     * @return
      */
     public SSSupplier getSupplier(List<SSSupplier> iSuppliers) {
         if (iSupplier == null) {
@@ -512,7 +498,6 @@ public class SSProduct implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public String getSupplierProductNr() {
         return iSupplierProductNr;
@@ -530,7 +515,6 @@ public class SSProduct implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public boolean isExpired() {
         return iExpired;
@@ -548,7 +532,6 @@ public class SSProduct implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public boolean isStockProduct() {
         return iStockGoods;
@@ -584,7 +567,6 @@ public class SSProduct implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public SSUnit getUnit() {
         return iUnit;
@@ -602,7 +584,6 @@ public class SSProduct implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public BigDecimal getWeight() {
         if (iWeight == null) {
@@ -623,7 +604,6 @@ public class SSProduct implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public BigDecimal getVolume() {
         if (iVolume == null) {
@@ -646,7 +626,6 @@ public class SSProduct implements SSTableSearchable {
     /**
      *
      * @param iDefaultAccount
-     * @return
      */
     public Integer getDefaultAccount(SSDefaultAccount iDefaultAccount) {
         if (iDefaultAccounts == null) {
@@ -664,7 +643,6 @@ public class SSProduct implements SSTableSearchable {
      *
      * @param iDefaultAccount
      * @param iDefault
-     * @return
      */
     public Integer getDefaultAccount(SSDefaultAccount iDefaultAccount, Integer iDefault) {
         if (iDefaultAccounts == null) {
@@ -705,7 +683,6 @@ public class SSProduct implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public List<SSProductRow> getParcelRows() {
         if (iProductRows == null) {
@@ -727,7 +704,6 @@ public class SSProduct implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public boolean isParcel() {
         return !getParcelRows().isEmpty();

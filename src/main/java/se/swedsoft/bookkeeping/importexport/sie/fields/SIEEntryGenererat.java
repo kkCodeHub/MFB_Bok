@@ -38,7 +38,7 @@ public class SIEEntryGenererat implements SIEEntry {
     @Override
     public boolean exportEntry(SSSIEExporter iExporter, SIEWriter iWriter, SSNewAccountingYear iYear) throws SSExportException {
         iWriter.append(SIELabel.SIE_GEN);
-        iWriter.append(SSDateUtil.toDate(SSDateUtil.now()));
+        iWriter.append(SSDateUtil.today());
         iWriter.newLine();
 
         return true;

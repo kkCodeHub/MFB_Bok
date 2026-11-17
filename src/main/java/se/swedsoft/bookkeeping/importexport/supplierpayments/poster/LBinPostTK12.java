@@ -4,7 +4,7 @@ package se.swedsoft.bookkeeping.importexport.supplierpayments.poster;
 import se.swedsoft.bookkeeping.importexport.supplierpayments.data.SupplierPaymentConfig;
 import se.swedsoft.bookkeeping.importexport.supplierpayments.util.LBinLine;
 
-import java.util.Date;
+import java.time.LocalDate;
 
 
 /**
@@ -16,7 +16,7 @@ import java.util.Date;
  */
 public class LBinPostTK12 extends LBinPost {
     private String iText;
-    private Date   iDate;
+    private LocalDate   iDate;
 
     /**
      *
@@ -31,7 +31,6 @@ public class LBinPostTK12 extends LBinPost {
     }
 
     /**
-     * @return
      */
     @Override
     public boolean isEmpty() {

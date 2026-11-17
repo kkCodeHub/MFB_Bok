@@ -62,7 +62,6 @@ public class SSBalancePrinter extends SSPrinter {
     /**
      * Gets the title file for this repport
      *
-     * @return
      */
     @Override
     public String getTitle() {
@@ -253,7 +252,6 @@ public class SSBalancePrinter extends SSPrinter {
      * @param iGroup
      * @param iAccounts
      * @param iLevel
-     * @return
      */
     private List<BalanceRow> getRows(SSAccountGroup iGroup, List<SSAccount> iAccounts, int iLevel) {
         List<SSAccount> iGroupAccounts = iGroup.getGroupAccounts(iAccounts);

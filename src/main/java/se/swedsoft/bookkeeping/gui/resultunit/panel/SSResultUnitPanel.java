@@ -1,6 +1,5 @@
 /*
  * 2005-2010
- * $Id$
  */
 package se.swedsoft.bookkeeping.gui.resultunit.panel;
 
@@ -127,7 +126,6 @@ public class SSResultUnitPanel {
 
     /**
      *
-     * @return
      */
     public JPanel getPanel() {
         return iPanel;
@@ -164,7 +162,6 @@ public class SSResultUnitPanel {
 
     /**
      *
-     * @return
      */
     public SSNewResultUnit getResultUnit() {
         iResultUnit.setNumber(iNumber.getText());

@@ -1,6 +1,5 @@
 /*
  * 2005-2010
- * $Id$
  */
 package se.swedsoft.bookkeeping.print.util;
 
@@ -75,7 +74,6 @@ public class SSDefaultJasperDataSource implements JRRewindableDataSource {
 
     /**
      *
-     * @return
      *
      * @throws JRException
      */
@@ -88,7 +86,6 @@ public class SSDefaultJasperDataSource implements JRRewindableDataSource {
      *
      * @param jrField
      *
-     * @return
      *
      * @throws JRException
      */

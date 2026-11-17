@@ -92,7 +92,6 @@ public class SSInventory {
     // /////////////////////////////////////////////////////////////////////////////////////
     /**
      *
-     * @return
      */
     public Integer getNumber() {
         return iNumber;
@@ -126,7 +125,6 @@ public class SSInventory {
 
     /**
      *
-     * @return
      */
     public String getText() {
         return iText;
@@ -144,7 +142,6 @@ public class SSInventory {
 
     /**
      *
-     * @return
      */
     public List<SSInventoryRow> getRows() {
         return iRows;

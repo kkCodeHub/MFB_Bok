@@ -213,7 +213,6 @@ public class SSIndeliveryFrame extends SSDefaultTableFrame {
 
     /**
      *
-     * @return
      */
     public SSIndeliveryTableModel getModel() {
         return iModel;

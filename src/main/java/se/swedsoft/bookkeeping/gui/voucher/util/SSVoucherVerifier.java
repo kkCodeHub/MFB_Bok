@@ -216,7 +216,6 @@ public class SSVoucherVerifier  implements PropertyChangeListener, TableModelLis
 
     /**
      *
-     * @return
      */
     public boolean isValid() {
         return iValid;
@@ -224,7 +223,6 @@ public class SSVoucherVerifier  implements PropertyChangeListener, TableModelLis
 
     /**
      *
-     * @return
      */
     public String getError() {
         return iError;

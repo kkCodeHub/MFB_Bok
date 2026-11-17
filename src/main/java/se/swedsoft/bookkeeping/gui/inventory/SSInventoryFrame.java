@@ -201,7 +201,6 @@ public class SSInventoryFrame extends SSDefaultTableFrame {
 
     /**
      *
-     * @return
      */
     public SSInventoryTableModel getModel() {
         return iModel;

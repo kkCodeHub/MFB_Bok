@@ -100,7 +100,6 @@ public class SIEIterator implements Iterator<String> {    private static final L
     /**
      *
      * @param pPattern
-     * @return
      */
     private boolean hasNext(Pattern pPattern) {
         Optional<String> iNext = peek();
@@ -116,7 +115,6 @@ public class SIEIterator implements Iterator<String> {    private static final L
 
     /**
      *
-     * @return
      */
     public boolean hasNextArray() {
         return hasNext(ArrayPattern);
@@ -124,7 +122,6 @@ public class SIEIterator implements Iterator<String> {    private static final L
 
     /**
      *
-     * @return
      */
     public boolean hasNextInteger() {
         return hasNext(IntegerPattern);
@@ -132,7 +129,6 @@ public class SIEIterator implements Iterator<String> {    private static final L
 
     /**
      *
-     * @return
      */
     public boolean hasNextFloat() {
         return hasNext(FloatPattern);
@@ -140,7 +136,6 @@ public class SIEIterator implements Iterator<String> {    private static final L
 
     /**
      *
-     * @return
      */
     public boolean hasNextDouble() {
         return hasNext(FloatPattern);
@@ -148,7 +143,6 @@ public class SIEIterator implements Iterator<String> {    private static final L
 
     /**
      *
-     * @return
      */
     public boolean hasNextBoolean() {
         return hasNext(BooleanPattern);
@@ -156,7 +150,6 @@ public class SIEIterator implements Iterator<String> {    private static final L
 
     /**
      *
-     * @return
      */
     public boolean hasNextBigInteger() {
         return hasNext(IntegerPattern);
@@ -164,7 +157,6 @@ public class SIEIterator implements Iterator<String> {    private static final L
 
     /**
      *
-     * @return
      */
     public boolean hasNextBigDecimal() {
         return hasNext(FloatPattern);
@@ -172,7 +164,6 @@ public class SIEIterator implements Iterator<String> {    private static final L
 
     /**
      *
-     * @return
      */
     public boolean hasNextDate() {
         return hasNext(IntegerPattern);
@@ -180,7 +171,6 @@ public class SIEIterator implements Iterator<String> {    private static final L
 
     /**
      *
-     * @return
      */
     public boolean hasNextMonth() {
         return hasNext(IntegerPattern);
@@ -188,7 +178,6 @@ public class SIEIterator implements Iterator<String> {    private static final L
 
     /**
      *
-     * @return
      */
     public List<String> nextArray() {
         String pLine = next();
@@ -224,7 +213,6 @@ public class SIEIterator implements Iterator<String> {    private static final L
 
     /**
      *
-     * @return
      */
     public Optional<Integer> nextInteger() {
         String s = next();
@@ -241,7 +229,6 @@ public class SIEIterator implements Iterator<String> {    private static final L
 
     /**
      *
-     * @return
      */
     public Float nextFloat() {
         Double iValue = nextDouble();
@@ -251,7 +238,6 @@ public class SIEIterator implements Iterator<String> {    private static final L
 
     /**
      *
-     * @return
      */
     public boolean nextBoolean() {
         String s = next();
@@ -261,7 +247,6 @@ public class SIEIterator implements Iterator<String> {    private static final L
 
     /**
      *
-     * @return
      */
     public BigInteger nextBigInteger() {
         String s = next();
@@ -271,7 +256,6 @@ public class SIEIterator implements Iterator<String> {    private static final L
 
     /**
      *
-     * @return
      */
     public BigDecimal nextBigDecimal() {
         Double iValue = nextDouble();
@@ -281,7 +265,6 @@ public class SIEIterator implements Iterator<String> {    private static final L
 
     /**
      *
-     * @return
      */
     public Double nextDouble() {
         String iValue = next();
@@ -291,9 +274,8 @@ public class SIEIterator implements Iterator<String> {    private static final L
 
     /**
      *
-     * @return
      */
-    public Date nextDate() {
+    public LocalDate nextDate() {
         String iValue = next();
 
         if (iValue != null && iValue.length() == 8) {
@@ -303,17 +285,16 @@ public class SIEIterator implements Iterator<String> {    private static final L
 
             try {
                 LocalDate localDate = LocalDate.parse(iValue, ISO_DATE_FORMAT);
-                return SSDateUtil.toDate(localDate);
+                return localDate;
             } catch (DateTimeParseException ex) {
                 LOG.error("Unexpected error", ex);
             }
         }
-        return SSDateUtil.toDate(SSDateUtil.today());
+        return SSDateUtil.today();
     }
 
     /**
      *
-     * @return
      */
     public SSMonth nextMonth() {
         String iValue = next();
@@ -335,7 +316,6 @@ public class SIEIterator implements Iterator<String> {    private static final L
     /**
      *
      * @param c
-     * @return
      */
     private boolean isWhitespace(char c) {
         return c == ' ' || c == '\t';
@@ -344,7 +324,6 @@ public class SIEIterator implements Iterator<String> {    private static final L
     /**
      *
      * @param c
-     * @return
      */
     private boolean isString(char c) {
         return c == '\"';
@@ -353,7 +332,6 @@ public class SIEIterator implements Iterator<String> {    private static final L
     /**
      *
      * @param c
-     * @return
      */
     private boolean isOpenArray(char c) {
         return c == '{';
@@ -362,7 +340,6 @@ public class SIEIterator implements Iterator<String> {    private static final L
     /**
      *
      * @param c
-     * @return
      */
     private boolean isCloseArray(char c) {
         return c == '}';
@@ -371,7 +348,6 @@ public class SIEIterator implements Iterator<String> {    private static final L
     /**
      *
      * @param pLine
-     * @return
      */
     private List<String> parseLine(String pLine) {
         List<String> iValues = new LinkedList<>();

@@ -28,7 +28,6 @@ public class SSSupplierInvoiceRowTableModel extends SSEditableTableModel<SSSuppl
 
     /**
      *
-     * @return
      */
     @Override
     public SSSupplierInvoiceRow newObject() {

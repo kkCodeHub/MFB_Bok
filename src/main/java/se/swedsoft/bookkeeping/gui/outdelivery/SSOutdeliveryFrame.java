@@ -212,7 +212,6 @@ public class SSOutdeliveryFrame extends SSDefaultTableFrame {
 
     /**
      *
-     * @return
      */
     public SSOutdeliveryTableModel getModel() {
         return iModel;

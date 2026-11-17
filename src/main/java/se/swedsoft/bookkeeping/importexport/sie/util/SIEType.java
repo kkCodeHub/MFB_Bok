@@ -29,7 +29,6 @@ public enum SIEType {
     /**
      *
      * @param s
-     * @return
      */
     public static SIEType decode(String s) {
         if (s.equals("1")) {

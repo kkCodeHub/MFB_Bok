@@ -17,7 +17,6 @@ public class SIEFactory {
 
     /**
      *
-     * @return
      */
     public static SIEFactory getImportInstance() {
         return new SIEFactory();
@@ -26,7 +25,6 @@ public class SIEFactory {
     /**
      *
      * @param iType
-     * @return
      */
     public static SIEFactory getExportInstance(SIEType iType) {
         return new SIEFactory(iType);
@@ -64,7 +62,6 @@ public class SIEFactory {
     /**
      *
      * @param pLabel
-     * @return
      */
     public SIEEntry get(String pLabel) {
         return iEntries.get(pLabel);
@@ -73,7 +70,6 @@ public class SIEFactory {
     /**
      *
      * @param pLabel
-     * @return
      */
     public SIEEntry get(SIELabel pLabel) {
         return iEntries.get(pLabel.getName());
@@ -102,7 +98,6 @@ public class SIEFactory {
 
     /**
      *
-     * @return
      */
     public List<SIELabel> getLabels() {
         return iLabels;

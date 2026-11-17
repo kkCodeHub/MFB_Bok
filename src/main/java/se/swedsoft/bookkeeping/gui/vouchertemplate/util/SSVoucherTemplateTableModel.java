@@ -46,7 +46,6 @@ public class SSVoucherTemplateTableModel extends SSTableModel<SSVoucherTemplate>
 
     /**
      *
-     * @return
      */
     public static SSVoucherTemplateTableModel getDropDownModel() {
         SSVoucherTemplateTableModel iModel = new SSVoucherTemplateTableModel();

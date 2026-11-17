@@ -56,7 +56,6 @@ public class SSPickingslipPrinter extends SSPrinter {
     /**
      * Gets the title file for this repport
      *
-     * @return
      */
     @Override
     public String getTitle() {
@@ -120,7 +119,6 @@ public class SSPickingslipPrinter extends SSPrinter {
 
     /**
      *
-     * @return
      */
     @Override
     protected SSDefaultTableModel getModel() {

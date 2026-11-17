@@ -191,7 +191,6 @@ public class SSInpaymentFrame extends SSDefaultTableFrame {
 
     /**
      *
-     * @return
      */
     public SSDefaultTableModel<SSInpayment> getModel() {
         return iModel;

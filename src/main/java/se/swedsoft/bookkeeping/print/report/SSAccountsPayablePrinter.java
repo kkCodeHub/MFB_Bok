@@ -58,10 +58,10 @@ public class SSAccountsPayablePrinter extends SSPrinter {
 
         LocalDate iCeiledDate = iDate;
 
-        iOutpaymentSum = SSOutpaymentMath.getSumsForSupplierInvoices(SSDateUtil.toDate(iCeiledDate));
+        iOutpaymentSum = SSOutpaymentMath.getSumsForSupplierInvoices(iCeiledDate);
 
         iSupplierCreditInvoiceSum = SSSupplierCreditInvoiceMath.getSumsForSupplierInvoices(
-                SSDateUtil.toDate(iCeiledDate));
+                iCeiledDate);
 
         if (SSSupplierMath.iInvoicesForSuppliers == null) {
             SSSupplierMath.getInvoicesForSuppliers();
@@ -94,7 +94,6 @@ public class SSAccountsPayablePrinter extends SSPrinter {
     /**
      * Gets the title file for this repport
      *
-     * @return
      */
     @Override
     public String getTitle() {

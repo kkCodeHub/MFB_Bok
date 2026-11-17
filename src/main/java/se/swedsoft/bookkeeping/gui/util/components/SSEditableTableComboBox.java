@@ -186,7 +186,6 @@ public class SSEditableTableComboBox<T extends SSTableSearchable> extends JPanel
 
     /**
      *
-     * @return
      */
     public SSTableComboBox<T> getComboBox() {
         return iComboBox;
@@ -194,7 +193,6 @@ public class SSEditableTableComboBox<T extends SSTableSearchable> extends JPanel
 
     /**
      *
-     * @return
      */
     public T getSelected() {
         return iComboBox.getSelected();

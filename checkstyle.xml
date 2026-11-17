@@ -30,7 +30,18 @@
         <property name="ignorePattern" value="^(import |package |.*https?://).*$"/>
     </module>
 
+    <!-- java.util.Date is only allowed outside data, calc and persistence (see DateBoundaryRuleTest) -->
+    <module name="SuppressionSingleFilter">
+        <property name="checks" value="IllegalImport"/>
+        <property name="files" value="^(?!.*[\\/]se[\\/]swedsoft[\\/]bookkeeping[\\/](data|calc|persistence)[\\/]).*$"/>
+    </module>
+
     <module name="TreeWalker">
+        <module name="IllegalImport">
+            <property name="severity" value="error"/>
+            <property name="illegalClasses" value="java.util.Date"/>
+        </module>
+
         <!-- Naming conventions -->
         <module name="PackageName">
             <property name="format" value="^[a-z]+(\.[a-z][a-z0-9]*)*$"/>
@@ -59,6 +70,9 @@
         </module>
 
         <!-- Coding -->
+        <module name="IllegalCatch">
+            <property name="illegalClassNames" value="Exception, java.lang.Exception"/>
+        </module>
         <module name="EqualsHashCode"/>
         <module name="SimplifyBooleanExpression"/>
         <module name="SimplifyBooleanReturn"/>

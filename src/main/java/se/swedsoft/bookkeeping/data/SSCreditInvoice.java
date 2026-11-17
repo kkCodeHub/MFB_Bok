@@ -13,7 +13,6 @@ import se.swedsoft.bookkeeping.gui.util.SSBundle;
 import se.swedsoft.bookkeeping.util.SSDateUtil;
 
 import java.math.BigDecimal;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -130,7 +129,6 @@ public class SSCreditInvoice extends SSInvoice {
 
     /**
      *
-     * @return
      */
     public Integer getCreditingNr() {
         return iCreditingNr;
@@ -149,7 +147,6 @@ public class SSCreditInvoice extends SSInvoice {
 
     /**
      *
-     * @return
      */
     @Override
     public BigDecimal getCurrencyRate() {
@@ -169,7 +166,6 @@ public class SSCreditInvoice extends SSInvoice {
 
     /**
      *
-     * @return
      */
     @Override
     public SSVoucher getVoucher() {
@@ -189,7 +185,6 @@ public class SSCreditInvoice extends SSInvoice {
 
     /**
      *
-     * @return
      */
     public SSInvoice getCrediting() {
         return getCrediting(se.swedsoft.bookkeeping.data.system.SSSalesContext.getInvoices());
@@ -226,7 +221,6 @@ public class SSCreditInvoice extends SSInvoice {
      * Returns if this credit sales is crediting the specified sales
      *
      * @param iCrediting
-     * @return
      */
     public boolean isCrediting(SSInvoice iCrediting) {
         boolean answer = false;
@@ -241,7 +235,6 @@ public class SSCreditInvoice extends SSInvoice {
      * Returns if this credit sales is crediting the specified sales
      *
      * @param iCrediting
-     * @return
      */
     public boolean isCrediting(Integer iCrediting) {
         return iCrediting != null && iCrediting.equals(iCreditingNr);

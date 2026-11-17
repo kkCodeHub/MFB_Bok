@@ -444,7 +444,6 @@ public class SSCreditInvoicePanel {
 
     /**
      *
-     * @return
      */
     public boolean isValid() {
         return iInputVerifier.isValid();
@@ -452,7 +451,6 @@ public class SSCreditInvoicePanel {
 
     /**
      *
-     * @return
      */
     public JPanel getPanel() {
         return iPanel;
@@ -606,7 +604,6 @@ public class SSCreditInvoicePanel {
     }
 
     /**
-     * @return
      */
     public SSCreditInvoice getCreditInvoice() {
         Integer iCreditingNr = null;
@@ -786,7 +783,6 @@ public class SSCreditInvoicePanel {
 
     /**
      *
-     * @return
      */
     public boolean doSaveCustomerAndProducts() {
         return iSavecustomerandproducts.isSelected();

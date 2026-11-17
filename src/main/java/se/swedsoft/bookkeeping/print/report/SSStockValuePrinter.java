@@ -61,9 +61,9 @@ public class SSStockValuePrinter extends SSPrinter {
         iProducts = SSProductMath.getStockProducts(SSProductContext.getProducts());
         iStock = new SSStock();
         this.iDate = SSDateUtil.toDate(iDate);
-        iInprices = SSProductMath.getInprices(iProducts, this.iDate);
+        iInprices = SSProductMath.getInprices(iProducts, iDate);
 
-        iStock.update(this.iDate);
+        iStock.update(iDate);
 
         addParameter("periodTitle",
                 SSBundle.getBundle().getString("stockvaluereport.periodtitle"));
@@ -78,7 +78,6 @@ public class SSStockValuePrinter extends SSPrinter {
     /**
      * Gets the title file for this repport
      *
-     * @return
      */
     @Override
     public String getTitle() {

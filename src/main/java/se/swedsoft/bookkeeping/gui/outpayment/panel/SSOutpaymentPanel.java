@@ -296,7 +296,6 @@ public class SSOutpaymentPanel {
 
     /**
      *
-     * @return
      */
     public JPanel getPanel() {
         return iPanel;
@@ -321,7 +320,6 @@ public class SSOutpaymentPanel {
 
     /**
      *
-     * @return
      */
     public SSOutpayment getOutpayment() {
         // Inbetalningsdatum

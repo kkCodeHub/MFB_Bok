@@ -83,7 +83,7 @@ public class SSVoucherExporter {
             }
             iWorkbook.close();
 
-        } catch (Exception e) {
+        } catch (IOException | RuntimeException e) {
             throw new SSExportException(e.getLocalizedMessage());
         }
 
@@ -108,9 +108,8 @@ public class SSVoucherExporter {
      * Writes vouchers and voucher rows to the worksheet.
      *
      * @param pSheet writable destination sheet
-     * @throws Exception if writing to workbook fails
      */
-    private void writeVouchers(SSWritableExcelSheet pSheet) throws Exception {
+    private void writeVouchers(SSWritableExcelSheet pSheet) {
         List<SSWritableExcelRow> iRows = pSheet.getRows(getNumRows(iVouchers) + 4);
 
         Workbook iWorkbook = pSheet.getSheet().getWorkbook();

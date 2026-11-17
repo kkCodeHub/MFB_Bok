@@ -10,7 +10,6 @@ import java.text.NumberFormat;
 
 
 /**
- * $Id$
  *
  */
 public enum SSTaxCode implements SSTableSearchable {
@@ -63,7 +62,6 @@ public enum SSTaxCode implements SSTableSearchable {
     /**
      *
      * @param iValue
-     * @return
      */
     public static SSTaxCode decode(String iValue) {
         // Append a % if not

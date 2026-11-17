@@ -63,7 +63,6 @@ public class SSSystemCompany  {
 
     /**
      * returns the unique id for this company
-     * @return
      */
     public UID getId() {
         return iID;
@@ -73,7 +72,6 @@ public class SSSystemCompany  {
 
     /**
      *
-     * @return
      */
     public String getName() {
         return iName;
@@ -111,7 +109,6 @@ public class SSSystemCompany  {
 
     /**
      *
-     * @return
      */
     public SSNewCompany getData() {
         return iCompany;

@@ -23,7 +23,6 @@ import java.util.Locale;
  * User: Andreas Lago
  * Date: 2006-aug-01
  * Time: 11:32:25
- * $Id$
  */
 public class SSSupplierExporter {
     // Column names
@@ -89,7 +88,7 @@ public class SSSupplierExporter {
             }
             iWorkbook.close();
 
-        } catch (Exception e) {
+        } catch (IOException | RuntimeException e) {
             throw new SSExportException(e.getLocalizedMessage());
         }
 
@@ -99,9 +98,8 @@ public class SSSupplierExporter {
      * Writes all suppliers to the worksheet.
      *
      * @param pSheet writable destination sheet
-     * @throws Exception if writing to workbook fails
      */
-    private void writeSuppliers(SSWritableExcelSheet pSheet) throws Exception {
+    private void writeSuppliers(SSWritableExcelSheet pSheet) {
 
         List<SSWritableExcelRow> iRows = pSheet.getRows(iSuppliers.size() + 1);
 

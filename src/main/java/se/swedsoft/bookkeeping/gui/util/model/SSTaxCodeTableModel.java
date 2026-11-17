@@ -63,7 +63,6 @@ public class SSTaxCodeTableModel extends SSTableModel<SSTaxCode> {
 
     /**
      *
-     * @return
      */
     public SSTableColumn<SSTaxCode> getValueColumn() {
         return new ValueColumn();
@@ -71,7 +70,6 @@ public class SSTaxCodeTableModel extends SSTableModel<SSTaxCode> {
 
     /**
      *
-     * @return
      */
     public static SSTaxCodeTableModel getDropDownModel() {
         SSTaxCodeTableModel iModel = new SSTaxCodeTableModel();
@@ -85,7 +83,6 @@ public class SSTaxCodeTableModel extends SSTableModel<SSTaxCode> {
     /**
      *
      * @param iValues
-     * @return
      */
     public static SSTaxCodeTableModel getDropDownModel(Map<SSTaxCode, BigDecimal> iValues) {
         SSTaxCodeTableModel iModel = new SSTaxCodeTableModel(iValues);

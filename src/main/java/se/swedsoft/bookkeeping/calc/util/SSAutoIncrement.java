@@ -40,7 +40,6 @@ public class SSAutoIncrement  {
     /**
      *
      * @param iKey
-     * @return
      */
     public int getNumber(String iKey) {
         Integer iNumber = iNumbers.get(iKey);

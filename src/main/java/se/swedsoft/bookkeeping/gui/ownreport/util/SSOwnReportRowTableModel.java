@@ -23,7 +23,6 @@ public class SSOwnReportRowTableModel extends SSEditableTableModel<SSOwnReportRo
 
     /**
      *
-     * @return
      */
     @Override
     public SSOwnReportRow newObject() {
@@ -77,7 +76,6 @@ public class SSOwnReportRowTableModel extends SSEditableTableModel<SSOwnReportRo
         }
 
         /**
-         * @return
          */
         @Override
         public TableCellRenderer getCellRenderer() {

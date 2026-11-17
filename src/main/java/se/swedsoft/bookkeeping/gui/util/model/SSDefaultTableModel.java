@@ -1,6 +1,5 @@
 /*
  * 2005-2010
- * $Id$
  */
 package se.swedsoft.bookkeeping.gui.util.model;
 
@@ -286,7 +285,6 @@ public abstract class SSDefaultTableModel<T> extends AbstractTableModel {
     /**
      *
      * @param iTable
-     * @return
      */
     public T getSelectedRow(JTable iTable) {
         int selected = iTable.getSelectedRow();
@@ -301,7 +299,6 @@ public abstract class SSDefaultTableModel<T> extends AbstractTableModel {
     /**
      *
      * @param iTable
-     * @return
      */
     public List<T> getSelectedRows(JTable iTable) {
         int[] selected = iTable.getSelectedRows();

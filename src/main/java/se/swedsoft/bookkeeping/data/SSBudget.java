@@ -27,9 +27,9 @@ public class SSBudget  {
 
     private transient SSNewAccountingYear iAccountingYear;
 
-    private Date iFrom;
+    private LocalDate iFrom;
 
-    private Date iTo;
+    private LocalDate iTo;
 
     private Map<SSMonth, Map<SSAccount, BigDecimal>> iBudget;
 
@@ -37,8 +37,8 @@ public class SSBudget  {
      * Default constructor
      */
     public SSBudget() {
-        iFrom = SSDateUtil.toDate(SSDateUtil.today());
-        iTo = SSDateUtil.toDate(SSDateUtil.today());
+        iFrom = SSDateUtil.today();
+        iTo = SSDateUtil.today();
         iAccountingYear = null;
         iBudget = new HashMap<>();
     }
@@ -76,14 +76,14 @@ public class SSBudget  {
      * @return the from date as a {@link LocalDate}
      */
     public LocalDate getLocalFrom() {
-        return SSDateUtil.toLocalDate(iFrom);
+        return iFrom;
     }
 
     /**
      * @return the to date as a {@link LocalDate}
      */
     public LocalDate getLocalTo() {
-        return SSDateUtil.toLocalDate(iTo);
+        return iTo;
     }
 
     /**
@@ -145,12 +145,12 @@ public class SSBudget  {
     public void setYear(SSNewAccountingYear pAccountingYear) {
         iAccountingYear = pAccountingYear;
 
-        if (!iAccountingYear.getLocalFrom().equals(SSDateUtil.toLocalDate(iFrom))
-                || !iAccountingYear.getLocalTo().equals(SSDateUtil.toLocalDate(iTo))) {
+        if (!iAccountingYear.getLocalFrom().equals(iFrom)
+                || !iAccountingYear.getLocalTo().equals(iTo)) {
             Map<Integer, Map<SSAccount, BigDecimal>> iExistingByMonthNumber = snapshotBudgetByMonthNumber();
 
-            iFrom = SSDateUtil.toDate(iAccountingYear.getLocalFrom());
-            iTo = SSDateUtil.toDate(iAccountingYear.getLocalTo());
+            iFrom = iAccountingYear.getLocalFrom();
+            iTo = iAccountingYear.getLocalTo();
 
             iBudget = createEmptyBudgetForYear();
             restoreBudgetByMonthNumber(iExistingByMonthNumber);
@@ -199,7 +199,6 @@ public class SSBudget  {
 
     /**
      *
-     * @return
      */
     public Map<SSMonth, Map<SSAccount, BigDecimal>> getBudget() {
         if (iBudget == null) {
@@ -425,9 +424,9 @@ public class SSBudget  {
         StringBuffer b = new StringBuffer();
 
         b.append("Budget for ");
-        b.append(format.format(iFrom));
+        b.append(format.format(SSDateUtil.toDate(iFrom)));
         b.append(" to");
-        b.append(format.format(iTo));
+        b.append(format.format(SSDateUtil.toDate(iTo)));
 
         for (SSMonth iMonth: getMonths()) {
             b.append("Month: ");

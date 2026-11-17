@@ -23,7 +23,6 @@ import java.util.List;
 
 
 /**
- * $Id$
  *
  */
 public class SSAddAccountDialog extends SSDialog {
@@ -128,7 +127,6 @@ public class SSAddAccountDialog extends SSDialog {
 
     /**
      *
-     * @return
      */
     public JPanel getPanel() {
         return iPanel;

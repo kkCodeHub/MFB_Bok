@@ -133,7 +133,6 @@ public class SSOutdeliveryPanel {
 
     /**
      *
-     * @return
      */
     public JPanel getPanel() {
         return iPanel;
@@ -141,7 +140,6 @@ public class SSOutdeliveryPanel {
 
     /**
      *
-     * @return
      */
     public SSOutdelivery getoutdelivery() {
         // Text

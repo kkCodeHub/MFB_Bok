@@ -139,7 +139,6 @@ public class SSCustomerPanel {
 
     /**
      *
-     * @return
      */
     public boolean isValid() {
         return iInputVerifier.isValid();
@@ -147,14 +146,12 @@ public class SSCustomerPanel {
 
     /**
      *
-     * @return
      */
     public JPanel getPanel() {
         return iPanel;
     }
 
     /**
-     * @return
      */
     public SSCustomer getCustomer() {
         // Kund nr:

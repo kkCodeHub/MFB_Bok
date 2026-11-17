@@ -28,7 +28,6 @@ import java.util.List;
 
 
 /**
- * $Id$
  *
  */
 public class SSPurchaseOrderListDialog extends SSDialog {
@@ -87,7 +86,6 @@ public class SSPurchaseOrderListDialog extends SSDialog {
 
     /**
      *
-     * @return
      */
     public JPanel getPanel() {
         return iPanel;
@@ -96,7 +94,6 @@ public class SSPurchaseOrderListDialog extends SSDialog {
     /**
      * Returns the invoices to print depending on the user selections
      *
-     * @return
      */
     public List<SSPurchaseOrder> getElementsToPrint() {
         List<SSPurchaseOrder> iPurchaseOrders = Repositories.purchaseOrders().findAll();

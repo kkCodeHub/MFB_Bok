@@ -38,7 +38,6 @@ import java.util.*;
 /**
  * Date: 2006-feb-13
  * Time: 16:43:09
- * $Id$
  */
 public class SSCustomerImporter {
 

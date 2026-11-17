@@ -56,7 +56,6 @@ public class SSSupplierInvoicejournalPrinter extends SSPrinter {
     /**
      * Gets the title file for this repport
      *
-     * @return
      */
     @Override
     public String getTitle() {

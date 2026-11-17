@@ -209,7 +209,6 @@ public class SIEWriter {
 
     /**
      *
-     * @return
      */
     public String getLine() {
         return iStringBuilder.toString().trim();
@@ -217,7 +216,6 @@ public class SIEWriter {
 
     /**
      *
-     * @return
      */
     public List<String> getLines() {
         // List<String> lines = new LinkedList<>(iLines);

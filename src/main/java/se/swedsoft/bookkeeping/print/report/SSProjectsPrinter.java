@@ -6,6 +6,7 @@ import se.swedsoft.bookkeeping.data.system.SSDB;
 import se.swedsoft.bookkeeping.gui.util.SSBundle;
 import se.swedsoft.bookkeeping.gui.util.model.SSDefaultTableModel;
 import se.swedsoft.bookkeeping.print.SSPrinter;
+import se.swedsoft.bookkeeping.util.SSDateUtil;
 
 import java.text.DateFormat;
 import java.util.List;
@@ -41,7 +42,6 @@ public class SSProjectsPrinter extends SSPrinter {
     /**
      * Gets the title file for this repport
      *
-     * @return
      */
     @Override
     public String getTitle() {
@@ -82,7 +82,7 @@ public class SSProjectsPrinter extends SSPrinter {
 
                 case 3:
                     value = iProject.getConcluded()
-                            ? iFormat.format(iProject.getConcludedDate())
+                            ? iFormat.format(SSDateUtil.toDate(iProject.getLocalConcludedDate()))
                             : null;
                     break;
                 }

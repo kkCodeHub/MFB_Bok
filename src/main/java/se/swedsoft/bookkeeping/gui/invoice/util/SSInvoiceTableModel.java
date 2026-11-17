@@ -52,7 +52,6 @@ public class SSInvoiceTableModel extends SSTableModel<SSInvoice> {
 
     /**
      *
-     * @return
      */
     public static SSInvoiceTableModel getDropDownModel() {
         return getDropDownModel(SSSalesContext.getInvoices());
@@ -61,7 +60,6 @@ public class SSInvoiceTableModel extends SSTableModel<SSInvoice> {
     /**
      *
      * @param iInvoices
-     * @return
      */
     public static SSInvoiceTableModel getDropDownModel(List<SSInvoice> iInvoices) {
         SSInvoiceTableModel iModel = new SSInvoiceTableModel(iInvoices);
@@ -390,7 +388,6 @@ public class SSInvoiceTableModel extends SSTableModel<SSInvoice> {
 
     /**
      * Saldo
-     * @return
      */
     
     /* public static SSTableColumn<SSInvoice> COLUMN_SALDO = new SSTableColumn<>(SSBundle.getBundle().getString("invoicetable.column.11")) {

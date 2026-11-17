@@ -34,7 +34,6 @@ import org.slf4j.LoggerFactory;
  *
  * @author jensli
  *
- * $Id$
  *
  */
 public class SSMailServerDialog extends SSDialog {    private static final Logger LOG = LoggerFactory.getLogger(SSMailServerDialog.class);
@@ -118,7 +117,6 @@ public class SSMailServerDialog extends SSDialog {    private static final Logge
      * Reads the fields of the dialog and constructs a SSMailServer from
      * that, throwing if there was a format error in the fields.
      * @throws SSMailServerException
-     * @return
      */
     private SSMailServer getServerFromFields() throws SSMailServerException {
 
@@ -340,7 +338,6 @@ public class SSMailServerDialog extends SSDialog {    private static final Logge
      * copied to the text fields of the dialog, a SSMailServer constructed
      * from the edited fields will be returned.
      * @param server
-     * @return
      */
     public SSMailServer showServerQuery(SSMailServer server) {
 
@@ -398,7 +395,6 @@ public class SSMailServerDialog extends SSDialog {    private static final Logge
     /**
      * Opends a dialog asking if the user wants to discard the faulty info.
      * @param message
-     * @return
      */
     private boolean queryShouldDiscard(String message) {
 

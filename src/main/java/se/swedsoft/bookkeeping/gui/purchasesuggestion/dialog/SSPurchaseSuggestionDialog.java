@@ -123,7 +123,6 @@ public class SSPurchaseSuggestionDialog extends SSDialog {
 
     /**
      *
-     * @return
      */
     public JPanel getPanel() {
         return iPanel;

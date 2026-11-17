@@ -99,7 +99,6 @@ public class SSInterestInvoicePanel {
 
     /**
      *
-     * @return
      */
     public JPanel getPanel() {
         return iPanel;
@@ -124,7 +123,6 @@ public class SSInterestInvoicePanel {
 
     /**
      *
-     * @return
      */
     public List<SSInvoice> getInterestInvoices() {
         String    iDescription = this.iDescription.getText();
@@ -149,7 +147,6 @@ public class SSInterestInvoicePanel {
 
     /**
      *
-     * @return
      */
     public static List<SSInvoice> getRows() {
         // Get all invoices from the DB
@@ -171,13 +168,12 @@ public class SSInterestInvoicePanel {
 
             BigDecimal iSaldo = SSInvoiceMath.getSaldo(iInvoice.getNumber());
 
-            Date iLastInpayment = SSInpaymentMath.getLastInpaymentForInvoice(iInvoice);
+            LocalDate lastInpaymentDate = SSInpaymentMath.getLastInpaymentForInvoice(iInvoice);
 
-            if (iLastInpayment == null) {
-                iLastInpayment = SSDateUtil.toDate(SSDateUtil.today());
+            if (lastInpaymentDate == null) {
+                lastInpaymentDate = SSDateUtil.today();
             }
 
-            LocalDate lastInpaymentDate = SSDateUtil.toLocalDate(iLastInpayment);
             LocalDate dueDate = iInvoice.getLocalDueDate();
 
             if (iSaldo.signum() == 0 && dueDate != null && lastInpaymentDate != null

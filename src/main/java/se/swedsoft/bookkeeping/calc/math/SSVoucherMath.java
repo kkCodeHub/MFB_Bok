@@ -53,7 +53,6 @@ public class SSVoucherMath {
      *
      * @param iVoucher
      * @param iMonth
-     * @return
      */
     public static boolean inPeriod(SSVoucher iVoucher, SSMonth iMonth) {
         LocalDate voucherDate = iVoucher.getLocalDate();
@@ -69,7 +68,6 @@ public class SSVoucherMath {
      * @param iVoucher
      * @param pFrom
      * @param pTo
-     * @return
      */
     public static boolean inPeriod(SSVoucher iVoucher, SSVoucher pFrom, SSVoucher pTo) {
         return pFrom.getNumber() <= iVoucher.getNumber()
@@ -99,7 +97,6 @@ public class SSVoucherMath {
     /**
      *
      * @param iVoucher
-     * @return
      */
     public static BigDecimal getCreditSum(SSVoucher iVoucher) {
         BigDecimal sum = new BigDecimal(0);
@@ -116,7 +113,6 @@ public class SSVoucherMath {
     /**
      *
      * @param iVoucher
-     * @return
      */
     public static BigDecimal getDebetSum(SSVoucher iVoucher) {
         BigDecimal sum = new BigDecimal(0);
@@ -133,7 +129,6 @@ public class SSVoucherMath {
     /**
      *
      * @param pVoucher
-     * @return
      */
     public static BigDecimal getCreditMinusDebetSum(SSVoucher pVoucher) {
         return getCreditSum(pVoucher).subtract(getDebetSum(pVoucher));
@@ -142,7 +137,6 @@ public class SSVoucherMath {
     /**
      *
      * @param pVoucher
-     * @return
      */
     public static BigDecimal getDebetMinusCreditSum(SSVoucher pVoucher) {
         return getDebetSum(pVoucher).subtract(getCreditSum(pVoucher));
@@ -151,7 +145,6 @@ public class SSVoucherMath {
     /**
      *
      * @param pVouchers
-     * @return
      */
     public static Map<SSAccount, BigDecimal>  getCreditMinusDebetSum(List<SSVoucher> pVouchers) {
         Map<SSAccount, BigDecimal> iSums = new HashMap<>();
@@ -177,7 +170,6 @@ public class SSVoucherMath {
     /**
      *
      * @param pVouchers
-     * @return
      */
     public static Map<SSAccount, BigDecimal>  getDebetMinusCreditSum(List<SSVoucher> pVouchers) {
         Map<SSAccount, BigDecimal> iSums = new HashMap<>();
@@ -204,7 +196,6 @@ public class SSVoucherMath {
      *
      * @param pAccountingYear
      * @param pVouchers
-     * @return
      */
     public static Map<SSAccount, BigDecimal>  getCreditMinusDebetSumPlusIB(SSNewAccountingYear pAccountingYear, List<SSVoucher> pVouchers) {
         Map<SSAccount, BigDecimal> iSums = getCreditMinusDebetSum(pVouchers);
@@ -228,7 +219,6 @@ public class SSVoucherMath {
      *
      * @param pAccountingYear
      * @param pVouchers
-     * @return
      */
     public static Map<SSAccount, BigDecimal> getDebetMinusCreditSumPlusIB(SSNewAccountingYear pAccountingYear, List<SSVoucher> pVouchers) {
         Map<SSAccount, BigDecimal> iSums = getDebetMinusCreditSum(pVouchers);
@@ -252,7 +242,6 @@ public class SSVoucherMath {
      *
      * @param iVoucher
      * @param iAccount
-     * @return
      */
     public static BigDecimal getDebetSumForAccount(SSVoucher iVoucher, SSAccount iAccount) {
         BigDecimal sum = new BigDecimal(0);
@@ -271,7 +260,6 @@ public class SSVoucherMath {
      *
      * @param iVoucher
      * @param iAccount
-     * @return
      */
     public static BigDecimal getCreditSumForAccount(SSVoucher iVoucher, SSAccount iAccount) {
         BigDecimal sum = new BigDecimal(0);
@@ -289,7 +277,6 @@ public class SSVoucherMath {
     /**
      *
      *
-     * @return
      */
     public static int getMaxNumber() {
         return se.swedsoft.bookkeeping.data.system.SSAccountingContext.getLastVoucherNumber();
@@ -324,7 +311,6 @@ public class SSVoucherMath {
     /**
      *
      * @param iVouchers
-     * @return
      */
     public static Optional<SSVoucher> getFirst(List<SSVoucher> iVouchers) {
 
@@ -346,7 +332,6 @@ public class SSVoucherMath {
     /**
      *
      * @param iVouchers
-     * @return
      */
     public static Optional<SSVoucher> getLast(List<SSVoucher> iVouchers) {
 
@@ -382,7 +367,6 @@ public class SSVoucherMath {
     /**
      *
      * @param iVoucherRow
-     * @return
      */
     public static BigDecimal getCreditMinusDebet(SSVoucherRow iVoucherRow) {
         BigDecimal debet = iVoucherRow.getDebet();
@@ -401,7 +385,6 @@ public class SSVoucherMath {
     /**
      *
      * @param iVoucherRow
-     * @return
      */
     public static BigDecimal getDebetMinusCredit(SSVoucherRow iVoucherRow) {
         BigDecimal debet = iVoucherRow.getDebet();
@@ -514,7 +497,6 @@ public class SSVoucherMath {
      * @param iAccount
      * @param iProject
      * @param iResultunit
-     * @return
      */
     public static Optional<SSVoucherRow> findRow(SSVoucher iVoucher, SSAccount iAccount, SSNewProject iProject, SSNewResultUnit iResultunit) {
 
@@ -539,7 +521,6 @@ public class SSVoucherMath {
     /**
      *
      * @param iVoucher
-     * @return
      */
     public static SSVoucher compress(SSVoucher iVoucher) {
         SSVoucher iNew = new SSVoucher();
@@ -581,10 +562,6 @@ public class SSVoucherMath {
      *
      * @return The previous voucher.
      */
-    public static Date getNextVoucherDate() {
-        return SSDateUtil.toDate(getNextVoucherLocalDate());
-    }
-
     public static LocalDate getNextVoucherLocalDate() {
         List<SSVoucher> iVouchers = new LinkedList<>(
                 se.swedsoft.bookkeeping.data.system.SSAccountingContext.getVouchers());
@@ -643,7 +620,7 @@ public class SSVoucherMath {
 
             iNewRow.setAdded(false);
             iNewRow.setEditedSignature(null);
-            iNewRow.setEditedDate(null);
+            iNewRow.setLocalEditedDate(null);
 
             iNew.add(iNewRow);
         }

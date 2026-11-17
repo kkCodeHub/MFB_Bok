@@ -292,7 +292,6 @@ public class SSTableComboBox<T extends SSTableSearchable> extends JPanel {
 
     /**
      *
-     * @return
      */
     public SSTableModel<T> getModel() {
         return iModel;
@@ -412,7 +411,6 @@ public class SSTableComboBox<T extends SSTableSearchable> extends JPanel {
 
     /**
      *
-     * @return
      */
     public Object getValue() {
         if (iSelected != null) {
@@ -427,7 +425,6 @@ public class SSTableComboBox<T extends SSTableSearchable> extends JPanel {
 
     /**
      *
-     * @return
      */
     private boolean searchTable() {
         String iText = iTextField.getText();
@@ -576,7 +573,6 @@ public class SSTableComboBox<T extends SSTableSearchable> extends JPanel {
 
     /**
      *
-     * @return
      */
     public SSTable getTable() {
         return iTable;
@@ -742,7 +738,6 @@ public class SSTableComboBox<T extends SSTableSearchable> extends JPanel {
          * Returns true to indicate that editing has begun.
          *
          * @param anEvent          the event
-         * @return
          */
         public boolean startCellEditing(EventObject anEvent) {
             return true;

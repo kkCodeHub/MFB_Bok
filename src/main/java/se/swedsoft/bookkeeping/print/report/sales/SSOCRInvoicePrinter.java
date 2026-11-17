@@ -15,7 +15,6 @@ import java.util.ResourceBundle;
 
 
 /**
- * $Id$ 
  *
  */
 public class SSOCRInvoicePrinter extends SSInvoicePrinter {
@@ -150,7 +149,6 @@ public class SSOCRInvoicePrinter extends SSInvoicePrinter {
 
         /**
          *
-         * @return
          */
         public String toString() {
             String iText = "";

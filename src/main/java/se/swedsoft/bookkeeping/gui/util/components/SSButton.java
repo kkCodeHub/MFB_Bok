@@ -92,7 +92,6 @@ public class SSButton extends JButton {
 
     /**
      *
-     * @return
      */
     public String getIconName() {
         return iIconName;

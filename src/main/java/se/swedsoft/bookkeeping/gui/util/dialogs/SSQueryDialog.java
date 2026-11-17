@@ -79,7 +79,6 @@ public class SSQueryDialog {
      * @param pOptionType
      * @param pTitle
      * @param pMessage
-     * @return
      */
     private int openDialog(JFrame iFrame, int pOptionType, String pTitle, String pMessage) {
         Icon iIcon = SSIcon.getIcon("ICON_DIALOG_INFORMATION");
@@ -114,7 +113,6 @@ public class SSQueryDialog {
      *
      * @param iFrame
      * @param pBundleName
-     * @return
      */
     public static int showDialog(JFrame iFrame, String pBundleName) {
         SSQueryDialog iDialog = new SSQueryDialog(iFrame, pBundleName);
@@ -128,7 +126,6 @@ public class SSQueryDialog {
      * @param iBundle
      * @param pBundleName
      * @param pMessageFormat
-     * @return
      */
     public static int showDialog(JFrame iFrame, ResourceBundle iBundle, String pBundleName, Object... pMessageFormat) {
         SSQueryDialog iDialog = new SSQueryDialog(iFrame, iBundle, pBundleName,
@@ -142,7 +139,6 @@ public class SSQueryDialog {
      * @param iFrame
      * @param pOptionType
      * @param pBundleName
-     * @return
      */
     public static int showDialog(JFrame iFrame, int pOptionType, String pBundleName) {
         SSQueryDialog iDialog = new SSQueryDialog(iFrame, pOptionType, pBundleName);
@@ -156,7 +152,6 @@ public class SSQueryDialog {
      * @param pOptionType
      * @param pTitle
      * @param iMessage
-     * @return
      */
     public static int showDialog(JFrame iFrame, int pOptionType, String pTitle, String iMessage) {
         SSQueryDialog iDialog = new SSQueryDialog(iFrame, pOptionType, pTitle, iMessage);

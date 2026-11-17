@@ -18,7 +18,6 @@ import java.awt.event.ActionListener;
 
 
 /**
- * $Id$
  *
  */
 public class BgMaxSelectInvoiceDialog extends SSDialog {
@@ -74,7 +73,6 @@ public class BgMaxSelectInvoiceDialog extends SSDialog {
 
     /**
      *
-     * @return
      */
     public SSInvoice getInvoice() {
         return iInvoices.getSelected();
@@ -83,7 +81,6 @@ public class BgMaxSelectInvoiceDialog extends SSDialog {
     /**
      *
      * @param iBetalning
-     * @return
      */
     public int showDialog(BgMaxBetalning iBetalning) {
         iInvoices.setSelected(null);
@@ -111,7 +108,6 @@ public class BgMaxSelectInvoiceDialog extends SSDialog {
     /**
      *
      * @param iBetalning
-     * @return
      */
     private String getReferenceText(BgMaxBetalning iBetalning) {
         StringBuilder sb = new StringBuilder();

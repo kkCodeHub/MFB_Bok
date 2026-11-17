@@ -482,7 +482,6 @@ public class SSInvoiceFrame extends SSDefaultTableFrame {
 
     /**
      *
-     * @return
      */
     public SSInvoiceTableModel getModel() {
         return iModel;

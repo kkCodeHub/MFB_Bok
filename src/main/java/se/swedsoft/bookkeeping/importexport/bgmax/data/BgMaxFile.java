@@ -148,7 +148,6 @@ public class BgMaxFile {    private static final Logger LOG = LoggerFactory.getL
     /**
      * Returns true if this is a valid bgmax file
      * @param iFirstLine
-     * @return
      * @throws RuntimeException
      */
     private boolean isValid(String iFirstLine) {

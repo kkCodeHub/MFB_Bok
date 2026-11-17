@@ -209,7 +209,6 @@ public class SSInvoice extends SSSale {
 
     /**
      *
-     * @return
      */
     public SSInvoiceType getType() {
         if (iType == null) {
@@ -233,7 +232,6 @@ public class SSInvoice extends SSSale {
 
     /**
      *
-     * @return
      */
     public BigDecimal getCurrencyRate() {
         return iCurrencyRate;
@@ -291,7 +289,6 @@ public class SSInvoice extends SSSale {
 
     /**
      *
-     * @return
      */
     public String getYourOrderNumber() {
         return iYourOrderNumber;
@@ -309,7 +306,6 @@ public class SSInvoice extends SSSale {
 
     /**
      *
-     * @return
      */
     public SSVoucher getVoucher() {
         if (iVoucher == null) {
@@ -330,7 +326,6 @@ public class SSInvoice extends SSSale {
 
     /**
      *
-     * @return
      */
     public boolean hasOCRNumber() {
         return iOCRNumber != null;
@@ -338,7 +333,6 @@ public class SSInvoice extends SSSale {
 
     /**
      *
-     * @return
      */
     public String getOCRNumber() {
         return iOCRNumber;
@@ -356,7 +350,6 @@ public class SSInvoice extends SSSale {
 
     /**
      *
-     * @return
      */
     public boolean isEntered() {
         return iEntered;
@@ -381,7 +374,6 @@ public class SSInvoice extends SSSale {
 
     /**
      *
-     * @return
      */
     public boolean isCancelled() {
         return iCancelled;
@@ -467,7 +459,6 @@ public class SSInvoice extends SSSale {
 
     /**
      *
-     * @return
      */
     public boolean isInterestInvoiced() {
         return iInterestInvoiced;
@@ -485,7 +476,6 @@ public class SSInvoice extends SSSale {
 
     /**
      *
-     * @return
      */
     public int getNumReminders() {
         return iNumReminders;
@@ -503,7 +493,6 @@ public class SSInvoice extends SSSale {
 
     /**
      *
-     * @return
      */
     public boolean isStockInfluencing() {
         return iStockInfluencing;
@@ -581,7 +570,6 @@ public class SSInvoice extends SSSale {
      * Returns true if sales customer is the same customer as the supplied
      *
      * @param iCustomer
-     * @return
      */
     public boolean hasCustomer(SSCustomer iCustomer) {
         return (iCustomerNr != null) && iCustomerNr.equals(iCustomer.getNumber());
@@ -597,7 +585,6 @@ public class SSInvoice extends SSSale {
 
     /**
      *
-     * @return
      */
     public SSVoucher generateVoucher() {
         String iDescription = SSBundle.getBundle().getString(

@@ -1,6 +1,5 @@
 /*
  * 2005-2010
- * $Id$
  */
 package se.swedsoft.bookkeeping.data;
 
@@ -66,7 +65,6 @@ public class SSNewResultUnit implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public String getNumber() {
         return iNumber;
@@ -84,7 +82,6 @@ public class SSNewResultUnit implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public String getName() {
         return iName;
@@ -102,7 +99,6 @@ public class SSNewResultUnit implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public String getDescription() {
         return iDescription;
@@ -121,7 +117,6 @@ public class SSNewResultUnit implements SSTableSearchable {
     /**
      *
      * @param obj
-     * @return
      */
     public boolean equals(Object obj) {
         if (obj instanceof SSNewResultUnit) {
@@ -132,7 +127,6 @@ public class SSNewResultUnit implements SSTableSearchable {
     }
 
     /**
-     * @return
      */
     public String toRenderString() {
         return iNumber;

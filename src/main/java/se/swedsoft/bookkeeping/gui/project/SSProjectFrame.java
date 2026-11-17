@@ -1,6 +1,5 @@
 /*
  * 2005-2010
- * $Id$
  */
 package se.swedsoft.bookkeeping.gui.project;
 
@@ -188,7 +187,6 @@ public class SSProjectFrame extends SSDefaultTableFrame {
 
     /**
      *
-     * @return
      */
     private SSNewProject getSelected() {
         int selected = iTable.getSelectedRow();

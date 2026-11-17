@@ -419,7 +419,6 @@ public class SSProductFrame extends SSDefaultTableFrame {
 
     /**
      *
-     * @return
      */
     public SSProductTableModel getModel() {
         return iModel;

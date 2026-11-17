@@ -15,7 +15,6 @@ import java.util.Date;
 
 
 /**
- * $Id$
  *
  */
 public class SSPeriodSelectionDialog extends SSDialog {

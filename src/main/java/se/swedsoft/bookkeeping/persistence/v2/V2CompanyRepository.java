@@ -214,7 +214,7 @@ public class V2CompanyRepository {
                 replaceCompanyAutoIncrements(companyId, pCompany.getAutoIncrement());
                 activateCompany(companyId);
                 connection.commit();
-            } catch (Exception e) {
+            } catch (SQLException | RuntimeException e) {
                 rollbackHandler.rollbackCurrentTransaction();
                 try {
                     setSchema("PUBLIC");
@@ -233,12 +233,10 @@ public class V2CompanyRepository {
             }
         } catch (SQLException e) {
             throw handleFailure("add company", e);
-        } catch (Exception e) {
-            if (e instanceof RuntimeException) {
-                Throwable cause = e.getCause();
-                if (cause instanceof SQLException) {
-                    throw handleFailure("add company", (SQLException) cause);
-                }
+        } catch (RuntimeException e) {
+            Throwable cause = e.getCause();
+            if (cause instanceof SQLException) {
+                throw handleFailure("add company", (SQLException) cause);
             }
             throw new IllegalStateException("Unable to add company", e);
         }

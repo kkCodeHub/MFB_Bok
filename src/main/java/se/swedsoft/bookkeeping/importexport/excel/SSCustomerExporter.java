@@ -36,7 +36,6 @@ import org.slf4j.LoggerFactory;
  * User: Andreas Lago
  * Date: 2006-aug-01
  * Time: 11:32:25
- * $Id$
  */
 public class SSCustomerExporter {
 

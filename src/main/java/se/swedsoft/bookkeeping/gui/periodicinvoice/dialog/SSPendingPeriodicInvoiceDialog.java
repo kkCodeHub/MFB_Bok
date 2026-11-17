@@ -76,7 +76,6 @@ public class SSPendingPeriodicInvoiceDialog extends SSDialog {
 
     /**
      *
-     * @return
      */
     public JPanel getPanel() {
         return iPanel;
@@ -102,7 +101,6 @@ public class SSPendingPeriodicInvoiceDialog extends SSDialog {
      *
      * @param iMainFrame
      * @param iInvoices
-     * @return
      */
     public static Map<SSPeriodicInvoice, List<SSInvoice>> showDialog(SSMainFrame iMainFrame, Map<SSPeriodicInvoice, List<SSInvoice>> iInvoices) {
         SSPendingPeriodicInvoiceDialog iDialog = new SSPendingPeriodicInvoiceDialog(

@@ -33,7 +33,6 @@ public class SSIndeliveryRowTableModel extends SSEditableTableModel<SSIndelivery
     }
 
     /**
-     * @return
      */
     @Override
     public SSIndeliveryRow newObject() {

@@ -51,7 +51,6 @@ public class SSAccountdiagramPrinter extends SSPrinter {
     /**
      * Gets the title file for this report
      *
-     * @return
      */
     @Override
     public String getTitle() {
@@ -156,7 +155,6 @@ public class SSAccountdiagramPrinter extends SSPrinter {
      * @param pGroup
      * @param creditMinusDebetSum
      * @param debetMinusCreditSum
-     * @return
      */
     private BigDecimal getGroupSum(AccountDiagramGroup pGroup, Map<SSAccount, BigDecimal> creditMinusDebetSum, Map<SSAccount, BigDecimal> debetMinusCreditSum) {
         BigDecimal sum = new BigDecimal(0);

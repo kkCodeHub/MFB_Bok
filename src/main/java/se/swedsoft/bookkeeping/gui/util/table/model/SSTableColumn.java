@@ -74,7 +74,6 @@ public abstract class SSTableColumn<T> {
 
     /**
      *
-     * @return
      */
     public SSTableModel<T> getModel() {
         return iModel;
@@ -90,7 +89,6 @@ public abstract class SSTableColumn<T> {
 
     /**
      *
-     * @return
      */
     public TableCellEditor getCellEditor() {
         return null;
@@ -98,7 +96,6 @@ public abstract class SSTableColumn<T> {
 
     /**
      *
-     * @return
      */
     public TableCellRenderer getCellRenderer() {
         return null;

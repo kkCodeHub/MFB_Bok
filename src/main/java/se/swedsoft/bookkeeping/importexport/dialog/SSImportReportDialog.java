@@ -10,7 +10,6 @@ import java.awt.event.ActionListener;
 
 
 /**
- * $Id$
  *
  */
 public class SSImportReportDialog extends SSDialog {

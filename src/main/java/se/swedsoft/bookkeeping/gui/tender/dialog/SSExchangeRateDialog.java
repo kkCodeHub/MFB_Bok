@@ -18,7 +18,6 @@ import java.math.RoundingMode;
 
 
 /**
- * $Id$
  *
  */
 public class SSExchangeRateDialog extends SSDialog {
@@ -50,7 +49,6 @@ public class SSExchangeRateDialog extends SSDialog {
 
     /**
      *
-     * @return
      */
     public BigDecimal getExchangeRate() {
         return iExchangeRate.getValue();

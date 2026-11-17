@@ -18,7 +18,6 @@ import java.util.Date;
 
 
 /**
- * $Id$
  *
  */
 public class SSStockAccountDialog extends SSDialog {
@@ -62,7 +61,6 @@ public class SSStockAccountDialog extends SSDialog {
 
     /**
      *
-     * @return
      */
     public JPanel getPanel() {
         return iPanel;
@@ -70,7 +68,6 @@ public class SSStockAccountDialog extends SSDialog {
 
     /**
      *
-     * @return
      */
     public boolean isDateSelected() {
         return iRadioDate.isSelected();

@@ -76,7 +76,6 @@ public class SSProductTableModel extends SSTableModel<SSProduct> {
 
     /**
      *
-     * @return
      */
     public static SSProductTableModel getDropDownModel() {
         return getDropDownModel(SSProductContext.getProducts());
@@ -85,7 +84,6 @@ public class SSProductTableModel extends SSTableModel<SSProduct> {
     /**
      *
      * @param iProducts
-     * @return
      */
     public static SSProductTableModel getDropDownModel(List<SSProduct> iProducts) {
         SSProductTableModel iModel = new SSProductTableModel(iProducts);
@@ -260,7 +258,6 @@ public class SSProductTableModel extends SSTableModel<SSProduct> {
     /**
      *
      * @param iStock
-     * @return
      */
     public static SSTableColumn<SSProduct> getStockQuantityColumn(final SSStock iStock) {
         return new SSTableColumn<>(

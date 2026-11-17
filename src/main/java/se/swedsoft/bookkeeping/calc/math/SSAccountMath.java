@@ -27,7 +27,6 @@ public class SSAccountMath {
      * @param iAccount
      * @param iFrom
      * @param iTo
-     * @return
      */
     public static boolean inPeriod(SSAccount iAccount, SSAccount iFrom, SSAccount iTo) {
         Integer iNumber = iAccount.getNumber();

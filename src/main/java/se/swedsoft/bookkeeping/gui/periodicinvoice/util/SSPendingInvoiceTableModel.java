@@ -74,7 +74,6 @@ public class SSPendingInvoiceTableModel extends SSTableModel<SSPendingInvoiceTab
 
     /**
      *
-     * @return
      */
     public Map<SSPeriodicInvoice, List<SSInvoice>> getSelected() {
         Map<SSPeriodicInvoice, List<SSInvoice>> iSelected = new HashMap<>();
@@ -107,7 +106,6 @@ public class SSPendingInvoiceTableModel extends SSTableModel<SSPendingInvoiceTab
 
     /**
      *  Vald
-     * @return
      */
     public SSTableColumn<Entry> getSelectionColumn() {
         return new SSTableColumn<>(

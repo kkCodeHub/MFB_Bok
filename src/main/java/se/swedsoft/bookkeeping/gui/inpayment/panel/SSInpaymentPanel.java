@@ -303,7 +303,6 @@ public class SSInpaymentPanel {
 
     /**
      *
-     * @return
      */
     public JPanel getPanel() {
         return iPanel;
@@ -328,7 +327,6 @@ public class SSInpaymentPanel {
 
     /**
      *
-     * @return
      */
     public SSInpayment getInpayment() {
 

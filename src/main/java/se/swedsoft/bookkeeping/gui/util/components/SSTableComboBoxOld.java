@@ -410,7 +410,6 @@ public class SSTableComboBoxOld<T extends SSTableSearchable> extends JPanel {
 
     /**
      *
-     * @return
      */
     private boolean searchTable() {
         String iText = iTextField.getText();
@@ -556,7 +555,6 @@ public class SSTableComboBoxOld<T extends SSTableSearchable> extends JPanel {
 
     /**
      *
-     * @return
      */
     public SSDefaultTableModel<T> getModel() {
         return iModel;
@@ -681,7 +679,6 @@ public class SSTableComboBoxOld<T extends SSTableSearchable> extends JPanel {
 
         /**
          *
-         * @return
          */
         @Override
         public boolean stopCellEditing() {

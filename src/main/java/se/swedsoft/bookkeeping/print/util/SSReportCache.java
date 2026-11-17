@@ -20,7 +20,6 @@ import org.slf4j.LoggerFactory;
 /**
  * Date: 2006-feb-14
  * Time: 17:01:15
- * @version $Id$
  */
 public class SSReportCache {    private static final Logger LOG = LoggerFactory.getLogger(SSReportCache.class);
 
@@ -81,7 +80,6 @@ public class SSReportCache {    private static final Logger LOG = LoggerFactory.
     /**
      *
      * @param pReportName
-     * @return
      * @throws FileNotFoundException
      */
     private JasperReport loadReport(String pReportName) throws FileNotFoundException {

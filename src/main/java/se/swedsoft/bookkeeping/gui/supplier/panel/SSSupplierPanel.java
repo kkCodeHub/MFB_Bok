@@ -104,7 +104,6 @@ public class SSSupplierPanel {
 
     /**
      *
-     * @return
      */
 
     public boolean isValid() {
@@ -113,14 +112,12 @@ public class SSSupplierPanel {
 
     /**
      *
-     * @return
      */
     public JPanel getPanel() {
         return iPanel;
     }
 
     /**
-     * @return
      */
     public SSSupplier getSupplier() {
         // Leverantörsnummer

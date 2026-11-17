@@ -1,6 +1,5 @@
 /*
  * 2005-2010
- * $Id$
  */
 package se.swedsoft.bookkeeping.data;
 
@@ -83,7 +82,6 @@ public class SSAccount implements Cloneable, SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public Integer getNumber() {
         return iNumber < 1 ? null : iNumber;
@@ -101,7 +99,6 @@ public class SSAccount implements Cloneable, SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public String getDescription() {
         return iDescription;
@@ -119,7 +116,6 @@ public class SSAccount implements Cloneable, SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public String getSRUCode() {
         return iSRUCode;
@@ -137,7 +133,6 @@ public class SSAccount implements Cloneable, SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public String getVATCode() {
         return iVATCode;
@@ -155,7 +150,6 @@ public class SSAccount implements Cloneable, SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public String getReportCode() {
         return iReportCode;
@@ -173,7 +167,6 @@ public class SSAccount implements Cloneable, SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public boolean isActive() {
         return iActive;

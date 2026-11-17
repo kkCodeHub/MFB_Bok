@@ -79,7 +79,6 @@ public class SSPurchaseOrderMath {
      *
      * @param iOrders
      * @param iSupplierNr
-     * @return
      */
     public static List<SSPurchaseOrder> getOrdersBySupplierNr(List<SSPurchaseOrder> iOrders, String iSupplierNr) {
 
@@ -98,7 +97,6 @@ public class SSPurchaseOrderMath {
      *
      * @param iSale
      * @param iProduct
-     * @return
      */
     public static Integer getProductCount(SSPurchaseOrder iSale, SSProduct iProduct) {
         Integer iCount = 0;
@@ -129,7 +127,6 @@ public class SSPurchaseOrderMath {
      * Returns all the orders without any invoice
      *
      * @param iPurchaseOrders
-     * @return
      */
     public static List<SSPurchaseOrder> getOrdersWithoutInvoice(List<SSPurchaseOrder> iPurchaseOrders) {
 

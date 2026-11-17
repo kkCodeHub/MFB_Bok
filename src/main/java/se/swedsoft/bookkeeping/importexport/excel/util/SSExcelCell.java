@@ -36,7 +36,6 @@ public class SSExcelCell {
 
     /**
      *
-     * @return
      */
     public String getString() {
         if (iCell == null) {
@@ -47,7 +46,6 @@ public class SSExcelCell {
 
     /**
      *
-     * @return
      */
     public Integer getInteger() {
         if (iCell == null) {
@@ -65,7 +63,6 @@ public class SSExcelCell {
 
     /**
      *
-     * @return
      */
     public Double getDouble() {
         if (iCell == null) {
@@ -83,26 +80,24 @@ public class SSExcelCell {
 
     /**
      *
-     * @return
      */
-    public Date getDate() {
+    public LocalDate getDate() {
         if (iCell == null) {
-            return SSDateUtil.toDate(SSDateUtil.today());
+            return SSDateUtil.today();
         }
         if (iCell.getCellType() == CellType.NUMERIC && DateUtil.isCellDateFormatted(iCell)) {
-            return iCell.getDateCellValue();
+            return SSDateUtil.toLocalDate(iCell.getDateCellValue());
         }
         DateTimeFormatter iFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         try {
-            return SSDateUtil.toDate(LocalDate.parse(formatCellValue(iCell), iFormat));
+            return LocalDate.parse(formatCellValue(iCell), iFormat);
         } catch (DateTimeParseException e) {
-            return SSDateUtil.toDate(SSDateUtil.today());
+            return SSDateUtil.today();
         }
     }
 
     /**
      *
-     * @return
      */
     public Optional<BigDecimal> getBigDecimal() {
         if (iCell == null) {
@@ -127,7 +122,6 @@ public class SSExcelCell {
 
     /**
      *
-     * @return
      */
     public int getColumn() {
         return iColumn;
@@ -135,7 +129,6 @@ public class SSExcelCell {
 
     /**
      *
-     * @return
      */
     public int getRow() {
         return iRow;

@@ -52,7 +52,6 @@ public class SSBundleString {
 
     /**
      *
-     * @return
      */
     public String getString() {
         return iString;
@@ -65,7 +64,6 @@ public class SSBundleString {
     /**
      *
      * @param pBundleName
-     * @return
      */
     public static SSBundleString getString(String pBundleName) {
         return new SSBundleString(pBundleName);
@@ -75,7 +73,6 @@ public class SSBundleString {
      *
      * @param pBundleName
      * @param pFromat
-     * @return
      */
     public static SSBundleString getString(String pBundleName, Object... pFromat) {
         return new SSBundleString(pBundleName, pFromat);

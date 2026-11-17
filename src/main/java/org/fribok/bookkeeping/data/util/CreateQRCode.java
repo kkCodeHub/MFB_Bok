@@ -19,7 +19,6 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Uses ZXing to create a QR code for invoice data.
- * $Id$
  */
 public class CreateQRCode {    private static final Logger LOG = LoggerFactory.getLogger(CreateQRCode.class);
 

@@ -105,7 +105,6 @@ public class SSViewer extends JPanel {    private static final Logger LOG = Logg
 
     /**
      *
-     * @return
      */
     public int getPageCount() {
         if (iJasperPrint != null && iJasperPrint.getPages() != null) {
@@ -161,7 +160,6 @@ public class SSViewer extends JPanel {    private static final Logger LOG = Logg
     /**
      * Get the current page
      *
-     * @return
      */
     public int getCurrentPage() {
         return iPageIndex;

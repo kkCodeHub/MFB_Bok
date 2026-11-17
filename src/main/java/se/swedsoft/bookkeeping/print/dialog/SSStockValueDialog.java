@@ -18,7 +18,6 @@ import java.util.Date;
 
 
 /**
- * $Id$
  *
  */
 public class SSStockValueDialog extends SSDialog {
@@ -66,7 +65,6 @@ public class SSStockValueDialog extends SSDialog {
 
     /**
      *
-     * @return
      */
     public boolean isDateSelected() {
         return iRadioDate.isSelected();

@@ -103,7 +103,6 @@ public class SSLocalizedTextField extends JPanel {
 
     /**
      *
-     * @return
      */
     public Map<Locale, String> getValues() {
 
@@ -130,7 +129,6 @@ public class SSLocalizedTextField extends JPanel {
     /**
      *
      * @param iLocale
-     * @return
      */
     public String getValue(Locale iLocale) {
         return iValues.get(iLocale);

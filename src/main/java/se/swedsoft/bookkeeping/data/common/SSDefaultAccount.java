@@ -9,7 +9,6 @@ import java.util.Optional;
 
 
 /**
- * $Id$
  *
  */
 public enum SSDefaultAccount  {
@@ -65,7 +64,6 @@ public enum SSDefaultAccount  {
 
     /**
      *
-     * @return
      */
     public int getDefaultAccountNumber() {
         return iDefaultAccountNumber;
@@ -82,7 +80,6 @@ public enum SSDefaultAccount  {
     /**
      *
      * @param iAccountPlan
-     * @return
      */
     public SSAccount getAccount(SSAccountPlan iAccountPlan) {
         return iAccountPlan.getAccount(iDefaultAccountNumber);
@@ -91,7 +88,6 @@ public enum SSDefaultAccount  {
     /**
      *
      * @param iAccounts
-     * @return
      */
     public Optional<SSAccount> getAccount(List<SSAccount> iAccounts) {
         for (SSAccount iAccount : iAccounts) {

@@ -46,7 +46,6 @@ public class SSAdressPanel extends JPanel {
 
     /**
      *
-     * @return
      */
     public JPanel getPanel() {
         return iPanel;
@@ -56,7 +55,6 @@ public class SSAdressPanel extends JPanel {
 
     /**
      *
-     * @return
      */
     public String getTitle() {
         return iTitle.getText();
@@ -74,7 +72,6 @@ public class SSAdressPanel extends JPanel {
 
     /**
      *
-     * @return
      */
     public String getAdress() {
         return iAddress.getText();
@@ -92,7 +89,6 @@ public class SSAdressPanel extends JPanel {
 
     /**
      *
-     * @return
      */
     public String getStreet() {
         return iStreet.getText();
@@ -110,7 +106,6 @@ public class SSAdressPanel extends JPanel {
 
     /**
      *
-     * @return
      */
     public String getCountry() {
         return iCountry.getText();
@@ -128,7 +123,6 @@ public class SSAdressPanel extends JPanel {
 
     /**
      *
-     * @return
      */
     public String getZipCode() {
         return iZipCode.getText();
@@ -146,7 +140,6 @@ public class SSAdressPanel extends JPanel {
 
     /**
      *
-     * @return
      */
     public String getCity() {
         return iCity.getText();
@@ -181,7 +174,6 @@ public class SSAdressPanel extends JPanel {
 
     /**
      *
-     * @return
      */
     public SSAddress getAddress() {
         iAdress.setName(iName.getText());
@@ -196,7 +188,6 @@ public class SSAdressPanel extends JPanel {
 
     /**
      *
-     * @return
      */
     public SSAddress getAddressCloned() {
         return new SSAddress(getAddress());

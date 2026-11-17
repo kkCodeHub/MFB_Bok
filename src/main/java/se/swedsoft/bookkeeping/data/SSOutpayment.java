@@ -133,7 +133,6 @@ public class SSOutpayment implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public Integer getNumber() {
         return iNumber;
@@ -167,7 +166,6 @@ public class SSOutpayment implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public String getText() {
         return iText;
@@ -185,7 +183,6 @@ public class SSOutpayment implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public Map<SSDefaultAccount, Integer> getDefaultAccounts() {
         if (iDefaultAccounts == null) {
@@ -203,7 +200,6 @@ public class SSOutpayment implements SSTableSearchable {
      *
      * @param iAccountPlan
      * @param iDefaultAccount
-     * @return
      */
     public Optional<SSAccount> getDefaultAccount(SSAccountPlan iAccountPlan, SSDefaultAccount iDefaultAccount) {
         Integer iAccountNumber = getDefaultAccounts().get(iDefaultAccount);
@@ -218,7 +214,6 @@ public class SSOutpayment implements SSTableSearchable {
     /**
      *
      * @param iDefaultAccount
-     * @return
      */
     public Integer getDefaultAccount(SSDefaultAccount iDefaultAccount) {
         return iDefaultAccounts.get(iDefaultAccount);
@@ -236,7 +231,6 @@ public class SSOutpayment implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public List<SSOutpaymentRow> getRows() {
         if (iRows == null) {
@@ -257,7 +251,6 @@ public class SSOutpayment implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public SSVoucher getVoucher() {
         return iVoucher;
@@ -275,7 +268,6 @@ public class SSOutpayment implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public SSVoucher getDifference() {
         if (iDifference == null) {
@@ -297,7 +289,6 @@ public class SSOutpayment implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public boolean isEntered() {
         return iEntered;
@@ -402,7 +393,6 @@ public class SSOutpayment implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public SSVoucher generateVoucher() {
         String iDescriptionTemplate = SSBundle.getBundle().getString(

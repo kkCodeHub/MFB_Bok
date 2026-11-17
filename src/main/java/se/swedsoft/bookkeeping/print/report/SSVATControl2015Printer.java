@@ -23,7 +23,6 @@ import org.slf4j.LoggerFactory;
 
 
 /**
- * $Id$
  *
  * Med importmoms gällade från 1 januari 2015
  */
@@ -71,7 +70,6 @@ public class SSVATControl2015Printer extends SSPrinter {    private static final
     /**
      * Gets the title file for this repport
      *
-     * @return
      */
     @Override
     public String getTitle() {
@@ -116,7 +114,6 @@ public class SSVATControl2015Printer extends SSPrinter {    private static final
      * @param iAccountR1
      * @param iAccountR2
      * @param iAccountA
-     * @return
      */
     public SSVoucher getVoucher(SSAccount iAccountR1, SSAccount iAccountR2, SSAccount iAccountA) {
         // DateFormat iFormat =
@@ -184,7 +181,6 @@ public class SSVATControl2015Printer extends SSPrinter {    private static final
     /**
      *
      * @param group
-     * @return
      */
     private BigDecimal getValueForGroup(Integer group) {
 
@@ -214,7 +210,6 @@ public class SSVATControl2015Printer extends SSPrinter {    private static final
     /**
      *
      * @param group
-     * @return
      */
     private BigDecimal getTaxForGroup(Integer group) {
         BigDecimal iValue = getValueForGroup(group);
@@ -245,7 +240,6 @@ public class SSVATControl2015Printer extends SSPrinter {    private static final
     /**
      *
      * @param group
-     * @return
      */
     private BigDecimal getReportedTaxForGroup(Integer group) {
 
@@ -338,7 +332,6 @@ public class SSVATControl2015Printer extends SSPrinter {    private static final
      *
      * @param iSums
      * @param iVATCodes
-     * @return
      */
     private BigDecimal getSumForAccounts(Map<SSAccount, BigDecimal> iSums, String... iVATCodes) {
         BigDecimal iSum = new BigDecimal(0);
@@ -361,7 +354,6 @@ public class SSVATControl2015Printer extends SSPrinter {    private static final
      *
      * @param iAccount
      * @param iVATCodes
-     * @return
      */
     private boolean hasVATCode(SSAccount iAccount, String... iVATCodes) {
 

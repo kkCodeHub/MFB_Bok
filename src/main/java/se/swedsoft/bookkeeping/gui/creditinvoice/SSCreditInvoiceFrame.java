@@ -242,7 +242,6 @@ public class SSCreditInvoiceFrame extends SSDefaultTableFrame {
 
     /**
      *
-     * @return
      */
     public SSCreditInvoiceTableModel getModel() {
         return iModel;

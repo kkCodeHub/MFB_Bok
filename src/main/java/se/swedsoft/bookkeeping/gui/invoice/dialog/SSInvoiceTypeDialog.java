@@ -57,7 +57,6 @@ public class SSInvoiceTypeDialog extends SSDialog {
 
     /**
      *
-     * @return
      */
     public JPanel getPanel() {
         return iPanel;
@@ -65,7 +64,6 @@ public class SSInvoiceTypeDialog extends SSDialog {
 
     /**
      *
-     * @return
      */
     public SSInvoiceType getInvoiceType() {
         return iInvoiceType;
@@ -74,7 +72,6 @@ public class SSInvoiceTypeDialog extends SSDialog {
     /**
      *
      * @param iMainFrame
-     * @return
      */
     public static SSInvoiceType showDialog(final SSMainFrame iMainFrame) {
         SSInvoiceTypeDialog iDialog = new SSInvoiceTypeDialog(iMainFrame);

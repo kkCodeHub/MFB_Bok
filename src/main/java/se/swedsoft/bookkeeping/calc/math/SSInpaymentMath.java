@@ -7,11 +7,9 @@ import se.swedsoft.bookkeeping.data.SSInpaymentRow;
 import se.swedsoft.bookkeeping.data.SSInvoice;
 import se.swedsoft.bookkeeping.data.system.SSDB;
 import se.swedsoft.bookkeeping.persistence.Repositories;
-import se.swedsoft.bookkeeping.util.SSDateUtil;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
@@ -115,12 +113,11 @@ public class SSInpaymentMath {
         return iSums;
     }
 
-    public static HashMap<Integer, BigDecimal> getSumsForInvoices(Date iDate) {
+    public static HashMap<Integer, BigDecimal> getSumsForInvoices(LocalDate localDate) {
         HashMap<Integer, BigDecimal> iSums = new HashMap<>();
 
         // Use SSDB cache instead of Repositories to ensure fresh/updated data
         List<SSInpayment> iInpayments = se.swedsoft.bookkeeping.data.system.SSPaymentContext.getInpayments();
-        LocalDate localDate = SSDateUtil.toLocalDate(iDate);
 
         for (SSInpayment iInpayment : iInpayments) {
             if (iInpayment.getLocalDate() != null && localDate != null
@@ -144,14 +141,13 @@ public class SSInpaymentMath {
      * Get the sum of all inpayments for the supplied sales in the sales currency up and including to the selected date
      *
      * @param iInvoice
-     * @param iDate
+     * @param localDate
      * @return the sum
      */
-    public static BigDecimal getSumForInvoice(SSInvoice iInvoice, Date iDate) {
+    public static BigDecimal getSumForInvoice(SSInvoice iInvoice, LocalDate localDate) {
         // Use SSDB cache instead of Repositories to ensure fresh/updated data
         List<SSInpayment> iInpayments = se.swedsoft.bookkeeping.data.system.SSPaymentContext.getInpayments();
 
-        LocalDate localDate = SSDateUtil.toLocalDate(iDate);
         BigDecimal iSum = new BigDecimal(0);
 
         for (SSInpayment iInpayment : iInpayments) {
@@ -173,7 +169,7 @@ public class SSInpaymentMath {
      * @param iInvoice
      * @return the sum
      */
-    public static Date getLastInpaymentForInvoice(SSInvoice iInvoice) {
+    public static LocalDate getLastInpaymentForInvoice(SSInvoice iInvoice) {
 
         // Use SSDB cache instead of Repositories to ensure fresh/updated data
         List<SSInpayment> iInpayments = se.swedsoft.bookkeeping.data.system.SSPaymentContext.getInpayments();
@@ -191,7 +187,7 @@ public class SSInpaymentMath {
 
         }
 
-        return SSDateUtil.toDate(iDate);
+        return iDate;
     }
 
     /**
@@ -296,7 +292,6 @@ public class SSInpaymentMath {
      *
      * @param iInpayment
      * @param iCustomer
-     * @return
      */
     public static boolean hasCustomer(SSInpayment iInpayment, SSCustomer iCustomer) {
         List<SSInvoice> iInvoices = se.swedsoft.bookkeeping.data.system.SSSalesContext.getInvoices();
@@ -315,7 +310,6 @@ public class SSInpaymentMath {
      *
      * @param iInpayment
      * @param iInvoice
-     * @return
      */
     public static boolean hasInvoice(SSInpayment iInpayment, SSInvoice iInvoice) {
 

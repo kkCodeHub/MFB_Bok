@@ -47,7 +47,6 @@ public class SSVoucherFrame extends SSDefaultTableFrame {
 
     /**
      *
-     * @return
      */
     public static SSVoucherFrame getInstance() {
         return cInstance;
@@ -406,7 +405,6 @@ public class SSVoucherFrame extends SSDefaultTableFrame {
 
     /**
      *
-     * @return
      */
     public SSVoucherTableModel getModel() {
         return iModel;

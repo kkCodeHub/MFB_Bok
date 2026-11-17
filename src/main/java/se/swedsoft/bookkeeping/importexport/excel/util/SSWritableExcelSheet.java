@@ -28,7 +28,6 @@ public class SSWritableExcelSheet {
     /**
      *
      * @param pCount
-     * @return
      */
     public List<SSWritableExcelRow> getRows(int pCount) {
         List<SSWritableExcelRow> iList = new LinkedList<>();
@@ -100,7 +99,6 @@ public class SSWritableExcelSheet {
 
     /**
      *
-     * @return
      */
     public Sheet getSheet() {
         return iSheet;

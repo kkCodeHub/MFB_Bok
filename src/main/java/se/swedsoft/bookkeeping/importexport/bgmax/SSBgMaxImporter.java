@@ -43,7 +43,6 @@ public class SSBgMaxImporter {    private static final Logger LOG = LoggerFactor
      *
      * @param iFile
      * @throws SSImportException
-     * @return
      */
     public static BgMaxFile Import(File iFile) throws SSImportException {
 
@@ -74,7 +73,6 @@ public class SSBgMaxImporter {    private static final Logger LOG = LoggerFactor
      *
      * @param iMainFrame
      * @param iBgMaxFile
-     * @return
      */
     public static List<SSInpayment> getInpayments(SSMainFrame iMainFrame, BgMaxFile iBgMaxFile) {
         BgMaxSelectInvoiceDialog iDialog = new BgMaxSelectInvoiceDialog(iMainFrame);

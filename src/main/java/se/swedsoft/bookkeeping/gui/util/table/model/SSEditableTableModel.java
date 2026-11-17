@@ -86,13 +86,11 @@ public abstract class SSEditableTableModel<T> extends SSTableModel<T> {
 
     /**
      *
-     * @return
      */
     public abstract T newObject();
 
     /**
      *
-     * @return
      */
     public T getEditObject() {
         return iEditing;

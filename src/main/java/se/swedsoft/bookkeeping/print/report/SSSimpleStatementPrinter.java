@@ -71,7 +71,6 @@ public class SSSimpleStatementPrinter extends SSPrinter {
     /**
      * Gets the title file for this repport
      *
-     * @return
      */
     @Override
     public String getTitle() {
@@ -109,7 +108,6 @@ public class SSSimpleStatementPrinter extends SSPrinter {
      *
      * @param group
      * @param number
-     * @return
      */
     private BigDecimal getValueForGroup(String group, int number) {
         Map<SSAccount, BigDecimal> iValues;
@@ -188,7 +186,6 @@ public class SSSimpleStatementPrinter extends SSPrinter {
      *
      * @param group
      * @param number
-     * @return
      */
     private BigDecimal getSumForGroup(String group, int number) {
 
@@ -208,7 +205,6 @@ public class SSSimpleStatementPrinter extends SSPrinter {
      *
      * @param group
      * @param number
-     * @return
      */
     private boolean getShowSeparatorForGroup(String group, int number) {
         return !(group.equals("B5") || group.equals("B10") || group.equals("B11")
@@ -219,7 +215,6 @@ public class SSSimpleStatementPrinter extends SSPrinter {
     /**
      *
      * @param group
-     * @return
      */
     private int getSection(int group) {
         switch (group) {
@@ -527,7 +522,6 @@ public class SSSimpleStatementPrinter extends SSPrinter {
      *
      * @param iSums
      * @param iReportCodes
-     * @return
      */
     private BigDecimal getSumForAccounts(Map<SSAccount, BigDecimal> iSums, String... iReportCodes) {
         BigDecimal iSum = new BigDecimal(0);
@@ -558,7 +552,6 @@ public class SSSimpleStatementPrinter extends SSPrinter {
      *
      * @param iAccount
      * @param iReportCodes
-     * @return
      */
     private boolean hasReportCode(SSAccount iAccount, String... iReportCodes) {
 

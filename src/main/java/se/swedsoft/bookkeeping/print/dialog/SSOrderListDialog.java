@@ -26,7 +26,6 @@ import java.util.List;
 
 
 /**
- * $Id$
  *
  */
 public class SSOrderListDialog extends SSDialog {
@@ -85,7 +84,6 @@ public class SSOrderListDialog extends SSDialog {
 
     /**
      *
-     * @return
      */
     public JPanel getPanel() {
         return iPanel;
@@ -94,7 +92,6 @@ public class SSOrderListDialog extends SSDialog {
     /**
      * Returns the orders to print depending on the user selections
      *
-     * @return
      */
     public List<SSOrder> getOrdersToPrint() {
 

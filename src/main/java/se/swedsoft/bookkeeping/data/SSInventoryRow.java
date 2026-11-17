@@ -68,7 +68,6 @@ public class SSInventoryRow  {
 
     /**
      *
-     * @return
      */
     public String getProductNr() {
         return iProductNr;
@@ -87,7 +86,6 @@ public class SSInventoryRow  {
     /**
      *  Lagerantal
      *
-     * @return
      */
     public Integer getStockQuantity() {
         return iQuantity;
@@ -107,7 +105,6 @@ public class SSInventoryRow  {
     /**
      * Inventerat antal
      *
-     * @return
      */
     public Optional<Integer> getInventoryQuantity() {
         if (iQuantity == null || iChange == null) {
@@ -135,7 +132,6 @@ public class SSInventoryRow  {
     /**
      * Skillnad
      *
-     * @return
      */
     public Integer getChange() {
         return iChange;
@@ -154,7 +150,6 @@ public class SSInventoryRow  {
 
     /**
      *
-     * @return
      */
     public SSProduct getProduct() {
         return getProduct(se.swedsoft.bookkeeping.data.system.SSProductContext.getProducts());
@@ -163,7 +158,6 @@ public class SSInventoryRow  {
     /**
      *
      * @param iProducts
-     * @return
      */
     public SSProduct getProduct(List<SSProduct> iProducts) {
         if (iProduct == null && iProductNr != null) {
@@ -192,7 +186,6 @@ public class SSInventoryRow  {
      * Returns true if the product is the same as in this row
      *
      * @param iProduct
-     * @return
      */
     public boolean hasProduct(SSProduct iProduct) {
         return iProductNr != null && iProductNr.equals(iProduct.getNumber());

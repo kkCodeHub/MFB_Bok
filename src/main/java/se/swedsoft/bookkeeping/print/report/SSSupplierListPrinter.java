@@ -43,7 +43,6 @@ public class SSSupplierListPrinter extends SSPrinter {
     /**
      * Gets the title file for this repport
      *
-     * @return
      */
     @Override
     public String getTitle() {

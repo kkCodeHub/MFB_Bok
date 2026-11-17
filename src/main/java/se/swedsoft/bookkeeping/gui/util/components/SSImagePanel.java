@@ -24,7 +24,6 @@ public class SSImagePanel extends JPanel {
 
     /**
      *
-     * @return
      */
     public String getImageName() {
         return iImageName;

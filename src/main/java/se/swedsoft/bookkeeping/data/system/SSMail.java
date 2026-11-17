@@ -39,7 +39,6 @@ import org.slf4j.LoggerFactory;
  *
  * Date: 2007-mar-26
  * Time: 16:35:15
- * @version $Id$
  */
 public class SSMail {
 
@@ -65,7 +64,6 @@ public class SSMail {
      * @param pTo
      * @param pSubject
      * @param pFileName
-     * @return
      * @throws AddressException
      * @throws MessagingException
      */
@@ -112,7 +110,6 @@ public class SSMail {
      * Makes a MimeMessage ready to be send from the arguments
      * @param server
      * @param mail
-     * @return
      * @throws MessagingException
      */
     public static MimeMessage makeMessage(SSMailServer server, SSMailMessage mail)
@@ -178,7 +175,6 @@ public class SSMail {
      * Makes a Multipart from the data in the argument. If getFileName returns non-null,
      * that file is send as an attachment.
      * @param mail
-     * @return
      * @throws MessagingException
      */
     private static Multipart makeMultipart(SSMailMessage mail) throws MessagingException {
@@ -213,7 +209,6 @@ public class SSMail {
     /**
      * Makes a Session from the data in a SSMailServer
      * @param server
-     * @return
      */
     private static Session makeSession(final SSMailServer server) {
 
@@ -456,7 +451,6 @@ public class SSMail {
      * @param company
      * @param o can be either an SSSupplier or an SScustomer
      * @param resourceName
-     * @return
      */
     private static boolean isOk(SSNewCompany company, Object o, String resourceName) {
 
@@ -503,7 +497,6 @@ public class SSMail {
      * Checks if the current company and iCustomer has mail addresses and servers. If not, opens a error dialog
      * and returns false.
      * @param iCustomer
-     * @return
      */
     public static boolean isOk(SSCustomer iCustomer) {
         return isOk(se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.getCurrentCompany(), iCustomer,
@@ -514,7 +507,6 @@ public class SSMail {
      * Checks if the current company and iSupplier has mail addresses and servers. If not, opens a error dialog
      * and returns false.
      * @param iSupplier
-     * @return
      */
     public static boolean isOk(SSSupplier iSupplier) {
         return isOk(se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.getCurrentCompany(), iSupplier,

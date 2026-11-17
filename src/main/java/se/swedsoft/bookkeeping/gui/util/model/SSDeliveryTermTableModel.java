@@ -52,7 +52,6 @@ public class SSDeliveryTermTableModel extends SSTableModel<SSDeliveryTerm> {
 
     /**
      *
-     * @return
      */
     public static SSDeliveryTermTableModel getDropDownModel() {
         SSDeliveryTermTableModel iModel = new SSDeliveryTermTableModel();
@@ -115,7 +114,6 @@ public class SSDeliveryTermTableModel extends SSTableModel<SSDeliveryTerm> {
     /**
      *
      * @param iOwner
-     * @return
      */
     public static SSEditableTableComboBox.EditingFactory<SSDeliveryTerm> getEditingFactory(final JDialog iOwner) {
         return new SSEditableTableComboBox.EditingFactory<SSDeliveryTerm>() {

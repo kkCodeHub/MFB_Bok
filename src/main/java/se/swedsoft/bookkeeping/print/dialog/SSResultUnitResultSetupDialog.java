@@ -19,7 +19,6 @@ import java.util.Date;
 
 
 /**
- * $Id$
  *
  */
 public class SSResultUnitResultSetupDialog extends SSDialog {
@@ -95,7 +94,6 @@ public class SSResultUnitResultSetupDialog extends SSDialog {
 
     /**
      *
-     * @return
      */
     public SSNewResultUnit getSelectedResultUnit() {
         if (iRadioSingle.isSelected()) {

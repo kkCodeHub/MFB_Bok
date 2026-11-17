@@ -67,7 +67,6 @@ public class SSAboutPanel {    private static final Logger LOG = LoggerFactory.g
 
     /**
      *
-     * @return
      */
     public JPanel getPanel() {
         return iPanel;

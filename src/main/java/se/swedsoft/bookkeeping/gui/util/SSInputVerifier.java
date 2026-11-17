@@ -90,7 +90,6 @@ public class SSInputVerifier implements DocumentListener, ActionListener {
 
     /**
      *
-     * @return
      */
     public boolean isValid() {
         for (JComponent iComponent: iComponents) {

@@ -59,7 +59,6 @@ public class SSDeliveryTerm implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public String getDescription() {
         return iDescription;
@@ -99,7 +98,6 @@ public class SSDeliveryTerm implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public static List<SSDeliveryTerm> getDefaultDeliveryTerms() {
         List<SSDeliveryTerm> iDeliveryTerms = new LinkedList<>();

@@ -8,7 +8,6 @@ import se.swedsoft.bookkeeping.data.SSAccount;
 import se.swedsoft.bookkeeping.data.SSNewAccountingYear;
 import se.swedsoft.bookkeeping.data.SSVoucher;
 import se.swedsoft.bookkeeping.data.SSVoucherRow;
-import se.swedsoft.bookkeeping.util.SSDateUtil;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -49,17 +48,6 @@ public class SSBalanceCalculator {
      */
     public void calculate() throws SSCalculatorException {
         calculate(iYearData.getLocalFrom(), iYearData.getLocalTo());
-    }
-
-    /**
-     *
-     * @param pFrom
-     * @param pTo
-     * @throws SSCalculatorException
-     */
-    public void calculate(Date pFrom, Date pTo) throws SSCalculatorException {
-        calculate(se.swedsoft.bookkeeping.util.SSDateUtil.toLocalDate(pFrom),
-                se.swedsoft.bookkeeping.util.SSDateUtil.toLocalDate(pTo));
     }
 
     public void calculate(LocalDate pFrom, LocalDate pTo) throws SSCalculatorException {

@@ -363,7 +363,6 @@ public abstract class SSTableModel<T> extends AbstractTableModel {
     /**
      *
      * @param iTable
-     * @return
      */
     public List<T> getSelectedRows(JTable iTable) {
         int[] selected = iTable.getSelectedRows();

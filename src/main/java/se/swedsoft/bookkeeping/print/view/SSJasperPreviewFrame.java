@@ -34,7 +34,6 @@ import org.slf4j.LoggerFactory;
 
 
 /**
- * $Id$
  *
  */
 public class SSJasperPreviewFrame extends SSDefaultTableFrame implements PropertyChangeListener, SSPreviewFrame {    private static final Logger LOG = LoggerFactory.getLogger(SSJasperPreviewFrame.class);

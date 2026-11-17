@@ -87,7 +87,6 @@ public class SSHelpHistory {    private static final Logger LOG = LoggerFactory.
 
     /**
      *
-     * @return
      */
     public boolean hasNext() {
         return getNext() != null;
@@ -95,7 +94,6 @@ public class SSHelpHistory {    private static final Logger LOG = LoggerFactory.
 
     /**
      *
-     * @return
      */
     public boolean hasPrevious() {
         return getPrevious() != null;
@@ -151,7 +149,6 @@ public class SSHelpHistory {    private static final Logger LOG = LoggerFactory.
 
     /**
      *
-     * @return
      */
     private HelpModelEvent getCurrent() {
         int theIndex = iIndex - 1;
@@ -164,7 +161,6 @@ public class SSHelpHistory {    private static final Logger LOG = LoggerFactory.
 
     /**
      *
-     * @return
      */
     private HelpModelEvent getNext() {
         int theIndex = iIndex;
@@ -177,7 +173,6 @@ public class SSHelpHistory {    private static final Logger LOG = LoggerFactory.
 
     /**
      *
-     * @return
      */
     private HelpModelEvent getPrevious() {
         int theIndex = iIndex - 2;

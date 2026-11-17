@@ -11,7 +11,7 @@ import se.swedsoft.bookkeeping.importexport.sie.util.SIEWriter;
 import se.swedsoft.bookkeeping.importexport.util.SSExportException;
 import se.swedsoft.bookkeeping.importexport.util.SSImportException;
 
-import java.util.Date;
+import java.time.LocalDate;
 
 
 /**
@@ -45,7 +45,7 @@ public class SIEEntryOmfattn implements SIEEntry {
      */
     @Override
     public boolean exportEntry(SSSIEExporter iExporter, SIEWriter iWriter, SSNewAccountingYear iCurrentYearData) throws SSExportException {
-        Date iPrevious = SSVoucherMath.getNextVoucherDate();
+        LocalDate iPrevious = SSVoucherMath.getNextVoucherLocalDate();
 
         if (iPrevious != null) {
             iWriter.append(SIELabel.SIE_OMFATTN);

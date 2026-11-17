@@ -12,7 +12,6 @@ import java.math.BigDecimal;
 
 
 /**
- * $Id$
  *
  */
 public class SSCurrencyDialog extends SSDialog {
@@ -62,7 +61,6 @@ public class SSCurrencyDialog extends SSDialog {
 
     /**
      *
-     * @return
      */
     @Override
     public String getName() {
@@ -82,7 +80,6 @@ public class SSCurrencyDialog extends SSDialog {
 
     /**
      *
-     * @return
      */
     public String getDescription() {
         return iDescription.getText();
@@ -100,7 +97,6 @@ public class SSCurrencyDialog extends SSDialog {
 
     /**
      *
-     * @return
      */
     public BigDecimal getExchangeRate() {
         return iExchangeRate.getValue();

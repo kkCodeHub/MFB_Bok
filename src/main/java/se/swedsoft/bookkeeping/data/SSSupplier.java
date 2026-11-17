@@ -117,7 +117,6 @@ public class SSSupplier implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public String getNumber() {
         return iNumber;
@@ -135,7 +134,6 @@ public class SSSupplier implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public String getName() {
         return iName;
@@ -153,7 +151,6 @@ public class SSSupplier implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public String getPhone1() {
         return iPhone;
@@ -171,7 +168,6 @@ public class SSSupplier implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public String getPhone2() {
         return iPhone2;
@@ -189,7 +185,6 @@ public class SSSupplier implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public String getTelefax() {
         return iTeleFax;
@@ -207,7 +202,6 @@ public class SSSupplier implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public String getEMail() {
         return iEmail;
@@ -225,7 +219,6 @@ public class SSSupplier implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public String getHomepage() {
         return iHomepage;
@@ -243,7 +236,6 @@ public class SSSupplier implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public String getRegistrationNumber() {
         return iRegistrationNumber;
@@ -261,7 +253,6 @@ public class SSSupplier implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public String getYourContact() {
         return iYourContact;
@@ -279,7 +270,6 @@ public class SSSupplier implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public String getOurContact() {
         return iOurContact;
@@ -297,7 +287,6 @@ public class SSSupplier implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public String getBankgiro() {
         return iBankAccountNumber;
@@ -315,7 +304,6 @@ public class SSSupplier implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public String getPlusgiro() {
         return iPlusAccountNumber;
@@ -333,7 +321,6 @@ public class SSSupplier implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public Integer getOutpaymentNumber() {
         return iOutpaymentNumber;
@@ -351,7 +338,6 @@ public class SSSupplier implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public SSCurrency getCurrency() {
         return se.swedsoft.bookkeeping.data.system.SSMasterdataContext.getCurrency(iCurrency).orElse(null);
@@ -369,7 +355,6 @@ public class SSSupplier implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public SSPaymentTerm getPaymentTerm() {
         return iPaymentTerm;
@@ -387,7 +372,6 @@ public class SSSupplier implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public SSDeliveryTerm getDeliveryTerm() {
         return iDeliveryTerm;
@@ -405,7 +389,6 @@ public class SSSupplier implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public SSDeliveryWay getDeliveryWay() {
         return iDeliveryWay;
@@ -423,7 +406,6 @@ public class SSSupplier implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public SSAddress getAddress() {
         return iAddress;
@@ -441,7 +423,6 @@ public class SSSupplier implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public String getOurCustomerNr() {
         return iOurCustomerNr;

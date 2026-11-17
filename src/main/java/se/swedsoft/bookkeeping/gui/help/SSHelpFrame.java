@@ -31,7 +31,6 @@ public class SSHelpFrame extends JFrame {    private static final Logger LOG = L
 
     /**
      *
-     * @return
      */
     public static SSHelpFrame getInstance() {
         return cInstance;

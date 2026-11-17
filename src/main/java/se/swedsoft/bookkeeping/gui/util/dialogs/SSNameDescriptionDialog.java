@@ -82,7 +82,6 @@ public class SSNameDescriptionDialog extends SSDialog {
 
     /**
      *
-     * @return
      */
     @Override
     public String getName() {
@@ -100,7 +99,6 @@ public class SSNameDescriptionDialog extends SSDialog {
 
     /**
      *
-     * @return
      */
     public String getDescription() {
         return iDescription.getText();
@@ -116,7 +114,6 @@ public class SSNameDescriptionDialog extends SSDialog {
 
     /**
      *
-     * @return
      */
     @Override
     public int showDialog() {

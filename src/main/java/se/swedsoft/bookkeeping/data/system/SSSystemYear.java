@@ -9,7 +9,6 @@ import se.swedsoft.bookkeeping.util.SSDateUtil;
 import java.rmi.server.UID;
 import java.text.DateFormat;
 import java.time.LocalDate;
-import java.util.Date;
 
 
 /**
@@ -24,9 +23,9 @@ public class SSSystemYear implements SSTableSearchable {
 
     private UID iID;
 
-    private Date iDateFrom;
+    private LocalDate iDateFrom;
 
-    private Date iDateTo;
+    private LocalDate iDateTo;
 
     private String iAccountPlan;
 
@@ -39,8 +38,8 @@ public class SSSystemYear implements SSTableSearchable {
      */
     public SSSystemYear() {
         iID = new UID();
-        iDateFrom = SSDateUtil.toDate(SSDateUtil.today());
-        iDateTo = SSDateUtil.toDate(SSDateUtil.today());
+        iDateFrom = SSDateUtil.today();
+        iDateTo = SSDateUtil.today();
         iCurrent = false;
         iAccountPlan = null;
     }
@@ -53,8 +52,8 @@ public class SSSystemYear implements SSTableSearchable {
         iYear = pYear;
         iCurrent = false;
         iID = new UID();
-        iDateFrom = SSDateUtil.toDate(pYear.getLocalFrom());
-        iDateTo = SSDateUtil.toDate(pYear.getLocalTo());
+        iDateFrom = pYear.getLocalFrom();
+        iDateTo = pYear.getLocalTo();
         iAccountPlan = pYear.getAccountPlan() != null
                 ? pYear.getAccountPlan().getName()
                 : null;
@@ -78,20 +77,12 @@ public class SSSystemYear implements SSTableSearchable {
      *
      * @return the start date
      */
-    public Date getFrom() {
+    public LocalDate getLocalFrom() {
         return iDateFrom;
     }
 
-    public void setFrom(Date iDateFrom) {
-        this.iDateFrom = iDateFrom;
-    }
-
-    public LocalDate getLocalFrom() {
-        return SSDateUtil.toLocalDate(iDateFrom);
-    }
-
     public void setLocalFrom(LocalDate iDateFrom) {
-        this.iDateFrom = SSDateUtil.toDate(iDateFrom);
+        this.iDateFrom = iDateFrom;
     }
 
     // ////////////////////////////////////////////////////////////////////////////
@@ -101,24 +92,12 @@ public class SSSystemYear implements SSTableSearchable {
      *
      * @return the stop date
      */
-    public Date getTo() {
+    public LocalDate getLocalTo() {
         return iDateTo;
     }
 
-    /**
-     *
-     * @param iDateTo
-     */
-    public void setTo(Date iDateTo) {
-        this.iDateTo = iDateTo;
-    }
-
-    public LocalDate getLocalTo() {
-        return SSDateUtil.toLocalDate(iDateTo);
-    }
-
     public void setLocalTo(LocalDate iDateTo) {
-        this.iDateTo = SSDateUtil.toDate(iDateTo);
+        this.iDateTo = iDateTo;
     }
 
     // ////////////////////////////////////////////////////////////////////////////
@@ -152,7 +131,6 @@ public class SSSystemYear implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public SSNewAccountingYear getData() {
         return iYear;
@@ -170,8 +148,8 @@ public class SSSystemYear implements SSTableSearchable {
     // ////////////////////////////////////////////////////////////////////////////
 
     public void setCurrentYear(SSNewAccountingYear iAccountingYear) {
-        iDateFrom = SSDateUtil.toDate(iAccountingYear.getLocalFrom());
-        iDateTo = SSDateUtil.toDate(iAccountingYear.getLocalTo());
+        iDateFrom = iAccountingYear.getLocalFrom();
+        iDateTo = iAccountingYear.getLocalTo();
         iCurrent = true;
         iAccountPlan = iAccountingYear.getAccountPlan() != null
                 ? iAccountingYear.getAccountPlan().getName()

@@ -60,7 +60,6 @@ public class SIEEntryTransaktion implements SIEEntry {
     /**
      *
      * @param iVoucherRow
-     * @return
      */
     private List<Object> getObjects(SSVoucherRow iVoucherRow) {
         List<Object> iObjects = new LinkedList<>();
@@ -87,7 +86,6 @@ public class SIEEntryTransaktion implements SIEEntry {
      * @param iImporter
      * @param iReader
      * @param iCurrentYearData
-     * @return
      * @throws SSImportException
      */
     public boolean importEntry(SSVoucher iVoucher, SSSIEImporter iImporter, SIEReader iReader, SSNewAccountingYear iCurrentYearData) throws SSImportException {
@@ -164,7 +162,6 @@ public class SIEEntryTransaktion implements SIEEntry {
      * @param iVoucher
      * @param iExporter
      * @param iWriter
-     * @return
      * @throws SSExportException
      */
     public boolean exportEntry(SSVoucher iVoucher, SSSIEExporter iExporter, SIEWriter iWriter) throws SSExportException {

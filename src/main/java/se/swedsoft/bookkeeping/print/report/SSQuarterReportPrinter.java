@@ -135,7 +135,6 @@ public class SSQuarterReportPrinter extends SSPrinter {
     /**
      * Gets the title file for this repport
      *
-     * @return
      */
     @Override
     public String getTitle() {
@@ -158,7 +157,6 @@ public class SSQuarterReportPrinter extends SSPrinter {
 
     /**
      *
-     * @return
      */
     private String getQuarterText() {
         String iYear = Integer.toString(iFrom.getYear()).substring(2);
@@ -169,7 +167,6 @@ public class SSQuarterReportPrinter extends SSPrinter {
 
     /**
      *
-     * @return
      */
     private String getPeriodText() {
         String[] iMonths = new DateFormatSymbols().getMonths();
@@ -184,7 +181,6 @@ public class SSQuarterReportPrinter extends SSPrinter {
 
     /**
      *
-     * @return
      */
     @Override
     protected SSDefaultTableModel getModel() {

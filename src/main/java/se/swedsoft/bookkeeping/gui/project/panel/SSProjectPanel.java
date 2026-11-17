@@ -1,6 +1,5 @@
 /*
  * 2005-2010
- * $Id$
  */
 package se.swedsoft.bookkeeping.gui.project.panel;
 
@@ -161,7 +160,6 @@ public class SSProjectPanel {
 
     /**
      *
-     * @return
      */
     public JPanel getPanel() {
         return iPanel;
@@ -203,7 +201,6 @@ public class SSProjectPanel {
 
     /**
      *
-     * @return
      */
     public SSNewProject getProject() {
         iProject.setNumber(iNumber.getText());

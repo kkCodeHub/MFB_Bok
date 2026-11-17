@@ -54,7 +54,6 @@ public class SSSupplierInvoiceTableModel extends SSTableModel<SSSupplierInvoice>
 
     /**
      *
-     * @return
      */
     public static SSTableModel<SSSupplierInvoice> getDropDownModel() {
 
@@ -64,7 +63,6 @@ public class SSSupplierInvoiceTableModel extends SSTableModel<SSSupplierInvoice>
     /**
      *
      * @param iSupplierInvoices
-     * @return
      */
     public static SSTableModel<SSSupplierInvoice> getDropDownModel(List<SSSupplierInvoice> iSupplierInvoices) {
         SSSupplierInvoiceTableModel iModel = new SSSupplierInvoiceTableModel(

@@ -13,12 +13,12 @@ import se.swedsoft.bookkeeping.importexport.excel.util.SSExcelRow;
 import se.swedsoft.bookkeeping.importexport.excel.util.SSExcelSheet;
 import se.swedsoft.bookkeeping.importexport.excel.util.SSExcelWorkbookReader;
 import se.swedsoft.bookkeeping.importexport.util.SSImportException;
-import se.swedsoft.bookkeeping.util.SSDateUtil;
 
 import java.awt.GraphicsEnvironment;
 import javax.swing.*;
 import java.io.File;
 import java.io.IOException;
+import java.time.LocalDate;
 import java.util.*;
 
 
@@ -209,9 +209,9 @@ public class SSVoucherImporter {
 
         Integer iDateColumn = iColumns.get(SSVoucherExporter.DATUM);
         if (iDateColumn != null) {
-            java.util.Date iDate = iRow.getDate(iDateColumn);
+            LocalDate iDate = iRow.getDate(iDateColumn);
             if (iDate != null) {
-                iVoucher.setLocalDate(SSDateUtil.toLocalDate(iDate));
+                iVoucher.setLocalDate(iDate);
             }
         }
     }

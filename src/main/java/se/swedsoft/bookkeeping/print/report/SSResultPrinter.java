@@ -76,7 +76,6 @@ public class SSResultPrinter extends SSPrinter {
     /**
      * Gets the title file for this repport
      *
-     * @return
      */
     @Override
     public String getTitle() {
@@ -89,7 +88,6 @@ public class SSResultPrinter extends SSPrinter {
      *
      * @param iRow
      * @param iLastVisibleRow
-     * @return
      */
     private int getSummaryGroup(ResultRow iRow, ResultRow iLastVisibleRow) {
         int iSummaryGroup = -1;
@@ -346,7 +344,6 @@ public class SSResultPrinter extends SSPrinter {
      * @param iGroup
      * @param iAccounts
      * @param iLevel
-     * @return
      */
     private List<ResultRow> getRows(SSAccountGroup iGroup, List<SSAccount> iAccounts, int iLevel) {
         List<SSAccount> iGroupAccounts = iGroup.getGroupAccounts(iAccounts);

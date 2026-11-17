@@ -28,7 +28,6 @@ public class SSInvoiceRowTableModel extends SSEditableTableModel<SSSaleRow> {
 
     /**
      *
-     * @return
      */
     @Override
     public SSSaleRow newObject() {

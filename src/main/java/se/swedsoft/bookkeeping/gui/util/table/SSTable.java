@@ -1,6 +1,5 @@
 /*
  * 2005-2010
- * $Id$
  */
 package se.swedsoft.bookkeeping.gui.util.table;
 
@@ -220,7 +219,6 @@ public class SSTable extends JTable {
 
     /**
      *
-     * @return
      */
     public boolean isColumnSortingEnabled() {
         return iColumnSortingEnabled;
@@ -242,7 +240,6 @@ public class SSTable extends JTable {
 
     /**
      *
-     * @return
      */
     public boolean isColorReadOnly() {
         return iColorReadOnly;
@@ -258,7 +255,6 @@ public class SSTable extends JTable {
 
     /**
      *
-     * @return
      */
     public SSCustomPainter getCustomPainter() {
         return iCustomPainter;

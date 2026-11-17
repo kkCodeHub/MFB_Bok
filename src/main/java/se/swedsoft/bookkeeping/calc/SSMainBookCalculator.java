@@ -6,7 +6,6 @@ import se.swedsoft.bookkeeping.calc.math.SSVoucherMath;
 import se.swedsoft.bookkeeping.calc.util.SSCalculatorException;
 import se.swedsoft.bookkeeping.data.*;
 import se.swedsoft.bookkeeping.data.system.SSDB;
-import se.swedsoft.bookkeeping.util.SSDateUtil;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -150,22 +149,6 @@ public class SSMainBookCalculator {
     }
 
     /**
-     * @param pAccountFrom the first account in range
-     * @param pAccountTo   the last account in range
-     * @param pDateFrom    the start of the period as {@link Date}
-     * @param pDateTo      the end of the period as {@link Date}
-     * @param iProject     optional project filter
-     * @param iResultUnit  optional result-unit filter
-     * @deprecated Use {@link #SSMainBookCalculator(SSAccount, SSAccount, LocalDate, LocalDate, SSNewProject, SSNewResultUnit)} instead.
-     */
-    @Deprecated
-    public SSMainBookCalculator(SSAccount pAccountFrom, SSAccount pAccountTo, Date pDateFrom, Date pDateTo, SSNewProject iProject, SSNewResultUnit iResultUnit) {
-        this(se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.getCurrentYear(), pAccountFrom, pAccountTo,
-                SSDateUtil.toLocalDate(pDateFrom), SSDateUtil.toLocalDate(pDateTo),
-                iProject, iResultUnit);
-    }
-
-    /**
      * @param pYearData    the accounting year
      * @param pAccountFrom the first account in range
      * @param pAccountTo   the last account in range
@@ -186,23 +169,6 @@ public class SSMainBookCalculator {
         iRows = new LinkedList<>();
         iInBalance = new HashMap<>();
         iInSaldo = new HashMap<>();
-    }
-
-    /**
-     * @param pYearData    the accounting year
-     * @param pAccountFrom the first account in range
-     * @param pAccountTo   the last account in range
-     * @param pDateFrom    the start of the period as {@link Date}
-     * @param pDateTo      the end of the period as {@link Date}
-     * @param iProject     optional project filter
-     * @param iResultUnit  optional result-unit filter
-     * @deprecated Use {@link #SSMainBookCalculator(SSNewAccountingYear, SSAccount, SSAccount, LocalDate, LocalDate, SSNewProject, SSNewResultUnit)} instead.
-     */
-    @Deprecated
-    public SSMainBookCalculator(SSNewAccountingYear pYearData, SSAccount pAccountFrom, SSAccount pAccountTo, Date pDateFrom, Date pDateTo, SSNewProject iProject, SSNewResultUnit iResultUnit) {
-        this(pYearData, pAccountFrom, pAccountTo,
-                SSDateUtil.toLocalDate(pDateFrom), SSDateUtil.toLocalDate(pDateTo),
-                iProject, iResultUnit);
     }
 
     /**
@@ -326,7 +292,6 @@ public class SSMainBookCalculator {
 
     /**
      *
-     * @return
      */
     public List<SSMainBookRow> getRows() {
         return iRows;
@@ -334,7 +299,6 @@ public class SSMainBookCalculator {
 
     /**
      *
-     * @return
      */
     public Map<SSAccount, BigDecimal> getInBalance() {
         return iInBalance;
@@ -342,7 +306,6 @@ public class SSMainBookCalculator {
 
     /**
      *
-     * @return
      */
     public Map<SSAccount, BigDecimal> getInSaldo() {
         return iInSaldo;

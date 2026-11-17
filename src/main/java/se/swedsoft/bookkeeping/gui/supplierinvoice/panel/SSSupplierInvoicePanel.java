@@ -437,7 +437,6 @@ public class SSSupplierInvoicePanel implements ActionListener {
 
     /**
      *
-     * @return
      */
     public boolean isValid() {
         return iInputVerifier.isValid();
@@ -445,7 +444,6 @@ public class SSSupplierInvoicePanel implements ActionListener {
 
     /**
      *
-     * @return
      */
     public JPanel getPanel() {
         return iPanel;
@@ -575,7 +573,6 @@ public class SSSupplierInvoicePanel implements ActionListener {
     }
 
     /**
-     * @return
      */
     public SSSupplierInvoice getSupplierInvoice() {
         // Offertdatum
@@ -745,7 +742,6 @@ public class SSSupplierInvoicePanel implements ActionListener {
     /**
      *
      * @param iInvoice
-     * @return
      */
     private String getPurchaseOrderNumbers(SSSupplierInvoice iInvoice) {
         List<SSPurchaseOrder> iOrders = SSPurchaseOrderMath.getOrdersForInvoice(iInvoice);

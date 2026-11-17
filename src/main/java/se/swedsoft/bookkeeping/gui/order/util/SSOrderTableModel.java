@@ -315,7 +315,6 @@ public class SSOrderTableModel extends SSTableModel<SSOrder> {
     /**
      *
      * @param iOrdersWithoutInvoice
-     * @return
      */
     public static SSOrderTableModel getDropdownModel(boolean iOrdersWithoutInvoice) {
         List<SSOrder> iOrders = SSSalesContext.getOrders();
@@ -335,7 +334,6 @@ public class SSOrderTableModel extends SSTableModel<SSOrder> {
 
     /**
      *
-     * @return
      */
     public static SSOrderTableModel getDropdownModel() {
         SSOrderTableModel iModel = new SSOrderTableModel();

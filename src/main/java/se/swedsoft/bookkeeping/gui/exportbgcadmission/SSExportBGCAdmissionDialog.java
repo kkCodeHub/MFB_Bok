@@ -19,7 +19,6 @@ import java.util.List;
 
 
 /**
- * $Id$
  *
  */
 public class SSExportBGCAdmissionDialog extends SSDialog {

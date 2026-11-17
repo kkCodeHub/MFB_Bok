@@ -154,7 +154,6 @@ public class SSCustomer implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public String getNumber() {
         return iCustomerNr;
@@ -172,7 +171,6 @@ public class SSCustomer implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public String getName() {
         return iName;
@@ -190,7 +188,6 @@ public class SSCustomer implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public String getEMail() {
         return iEMail;
@@ -208,7 +205,6 @@ public class SSCustomer implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public String getPhone1() {
         return iPhone;
@@ -226,7 +222,6 @@ public class SSCustomer implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public String getPhone2() {
         return iPhone2;
@@ -244,7 +239,6 @@ public class SSCustomer implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public String getTelefax() {
         return iTelefax;
@@ -262,7 +256,6 @@ public class SSCustomer implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public String getRegistrationNumber() {
         return iRegistrationNumber;
@@ -280,7 +273,6 @@ public class SSCustomer implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public String getOurContactPerson() {
         return iOurContactPerson;
@@ -298,7 +290,6 @@ public class SSCustomer implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public String getYourContactPerson() {
         return iYourContactPerson;
@@ -316,7 +307,6 @@ public class SSCustomer implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public String getVATNumber() {
         return iVATNumber;
@@ -334,7 +324,6 @@ public class SSCustomer implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public String getBankgiro() {
         return iBankAccountNumber;
@@ -352,7 +341,6 @@ public class SSCustomer implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public String getPlusgiro() {
         return iPlusAccountNumber;
@@ -388,7 +376,6 @@ public class SSCustomer implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public boolean getEuSaleCommodity() {
         return iEuSaleCommodity;
@@ -406,7 +393,6 @@ public class SSCustomer implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public boolean getEuSaleYhirdPartCommodity() {
         return iEuSaleYhirdPartCommodity;
@@ -424,7 +410,6 @@ public class SSCustomer implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public boolean getHideUnitprice() {
         return iHideUnitprice;
@@ -489,7 +474,6 @@ public class SSCustomer implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public boolean getTaxFree() {
         return iVatFreeSale;
@@ -507,7 +491,6 @@ public class SSCustomer implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public SSCurrency getInvoiceCurrency() {
         return se.swedsoft.bookkeeping.data.system.SSMasterdataContext.getCurrency(iInvoiceCurrency).orElse(null);
@@ -525,7 +508,6 @@ public class SSCustomer implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public SSPaymentTerm getPaymentTerm() {
         return iPaymentTerm;
@@ -543,7 +525,6 @@ public class SSCustomer implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public SSDeliveryTerm getDeliveryTerm() {
         return iDeliveryTerm;
@@ -561,7 +542,6 @@ public class SSCustomer implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public SSDeliveryWay getDeliveryWay() {
         return iDeliveryWay;
@@ -579,7 +559,6 @@ public class SSCustomer implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public BigDecimal getCreditLimit() {
         return iCreditLimit;
@@ -597,7 +576,6 @@ public class SSCustomer implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public BigDecimal getDiscount() {
         return iDiscount;
@@ -615,7 +593,6 @@ public class SSCustomer implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public SSAddress getInvoiceAddress() {
         return iInvoiceAddress;
@@ -633,7 +610,6 @@ public class SSCustomer implements SSTableSearchable {
 
     /**
      *
-     * @return
      */
     public SSAddress getDeliveryAddress() {
         return iDeliveryAddress;

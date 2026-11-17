@@ -6,7 +6,6 @@ import se.swedsoft.bookkeeping.calc.util.SSFilter;
 import se.swedsoft.bookkeeping.calc.util.SSFilterFactory;
 import se.swedsoft.bookkeeping.data.system.SSDB;
 import se.swedsoft.bookkeeping.persistence.Repositories;
-import se.swedsoft.bookkeeping.util.SSDateUtil;
 
 import java.time.LocalDate;
 import java.util.*;
@@ -106,10 +105,6 @@ public class SSStock {
      *
      * @param iDate
      */
-    public void update(final Date iDate) {
-        update(SSDateUtil.toLocalDate(iDate));
-    }
-
     public void update(final LocalDate iDate) {
         List<SSOrder>                 iOrders = se.swedsoft.bookkeeping.data.system.SSSalesContext.getOrders();
         List<SSInvoice>               iInvoices = se.swedsoft.bookkeeping.data.system.SSSalesContext.getInvoices();
@@ -461,7 +456,6 @@ public class SSStock {
     /**
      *
      * @param iProduct
-     * @return
      */
     public Integer getAvaiable(SSProduct iProduct) {
         return getQuantity(iProduct) - getReserved(iProduct);

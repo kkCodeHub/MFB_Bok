@@ -132,7 +132,6 @@ public class SSPeriodicInvoice  {
 
     /**
      *
-     * @return
      */
     public Integer getNumber() {
         return iNumber;
@@ -150,7 +149,6 @@ public class SSPeriodicInvoice  {
 
     /**
      *
-     * @return
      */
     public SSInvoice getTemplate() {
         if (iTemplate == null) {
@@ -190,7 +188,6 @@ public class SSPeriodicInvoice  {
 
     /**
      *
-     * @return
      */
     public Integer getCount() {
         return iCount;
@@ -210,7 +207,6 @@ public class SSPeriodicInvoice  {
 
     /**
      *
-     * @return
      */
     public Integer getPeriod() {
         return iPeriod;
@@ -229,7 +225,6 @@ public class SSPeriodicInvoice  {
 
     /**
      *
-     * @return
      */
     public String getDescription() {
         return iDescription;
@@ -279,7 +274,6 @@ public class SSPeriodicInvoice  {
 
     /**
      *
-     * @return
      */
     public boolean getAppendPeriod() {
         return iAppendPeriod;
@@ -317,7 +311,6 @@ public class SSPeriodicInvoice  {
     /**
      *
      * @param iInvoice
-     * @return
      */
     public boolean isAdded(SSInvoice iInvoice) {
         if (iAdded == null) {
@@ -368,7 +361,6 @@ public class SSPeriodicInvoice  {
 
     /**
      *
-     * @return
      */
     private Map<Integer, Boolean> getAdded() {
         if (iAdded == null) {
@@ -381,7 +373,6 @@ public class SSPeriodicInvoice  {
 
     /**
      *
-     * @return
      */
     public List<SSInvoice> getInvoices() {
         if (iInvoices == null) {
@@ -395,7 +386,6 @@ public class SSPeriodicInvoice  {
      * Returns all invoices that isnt added up till the selected date
      *
      * @param iDate
-     * @return
      */
     public List<SSInvoice> getInvoices(LocalDate iDate) {
         List<SSInvoice> iFiltered = new LinkedList<>();

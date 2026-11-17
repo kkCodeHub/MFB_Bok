@@ -10,7 +10,6 @@ import java.math.BigDecimal;
 import se.swedsoft.bookkeeping.util.SSDateUtil;
 
 import java.time.LocalDate;
-import java.util.Date;
 import java.util.List;
 
 
@@ -110,7 +109,6 @@ public class SSTender extends SSSale {
 
     /**
      *
-     * @return
      */
     public BigDecimal getCurrencyRate() {
         if (iCurrencyRate != null) {
@@ -136,7 +134,6 @@ public class SSTender extends SSSale {
 
     /**
      *
-     * @return
      */
     public SSOrder getOrder() {
         return getOrder(se.swedsoft.bookkeeping.data.system.SSSalesContext.getOrders());
@@ -145,7 +142,6 @@ public class SSTender extends SSSale {
     /**
      *
      * @param iOrders
-     * @return
      */
     public SSOrder getOrder(List<SSOrder> iOrders) {
         if (iOrder == null && iOrderNr != null) {
