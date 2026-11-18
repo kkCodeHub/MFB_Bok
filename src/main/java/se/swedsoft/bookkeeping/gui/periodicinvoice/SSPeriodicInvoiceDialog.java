@@ -107,7 +107,6 @@ public class SSPeriodicInvoiceDialog {
                 SSBundle.getBundle().getString("periodicinvoiceframe.new.title"));
         final SSPeriodicInvoicePanel iPanel = new SSPeriodicInvoicePanel(iDialog);
 
-        // SSPeriodicInvoice iPeriodicInvoice = new SSPeriodicInvoice();
         iPeriodicInvoice.setNumber(null);
 
         iPanel.setPeriodicInvoice(iPeriodicInvoice);

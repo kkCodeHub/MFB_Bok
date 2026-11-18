@@ -114,23 +114,6 @@ public class SSVoucherEditors {
         };
     }
 
-    /*
-     public static DefaultTableCellRenderer createAccountRenderer(SSDefaultTableModel<SSVoucherRow> pModel){
-     return new SSDefaultVoucherRowRenderer(pModel){
-     public void setInvoiceValue(Object value) {
-
-     if( value != null &&  ((SSAccount)value).getNumber() != null){
-     setText( Integer.toString( ((SSAccount)value).getNumber() ) );
-     } else {
-     setText("");
-     }
-
-     }
-     };
-     }
-
-     */
-
     public static DefaultTableCellRenderer createResultUnitRenderer(SSDefaultTableModel<SSVoucherRow> pModel) {
         return new SSDefaultVoucherRowRenderer<SSNewResultUnit>(pModel) {
             @Override
@@ -315,28 +298,19 @@ public class SSVoucherEditors {
         pTable.setDefaultEditor(SSAccount.class, new SSAccountCellEditor());
 
         // Set appropriate renderers and editors.
-        // pTable.setDefaultRenderer(String.class, new SSDefaultVoucherRowRenderer(pModel));
 
-        // pTable.setDefaultRenderer(SSAccount.class, createAccountRenderer(pModel) );
-        // pTable.setDefaultEditor  (SSAccount.class, createAccountEditor()  );
 
-        // pTable.setDefaultRenderer(SSNewProject.class, createProjectRenderer(pModel));
-        // pTable.setDefaultEditor  (SSNewProject.class, createProjectEditor() );
 
         pTable.setDefaultRenderer(SSNewProject.class, new SSProjectCellRenderer());
         pTable.setDefaultEditor(SSNewProject.class, new SSProjectCellEditor());
 
-        // pTable.setDefaultRenderer(SSNewResultUnit.class, createResultUnitRenderer(pModel));
-        // Table.setDefaultEditor  (SSNewResultUnit.class, createResultUnitEditor() );
 
         pTable.setDefaultRenderer(SSNewResultUnit.class, new SSResultUnitCellRenderer());
         pTable.setDefaultEditor(SSNewResultUnit.class, new SSResultUnitCellEditor());
 
         // Set the default renderer for the date cells.
-        // pTable.setDefaultRenderer(Date.class      , createDateRenderer(pModel));
         pTable.setDefaultRenderer(Date.class, new SSDateCellRenderer());
 
-        // pTable.setDefaultRenderer(BigDecimal.class, createBigDecimalRenderer(pModel) );
         pTable.setDefaultRenderer(BigDecimal.class, new SSBigDecimalCellRenderer(2));
         pTable.setDefaultEditor(BigDecimal.class, new SSBigDecimalCellEditor(2));
 

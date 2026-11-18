@@ -205,26 +205,13 @@ public class SSBackupFactory {    private static final Logger LOG = LoggerFactor
         SSInternalFrame.closeAllFrames();
 
         // Get the database directory
-        // String iDirectory = getDatabaseDirectory();
 
-        // SSSystemCompany iCompany = findSystemCompany(iRestoredCompany);
         // Test if the company exists in the database
-        /* if(iCompany != null ){
-         iRestoredCompany.setCurrent( iCompany.isCurrent() );
 
-         // Delete the company
-         se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.deleteCompany(iCompany);
-         } else {
-         iRestoredCompany.setCurrent( false );
-         } */
-
-        // List<ArchiveFile> iFiles = SSBackupUtils.getFiles(pFilename, iDirectory);
 
         // Extract all files
-        // SSBackupZip.extractFiles(pFilename, iFiles);
 
         // Add the company to the database
-        // addSystemCompany(iRestoredCompany);
 
         if (iRestoredCompany.isCurrent()) {// se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.setCurrentCompany(iRestoredCompany);
         }

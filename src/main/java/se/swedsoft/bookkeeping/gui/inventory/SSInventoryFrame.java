@@ -112,20 +112,6 @@ public class SSInventoryFrame extends SSDefaultTableFrame {
         toolBar.add(iButton);
         toolBar.addSeparator();
 
-        /*
-         // Copy
-         // ***************************
-         iButton = new SSButton("ICON_COPYITEM", "inventortyframe.copybutton", e -> {
-
-                 SSInventory iInventory = iModel.getSelectedRow(iTable);
-
-                 if(iInventory != null) SSInventoryDialog.copyDialog(getMainFrame(), iInventory, iModel);
-
-             });
-         iTable.addSelectionDependentComponent(iButton);
-         toolBar.add(iButton);
-         toolBar.addSeparator(); */
-
         // Delete
         // ***************************
         iButton = new SSButton("ICON_DELETEITEM", "inventortyframe.deletebutton",

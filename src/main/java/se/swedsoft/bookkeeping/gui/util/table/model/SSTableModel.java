@@ -430,29 +430,6 @@ public abstract class SSTableModel<T> extends AbstractTableModel {
         iTable.getActionMap().put("DELETE_ROW", iDelete);
     }
 
-    /* public void dispose()
-     {
-     TableModelListener[] iTableModelListeners = this.getTableModelListeners();
-     for(int i=0;i<iTableModelListeners.length;i++)
-     {
-     this.removeTableModelListener(iTableModelListeners[i]);
-     }
-     if(iObjects!=null)
-     iObjects.removeAll(iObjects);
-
-     iObjects=null;
-     if(iColumns!=null)
-     iColumns.removeAll(iColumns);
-
-     iColumns=null;
-     if(iEditable!=null)
-     iEditable.clear();
-
-     iEditable=null;
-
-     }
-     */
-
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder();

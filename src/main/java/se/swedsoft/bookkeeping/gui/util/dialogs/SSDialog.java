@@ -86,7 +86,6 @@ public class SSDialog extends JDialog implements KeyEventDispatcher, ActionListe
      */
     public void closeDialog() {
         setVisible(false);
-        // dispose();
     }
 
     @Override
@@ -104,7 +103,6 @@ public class SSDialog extends JDialog implements KeyEventDispatcher, ActionListe
         this.iModalResult = iModalResult;
 
         setVisible(false);
-        // dispose();
     }
 
     /*

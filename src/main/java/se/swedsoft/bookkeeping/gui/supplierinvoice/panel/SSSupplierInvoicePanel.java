@@ -389,10 +389,7 @@ public class SSSupplierInvoicePanel implements ActionListener {
         iNumber = null;
         iDate.dispose();
         iDate = null;
-        // if(iPaymentTerm!=null)
-        // iPaymentTerm.dispose();
 
-        // iPaymentTerm=null;
         iCurrency.dispose();
         iCurrency = null;
         iDefaultAccounts.dispose();
@@ -507,14 +504,6 @@ public class SSSupplierInvoicePanel implements ActionListener {
         iSupplier.setSelected(this.iSupplierInvoice.getSupplier(iSuppliers));
 
         // Betalningsvillkor
-        /* if(!bNewSupplierInvoice)
-         {
-         iPaymentTerm=this.iSupplierInvoice.getSupplier(iSuppliers).getPaymentTerm();
-         }
-         else
-         {
-
-         }*/
 
         // Ordernummer
         iPurchaseOrder.setValue(getPurchaseOrderNumbers(iSupplierInvoice));

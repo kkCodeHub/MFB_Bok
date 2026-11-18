@@ -73,7 +73,6 @@ public class SSInvoice extends SSSale {
         iCurrencyRate = new BigDecimal(1);
         iVoucher = new SSVoucher();
         iOCRNumber = null;
-//        iOrderNumbers = "Fakturan har inga ordrar";
         iOrderNumbers = SSBundle.getBundle().getString("invoiceframe.invoiceNoOrders");
         iPrinted = false;
         iCancelled = false;
@@ -120,7 +119,6 @@ public class SSInvoice extends SSSale {
             setDefaultAccounts(iCompany.getDefaultAccounts());
             setOurContactPerson(iCompany.getContactPerson());
         }
-        // doAutoIncrecement();
     }
 
     /**
@@ -162,7 +160,6 @@ public class SSInvoice extends SSSale {
     public void copyFrom(SSInvoice iInvoice) {
         super.copyFrom(iInvoice);
 
-        // this.iCurrencyRate = iInvoice.getCustomer().getInvoiceCurrency().getExchangeRate();
         iCurrencyRate = iInvoice.getCurrencyRate();
         iPaymentDay = iInvoice.iPaymentDay;
         iYourOrderNumber = iInvoice.iYourOrderNumber;

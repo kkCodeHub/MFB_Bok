@@ -93,7 +93,6 @@ public class SSProductImporter {    private static final Logger LOG = LoggerFact
 
             iProducts = importProducts(new SSExcelSheet(iSheet));
 
-            // iWorkbook.write();
             iWorkbook.close();
 
         } catch (IOException e) {

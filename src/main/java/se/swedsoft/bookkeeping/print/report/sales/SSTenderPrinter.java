@@ -51,7 +51,6 @@ public class SSTenderPrinter extends SSPrinter {
 
         setDetail("sales/tender.jrxml");
         setColumnHeader("sales/tender.jrxml");
-        // setBackground  ("sales/tender.jrxml");
 
         addParameters();
 

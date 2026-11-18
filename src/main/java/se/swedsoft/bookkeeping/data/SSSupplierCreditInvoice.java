@@ -86,7 +86,6 @@ public class SSSupplierCreditInvoice extends SSSupplierInvoice {
 //                iSupplierInvoice.getVoucher(),
 //                iSupplierInvoice.getCorrection(),
 //                iSupplierInvoice.getDefaultAccounts(),
-//                iSupplierInvoice.getRows());
 
     }
 

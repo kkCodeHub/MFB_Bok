@@ -220,7 +220,6 @@ public class SSOrderFrame extends SSDefaultTableFrame {    private static final 
         iTable.addSelectionDependentComponent(iButton2);
         toolBar.add(iButton2);
 
-        // if(!SSVersion.app_title.contains("JFS Fakturering")){
         // Create purchase order from this order
         // ***************************
         iButton = new SSButton("ICON_INVOICE24", "orderframe.createspurchaseorderbutton",
@@ -322,7 +321,6 @@ public class SSOrderFrame extends SSDefaultTableFrame {    private static final 
 
                         SSDefaultFileChooser iFilechooser = new SSDefaultFileChooser();
 
-                        // iFilechooser.setSelectedFile(new File("Orderlista.xml"));
 
                         if (iFilechooser.showOpenDialog(getMainFrame())
                                 == JFileChooser.APPROVE_OPTION) {
@@ -472,9 +470,7 @@ public class SSOrderFrame extends SSDefaultTableFrame {    private static final 
         iModel.addColumn(SSOrderTableModel.COLUMN_CURRENCY);
         iModel.addColumn(SSOrderTableModel.COLUMN_ESTIMATED_DELIVERY);
         iModel.addColumn(SSOrderTableModel.COLUMN_INVOICE);
-        // if (!SSVersion.app_title.contains("JFS Fakturering")) {
         iModel.addColumn(SSOrderTableModel.COLUMN_PURCHASEORDER);
-        // }
 
         iModel.setupTable(iTable);
 
@@ -504,9 +500,7 @@ public class SSOrderFrame extends SSDefaultTableFrame {    private static final 
                 new SSTabbedPanePanel());
 
         iTabbedPane.addChangeListener(e -> iSearchPanel.ApplyFilter(SSSalesContext.getOrders()));
-        // setFilterIndex(0);
 
-        // iModel.setObjects(se.swedsoft.bookkeeping.data.system.SSSalesContext.getOrders());
         iTableScrollPane = new JScrollPane(iTable);
 
         JPanel iPanel = new JPanel();

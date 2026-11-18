@@ -48,15 +48,7 @@ public class SSOCRInvoicePrinter extends SSInvoicePrinter {
 
         setMargins(0, 0, 0, 0);
 
-        /* SSNewCompany iCompany = se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.getCurrentCompany();
-
-         String iOCRNumber = SSOCRNumber.getOCRNumber(iInvoice);
-
-         iInvoice.setOCRNumber(iOCRNumber);*/
-
         iCodeRow = new SSORCInvoiceCodeRow();
-        // iCodeRow.setReferenceNumber( iOCRNumber );
-        // iCodeRow.setBankNumber     ( iCompany.getBankGiroNumber() );
         iCodeRow.setReferenceNumber(iInvoice.getOCRNumber());
         iCodeRow.setBankNumber(se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.getCurrentCompany().getBankGiroNumber());
         iCodeRow.setValue(SSInvoiceMath.getTotalSum(iInvoice));
@@ -93,14 +85,6 @@ public class SSOCRInvoicePrinter extends SSInvoicePrinter {
             }
             // Förtryckta fält
             iCharacters[83] = 'H';
-
-            /* iCharacters[79] = '#';
-             iCharacters[51] = '#';
-             iCharacters[34] = '>';
-             iCharacters[ 8] = '#';
-             iCharacters[ 7] = '4';
-             iCharacters[ 6] = '1';
-             iCharacters[ 5] = '#';*/
         }
 
         /**

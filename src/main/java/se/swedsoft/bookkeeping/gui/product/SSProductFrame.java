@@ -345,10 +345,8 @@ public class SSProductFrame extends SSDefaultTableFrame {
         iModel.addColumn(SSProductTableModel.COLUMN_PRICE);
         iModel.addColumn(SSProductTableModel.COLUMN_UNIT);
         iModel.addColumn(SSProductTableModel.COLUMN_WAREHOUSE_LOCATION);
-        // if(!SSVersion.app_title.contains("JFS Fakturering")) {
         iModel.addColumn(SSProductTableModel.getStockQuantityColumn(iStock));
         iModel.addColumn(SSProductTableModel.getStockAvaiableColumn(iStock));
-        // }
 
         iTable = new SSTable();
 

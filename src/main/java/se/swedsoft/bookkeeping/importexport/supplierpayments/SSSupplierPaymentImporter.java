@@ -61,7 +61,6 @@ public class SSSupplierPaymentImporter {    private static final Logger LOG = Lo
             LBinPost iPost = getPost(iPostTyp);
 
             if (iPost != null) {
-                // LOG.info(iLine);
                 iPost.read(iReader);
 
                 iPosts.add(iPost);

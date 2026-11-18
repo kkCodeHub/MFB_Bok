@@ -230,12 +230,7 @@ public class SSAccount implements Cloneable, SSTableSearchable {
      * @return the hashcode
      */
     public int hashCode() {
-        // if(iNumber != null){
         return iNumber;
-        // } else {
-        // return super.hashCode();
-        // }
-
     }
 
 }

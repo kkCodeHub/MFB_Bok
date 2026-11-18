@@ -183,7 +183,6 @@ public class SSVoucherPanel implements TableModelListener, ListSelectionListener
             iNumber.setPreferredSize(new Dimension(70, iNumber.getPreferredSize().height));
             iNumber.setMinimumSize(new Dimension(70, iNumber.getPreferredSize().height));
             iNumber.setMaximumSize(new Dimension(70, iNumber.getPreferredSize().height));
-     //       iNumber.setColumns(5);
             iNumber.setHorizontalAlignment(SwingConstants.RIGHT);
         }
         if (iDate != null) {

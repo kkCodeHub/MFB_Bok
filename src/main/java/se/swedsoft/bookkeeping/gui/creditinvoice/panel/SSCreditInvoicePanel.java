@@ -430,7 +430,6 @@ public class SSCreditInvoicePanel {
         iRefreshVoucher.removeAll();
         iRefreshVoucher = null;
 
-        // iModel.dispose();
         iModel = null;
         iVoucherTableModel = null;
 
@@ -533,7 +532,6 @@ public class SSCreditInvoicePanel {
         iNumber.setValue(iCreditInvoice.getNumber());
         // Ordernummer
         iCrediting.setValue(iCreditInvoice.getCreditingNr());
-        // iCrediting.setSelected(iCreditInvoice.getCrediting( se.swedsoft.bookkeeping.data.system.SSSalesContext.getInvoices() ) );
         // Offertdatum
         iDate.setLocalDate(iCreditInvoice.getLocalDate());
         // Kund nummer

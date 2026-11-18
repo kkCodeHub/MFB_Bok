@@ -342,8 +342,6 @@ public class SSMainMenu {    private static final Logger LOG = LoggerFactory.get
 
         iMenuLoader.addActionListener("registermenu.vouchertemplates", e -> {
 
-                //SSVoucherTemplateTableFrame voucherTemplateFrame = new SSVoucherTemplateTableFrame(iMainFrame, 400, 300);
-                //voucherTemplateFrame.setVisible(true);
 
                 SSVoucherTemplateFrame.showFrame(iMainFrame);
 
@@ -460,7 +458,6 @@ public class SSMainMenu {    private static final Logger LOG = LoggerFactory.get
                 iFileChooser.setFileFilter(  iFilter );
 
                 if( iFileChooser.showOpenDialog(iMainFrame) != SSFileChooser.APPROVE_OPTION) return;
-                //  List<SSOutpayment> iOutpayments = SSSupplierPaymentImporter.Import(iFileChooser.getSelectedFile());
 
                 List<SSOutpayment> iOutpayments ;
                 try {

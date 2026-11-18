@@ -331,17 +331,11 @@ public class SSStock {
             Integer iReserved = 0;
 
             // Order: + reserverad om den ej är fakturerad
-            /* for (SSOrder iOrder : iOrders) {
-             iReserved = iReserved + SSOrderMath.getProductCount(iOrder, iProduct);
-             }*/
             iReserved = iOrderCount.get(iProduct.getNumber()) == null
                     ? iReserved
                     : iReserved + iOrderCount.get(iProduct.getNumber());
 
             // Faktura: - på lagret
-            /* for (SSInvoice iInvoice : iInvoices) {
-             iQuantity = iQuantity - SSSaleMath.getProductCount(iInvoice, iProduct);
-             }*/
             Integer iQuantity = 0;
 
             iQuantity = iInvoiceCount.get(iProduct.getNumber()) == null
@@ -349,17 +343,11 @@ public class SSStock {
                     : iQuantity - iInvoiceCount.get(iProduct.getNumber());
 
             // Kreditfaktura: + på lagret
-            /* for (SSCreditInvoice iCreditInvoice : iCreditInvoices) {
-             iQuantity = iQuantity + SSSaleMath.getProductCount(iCreditInvoice,  iProduct);
-             }*/
             iQuantity = iCreditInvoiceCount.get(iProduct.getNumber()) == null
                     ? iQuantity
                     : iQuantity + iCreditInvoiceCount.get(iProduct.getNumber());
 
             // Inköpsorder: + Ordered om ej fakturerad
-            /* for (SSPurchaseOrder iPurchaseOrder : iPurchaseOrders) {
-             iOrdered = iOrdered + SSPurchaseOrderMath.getProductCount(iPurchaseOrder,  iProduct);
-             }*/
             Integer iOrdered = 0;
 
             iOrdered = iPurchaseOrderCount.get(iProduct.getNumber()) == null
@@ -367,41 +355,26 @@ public class SSStock {
                     : iOrdered + iPurchaseOrderCount.get(iProduct.getNumber());
 
             // Leverantörsfakturor: + på lagret
-            /* for (SSSupplierInvoice iSupplierInvoice : iSupplierInvoices) {
-             iQuantity = iQuantity + SSSupplierInvoiceMath.getProductCount(iSupplierInvoice,  iProduct);
-             }*/
             iQuantity = iSupplierInvoiceCount.get(iProduct.getNumber()) == null
                     ? iQuantity
                     : iQuantity + iSupplierInvoiceCount.get(iProduct.getNumber());
 
             // Leverantörskreditfaktura: - på lagret
-            /* for (SSSupplierCreditInvoice iSupplierCreditInvoice : iSupplierCreditInvoices) {
-             iQuantity = iQuantity - SSSupplierInvoiceMath.getProductCount(iSupplierCreditInvoice,  iProduct);
-             }*/
             iQuantity = iSupplierCreditInvoiceCount.get(iProduct.getNumber()) == null
                     ? iQuantity
                     : iQuantity - iSupplierCreditInvoiceCount.get(iProduct.getNumber());
 
             // Inventering + på lager
-            /* for (SSInventory iInventory : iInventories) {
-             iQuantity = iQuantity + iInventory.getChange(iProduct);
-             }*/
             iQuantity = iInventoryCount.get(iProduct.getNumber()) == null
                     ? iQuantity
                     : iQuantity + iInventoryCount.get(iProduct.getNumber());
 
             // Inleverans + på lager
-            /* for (SSIndelivery iIndelivery : iIndeliveries) {
-             iQuantity = iQuantity + iIndelivery.getChange(iProduct);
-             }*/
             iQuantity = iIndeliveryCount.get(iProduct.getNumber()) == null
                     ? iQuantity
                     : iQuantity + iIndeliveryCount.get(iProduct.getNumber());
 
             // Utleverans - på lager
-            /* for (SSOutdelivery iOutdelivery : iOutdeliveries) {
-             iQuantity = iQuantity - iOutdelivery.getChange(iProduct);
-             }*/
             iQuantity = iOutdeliveryCount.get(iProduct.getNumber()) == null
                     ? iQuantity
                     : iQuantity - iOutdeliveryCount.get(iProduct.getNumber());

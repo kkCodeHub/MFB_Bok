@@ -105,7 +105,6 @@ public class SSProductDialog {
                 bundle.getString("productframe.edit.title"));
         final SSProductPanel iPanel = new SSProductPanel(iDialog, true);
 
-        // iPanel.setEditPanel();
 
         iPanel.setProduct(new SSProduct(iProduct));
 

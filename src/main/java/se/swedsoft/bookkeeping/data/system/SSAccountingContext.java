@@ -63,17 +63,6 @@ public final class SSAccountingContext {
     }
 
     /**
-     * Returns the underlying {@link SSDB} instance.
-     *
-     * @return the SSDB singleton; never {@code null} once initialised
-     * @deprecated Access SSDB directly only when no repository alternative exists.
-     */
-    @Deprecated
-    public static SSDB getDatabase() {
-        return SSSystemConfigContext.getDatabase();
-    }
-
-    /**
      * Returns whether the given accounting year can be opened.
      *
      * @param year the year to check; must not be {@code null}
@@ -555,7 +544,4 @@ public final class SSAccountingContext {
         return SSResultUnitContext.getResultUnits();
     }
 
- //   private static SSDB database() {
- //       return SSDBAccess.database();
- //   }
 }

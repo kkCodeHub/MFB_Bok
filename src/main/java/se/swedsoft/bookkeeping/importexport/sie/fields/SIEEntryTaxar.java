@@ -45,7 +45,6 @@ public class SIEEntryTaxar implements SIEEntry {
 
             iCurrentYearData.getAccountPlan().setAssessementYear(iYear);
 
-            // se.swedsoft.bookkeeping.data.system.SSAccountingContext.updateAccountingYear(iCurrentYearData);
             return true;
         }
         return false;

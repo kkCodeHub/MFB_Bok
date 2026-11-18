@@ -97,7 +97,6 @@ public class SSInvoiceListDialog extends SSDialog {
      */
     public List<SSInvoice> getInvoicesToPrint() {
 
-        // final List<SSInvoice>  iInvoices  = se.swedsoft.bookkeeping.data.system.SSSalesContext.getInvoices();
         final List<SSCustomer> iCustomers = se.swedsoft.bookkeeping.data.system.SSSalesContext.getCustomers();
 
         List<SSInvoice> iInvoices = se.swedsoft.bookkeeping.data.system.SSSalesContext.getInvoices();

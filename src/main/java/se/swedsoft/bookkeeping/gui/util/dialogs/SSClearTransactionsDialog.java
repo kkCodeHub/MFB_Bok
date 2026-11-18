@@ -5,13 +5,11 @@ import se.swedsoft.bookkeeping.data.system.SSCompanyYearContext;
 import se.swedsoft.bookkeeping.gui.SSMainFrame;
 import se.swedsoft.bookkeeping.gui.util.SSButtonPanel;
 import se.swedsoft.bookkeeping.gui.util.datechooser.SSDateChooser;
-import se.swedsoft.bookkeeping.util.SSDateUtil;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.time.LocalDate;
-import java.util.Date;
 
 
 /**
@@ -40,13 +38,6 @@ public class SSClearTransactionsDialog extends SSDialog {
 
         getRootPane().setDefaultButton(iButtonPanel.getOkButton());
     }
-
-    /**
-     *
-     */
- //   public Date getDate() {
- //       return SSDateUtil.toDate(getLocalDate());
- //   }
 
     public LocalDate getLocalDate() {
         return iDate.getLocalDate();

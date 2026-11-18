@@ -132,27 +132,6 @@ public class SSStartingAmountFrame extends SSDefaultTableFrame {
         toolBar.add(iButton);
         toolBar.addSeparator();
 
-        /*
-         // Import
-         // ***************************
-         iButton = new SSButton("ICON_IMPORT", "startingammountframe.importbutton", false, e -> {
-
-
-
-             });
-         toolBar.add(iButton);
-
-         // Export
-         // ***************************
-         iButton = new SSButton("ICON_EXPORT", "startingammountframe.exportbutton", false, e -> {
-
-
-
-             });
-         toolBar.add(iButton);
-         toolBar.addSeparator();
-         */
-
         // Import from balance budget
         // ***************************
         iButton = new SSButton("ICON_REDO", "startingammountframe.importbalancebutton",
@@ -253,14 +232,11 @@ public class SSStartingAmountFrame extends SSDefaultTableFrame {
         if (iResponce != JOptionPane.YES_OPTION) {
             return;
         }
-        // SSBalanceCalculator iCalculator = new SSBalanceCalculator(iPreviousYear);
 
-        // iCalculator.calculate();
 
         Map<SSAccount, BigDecimal > iOutBalance = SSBalanceCalculator.getOutBalance(
                 iPreviousYear);
 
-        // iCalculator.getOutSaldo();
 
         iStartingAmountPanel.setInBalance(iOutBalance);
     }

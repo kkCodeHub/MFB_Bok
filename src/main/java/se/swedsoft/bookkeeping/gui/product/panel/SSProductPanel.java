@@ -272,9 +272,6 @@ public class SSProductPanel {
 
         iContributionRate.setFormatterFactory(new DefaultFormatterFactory(iFormatter));
 
-        // if (SSVersion.app_title.contains("JFS Fakturering")) {
-        // iSupplier.setEnabled(false);
-        // }
 
         addKeyListeners();
 
@@ -340,10 +337,7 @@ public class SSProductPanel {
 
         SSAccountPlan iAccountPlan = SSAccountingContext.getCurrentAccountPlan();
 
-        // SSNewCompany     iCompany     = SSCompanyYearContext.getCurrentCompany();
 
-        // Integer iSalesAccountNumber     = iProduct.getDefaultAccount(SSDefaultAccount.Sales    );//, iCompany.getDefaultAccount(SSDefaultAccount.Sales    ));
-        // Integer iPurchasesAccountNumber = iProduct.getDefaultAccount(SSDefaultAccount.Purchases);// iCompany.getDefaultAccount(SSDefaultAccount.Purchases));
 
         if (iAccountPlan != null) {
             iSellingAccount.setSelected(

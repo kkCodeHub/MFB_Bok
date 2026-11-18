@@ -165,7 +165,6 @@ public class SSResultPrinter extends SSPrinter {
                 if (isColumn1 || isColumn2 || isColumn3) {
                     iRows.add(iRow);
 
-                    // if( iRow.iSummaryGroup != -1) iLastVisibleSummaryGroup = iRow.iSummaryGroup;
 
                     iRow.iSummaryGroup = getSummaryGroup(iRow, iLastVisibleRow);
 

@@ -400,7 +400,6 @@ public class SSJasperPreviewFrame extends SSDefaultTableFrame implements Propert
         int iCurrent = iViewer.getCurrentPage() + 1;
         int iTotal = iViewer.getPageCount();
 
-        // iStatusBar.setText( String.format(bundle.getString("printpreviewframe.pages"), iCurrent,iTotal )   );
         iPageLabel.setText(
                 String.format(bundle.getString("printpreviewframe.pages"), iCurrent,
                 iTotal));

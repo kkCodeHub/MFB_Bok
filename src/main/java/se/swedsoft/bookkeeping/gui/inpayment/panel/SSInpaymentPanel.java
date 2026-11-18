@@ -253,17 +253,6 @@ public class SSInpaymentPanel {
             }
         });
 
-        /* iTabbedPane.addFocusListener(new FocusListener(){
-         public void focusGained(FocusEvent e){
-         SSErrorDialog.showDialog(new JFrame(), "Fokus", "Fick fokus!!!!");
-         }
-
-         public void focusLost(FocusEvent e){
-         SSErrorDialog.showDialog(new JFrame(), "Fokus", "Blev av med fokus!!!!");
-         }
-
-         }); */
-
     }
 
     private void setDifferenceToZero(SSVoucherRow iVoucherRow) {
@@ -509,7 +498,6 @@ public class SSInpaymentPanel {
         iDifferenceTable.dispose();
         iDifferenceTable = null;
 
-        // iModel.dispose();
         iModel = null;
         iVoucherTableModel = null;
         iDifferenceTableModel = null;

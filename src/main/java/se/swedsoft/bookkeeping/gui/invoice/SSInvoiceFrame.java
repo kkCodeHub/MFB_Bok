@@ -262,9 +262,7 @@ public class SSInvoiceFrame extends SSDefaultTableFrame {
                         iSelected.removeIf(iInvoice -> !SSInvoiceActionPolicy.canCreateReminder(iInvoice));
                         if (!iSelected.isEmpty()) {
                             SSReportFactory.ReminderReport(getMainFrame(), iSelected);
-                            // updateFrame();
                         }
-                        // iModel.fireTableDataChanged();
 
                     });
         iReminderButton = iButton;
@@ -356,7 +354,6 @@ public class SSInvoiceFrame extends SSDefaultTableFrame {
         iModel.addColumn(SSInvoiceTableModel.COLUMN_CURRENCY);
         iModel.addColumn(SSInvoiceTableModel.COLUMN_CURRENCY_RATE);
         iModel.addColumn(SSInvoiceTableModel.COLUMN_TOTAL_SUM);
-        // iModel.addColumn(SSInvoiceTableModel.COLUMN_SALDO);
         iModel.addColumn(SSInvoiceTableModel.getSaldoColumn());
         iModel.addColumn(SSInvoiceTableModel.COLUMN_REMINDERS);
 
@@ -396,7 +393,6 @@ public class SSInvoiceFrame extends SSDefaultTableFrame {
                 new SSTabbedPanePanel());
 
         iTabbedPane.addChangeListener(e -> iSearchPanel.ApplyFilter(SSSalesContext.getInvoices()));
-        // setFilterIndex(0);
 
         JPanel iPanel = new JPanel();
 
@@ -449,9 +445,6 @@ public class SSInvoiceFrame extends SSDefaultTableFrame {
             iFiltered = new LinkedList<>();
             for (SSInvoice iInvoice : iInvoices) {
 
-                /* if( SSInvoiceMath.getSaldo(iInvoice).signum() != 0){
-                 iFiltered.add(iInvoice);
-                 }*/
                 if (SSInvoiceMath.iSaldoMap != null
                         && SSInvoiceMath.iSaldoMap.containsKey(iInvoice.getNumber())) {
                     if (SSInvoiceMath.iSaldoMap.get(iInvoice.getNumber()).signum() != 0) {

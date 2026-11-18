@@ -36,7 +36,6 @@ public class SSStatusBar extends JPanel {
 
     private List<SSStatusBarPanel> iPanels;
 
-    // private static int width
 
     /**
      * Creates a new {@code JPanel} with a double buffer

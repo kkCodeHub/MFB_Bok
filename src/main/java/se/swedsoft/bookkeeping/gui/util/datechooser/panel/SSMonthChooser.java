@@ -44,7 +44,6 @@ public class SSMonthChooser implements ItemListener {
         iComboBox.setBorder(BorderFactory.createEmptyBorder());
         iComboBox.setLightWeightPopupEnabled(true);
 
-        // iSpinner.setBorder(new EmptyBorder(0, 0, 0, 0));
 
         iSpinner.setEditor(iComboBox);
         iSpinner.setModel(new MonthSpinnerModel());

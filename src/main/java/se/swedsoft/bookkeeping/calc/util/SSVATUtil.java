@@ -89,7 +89,6 @@ public class SSVATUtil {
             BigDecimal iValue = iCreditMinusDebetSum.get(iAccount);
 
             if (iValue == null || iValue.signum() == 0) {
- //             if (iValue == null) {
                 continue;
             }
 
@@ -125,62 +124,6 @@ public class SSVATUtil {
         }
 
         return iVoucher;
-
-        /*
-         SSNewAccountingYear iAccountingYear = se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.getCurrentYear();
-
-         List<SSAccount> accounts = SSAccountMath.getAccountsByVATCode( se.swedsoft.bookkeeping.data.system.SSAccountingContext.getAccounts(), "U1", "U2", "U3", "UVL", "UEU", "UTFU", "I", "IVL");
-
-         BigDecimal vatToPayOrRetrieve        = SSVATUtil.getVatToPayOrRetrieve       (debetMinusCreditSum);
-         BigDecimal vatToPayOrRetrieveRounded = SSVATUtil.getVatToPayOrRetrieveRounded(debetMinusCreditSum);
-
-         // Add the account for Öresutjämmning
-         addAccount(accountA, accounts, creditMinusDebetSum, debetMinusCreditSum);
-
-         // Check so the sum arent zero
-         if(vatToPayOrRetrieve.signum() != 0 ){
-
-         // debet - credit < 0 ==> Credit > Debet
-         if(vatToPayOrRetrieve.signum() < 0  ){
-         addAccount(accountR2, accounts, creditMinusDebetSum, debetMinusCreditSum);
-
-         vatToPayOrRetrieve        = vatToPayOrRetrieve       .negate();
-         vatToPayOrRetrieveRounded = vatToPayOrRetrieveRounded.negate();
-
-         debetMinusCreditSum.put(accountR2, vatToPayOrRetrieveRounded );
-         creditMinusDebetSum.put(accountA , vatToPayOrRetrieveRounded.subtract(vatToPayOrRetrieve));
-         }
-         // debet - credit > 0 ==> Debet > Credit
-         else {
-         addAccount(accountR1, accounts, creditMinusDebetSum, debetMinusCreditSum);
-
-         creditMinusDebetSum.put(accountR1, vatToPayOrRetrieveRounded );
-         creditMinusDebetSum.put(accountA , vatToPayOrRetrieve.subtract(vatToPayOrRetrieveRounded));
-         }
-         }
-         SSVoucher voucher = SSVoucher.newVoucher();
-
-         voucher.setDescription(name);
-         voucher.setDate  ( to );
-         for(SSAccount account: accounts ){
-
-         BigDecimal debet  = creditMinusDebetSum.get(account);
-         BigDecimal credit = debetMinusCreditSum.get(account);
-
-         if( debet  != null && debet.signum()  <= 0) debet  = null;
-         if( credit != null && credit.signum() <= 0) credit = null;
-
-         if( debet != null || credit != null){
-         SSVoucherRow iVoucherRow = new SSVoucherRow();
-         iVoucherRow.setAccount(account);
-         iVoucherRow.setDebet  (debet);
-         iVoucherRow.setCredit (credit);
-
-         voucher.addVoucherRow(iVoucherRow);
-         }
-         }
-
-         return voucher;    */
     }
 
 }

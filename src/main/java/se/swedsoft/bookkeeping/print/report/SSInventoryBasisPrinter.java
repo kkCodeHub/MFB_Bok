@@ -137,8 +137,6 @@ public class SSInventoryBasisPrinter extends SSPrinter {
         iModel.addColumn("product.stockquantity");
         iModel.addColumn("product.warehouselocation");
 
-        /* Collections.sort(iProducts, (o1, o2) -> o1.getNumber().compareTo( o2.getNumber() ));*/
-
         Collections.sort(iProducts,
                 (iProduct1, iProduct2) -> {
 

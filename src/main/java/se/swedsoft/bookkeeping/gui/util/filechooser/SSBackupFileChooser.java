@@ -26,7 +26,6 @@ public class SSBackupFileChooser extends SSFileChooser {
         addChoosableFileFilter(getAcceptAllFileFilter());
         addChoosableFileFilter(new SSFilterZIP());
 
-        // setFileFilter( getChoosableFileFilters()[0]);
     }
 
 }

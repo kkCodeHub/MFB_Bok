@@ -302,8 +302,6 @@ public class SSInterestInvoiceTableModel extends SSDefaultTableModel<SSInvoice> 
         iTable.setDefaultEditor(InterestAction.class, new InterestActionCellEditor());
         iTable.setDefaultRenderer(InterestAction.class, new InterestActionCellRenderer());
 
-        // iTable.getColumnModel().getColumn( 8).setCellEditor     (new SSBigDecimalCellEditor  (5));
-        // iTable.getColumnModel().getColumn( 8).setCellRenderer   (new SSBigDecimalCellRenderer(5));
     }
 
     /**

@@ -76,7 +76,6 @@ public class SSSIEExporter {    private static final Logger LOG = LoggerFactory.
         // Get the exporter factory
         SIEFactory iFactory = SIEFactory.getExportInstance(iType);
 
-        // LOG.info(iFactory.toString());
 
         for (SIELabel iLabel : iFactory.getLabels()) {
             SIEEntry iEntry = iLabel.getEntry();

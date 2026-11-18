@@ -46,7 +46,6 @@ public class SSInvoiceSearchPanel extends JPanel {
         List<SSInvoice> iFiltered = filterInvoices(iList, iTextField.getText());
         SSInvoiceFrame.getInstance().setFilterIndex(
                 SSInvoiceFrame.getInstance().getTabbedPane().getSelectedIndex(), iFiltered);
-        // iModel.setObjects(iFiltered);
 
     }
 

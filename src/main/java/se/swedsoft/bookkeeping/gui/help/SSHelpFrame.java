@@ -153,13 +153,6 @@ public class SSHelpFrame extends JFrame {    private static final Logger LOG = L
         toolBar.add(iForwardButton);
         toolBar.addSeparator();
 
-        /*
-         // Print
-         // ***************************
-         iButton = new SSButton("ICON_PRINT", "helpframe.printbutton", new PrintAction(iViewer) );
-         toolBar.add(iButton);
-         */
-
         iHistory.addHistoryListener(e -> {
 
                 iBackButton.setEnabled(iHistory.hasPrevious());
@@ -206,7 +199,6 @@ public class SSHelpFrame extends JFrame {    private static final Logger LOG = L
     private void setHelpClass(Class<?> pHelpClass) {
         // @todo Restructure help file to be able to connect a frame to a help topic.
         LOG.info("{}", pHelpClass);
-        // iViewer.setCurrentID();
     }
 
     @Override

@@ -59,7 +59,6 @@ public class SSInventoryPanel {
         iStock.update();
 
         iTable.setColorReadOnly(true);
-        // iTable.setColumnSortingEnabled(false);
         iTable.setSingleSelect();
 
         iModel = new SSInventoryRowTableModel(iStock);

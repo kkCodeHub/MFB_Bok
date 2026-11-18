@@ -68,7 +68,6 @@ public class SSTenderSearchPanel extends JPanel {
         }
         SSTenderFrame.getInstance().setFilterIndex(
                 SSTenderFrame.getInstance().getTabbedPane().getSelectedIndex(), iFiltered);
-        // iModel.setObjects(iFiltered);
 
     }
 

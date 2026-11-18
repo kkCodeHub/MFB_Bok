@@ -58,7 +58,6 @@ public class SSSystemYear implements SSTableSearchable {
                 ? pYear.getAccountPlan().getName()
                 : null;
 
-        // unloadYear();
     }
 
     /**
@@ -179,11 +178,7 @@ public class SSSystemYear implements SSTableSearchable {
         if (other instanceof SSSystemYear) {
             return iID.equals(((SSSystemYear) other).iID);
         }
-/*
-        if (other instanceof SSNewAccountingYear) {
-            return iID.equals(((SSNewAccountingYear) other).getId());
-        }
-*/
+
         return false;
     }
 

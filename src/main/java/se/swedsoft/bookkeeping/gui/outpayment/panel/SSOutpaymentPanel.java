@@ -493,7 +493,6 @@ public class SSOutpaymentPanel {
         iDifferenceTable.dispose();
         iDifferenceTable = null;
 
-        // iModel.dispose();
         iModel = null;
         iVoucherTableModel = null;
         iDifferenceTableModel = null;

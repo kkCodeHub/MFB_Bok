@@ -386,28 +386,6 @@ public class SSInvoiceTableModel extends SSTableModel<SSInvoice> {
         }
     };
 
-    /**
-     * Saldo
-     */
-    
-    /* public static SSTableColumn<SSInvoice> COLUMN_SALDO = new SSTableColumn<>(SSBundle.getBundle().getString("invoicetable.column.11")) {
-     public Object getValue(SSInvoice iInvoice) {
-     return SSInvoiceMath.getSaldo(iInvoice);
-     }
-
-     public void setValue(SSInvoice iInvoice, Object iValue) {
-
-     }
-
-     public Class getColumnClass() {
-     return BigDecimal.class;
-     }
-
-     public int getDefaultWidth() {
-     return 90;
-     }
-     };  */
-
     public static SSTableColumn<SSInvoice> getSaldoColumn() {
         return new SSTableColumn<>(
                 SSBundle.getBundle().getString("invoicetable.column.11")) {

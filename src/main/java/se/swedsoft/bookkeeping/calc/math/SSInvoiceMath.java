@@ -226,8 +226,6 @@ public class SSInvoiceMath extends SSSaleMath {    private static final Logger L
                 }
 
                 iSaldos.put(iInvoice, iSum.setScale(2, RoundingMode.HALF_UP));
-                // BigDecimal iSaldo = getSaldo(iInvoice, iDate);
-                // iSaldos.put(iInvoice, iSaldo.setScale(2, RoundingMode.HALF_UP));
             }
         }
         return iSaldos;
@@ -462,7 +460,6 @@ public class SSInvoiceMath extends SSSaleMath {    private static final Logger L
     public static BigDecimal getInterestSum(SSInvoice iInvoice, BigDecimal iSaldo, int iNumDays) {
         BigDecimal iInterest = iInvoice.getDelayInterest();
 
-        // LOG.info(iInterest);
         BigDecimal iNormalisedInterest = iInterest.scaleByPowerOfTen(-2);
 
         BigDecimal iDay = new BigDecimal(iNumDays).divide(new BigDecimal(365), 16,

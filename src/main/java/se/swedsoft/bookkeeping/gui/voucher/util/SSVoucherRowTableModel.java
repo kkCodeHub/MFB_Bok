@@ -392,11 +392,7 @@ public class SSVoucherRowTableModel extends SSEditableTableModel<SSVoucherRow> {
         }
     };
 
-    // public static Color COLOR_CROSSED          = new Color(255,192,192);
-    // public static Color COLOR_CROSSED_SELECTED = new Color(234,171,171);
 
-    // public static Color COLOR_ADDED           = new Color(192,192,255);
-    // public static Color COLOR_ADDED_SELECTED  = new Color(171,171,234);
 
     public static Color COLOR_CROSSED = new Color(255, 211, 211);
     public static Color COLOR_CROSSED_SELECTED = new Color(255, 192, 192);

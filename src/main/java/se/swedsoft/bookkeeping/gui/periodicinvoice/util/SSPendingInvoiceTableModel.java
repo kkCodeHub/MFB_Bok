@@ -18,7 +18,6 @@ import java.util.*;
  */
 public class SSPendingInvoiceTableModel extends SSTableModel<SSPendingInvoiceTableModel.Entry> {
 
-    // private Map<SSPeriodInvoice, Boolean> iSelected;
 
     public static class Entry {
         SSPeriodicInvoice iPeriodicInvoice;

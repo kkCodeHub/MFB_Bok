@@ -123,7 +123,6 @@ public class SSButton extends JButton {
         for (ActionListener iActionListener : iActionListeners) {
             removeActionListener(iActionListener);
         }
-        // this.removeAll();
     }
 
     @Override

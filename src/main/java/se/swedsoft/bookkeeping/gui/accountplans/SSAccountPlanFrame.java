@@ -118,7 +118,6 @@ public class SSAccountPlanFrame extends SSDefaultTableFrame {
         iModel.addColumn(SSAccountPlanTableModel.COLUMN_TYPE);
         iModel.addColumn(SSAccountPlanTableModel.COLUMN_ASSESSMENTYEAR);
         iModel.addColumn(SSAccountPlanTableModel.COLUMN_DEFAULTPLAN);
-//        iModel.addColumn(SSAccountPlanTableModel.COLUMN_EXCELPATH);
         iModel.setObjects(SSAccountingContext.getAccountPlans());
         iModel.setupTable(iTable);
 
@@ -180,15 +179,6 @@ public class SSAccountPlanFrame extends SSDefaultTableFrame {
             new SSErrorDialog(getMainFrame(), "accountplanframe.editblocked");
             return;
         }
-
-     //   String name = selected.getName();
-     //   SSAccountPlan accountPlan = getAccountPlan(selected);
-     //   if (accountPlan != null) {
-     //       SSAccountPlanDialog.editDialog(getMainFrame(), accountPlan, iModel);
-     //   } else {
-     //       new SSErrorDialog(getMainFrame(), "accountplanframe.accountplangone", name);
-     //   }
-     //   updateFrame();
     }
 
     private void copySelectedAccountPlan() {
@@ -202,15 +192,6 @@ public class SSAccountPlanFrame extends SSDefaultTableFrame {
             new SSErrorDialog(getMainFrame(), "accountplanframe.copyblocked");
             return;
         }
-
-//        String name = selected.getName();
-//        SSAccountPlan accountPlan = getAccountPlan(selected);
-//        if (accountPlan != null) {
-//            SSAccountPlanDialog.copyDialog(getMainFrame(), accountPlan);
-//        } else {
-//            new SSErrorDialog(getMainFrame(), "accountplanframe.accountplangone", name);
-//        }
-//        updateFrame();
     }
 
     private void deleteSelectedAccountPlan() {

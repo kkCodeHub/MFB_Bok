@@ -102,7 +102,6 @@ public class SSSIEImporter {    private static final Logger LOG = LoggerFactory.
             iAccountingYear.getInBalance().clear();
             iAccountingYear.getBudget().clear();
             iAccountingYear.getAccountPlan().clear();
-            // se.swedsoft.bookkeeping.data.system.SSAccountingContext.updateAccountingYear(iAccountingYear);
 
             List<SSVoucher> vouchersToDelete = new LinkedList<>(se.swedsoft.bookkeeping.data.system.SSAccountingContext.getVouchers());
             for (SSVoucher iVoucher : vouchersToDelete) {
@@ -124,11 +123,9 @@ public class SSSIEImporter {    private static final Logger LOG = LoggerFactory.
                 se.swedsoft.bookkeeping.data.system.SSResultUnitContext.deleteResultUnit(iResultUnit);
             }
             resultUnitsToDelete = null;
-            // LOG.info(iFactory.toString());
 
             List<List<String>> iParsedLines = getParsedLines(iLines);
 
-            // iAccountingYear = se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.getCurrentYear();
             for (List<String> iEntryLines : iParsedLines) {
                 SIEReader iReader = new SIEReader(iEntryLines);
 

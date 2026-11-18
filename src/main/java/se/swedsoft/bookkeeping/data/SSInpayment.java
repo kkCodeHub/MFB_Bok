@@ -59,7 +59,6 @@ public class SSInpayment implements SSTableSearchable {
         iDefaultAccounts.putAll(
                 se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.getCurrentCompany().getDefaultAccounts());
 
-        // doAutoIncrecement();
     }
 
     /**

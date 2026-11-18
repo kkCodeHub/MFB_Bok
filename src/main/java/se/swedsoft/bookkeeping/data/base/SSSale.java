@@ -674,7 +674,6 @@ public abstract class SSSale implements SSTableSearchable {
         iDeliveryWay = iCustomer.getDeliveryWay();
         iCurrency = iCustomer.getInvoiceCurrency();
 
-        // this.iCurrency.setExchangeRate(iCustomer.getInvoiceCurrency() == null ? null : iCustomer.getInvoiceCurrency().getExchangeRate());
         iTaxFree = iCustomer.getTaxFree();
         iEuSaleCommodity = iCustomer.getEuSaleCommodity();
         iEuSaleYhirdPartCommodity = iCustomer.getEuSaleYhirdPartCommodity();

@@ -77,7 +77,6 @@ public abstract class SSCompanyPage {
         this.iDialog = iDialog;
     }
 
-    // public static SSNewCompanyPage getInstance();
 
     @Override
     public String toString() {

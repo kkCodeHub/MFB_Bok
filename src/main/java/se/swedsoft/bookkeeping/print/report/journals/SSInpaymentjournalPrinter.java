@@ -64,7 +64,6 @@ public class SSInpaymentjournalPrinter extends SSPrinter {
     @Override
     protected SSDefaultTableModel getModel() {
         // Get all invoices
-        // List<SSInvoice> iInvoices = new LinkedList<>( iSaldos.keySet() );
 
         iPrinter = new SSVoucherPrinter();
         iPrinter.generateReport();

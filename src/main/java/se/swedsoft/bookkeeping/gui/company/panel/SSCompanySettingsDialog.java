@@ -99,9 +99,7 @@ public class SSCompanySettingsDialog extends SSDialog implements ListSelectionLi
 
         iContainer.removeAll();
         iContainer.add(iPage.getPanel(), BorderLayout.CENTER);
-        // iContainer.setPreferredSize( iPage.getPanel().getPreferredSize() );
         iContainer.validate();
-        // iContainer.resize();
 
         repaint();
     }

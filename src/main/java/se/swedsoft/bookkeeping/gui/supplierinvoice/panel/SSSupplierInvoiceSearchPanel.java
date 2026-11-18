@@ -69,7 +69,6 @@ public class SSSupplierInvoiceSearchPanel extends JPanel {
         SSSupplierInvoiceFrame.getInstance().setFilterIndex(
                 SSSupplierInvoiceFrame.getInstance().getTabbedPane().getSelectedIndex(),
                 iFiltered);
-        // iModel.setObjects(iFiltered);
 
     }
 

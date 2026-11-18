@@ -65,48 +65,6 @@ public class SSMainStatusBar {    private static final Logger LOG = LoggerFactor
 
                     });
 
-        /* SSMemoryWarning.setPercentageUsageThreshold(0.80);
-
-         SSMemoryWarning mws = new SSMemoryWarning();
-         mws.addListener(new SSMemoryWarning.Listener() {
-         public void memoryUsageLow(final long usedMemory,final long maxMemory) {
-         //                File iFile = new File(SSDBConfig.getDatabaseFile().getParent()+File.separator+"automatisk_sakerhetskopia.zip");
-         //SSBackup iBackup = SSBackupFactory.createBackup(iFile.getAbsolutePath());
-         //SSBackupDatabase.getInstance().getBackups().add(iBackup);
-         SSBackupDatabase.getInstance().notifyUpdated();
-         Thread blink = new Thread(() -> {
-
-                 while (true) {
-
-                 iMemLabel.setText("<html><b>Minnesanvändning hög. Starta om programmet!</b></html>");
-
-                 iMemLabel.setForeground(Color.RED);
-                 iMemLabel.setVisible(true);
-                 try {
-                 Thread.sleep(1000);
-                 } catch (InterruptedException e) {
-                 LOG.error("Unexpected error", e);
-                 }
-                 iMemLabel.setVisible(false);
-                 try {
-                 Thread.sleep(1000);
-                 } catch (InterruptedException e) {
-                 LOG.error("Unexpected error", e);
-                 }
-                 }
-
-             });
-         blink.start();
-
-         /*iMemLabel.setText("Minnesanvändning hög. Starta om programmet!");
-         iMemLabel.setForeground(Color.RED);
-         SSMemoryWarning.setPercentageUsageThreshold(0.95);
-         double percentageUsed = ((double) usedMemory) / maxMemory;
-         if (percentageUsed > 0.95) {
-         iMemLabel.setText("MINNESNIVÅ KRITISK! STARTA OM PROGRAMMET ANNARS KAN DATABASEN GÅ FÖRLORAD!");
-         } */
-        // }
-        // });
     }
 
     /**

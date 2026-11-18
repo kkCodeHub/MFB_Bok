@@ -83,7 +83,6 @@ public class SSDB {
     }
 
     public void startupLocal(Connection pConnection) throws SQLException {
- //       LOG.info("KK startupLocal, SSDB.java");
         prepareStartupConnection(pConnection);
         failIfLegacySingleSchemaDatabase();
         createNewTables();
@@ -200,7 +199,6 @@ public class SSDB {
         SSSupplierInvoiceMath.calculateSaldos();
         SSSupplierMath.iInvoicesForSuppliers = null;
         SSSupplierMath.getInvoicesForSuppliers();
-        // SSOrderMath.setInvoiceForOrders();
         initYear(false);
 
     }
@@ -242,7 +240,6 @@ public class SSDB {
 
     public void loadLocalDatabase() {
         // loadLocalDatabase enbart använd vid inläsning av säkerhetsbackup.
-//        LOG.info("KK loadLocalDatabase, SSDB.java");
         try {
             if (iConnection != null) {
                 iConnection.close();

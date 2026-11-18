@@ -69,7 +69,6 @@ public class SSSuppliercreditinvoicejournalPrinter extends SSPrinter {
     @Override
     protected SSDefaultTableModel getModel() {
         // Get all invoices
-        // List<SSInvoice> iInvoices = new LinkedList<>( iSaldos.keySet() );
 
         iPrinter = new SSVoucherPrinter();
         iPrinter.generateReport();
@@ -197,7 +196,6 @@ public class SSSuppliercreditinvoicejournalPrinter extends SSPrinter {
             setMargins(0, 0, 0, 0);
 
             setDetail("journals/suppliercreditinvoicejournal.rows.jrxml");
-            // setSummary("journals/invoicejournal.rows.jrxml");
 
             iModel = new SSDefaultTableModel<>() {
 

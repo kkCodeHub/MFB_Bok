@@ -137,7 +137,6 @@ public class SSOrderDialog {
                 if (iModel != null) {
                     iModel.fireTableDataChanged();
                 }
-                // iModel.setObjects(se.swedsoft.bookkeeping.data.system.SSSalesContext.getOrders());
                 iPanel.dispose();
 
                 iDialog.closeDialog();
@@ -329,7 +328,6 @@ public class SSOrderDialog {
         // Create the new supplier invoice
         SSInvoice iInvoice = new SSInvoice(iOrders.get(0));
 
-        // iInvoice.doAutoIncrecement();
 
         iInvoice.setLocalDate(SSDateUtil.today());
         iInvoice.setNumber(null);
@@ -349,7 +347,6 @@ public class SSOrderDialog {
         iInvoice.setOrderNumers(iOrders);
 
         SSInvoiceDialog.newDialog(iMainFrame, iInvoice, iOrders);
-        // if(iModel != null) iModel.fireTableDataChanged();
     }
 
     public static void cashReceiptDialog(final SSMainFrame iMainFrame, List<SSOrder> iOrders, final SSOrderTableModel iModel) {
@@ -368,7 +365,6 @@ public class SSOrderDialog {
         // Create the new supplier invoice
         SSInvoice iInvoice = new SSInvoice(iOrders.get(0));
 
-        // iInvoice.doAutoIncrecement();
 
         iInvoice.setLocalDate(SSDateUtil.today());
         iInvoice.setNumber(null);
@@ -389,7 +385,6 @@ public class SSOrderDialog {
         iInvoice.setOrderNumers(iOrders);
 
         SSInvoiceDialog.newDialog(iMainFrame, iInvoice, iOrders);
-        // if(iModel != null) iModel.fireTableDataChanged();
     }
 
     public static void periodicInvoiceDialog(final SSMainFrame iMainFrame, List<SSOrder> iOrders, final SSOrderTableModel iModel) {
@@ -408,7 +403,6 @@ public class SSOrderDialog {
         // Create the new supplier invoice
         SSInvoice iInvoice = new SSInvoice(iOrders.get(0));
 
-        // iInvoice.doAutoIncrecement();
 
         iInvoice.setLocalDate(SSDateUtil.today());
         iInvoice.setNumber(null);
@@ -443,7 +437,6 @@ public class SSOrderDialog {
         } else {
             SSPeriodicInvoiceDialog.newDialog(iMainFrame, null, iPeriodicInvoice, iOrders);
         }
-        // if(iModel != null) iModel.fireTableDataChanged();
     }
 
 }

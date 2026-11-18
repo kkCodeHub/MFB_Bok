@@ -51,7 +51,6 @@ public class SSStartingAmountPanel {
 
         iTable.getColumnModel().getColumn(2).setPreferredWidth(100);
         iTable.getColumnModel().getColumn(2).setMinWidth(60);
-        // iTable.getColumnModel().getColumn(2).setMaxWidth(150);
 
         iTable.setDefaultEditor(BigDecimal.class, new SSBigDecimalCellEditor(2));
         iTable.setDefaultRenderer(BigDecimal.class, new SSBigDecimalCellRenderer(2));

@@ -291,18 +291,15 @@ public class SSTenderFrame extends SSDefaultTableFrame {
 
         iTabbedPane.addChangeListener(e -> {
 
-                // setFilterIndex( iTabbedPane.getSelectedIndex() );
                 updateFrame();
 
             });
-        // setFilterIndex(0);
 
         iTableScrollPane = new JScrollPane(iTable);
 
         iSearchPanel = new SSTenderSearchPanel(iModel);
         JPanel iPanel = new JPanel();
 
-        // iSearchPanel.ApplyFilter(tenders);
         iPanel.setLayout(new BorderLayout());
         iPanel.add(iSearchPanel, BorderLayout.NORTH);
         iPanel.add(iTabbedPane, BorderLayout.CENTER);

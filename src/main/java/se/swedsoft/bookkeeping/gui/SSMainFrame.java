@@ -93,7 +93,6 @@ public class SSMainFrame extends JFrame {    private static final Logger LOG = L
         // Load and add a menu.
         SSMainMenu iMainMenu = new SSMainMenu(this);
 
- //       setIconImage(SSImage.getImage("ICON_LOGO24"));
         setIconImages(SSImage.getApplicationIcons());
         setJMenuBar(iMainMenu.getMenuBar());
 

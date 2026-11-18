@@ -390,7 +390,6 @@ public class SSInvoicePanel {
         iInputVerifier.add(iCustomerName);
         iInputVerifier.addListener(new SSInputVerifier.SSVerifierListener() {
             public void updated(SSInputVerifier iVerifier, boolean iValid) {
-                // JComponent iCurrent = iVerifier.getCurrentComponent();
 
                 iButtonPanel.getOkButton().setEnabled(iValid && !iReadOnlyMode);
             }

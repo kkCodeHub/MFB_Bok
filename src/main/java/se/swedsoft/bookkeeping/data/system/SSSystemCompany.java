@@ -180,13 +180,7 @@ public class SSSystemCompany  {
 
             return iID.equals(iSystemCompany.iID);
         }
-/*
-        if (other instanceof SSNewCompany) {
-            SSNewCompany iCompany = (SSNewCompany) other;
 
-            return iID.equals(iCompany.getId());
-        }
-*/
         return false;
     }
 

@@ -101,7 +101,6 @@ public class SSCustomerDialog {
         final SSCustomerPanel iPanel = new SSCustomerPanel(iDialog, true);
 
         iPanel.setCustomer(iCustomer);
-        // iPanel.setEditPanel(true);
         iDialog.add(iPanel.getPanel(), BorderLayout.CENTER);
 
         final ActionListener iSaveAction = e -> {

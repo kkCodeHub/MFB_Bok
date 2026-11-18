@@ -109,42 +109,7 @@ public class SSOwnReportAccountGroup {
     }
 
     public String toString(String Seperator) {
-
-        /* StringBuilder sb = new StringBuilder();
-
-         sb.append(Seperator);
-         sb.append( iId );
-         sb.append(": ");
-         sb.append( getTitle() );
-         sb.append(", ");
-         sb.append( iFromAccount );
-         sb.append(" - ");
-         sb.append( iToAccount );
-
-         if(iGroups  != null){
-         sb.append("{\n");
-         for(SSAccountGroup iGroup : iGroups ){
-         sb.append(iGroup.toString(Seperator + "  ") );
-         }
-         sb.append("  }\n");
-         }
-         sb.append("\n");
-         return sb.toString();*/
         return iName;
     }
 
-    /**
-     *
-     * @param iAccounts
-     */
-
-    /* public List<SSAccount> getGroupAccounts(List<SSAccount> iAccounts){
-     List<SSAccount> iGroupAccounts = new LinkedList<>();
-     for(SSAccount iAccount: iAccounts){
-     if( iAccount.getNumber() >= getFromAccount() && iAccount.getNumber() <= getToAccount()  ){
-     iGroupAccounts.add(iAccount);
-     }
-     }
-     return iGroupAccounts;
-     } */
 }

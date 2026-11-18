@@ -138,7 +138,6 @@ public class SSBackupFrame extends SSDefaultTableFrame {    private static final
                             SSFrameManager.getInstance().close();
 
                             SSCompanyFrame.showFrame(getMainFrame(), 500, 300);
- //                           SSCompanyYearContext.initializeCurrentCompanyAndYear();
                         } catch (SSException ex) {
                             new SSErrorDialog(getMainFrame(), "exceptiondialog",
                                     ex.getLocalizedMessage());

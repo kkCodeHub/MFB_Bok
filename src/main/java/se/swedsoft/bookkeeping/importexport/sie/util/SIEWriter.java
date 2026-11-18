@@ -218,9 +218,7 @@ public class SIEWriter {
      *
      */
     public List<String> getLines() {
-        // List<String> lines = new LinkedList<>(iLines);
 
-        // lines.add(iStringBuilder.toString());
 
         return iLines;
     }

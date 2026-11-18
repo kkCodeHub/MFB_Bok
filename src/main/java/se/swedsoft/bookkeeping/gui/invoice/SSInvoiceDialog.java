@@ -325,9 +325,7 @@ public class SSInvoiceDialog {
 
         iPanel.addCancelAction(e -> {
 
-                // SSInvoice iInvoice = iPanel.getInvoice();
                 // remove all references for the sales
-                // SSOrderMath.removeReference(iInvoice);
 
                 iPanel.dispose();
                 iDialog.closeDialog();
@@ -367,16 +365,12 @@ public class SSInvoiceDialog {
                 SSBundle.getBundle().getString("invoiceframe.new.title"));
         final SSInvoicePanel iPanel = new SSInvoicePanel(iDialog);
 
-        // iInvoice.setPaymentTerm(iInvoice.getCustomer() == null ? null : iInvoice.getCustomer().getPaymentTerm());
 
         iInvoice.setDueDate();
         iInvoice.setEntered(false);
         iInvoice.setPrinted(false);
 
         iPanel.setInvoice(new SSInvoice(iInvoice));
-        // iPanel.getInvoice().doAutoIncrecement();
-        // iPanel.getInvoice().setEntered(false);
-        // iPanel.setOrderNumbers(iOrders);
         iDialog.add(iPanel.getPanel(), BorderLayout.CENTER);
 
         final ActionListener iSaveAction = e -> {
@@ -436,9 +430,7 @@ public class SSInvoiceDialog {
         iPanel.addCancelAction(e -> {
 
                 iDialog.closeDialog();
-                // SSInvoice iInvoice = iPanel.getInvoice();
                 // remove all references for the sales
-                // SSOrderMath.removeReference(iInvoice);
 
                 iPanel.dispose();
 

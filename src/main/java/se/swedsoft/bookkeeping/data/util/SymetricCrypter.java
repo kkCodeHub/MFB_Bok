@@ -1,7 +1,6 @@
 package se.swedsoft.bookkeeping.data.util;
 
 
-// import org.apache.xerces.utils.Base64;
 import org.apache.commons.codec.binary.Base64;
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;

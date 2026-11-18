@@ -69,8 +69,6 @@ public class SSQuarterReportPrinter extends SSPrinter {
         Map<String, List<SSInvoice>> iInvoicesForCustomers = SSInvoiceMath.getInvoicesforCustomers();
         Map<String, List<SSCreditInvoice>> iCreditInvoicesForCustomers = SSCreditInvoiceMath.getCreditInvoicesforCustomers();
 
-        // List<SSInvoice>       iInvoices       = se.swedsoft.bookkeeping.data.system.SSSalesContext.getInvoices();
-        // List<SSCreditInvoice> iCreditInvoices = se.swedsoft.bookkeeping.data.system.SSSalesContext.getCreditInvoices();
 
         for (SSCustomer iCustomer : iCustomers) {
             List<SSInvoice>       iInvoicesForCustomer = iInvoicesForCustomers.get(

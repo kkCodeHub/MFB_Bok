@@ -47,7 +47,6 @@ public class SSOwnReportAccountSchema {
         for (SSOwnReportRow iOwnReportRow : iOwnReport.getHeadings()) {
             if (iOwnReportRow.getType() == SSHeadingType.HEADING1) {
                 iId1++;
-                // iId2 = 0;
                 iHeading1Group = new SSOwnReportAccountGroup();
                 iHeading1Group.setId(iId1);
                 iHeading1Group.setName(iOwnReportRow.getHeading());

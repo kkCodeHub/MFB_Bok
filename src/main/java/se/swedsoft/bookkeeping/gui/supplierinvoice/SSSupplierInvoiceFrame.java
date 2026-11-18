@@ -349,7 +349,6 @@ public class SSSupplierInvoiceFrame extends SSDefaultTableFrame {
                 new SSTabbedPanePanel());
 
         iTabbedPane.addChangeListener(e -> iSearchPanel.ApplyFilter(SSPurchaseContext.getSupplierInvoices()));
-        // setFilterIndex(0);
 
         JPanel iPanel = new JPanel();
 

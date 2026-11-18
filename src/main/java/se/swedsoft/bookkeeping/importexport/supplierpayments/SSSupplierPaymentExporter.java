@@ -76,7 +76,6 @@ public class SSSupplierPaymentExporter {    private static final Logger LOG = Lo
 
         iPosts.addAll(getAvsnitt(iPayments, "SEK"));
 	// fixme! - endast SEK från 20161031
-        //iPosts.addAll(getAvsnitt(iPayments, "EUR"));
 
         return iPosts;
 

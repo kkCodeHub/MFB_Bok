@@ -2390,9 +2390,6 @@ public class SSReportFactory {    private static final Logger LOG = LoggerFactor
         iDialog.setLocalFrom(iFirstDayOfMonth);
         iDialog.setLocalTo(iLastDayOfMonth);
 
-        /* iDialog.setFrom( se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.getCurrentYear().getFrom() );
-         iDialog.setTo  ( se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.getCurrentYear().getTo()   );*/
-
         iDialog.setLocationRelativeTo(iMainFrame);
 
         if (iDialog.showDialog() != JOptionPane.OK_OPTION) {

@@ -75,7 +75,6 @@ public class SSPurchaseOrderSearchPanel extends JPanel {
         SSPurchaseOrderFrame.getInstance().setFilterIndex(
                 SSPurchaseOrderFrame.getInstance().getTabbedPane().getSelectedIndex(),
                 iFiltered);
-        // iModel.setObjects(iFiltered);
 
     }
 

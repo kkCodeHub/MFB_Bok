@@ -154,7 +154,6 @@ public class SSTable extends JTable {
     }
 
     final Color GRID_COLOR = new Color(80, 80, 80);
-    // final Color CELL_READONLY          = new Color(241, 240, 227);
     final Color CELL_READONLY = new Color(245, 245, 245);
     final Color CELL_EDITABLE = new Color(255, 255, 255);
     final Color CELL_READONLY_SELECTED = new Color(249, 224, 137);
@@ -168,7 +167,6 @@ public class SSTable extends JTable {
         boolean isCellSelected = isCellSelected(row, col);
 
         if (iColorReadOnly) {
-            // setGridColor(GRID_COLOR);
 
             if (isCellEditable) {
 

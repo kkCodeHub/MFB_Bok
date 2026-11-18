@@ -141,16 +141,6 @@ public class SSDateChooser extends JPanel implements ActionListener, ChangeListe
     }
 
     /**
-     * Creates a date chooser with the specified spinner UI mode.
-     *
-     * @param spinnerUiMode spinner UI mode
-     */
- //   public SSDateChooser(SpinnerUiMode spinnerUiMode) {
- //       this();
- //       setSpinnerUiMode(spinnerUiMode);
- //   }
-
-    /**
      *
      * @param invoker the invoker component
      * @param x x offset
@@ -277,31 +267,6 @@ public class SSDateChooser extends JPanel implements ActionListener, ChangeListe
             iSpinner.setUiMode(JSpinnerX.UiMode.STANDARD);
         }
     }
-
-    /**
-     * @return the current spinner UI mode
-     */
- //   public SpinnerUiMode getSpinnerUiMode() {
- //       return iSpinnerUiMode;
- //   }
-
-    /**
-     * Set the spinner field the updown shall edit.
-     *
-     * @param iCalendarField the field identifier expected by {@link SpinnerDateModel}
-     */
- //   public void setCalendarField(int iCalendarField) {
- //       this.iCalendarField = iCalendarField;
- //   }
-
-    /**
-     * Get the spinner field the updown are editing.
-     *
-     * @return the field identifier expected by {@link SpinnerDateModel}
-     */
- //   public int getCalendarField() {
- //       return iCalendarField;
- //   }
 
     /**
      * Invoked when the date changes

@@ -68,7 +68,6 @@ public class SSFilterFactory<T> {
         this.iObjects = iObjects;
     }
 
-    // public static <T> void sort(List<T> list, Comparator<? super T> c) {
 
     /**
      *

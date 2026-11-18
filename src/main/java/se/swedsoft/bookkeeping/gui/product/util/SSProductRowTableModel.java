@@ -195,7 +195,6 @@ public class SSProductRowTableModel extends SSDefaultTableModel<SSProductRow> {
     public static void setupTable(final SSTable iTable, SSProduct iProduct) {
         iTable.setColumnSortingEnabled(false);
 
-        // iTable.setSingleSelect();
         iTable.getColumnModel().getColumn(0).setPreferredWidth(70);
         iTable.getColumnModel().getColumn(1).setPreferredWidth(250);
         iTable.getColumnModel().getColumn(2).setPreferredWidth(70);

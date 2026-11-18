@@ -156,7 +156,6 @@ public class SSVoucherPrinter extends SSPrinter {
 
         return iModel;
 
-        // return iModel;
     }
 
     private class SSVoucherRowPrinter extends SSPrinter {

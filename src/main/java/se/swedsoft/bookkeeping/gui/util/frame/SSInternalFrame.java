@@ -88,7 +88,6 @@ public abstract class SSInternalFrame extends JInternalFrame {
                 iListener.actionPerformed(new ActionEvent(this, e.getID(), null));
 
                 iMainFrame = null;
-                // System.gc();
             }
         });
     }

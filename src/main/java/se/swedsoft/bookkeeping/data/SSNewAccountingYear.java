@@ -390,24 +390,6 @@ public class SSNewAccountingYear implements SSTableSearchable {
                 JOptionPane.INFORMATION_MESSAGE);
     }
 
-    // //////////////////////////////////////////////////////////////////
-    /*
-     public static interface SSNewAccountingYearListener{
-     public void yearLoaded(SSNewCompany iCompany, SSNewAccountingYear iAccountingYear);
-     }
-
-     private static List<SSNewAccountingYearListener> iListeners = new LinkedList<>();
-
-     public void addListener(SSNewAccountingYearListener iListener){
-     iListeners.add(iListener);
-     }
-
-     private void notifyListeners(SSNewCompany iCompany, SSNewAccountingYear iAccountingYear){
-     for(SSNewAccountingYearListener iListener: iListeners){
-     iListener.yearLoaded(iCompany, iAccountingYear);
-     }
-     }  */
-
     public boolean equals(Object obj) {
         if (!(obj instanceof SSNewAccountingYear)) {
             return false;

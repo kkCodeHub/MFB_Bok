@@ -349,9 +349,5 @@ public class SSVoucher implements Cloneable, SSTableSearchable {
      * is able to clean up the object.
      */
     public void dispose() {
-        // iDescription=null;
-        // iCorrects=null;
-        // iCorrectedBy=null;
-        // iVoucherRows.removeAll(iVoucherRows);
     }
 }

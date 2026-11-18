@@ -64,7 +64,6 @@ public class SSBudgetFrame extends SSDefaultTableFrame {
         super(pMainFrame, SSBundle.getBundle().getString("budgetframe.title"), pWidth,
                 pHeight);
         iAccountingYear = SSAccountingContext.getCurrentYear();
-        // iBudgetMainPanel.setBudget(iAccountingYear.getBudget());
         addCloseListener(
                 e -> {
 

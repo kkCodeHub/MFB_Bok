@@ -165,7 +165,6 @@ public class SSPeriodicInvoice  {
     public void setTemplate(SSInvoice iTemplate) {
         this.iTemplate = iTemplate;
 
-        // createInvoices();
     }
 
     // //////////////////////////////////////////////////
@@ -200,7 +199,6 @@ public class SSPeriodicInvoice  {
     public void setCount(Integer iValue) {
         iCount = iValue;
 
-        // createInvoices();
     }
 
     // //////////////////////////////////////////////////
@@ -218,7 +216,6 @@ public class SSPeriodicInvoice  {
      */
     public void setPeriod(Integer iValue) {
         iPeriod = iValue;
-        // createInvoices();
     }
 
     // //////////////////////////////////////////////////
@@ -287,7 +284,6 @@ public class SSPeriodicInvoice  {
     public void setAppendPeriod(boolean iAppendPeriod) {
         this.iAppendPeriod = iAppendPeriod;
 
-        // createInvoices();
     }
 
     public boolean isAppendInformation() {

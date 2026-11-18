@@ -309,7 +309,6 @@ public class SSPurchaseOrderFrame extends SSDefaultTableFrame {
                 new SSTabbedPanePanel());
 
         iTabbedPane.addChangeListener(e -> iSearchPanel.ApplyFilter(Repositories.purchaseOrders().findAll()));
-        // setFilterIndex(0);
 
         iTableScrollPane = new JScrollPane(iTable);
 

@@ -71,7 +71,6 @@ public class SSAutoDistPanel {
         iModel.setupTable(iTable);
 
         iTable.setSingleSelect();
-        // iTable.setDefaultEditor(SSProduct.class, new SSProductCellEditor( SSProductMath.getNormalProducts(), false) );
 
         new SSDeleteAction(iTable) {
             @Override
@@ -193,8 +192,6 @@ public class SSAutoDistPanel {
             }
         });
 
-        // iInputVerifier = new SSInputVerifier();
-        // iInputVerifier.add(iAccount);
     }
 
     /**

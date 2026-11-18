@@ -22,7 +22,6 @@ public class SSTenderMath extends SSSaleMath {
     public static SSTender newTender() {
         SSTender iTender = new SSTender();
 
-        // iTender.doAutoIncrecement();
 
         SSNewCompany iCompany = se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.getCurrentCompany();
 

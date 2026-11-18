@@ -175,7 +175,6 @@ public class SSCreditinvoicejournalPrinter extends SSPrinter {
             setMargins(0, 0, 0, 0);
 
             setDetail("journals/creditinvoicejournal.rows.jrxml");
-            // setSummary("journals/invoicejournal.rows.jrxml");
 
             iModel = new SSDefaultTableModel<>() {
 

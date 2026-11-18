@@ -189,7 +189,6 @@ public class V2SupplierCreditInvoiceRepository {
 //                    supplierCreditInvoice.isBGCEntered(),
 //                    supplierCreditInvoice.getVoucher(),
 //                    supplierCreditInvoice.getCorrection(),
-//                    supplierCreditInvoice.getRows());
 
             Integer supplierCreditInvoiceId = null;
             try (PreparedStatement insertStatement = connection.prepareStatement(

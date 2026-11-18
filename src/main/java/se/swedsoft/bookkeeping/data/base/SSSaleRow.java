@@ -84,9 +84,7 @@ public class SSSaleRow implements SSTableSearchable {
         iTaxCode = iTenderRow.iTaxCode;
         iProduct = iTenderRow.iProduct;
         iAccountNr = iTenderRow.iAccountNr;
-        // this.iProjectNr    = iTenderRow.iProjectNr;
         iProjectNumber = iTenderRow.iProjectNumber;
-        // this.iResultUnitNr = iTenderRow.iResultUnitNr;
         iResultUnitNumber = iTenderRow.iResultUnitNumber;
         iAccount = iTenderRow.iAccount;
         iProject = iTenderRow.iProject;

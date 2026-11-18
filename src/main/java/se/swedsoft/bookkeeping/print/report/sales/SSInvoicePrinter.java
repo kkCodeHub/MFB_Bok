@@ -132,7 +132,6 @@ public class SSInvoicePrinter extends SSPrinter {
             addParameter("Liten", iLiten);
             addParameter("Mellan", iMellan);
             addParameter("Stor", iStor);
-          //  LOG.info("Invoice textbox params: Lite={}, Mellan={}, Stor={}", iLiten, iMellan, iStor);
         }
 
         addParameter("invoice.hasdiscount", SSInvoiceMath.hasDiscount(iInvoice));

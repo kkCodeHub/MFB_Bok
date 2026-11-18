@@ -32,7 +32,6 @@ public class SSHeadingTypeTableModel extends SSTableModel<SSHeadingType> {
         SSHeadingTypeTableModel iModel = new SSHeadingTypeTableModel();
 
         iModel.addColumn(COLUMN_TYPE);
-        // iModel.sort();
 
         return iModel;
     }

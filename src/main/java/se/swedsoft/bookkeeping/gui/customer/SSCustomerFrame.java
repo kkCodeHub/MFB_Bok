@@ -347,16 +347,6 @@ public class SSCustomerFrame extends SSDefaultTableFrame {
         iButton2.add("customerframe.print.customerlist", e -> CustomerListReport());
         iToolBar.add(iButton2);
 
-        /* iToolBar.addSeparator();
-         iButton2 = new SSMenuButton("ICON_INVOICE24", "customerframe.bgcadmissionbutton");
-         JMenuItem iMenuItem = iButton2.add("customerframe.bgcadmissionexport", e -> exportBGCAdmissions());
-         iTable.addSelectionDependentComponent(iMenuItem);
-         iButton2.add("customerframe.bgcadmissionimport", e -> {
-
-
-
-             });
-         iToolBar.add(iButton2);*/
         return iToolBar;
     }
 

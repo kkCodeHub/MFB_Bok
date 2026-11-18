@@ -29,6 +29,18 @@ Datum: 2026-11-16. Genomgången är gjord utan kodändringar. Kompilering med
    gemensam hjälpmetod.
 2. **Ta bort död kod:**
    - 256 bortkommenterade kodrader.
+     **Åtgärdat (2026-11-17):** 330 enradiga `//`-kommentarer som innehöll bortkommenterad kod (signaturer,
+     anrop, villkor, fältdeklarationer m.m.) är borttagna i 124 filer, inklusive kvarblivna orphan-fragment
+     (t.ex. ensamma `} else {`-rader och javadoc utan tillhörande metod efter att metodkroppen togs bort).
+     Informativa kommentarer som råkade likna kod (t.ex. förklaringar av `java.sql.Date`-beteende och en
+     kommentar om `equals`-identitet i `SSSupplierTest`) behölls medvetet. `mvn clean compile` validerat
+     efteråt. **Uppföljning (2026-11-18):** även flerradiga `/* ... */`-block med bortkommenterad kod är nu
+     genomgångna och borttagna (t.ex. i `SSStock.java`, `SSOwnReportAccountGroup.java`, `SSBackupFactory.java`,
+     `SSMainStatusBar.java`, `SSAboutPanel.java`, `SSPurchaseOrderDialog.java` m.fl. — totalt ett 20-tal filer).
+     Legitima kommentarer som bara råkar använda `/* */` istället för `/** */` (t.ex. javadoc i
+     `SSSupplierInvoiceMath.getSaldo`, `SSPurchaseOrderMath.inPeriod`, `SSDB` och en förklarande kommentar i
+     `SSOCRNumberTest`) behölls. Licensrubriker (`/* ... */` på rad 1 i många filer) rördes inte. `mvn clean
+     compile` validerat igen efter denna omgång (BUILD SUCCESS).
    - 118 `$Id$`-huvuden.
    - Cirka 1 180 tomma `@return`-rader i Javadoc.
 3. **Wildcard-importer:** `import java.util.*` förekommer i 68 filer och strider mot stilreglerna. Det
@@ -93,14 +105,16 @@ eller namn i konfiguration.
 
 - **Externa API:er:** endast 1 varning från kompilatorn, `new Locale(String, String)` i
   `SSInvoiceTextFileOptions`. Den ersätts med `Locale.of(...)`.
-- **Egna `@Deprecated`:** 49 markeringar. 28 av dem finns i `SSMasterdataContext` och gäller projekt och
-  resultatenheter. Övriga finns i `SSDBUiInitializer`, `SSMainBookCalculator`, `SSResultCalculator`,
-  `SSOwnReportCalculator`, `SSAccountGroupMath` och `SSAccountingContext.getDatabase`.
-  - Nästan alla har fortfarande anropare. En namnsökning ger träffar som `getProject` (cirka 75) och
-    `getResultUnit` (cirka 73). Siffrorna är ungefärliga, eftersom icke-deprecated överlagringar med
-    samma namn också räknas.
-  - Migrera anroparna till de nya signaturerna som anges i `@deprecated`-texten och ta sedan bort de
-    gamla metoderna. Det kan göras klass för klass.
+- **Egna `@Deprecated`:** **Åtgärdat (2026-11-17):** 0 kvarvarande markeringar. De tidigare 49
+  (28 i `SSMasterdataContext` för projekt/resultatenheter, övriga i `SSDBUiInitializer`,
+  `SSMainBookCalculator`, `SSResultCalculator`, `SSOwnReportCalculator`, `SSAccountGroupMath` och
+  `SSAccountingContext.getDatabase`) har städats bort i omgångar. De tre sista
+  (`SSAccountingContext.getDatabase()`, `SSDBUiInitializer.init(SSDB, boolean)` och
+  `SSDBUiInitializer.initYear(SSDB, boolean)`) saknade aktiva anropare — alla identifierade
+  anropsställen använde redan ersättningssignaturerna — och togs därför bort direkt utan
+  separat migreringssteg. `mvn clean compile` och riktade tester
+  (`SSSIEImporterV2IntegrationTest`, `SSAccountingContextVoucherSeriesResolverTest`) validerade
+  efteråt.
 
 ## Föreslagen ordning
 

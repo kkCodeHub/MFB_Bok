@@ -342,11 +342,17 @@
       <version>6.21.5</version>
       <scope>compile</scope>
     </dependency>
+    <!-- Borttagen 2026-11-17 för att minska jar-filens storlek (~8,9 MB): inga .jrxml-mallar
+         eller egna typsnittsregistreringar (org/fribok/fonts/fonts.xml) refererar till
+         typsnitt som detta paket levererar. OCR-A/OCR-B är redan egna inbäddade TTF:er,
+         och Arial-mallar använder pdfFontName="Helvetica" (PDF Base-14). Kommenterad kvar
+         (inte raderad) för enkel återställning om saknade typsnitt upptäcks.
     <dependency>
       <groupId>net.sf.jasperreports</groupId>
       <artifactId>jasperreports-fonts</artifactId>
       <version>6.21.5</version>
     </dependency>
+    -->
     <dependency>
       <groupId>com.google.zxing</groupId>
       <artifactId>core</artifactId>

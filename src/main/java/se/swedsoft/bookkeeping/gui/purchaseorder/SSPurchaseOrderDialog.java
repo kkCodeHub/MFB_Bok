@@ -344,53 +344,6 @@ public class SSPurchaseOrderDialog {
         }
         SSPurchaseOrderFrame.fireTableDataChanged();
 
-        /*
-
-         SSPurchaseOrder iOrder = iOrders.get(0);
-
-         // if the selected order already has a sales assosiated we can't create a new one
-         if(iOrder.getInvoice(Repositories.supplierInvoices().findAll()) != null){
-         SSInformationDialog.showDialog(iMainFrame, "orderframe.orderhasinvoice", iOrder.getNumber());
-         return;
-         }
-
-         SSSupplierInvoice iInvoice = new SSSupplierInvoice(iOrder);
-
-         iInvoice.doAutoIncrecement();
-
-         // Set the sales for the selected order to the new one
-         iOrder.setInvoice( iInvoice );
-
-         if(iOrders.size() > 1 && SSQueryDialog.showDialog(iMainFrame,SSBundle.getBundle(), "purchaseorderframe.createcollectioninvoice", iOrder.getSupplierNr()) == JOptionPane.OK_OPTION) {
-
-         // Get all the orders with the same customer nr as the first selected
-         List<SSPurchaseOrder> iFiltered = SSPurchaseOrderMath.getOrdersBySupplierNr(iOrders, iOrder.getSupplierNr());
-
-         // Remove the first selected order so we don't add it to the sales twice
-         iFiltered.remove(iOrder);
-
-         for (SSPurchaseOrder iCurrent : iFiltered) {
-
-         // if the selected order already has a sales assosiated we can't create a new one
-         if(iCurrent.getInvoice(Repositories.supplierInvoices().findAll()) != null){
-         SSInformationDialog.showDialog(iMainFrame, "purchaseorderframe.orderhasinvoice", iCurrent.getNumber());
-         return;
-         }
-         // Append the rows from the order to the sales
-         iInvoice.append(iCurrent);
-         }
-
-         }
-
-         if(SSSupplierInvoiceFrame.getInstance() != null){
-         SSSupplierInvoiceDialog.newDialog(iMainFrame, iInvoice, iFiltered, SSSupplierInvoiceFrame.getInstance().getModel());
-         } else {
-         SSSupplierInvoiceDialog.newDialog(iMainFrame, iInvoice, iFiltered, null);
-         }
-
-         */
-        // iModel.fireTableDataChanged();
-
         // Year refresh handled by surrounding dialog/frame flow.
     }
 

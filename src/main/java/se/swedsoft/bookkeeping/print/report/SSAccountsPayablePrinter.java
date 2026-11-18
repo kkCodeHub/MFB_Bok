@@ -159,9 +159,7 @@ public class SSAccountsPayablePrinter extends SSPrinter {
                     value = iSum;
                     break;
 
-                // List<SSSupplierInvoice> iInvoices = SSSupplierInvoiceMath.getInvoicesForSupplier(iSupplier, iDate);
 
-                // value = SSSupplierInvoiceMath.getSaldoSum(iInvoices, iDate);
                 case 3:
                     iPrinter.setSupplier(iSupplier);
 
@@ -254,10 +252,7 @@ public class SSAccountsPayablePrinter extends SSPrinter {
                         break;
 
                     case 7:
-                        // BigDecimal iSaldo = SSSupplierInvoiceMath.getSaldo(iInvoice, iDate);
 
-                        // value = SSSupplierInvoiceMath.convertToLocal(iInvoice, iSaldo);
-                        // break;
                         BigDecimal iSaldo = SSSupplierInvoiceMath.getTotalSum(iInvoice); // SSInvoiceMath.getSaldo(iInvoice, iDate);
 
                         if (iOutpaymentSum.containsKey(iInvoice.getNumber())) {

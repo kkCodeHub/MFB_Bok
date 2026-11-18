@@ -180,10 +180,6 @@ public class SSCustomerPanel {
         // Plusgiro nummer:
         iCustomer.setPlusgiro(iPlusAccountNumber.getText());
 
-        /* // Kontonummer:
-         iCustomer.setAccountNumber(iAccountNumber.getText());
-         // Clearingnummer:
-         iCustomer.setClearingNumber(iClearingNumber.getText());*/
         // EU-försäljning varor
         iCustomer.setEuSaleCommodity(iEuSaleCommodity.isSelected());
         // EU-försäljning trepart varor
@@ -270,10 +266,6 @@ public class SSCustomerPanel {
         // Plusgiro nummer:
         iPlusAccountNumber.setText(iCustomer.getPlusgiro());
 
-        /* // Clearingnummer:
-         iClearingNumber.setText(iCustomer.getClearingNumber());
-         // Kontonummer:
-         iAccountNumber.setText(iCustomer.getAccountNumber());*/
         // EU-försäljning varor
         iEuSaleCommodity.setSelected(iCustomer.getEuSaleCommodity());
         // EU-försäljning trepart varor

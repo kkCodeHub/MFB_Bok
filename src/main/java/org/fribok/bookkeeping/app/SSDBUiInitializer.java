@@ -38,38 +38,4 @@ public final class SSDBUiInitializer {
             iDb.initYear(false);
         }
     }
-
-    /**
-     * @deprecated use {@link #init(boolean)} to avoid exposing {@link SSDB} to callers.
-     */
-    @Deprecated
-    public static void init(SSDB pDb, boolean pShowDialog) {
-        if (pDb.getCurrentCompany() == null) {
-            return;
-        }
-
-        if (pShowDialog && !java.awt.GraphicsEnvironment.isHeadless()) {
-            SSInitDialog.runProgress(SSMainFrame.getInstance(), "Läser in data",
-                    () -> pDb.init(false));
-        } else {
-            pDb.init(false);
-        }
-    }
-
-    /**
-     * @deprecated use {@link #initYear(boolean)} to avoid exposing {@link SSDB} to callers.
-     */
-    @Deprecated
-    public static void initYear(SSDB pDb, boolean pShowDialog) {
-        if (pDb.getCurrentYear() == null) {
-            return;
-        }
-
-        if (pShowDialog && !java.awt.GraphicsEnvironment.isHeadless()) {
-            SSInitDialog.runProgress(SSMainFrame.getInstance(), "Läser in data",
-                    () -> pDb.initYear(false));
-        } else {
-            pDb.initYear(false);
-        }
-    }
 }

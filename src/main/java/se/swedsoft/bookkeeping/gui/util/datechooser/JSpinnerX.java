@@ -30,15 +30,6 @@ public class JSpinnerX extends JSpinner {
     }
 
     /**
-     * Creates a spinner with a custom model and default UI mode.
-     *
-     * @param model the spinner model
-     */
- //   public JSpinnerX(SpinnerModel model) {
- //       super(model);
- //   }
-
-    /**
      * Sets the UI mode.
      *
      * @param uiMode the UI mode
@@ -47,13 +38,6 @@ public class JSpinnerX extends JSpinner {
         iUiMode = Objects.requireNonNull(uiMode, "uiMode");
         applyUiMode();
     }
-
-    /**
-     * @return the current UI mode
-     */
- //   public UiMode getUiMode() {
- //       return iUiMode;
- //   }
 
     @Override
     public void updateUI() {

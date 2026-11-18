@@ -51,13 +51,8 @@ public class SSProductListPrinter extends SSPrinter {
         iStock = new SSStock(true);
 
         setPageHeader("header_period.jrxml");
-        // if (!SSVersion.app_title.contains("JFS Fakturering")) {
         setColumnHeader("productlist.jrxml");
         setDetail("productlist.jrxml");
-        // } else {
-        // setColumnHeader("productlist_fakt.jrxml");
-        // setDetail("productlist_fakt.jrxml");
-        // }
     }
 
     /**
@@ -127,13 +122,7 @@ public class SSProductListPrinter extends SSPrinter {
                     break;
 
                 case 6:
-                    // if (!SSVersion.app_title.contains("JFS Fakturering")) {
                     value = SSQuantityPrintUtil.toDisplay(iStock.getQuantity(iProduct));
-                    // } else {
-                    // iPrinter.setProduct(iProduct);
-                    // iDataSource.reset();
-                    // value = iDataSource;
-                    // }
                     break;
 
                 case 7:
@@ -156,9 +145,7 @@ public class SSProductListPrinter extends SSPrinter {
         iModel.addColumn("product.unit");
         iModel.addColumn("product.unitprice");
         iModel.addColumn("product.warehouselocation");
-        // if(!SSVersion.app_title.contains("JFS Fakturering")){
         iModel.addColumn("product.warehousequantity");
-        // }
         iModel.addColumn("product.rows");
 
         Collections.sort(iProducts, (o1, o2) -> o1.getNumber().compareTo(o2.getNumber()));
@@ -179,7 +166,6 @@ public class SSProductListPrinter extends SSPrinter {
             setMargins(0, 0, 0, 0);
 
             setDetail("productlist.parcel.jrxml");
-            // setSummary("productlist.parcel.jrxml");
 
             iModel = new SSDefaultTableModel<>() {
 

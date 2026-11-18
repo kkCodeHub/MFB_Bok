@@ -108,7 +108,6 @@ public class SSCustomer implements SSTableSearchable {
             iPaymentTerm = iCompany.getPaymentTerm();
             iDeliveryTerm = iCompany.getDeliveryTerm();
             iDeliveryWay = iCompany.getDeliveryWay();
-            // setCurrency         ( iCompany.getCurrency()  );
         }
     }
 

@@ -250,8 +250,6 @@ public class SSDefaultAccountPanel extends JPanel {
      */
     public void dispose() {
 
-        // iDefaultAccounts.clear();
-        // iDefaultAccounts=null;
 
         iComboBoxes.clear();
         iComboBoxes = null;

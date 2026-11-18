@@ -38,7 +38,6 @@ public class SSAccountPlan implements Cloneable, SSTableSearchable {
     private SSAccountPlanType iType;
 
     // The AccuntPlan this is based on
-    // private SSAccountPlan iBasePlan;
 
     // The acoounts
     private List<SSAccount> iAccounts;

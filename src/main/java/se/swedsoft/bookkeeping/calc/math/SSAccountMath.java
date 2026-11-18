@@ -304,7 +304,6 @@ public class SSAccountMath {
         if (theAccounts.size() > 1) {
             return Optional.empty();
         }
-        // openWarningDialog(iMainFrame, "vatBasis.dialogMoreThenOneAccount");
         // Return the wanter account if it exists, or return the default account
         if (theAccounts.isEmpty()) {
             return Optional.ofNullable(pDefaultAccount);

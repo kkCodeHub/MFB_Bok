@@ -465,7 +465,6 @@ public class SSTableComboBoxOld<T extends SSTableSearchable> extends JPanel {
     public void startEdit() {
         iPopup.show(this, 0, getHeight());
 
-        // iTextField.requestFocusInWindow();
     }
 
     /**

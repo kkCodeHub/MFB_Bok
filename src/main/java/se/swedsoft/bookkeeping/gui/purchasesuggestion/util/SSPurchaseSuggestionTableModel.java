@@ -26,7 +26,6 @@ import java.util.List;
  */
 public class SSPurchaseSuggestionTableModel extends SSTableModel<SSPurchaseSuggestionTableModel.Entry> {
 
-    // private Map<SSPeriodInvoice, Boolean> iSelected;
 
     public static class Entry {
         SSProduct iProduct;

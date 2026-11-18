@@ -28,7 +28,6 @@ public class LBinPostTK40 extends LBinPost {
     public LBinPostTK40(SupplierPayment iPayment) {
         this.iNumber = iNumber.replaceAll("-", "");
         iKonto = iPayment.getKonto().replaceAll("-", "").replaceAll(" ", "").substring(4);
-        //iClearing = iPayment.getClearing().replaceAll("-", "").replaceAll(" ", "");
 	iClearing = iPayment.getKonto().replaceAll("-", "").replaceAll(" ", "").substring(0, 4);
         iReference = iPayment.getReference();
         iLon = " "; //iPayment.getLon();

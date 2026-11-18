@@ -71,7 +71,6 @@ public class SSOrderSearchPanel extends JPanel {
         }
         SSOrderFrame.getInstance().setFilterIndex(
                 SSOrderFrame.getInstance().getTabbedPane().getSelectedIndex(), iFiltered);
-        // iModel.setObjects(iFiltered);
 
     }
 

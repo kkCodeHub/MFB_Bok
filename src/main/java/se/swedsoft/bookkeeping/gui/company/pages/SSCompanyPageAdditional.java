@@ -140,7 +140,6 @@ public class SSCompanyPageAdditional extends SSCompanyPage {
         iPlusGiroNumber.setText(iCompany.getPlusGiroNumber());
         iSwiftCode.setText(iCompany.getBIC());
         iIBAN.setText(iCompany.getIBAN());
-        // iSMTPAddress.setText(iCompany.getSMTP());
         iRoundingOff.setSelected(iCompany.isRoundingOff());
         iVatPeriod.setValue(iCompany.getVatPeriod());
         iSwishImage.setText(iCompany.getSwishImagePath());
@@ -175,7 +174,6 @@ public class SSCompanyPageAdditional extends SSCompanyPage {
         iCompany.setPlusGiroNumber(iPlusGiroNumber.getText());
         iCompany.setBIC(iSwiftCode.getText());
         iCompany.setIBAN(iIBAN.getText());
-        // iCompany.setSMTP(iSMTPAddress.getText());
         iCompany.setRoundingOff(iRoundingOff.isSelected());
         iCompany.setVatPeriod(iVatPeriod.getValue());
         iCompany.setSwishImagePath(iSwishImage.getText());
@@ -250,30 +248,8 @@ public class SSCompanyPageAdditional extends SSCompanyPage {
         });
 
         // iSMTPAddress removed and replaced by the editMailServer button.
-        // iWebAddress.addKeyListener(new KeyAdapter() {
-        // public void keyPressed(KeyEvent e) {
-        // if (e.getKeyCode() == KeyEvent.VK_ENTER) {
-        // SwingUtilities.invokeLater(new Runnable() {
-        // public void run() {
-        // iSMTPAddress.requestFocusInWindow();
-        // }
-        // });
-        // }
-        // }
-        // });
 
         // iSMTPAddress removed and replaced by the editMailServer button.
-        // iSMTPAddress.addKeyListener(new KeyAdapter() {
-        // public void keyPressed(KeyEvent e) {
-        // if (e.getKeyCode() == KeyEvent.VK_ENTER) {
-        // SwingUtilities.invokeLater(new Runnable() {
-        // public void run() {
-        // iBank.requestFocusInWindow();
-        // }
-        // });
-        // }
-        // }
-        // });
 
         iBank.addKeyListener(new KeyAdapter() {
             @Override

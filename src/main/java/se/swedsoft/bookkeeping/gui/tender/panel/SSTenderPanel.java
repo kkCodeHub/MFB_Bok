@@ -70,7 +70,6 @@ public class SSTenderPanel {
     private SSDateChooser iExpires;
 
     private SSTableComboBox<SSCustomer> iCustomer;
-    // private SSTableComboBoxOld<SSCustomer> iCustomerNr;
 
     private JTextField iCustomerName;
 

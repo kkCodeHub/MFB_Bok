@@ -75,8 +75,6 @@ public class SSSupplierInvoiceRow  implements SSTableSearchable {
         iUnit = iSupplierInvoiceRow.iUnit;
         iUnitFreight = iSupplierInvoiceRow.iUnitFreight;
         iAccountNr = iSupplierInvoiceRow.iAccountNr;
-        // this.iProjectNr    = iSupplierInvoiceRow.iProjectNr;
-        // this.iResultUnitNr = iSupplierInvoiceRow.iResultUnitNr;
         iProjectNumber = iSupplierInvoiceRow.iProjectNumber;
         iResultUnitNumber = iSupplierInvoiceRow.iResultUnitNumber;
         iProduct = iSupplierInvoiceRow.iProduct;

@@ -211,7 +211,6 @@ public class SSSaleMath {
         } else {
             return new BigDecimal(0);
         }
-        // return iSum.subtract( iSum.setScale(0, RoundingMode.HALF_UP) );
     }
 
     /**

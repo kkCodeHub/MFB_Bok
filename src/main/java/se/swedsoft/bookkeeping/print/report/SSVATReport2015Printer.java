@@ -119,7 +119,6 @@ public class SSVATReport2015Printer extends SSPrinter {    private static final 
         switch (group) {
         // A. Momspliktig försäljning eller uttag exklusive moms
         case 5:
-//            return  "5MP1, 5MP2, 5MP3, 5PTOG";
             return  "5_25, 5_12, 5_6";
 
         case 6:
@@ -450,7 +449,6 @@ public class SSVATReport2015Printer extends SSPrinter {    private static final 
 
                     case 3:
                         BigDecimal groupValue = getValueForGroup(iNumber);
- //                       LOG.info("VAT report group {} value: {}", iNumber, groupValue);
                         value = groupValue.setScale(0, RoundingMode.DOWN);
                         break;
                     }

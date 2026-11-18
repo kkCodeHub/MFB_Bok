@@ -20,7 +20,6 @@ import java.util.List;
  */
 public class SSInputVerifier implements DocumentListener, ActionListener {
 
-    // public enum
 
     private List<JComponent> iComponents;
 

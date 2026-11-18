@@ -116,9 +116,7 @@ public class SSVoucherRow implements Cloneable {
      */
     public void copyFrom(SSVoucherRow pVoucherRow) {
         iAccountNr = pVoucherRow.iAccountNr;
-        // iProjectNr       = pVoucherRow.iProjectNr;
         iProjectNumber = pVoucherRow.iProjectNumber;
-        // iResultUnitNr    = pVoucherRow.iResultUnitNr;
         iResultUnitNumber = pVoucherRow.iResultUnitNumber;
         iDebet = pVoucherRow.iDebet;
         iCredit = pVoucherRow.iCredit;
@@ -500,16 +498,6 @@ public class SSVoucherRow implements Cloneable {
 
         return b.toString();
     }
-
-    /**
-     * Creates a new voucher row that is the inverse of this one
-     *
-     * @return A row that is the reverse of this one in debet and credit.
-
-     public SSVoucherRow createReversedRow() {
-     return new SSVoucherRow(getAccount(), getCredit(), getDebet(), getProject(), getResultUnit());
-     }
-     */
 
     /**
      * Indicates that this row has an account and one value in one of credit or debet.

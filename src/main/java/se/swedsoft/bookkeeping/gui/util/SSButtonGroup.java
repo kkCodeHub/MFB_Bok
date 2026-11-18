@@ -113,7 +113,6 @@ public class SSButtonGroup implements ActionListener {
         return iSelected;
     }
 
-    // private boolean iUpdating = false;
 
     /**
      *
@@ -122,13 +121,11 @@ public class SSButtonGroup implements ActionListener {
     private void setSelected(AbstractButton iButton) {
         iSelected = iButton;
 
-        // iUpdating = true;
         for (AbstractButton iCurrent : iButtons) {
             iCurrent.removeActionListener(this);
             iCurrent.setSelected(iCurrent == iSelected);
             iCurrent.addActionListener(this);
         }
-        // setUpdating(false);
     }
 
     boolean iUpdating;

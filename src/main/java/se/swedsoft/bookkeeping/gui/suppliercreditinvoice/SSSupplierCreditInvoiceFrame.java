@@ -194,7 +194,6 @@ public class SSSupplierCreditInvoiceFrame extends SSDefaultTableFrame {
         iModel.addColumn(SSSupplierCreditinvoiceTableModel.COLUMN_SUPPLIER_NUMBER);
         iModel.addColumn(SSSupplierCreditinvoiceTableModel.COLUMN_SUPPLIER_NAME);
         iModel.addColumn(SSSupplierCreditinvoiceTableModel.COLUMN_DATE);
-        // iModel.addColumn(SSSupplierCreditinvoiceTableModel.COLUMN_DUEDATE);
         iModel.addColumn(SSSupplierCreditinvoiceTableModel.COLUMN_NETSUM);
         iModel.addColumn(SSSupplierCreditinvoiceTableModel.COLUMN_CURRENCY);
         iModel.addColumn(SSSupplierCreditinvoiceTableModel.COLUMN_TOTALSUM);

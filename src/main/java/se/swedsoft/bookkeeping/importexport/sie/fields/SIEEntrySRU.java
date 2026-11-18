@@ -60,7 +60,6 @@ public class SIEEntrySRU implements SIEEntry {
 
         iAccount.setSRUCode(iReader.next());
 
-        // se.swedsoft.bookkeeping.data.system.SSAccountingContext.updateAccountingYear(iYearData);
         return true;
     }
 

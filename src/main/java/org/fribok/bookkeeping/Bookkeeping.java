@@ -105,7 +105,6 @@ public class Bookkeeping {    private static final Logger LOG = LoggerFactory.ge
 	    }
 	    FontPolicy fixedPolicy = FontPolicies.createFixedPolicy(fontSet);
 	    Plastic3DLookAndFeel.setFontPolicy(fixedPolicy);
-	    //Plastic3DLookAndFeel.setHighContrastFocusColorsEnabled(true);
 	    String lnfClassName = Plastic3DLookAndFeel.class.getName();
 	    if (os.startsWith("Mac OS") || os.startsWith("Windows")) {
 		lnfClassName = UIManager.getSystemLookAndFeelClassName();
@@ -117,8 +116,6 @@ public class Bookkeeping {    private static final Logger LOG = LoggerFactory.ge
 				|| "X-Cinnamon".equalsIgnoreCase(xdgCurrentDesktop)
 				|| "LXDE".equalsIgnoreCase(xdgCurrentDesktop)
 				) {
-			//lnfClassName = UIManager.getSystemLookAndFeelClassName();
-			//lnfClassName = PlasticLookAndFeel.class.getName();
 		} else {
 			lnfClassName = Plastic3DLookAndFeel.class.getName();
 		}

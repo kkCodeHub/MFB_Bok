@@ -230,7 +230,6 @@ public class SSSupplierInvoicejournalPrinter extends SSPrinter {
             setMargins(0, 0, 0, 0);
 
             setDetail("journals/supplierinvoicejournal.rows.jrxml");
-            // setSummary("journals/invoicejournal.rows.jrxml");
 
             iModel = new SSDefaultTableModel<>() {
 

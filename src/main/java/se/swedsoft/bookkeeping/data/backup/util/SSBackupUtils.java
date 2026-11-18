@@ -54,11 +54,9 @@ public class SSBackupUtils {
         List<ArchiveFile> iFiles = new LinkedList<>();
 
         // Add the company
-        // iFiles.add(new ArchiveFile(getCompanyBackupFile(pCompany.getId())));
 
         // Loop through all years
         for (SSSystemYear iYear: pCompany.getYears()) {// Add the year
-            // iFiles.add(new ArchiveFile(getYearBackupFile(iYear.getId())));
         }
 
         return iFiles;

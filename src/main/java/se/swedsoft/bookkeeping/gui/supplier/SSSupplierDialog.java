@@ -124,7 +124,6 @@ public class SSSupplierDialog {
         final Integer iOriginalOutPaymentNumber = pSupplier.getOutpaymentNumber();
 
         iPanel.setSupplier(pSupplier, false);
-        // iPanel.setEditPanel(true);
         iDialog.add(iPanel.getPanel(), BorderLayout.CENTER);
 
         final ActionListener iSaveAction = e -> {

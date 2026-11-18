@@ -92,7 +92,6 @@ public class SSInterestInvoiceDialog {
         iDialog.setLocationRelativeTo(iMainFrame);
         iDialog.setVisible();
 
-        // return iPanel.getInvoiceType();
 
     }
 

@@ -34,7 +34,6 @@ public class SSOwnReportPrinter extends SSPrinter {
     SSNewProject iProject;
     SSNewResultUnit iResultUnit;
 
-    // SSNewAccountingYear iYearData;
 
     SSOwnReportAccountSchema iAccountSchema;
 
@@ -63,7 +62,6 @@ public class SSOwnReportPrinter extends SSPrinter {
                 ? null
                 : SSResultUnitContext.getResultUnit(iOwnReport.getResultUnitNr()).orElse(null);
 
-        // iYearData = se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.getCurrentYear();
 
         iAccountSchema = SSOwnReportAccountSchema.getSchema(iOwnReport);
 
@@ -99,23 +97,6 @@ public class SSOwnReportPrinter extends SSPrinter {
             }
         }
         return iSummaryGroup;
-
-        /* if(iRow.getLevelGroup(1) >= 1  &&  iRow.getLevelGroup(1) <= 5  ) iSummaryGroup = 1;
-         if(iRow.getLevelGroup(1) >= 6  &&  iRow.getLevelGroup(1) <= 7  ) iSummaryGroup = 2;
-         if(iRow.getLevelGroup(1) >= 8  &&  iRow.getLevelGroup(1) <= 9  ) iSummaryGroup = 3;
-         if(iRow.getLevelGroup(1) >= 10 &&  iRow.getLevelGroup(1) <= 10 ) iSummaryGroup = 4;
-         if(iRow.getLevelGroup(1) >= 11 &&  iRow.getLevelGroup(1) <= 11 ) iSummaryGroup = 5;
-         if(iRow.getLevelGroup(1) >= 12 &&  iRow.getLevelGroup(1) <= 12 ) iSummaryGroup = 6;*/
-
-        /* if(iLastVisibleSummaryGroup != iSummaryGroup){
-         if(iLastVisibleRow != null) iLastVisibleRow.iSummaryGroup = iLastVisibleSummaryGroup;
-
-         iLastVisibleSummaryGroup = iSummaryGroup;
-
-         return -1;
-         } else {
-         return -1;
-         } */
     }
 
     /**
@@ -171,7 +152,6 @@ public class SSOwnReportPrinter extends SSPrinter {
                 if (isColumn1 || isColumn2 || isColumn3) {
                     iRows.add(iRow);
 
-                    // if( iRow.iSummaryGroup != -1) iLastVisibleSummaryGroup = iRow.iSummaryGroup;
 
                     iRow.iSummaryGroup = getSummaryGroup(iRow, iLastVisibleRow);
 

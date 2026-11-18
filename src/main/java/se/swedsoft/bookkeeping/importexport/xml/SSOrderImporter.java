@@ -60,7 +60,6 @@ public class SSOrderImporter {    private static final Logger LOG = LoggerFactor
             DocumentBuilder iDocBuilder = iDocBuilderFactory.newDocumentBuilder();
             Document iDoc = iDocBuilder.parse(iFile.getAbsolutePath());
 
-            // LOG.info(iDoc.getXmlEncoding());
             iDoc.getDocumentElement().normalize();
 
             if (!iDoc.getDocumentElement().getNodeName().equals("Orders")) {

@@ -121,7 +121,6 @@ public class SSTableComboBox<T extends SSTableSearchable> extends JPanel {
 
                     setSelected(iObject, true);
                 } else {
-                    // iSelected = null;
                     return;
                 }
 
@@ -186,7 +185,6 @@ public class SSTableComboBox<T extends SSTableSearchable> extends JPanel {
         iTable.addDblClickListener(
                 e -> {
 
-                        // iSelectAndClose.actionPerformed(null);
                         iTextField.getActionMap().get("SELECT_ROW_AND_CLOSE_DROP_DOWN").actionPerformed(
                                 null);
 
@@ -620,7 +618,6 @@ public class SSTableComboBox<T extends SSTableSearchable> extends JPanel {
         iEditor = null;
     }
 
-    // private static Border EDITOR_BORDER = new CompoundBorder(new EmptyBorder(1,1,1,1),  new LineBorder(Color.BLACK, 1, true) );
 
     /**
      *
@@ -709,15 +706,6 @@ public class SSTableComboBox<T extends SSTableSearchable> extends JPanel {
          * @return the value contained in the editor
          */
         public Object getCellEditorValue() {
-
-            /*
-             T iSelected = iComboBox.getSelected();
-
-             if(iSelected == null && iComboBox.doAllowCustomValues()){
-             return iComboBox.getText();
-             }
-             return iSelected;
-             */
             return iComboBox.getValue();
         }
 

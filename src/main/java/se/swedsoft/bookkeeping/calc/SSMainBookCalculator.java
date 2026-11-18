@@ -179,7 +179,6 @@ public class SSMainBookCalculator {
 
         List<SSVoucher> iVouchers = iYearData.getVouchers();
 
-        // List<SSAccount> iAccounts = iYearData.getAccounts();
 
         iInBalance = iYearData.getInBalance();
 
