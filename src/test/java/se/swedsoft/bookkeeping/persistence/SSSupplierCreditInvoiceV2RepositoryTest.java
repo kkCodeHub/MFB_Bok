@@ -145,6 +145,37 @@ class SSSupplierCreditInvoiceV2RepositoryTest {
         assertThat(all).extracting(SSSupplierCreditInvoice::getNumber).doesNotContain(number);
     }
 
+    @Test
+    void journalNumberPersistsOnSupplierCreditInvoice() {
+        SSSupplierCreditInvoice supplierCreditInvoice = supplierCreditInvoice(
+                "SUP-CR-REPO-003", "Journal Tracking Supplier Credit AB", "REF-CR-REPO-003", 1103);
+        supplierCreditInvoice.setJournalNumbers("123");
+        supplierCreditInvoice.setEntered(true);
+        supplierCreditInvoice.getRows().add(
+                invoiceRow("P-CR-REPO-004", "Journal row", new BigDecimal("250.00"), 1, 4010));
+
+        Repositories.supplierCreditInvoices().add(supplierCreditInvoice);
+
+        se.swedsoft.bookkeeping.data.system.SSEventTriggerSyncContext.clearCachedLists();
+        Optional<SSSupplierCreditInvoice> fetched = Repositories.supplierCreditInvoices()
+                .findBySupplierCreditInvoice(supplierCreditInvoice);
+        assertThat(fetched).isPresent();
+        assertThat(fetched.get().getJournalNumbers()).isEqualTo("123");
+        assertThat(fetched.get().isEntered()).isTrue();
+
+        SSSupplierCreditInvoice updatedInvoice = fetched.get();
+        updatedInvoice.setJournalNumbers("456");
+        Repositories.supplierCreditInvoices().update(updatedInvoice);
+
+        se.swedsoft.bookkeeping.data.system.SSEventTriggerSyncContext.clearCachedLists();
+        Optional<SSSupplierCreditInvoice> updated = Repositories.supplierCreditInvoices()
+                .findBySupplierCreditInvoice(supplierCreditInvoice);
+        assertThat(updated).isPresent();
+        assertThat(updated.get().getJournalNumbers()).isEqualTo("456");
+
+        Repositories.supplierCreditInvoices().delete(updated.get());
+    }
+
     private static SSSupplierCreditInvoice supplierCreditInvoice(
             String supplierNr,
             String supplierName,

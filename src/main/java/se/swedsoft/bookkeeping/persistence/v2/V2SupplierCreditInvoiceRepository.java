@@ -195,8 +195,8 @@ public class V2SupplierCreditInvoiceRepository {
                     "INSERT INTO tbl_suppliercreditinvoice(" +
                             "number,companyid,crediting_nr,vdate,due_date,supplier_nr,supplier_name,reference_number," +
                             "currency_code,currency_rate,payment_term,tax_sum,rounding_sum,entered,cancelled," +
-                            "stock_influencing,bgc_entered,voucher_id,correction_voucher_id) " +
-                            "VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                            "stock_influencing,bgc_entered,journal_numbers,voucher_id,correction_voucher_id) " +
+                            "VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
                     Statement.RETURN_GENERATED_KEYS)) {
                 int i = 1;
                 insertStatement.setObject(i++, supplierCreditInvoice.getNumber());
@@ -260,7 +260,7 @@ public class V2SupplierCreditInvoiceRepository {
                     "UPDATE tbl_suppliercreditinvoice SET " +
                             "crediting_nr=?,vdate=?,due_date=?,supplier_nr=?,supplier_name=?,reference_number=?," +
                             "currency_code=?,currency_rate=?,payment_term=?,tax_sum=?,rounding_sum=?,entered=?," +
-                            "cancelled=?,stock_influencing=?,bgc_entered=?,voucher_id=?,correction_voucher_id=? " +
+                            "cancelled=?,stock_influencing=?,bgc_entered=?,journal_numbers=?,voucher_id=?,correction_voucher_id=? " +
                             "WHERE number=? AND companyid=?")) {
                 int i = bindSupplierCreditInvoiceColumnsV2(statement, 1, supplierCreditInvoice);
                 statement.setObject(i++, supplierCreditInvoice.getNumber());
@@ -413,6 +413,7 @@ public class V2SupplierCreditInvoiceRepository {
         statement.setObject(index++, supplierCreditInvoice.isCancelled());
         statement.setObject(index++, supplierCreditInvoice.isStockInfluencing());
         statement.setObject(index++, supplierCreditInvoice.isBGCEntered());
+        statement.setObject(index++, supplierCreditInvoice.getJournalNumbers());
         statement.setObject(index++, getVoucherIdByNumberV2(supplierCreditInvoice.getVoucher()));
         statement.setObject(index++, getVoucherIdByNumberV2(supplierCreditInvoice.getCorrection()));
         return index;
@@ -454,6 +455,7 @@ public class V2SupplierCreditInvoiceRepository {
         supplierCreditInvoice.setCancelled(resultSet.getBoolean("cancelled"));
         supplierCreditInvoice.setStockInfluencing(resultSet.getBoolean("stock_influencing"));
         supplierCreditInvoice.setBGCEntered(resultSet.getBoolean("bgc_entered"));
+        supplierCreditInvoice.setJournalNumbers(resultSet.getString("journal_numbers"));
 
         Integer voucherId = (Integer) resultSet.getObject("voucher_id");
         Integer voucherNumber = getVoucherNumberForIdV2(voucherId);

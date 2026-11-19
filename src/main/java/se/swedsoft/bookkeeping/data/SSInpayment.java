@@ -42,6 +42,9 @@ public class SSInpayment implements SSTableSearchable {
     // Bokförd
     private boolean iEntered;
 
+    // Journalnummer
+    private String iJournalNumbers;
+
     // Standard konton
     protected Map<SSDefaultAccount, Integer> iDefaultAccounts;
 
@@ -93,6 +96,7 @@ public class SSInpayment implements SSTableSearchable {
         iDate = iInpayment.iDate;
         iText = iInpayment.iText;
         iEntered = iInpayment.iEntered;
+        iJournalNumbers = iInpayment.iJournalNumbers;
         iVoucher = new SSVoucher(iInpayment.iVoucher);
         iDifference = new SSVoucher(iInpayment.iDifference);
         iRows = new LinkedList<>();
@@ -308,6 +312,23 @@ public class SSInpayment implements SSTableSearchable {
      */
     public void setEntered() {
         iEntered = true;
+    }
+
+    // //////////////////////////////////////////////////
+
+    /**
+     *
+     */
+    public String getJournalNumbers() {
+        return iJournalNumbers;
+    }
+
+    /**
+     *
+     * @param iJournalNumbers
+     */
+    public void setJournalNumbers(String iJournalNumbers) {
+        this.iJournalNumbers = iJournalNumbers;
     }
 
     // //////////////////////////////////////////////////

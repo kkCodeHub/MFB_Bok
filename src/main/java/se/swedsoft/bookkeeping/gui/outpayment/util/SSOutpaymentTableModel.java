@@ -172,12 +172,37 @@ public class SSOutpaymentTableModel extends SSTableModel<SSOutpayment> {
         }
     };
 
+    /**
+     *  Journalnr
+     */
+    public static SSTableColumn<SSOutpayment> COLUMN_JOURNALNR = new SSTableColumn<>(
+            SSBundle.getBundle().getString("outpaymenttable.column.5")) {
+        @Override
+        public Object getValue(SSOutpayment iObject) {
+            return iObject.getJournalNumbers();
+        }
+
+        @Override
+        public void setValue(SSOutpayment iObject, Object iValue) {}
+
+        @Override
+        public Class getColumnClass() {
+            return String.class;
+        }
+
+        @Override
+        public int getDefaultWidth() {
+            return 90;
+        }
+    };
+
     public static void setupStatusTable(SSTable iTable) {
         iTable.getColumnModel().getColumn(0).setPreferredWidth(20);
         iTable.getColumnModel().getColumn(1).setPreferredWidth(100);
-        iTable.getColumnModel().getColumn(2).setPreferredWidth(110);
-        iTable.getColumnModel().getColumn(3).setPreferredWidth(470);
-        iTable.getColumnModel().getColumn(4).setPreferredWidth(95);
+        iTable.getColumnModel().getColumn(2).setPreferredWidth(90);
+        iTable.getColumnModel().getColumn(3).setPreferredWidth(110);
+        iTable.getColumnModel().getColumn(4).setPreferredWidth(470);
+        iTable.getColumnModel().getColumn(5).setPreferredWidth(95);
 
         iTable.setDefaultRenderer(Date.class, new SSDateCellRenderer());
         iTable.setDefaultRenderer(BigDecimal.class, new SSBigDecimalCellRenderer(2));

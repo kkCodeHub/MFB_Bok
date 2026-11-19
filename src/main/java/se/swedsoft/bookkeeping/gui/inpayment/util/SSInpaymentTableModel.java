@@ -42,6 +42,7 @@ public class SSInpaymentTableModel extends SSDefaultTableModel<SSInpayment> {
         super(pObjects);
         addColumn("");
         addColumn(SSBundle.getBundle().getString("inpaymenttable.column.1"));
+        addColumn(SSBundle.getBundle().getString("inpaymenttable.column.5"));
         addColumn(SSBundle.getBundle().getString("inpaymenttable.column.2"));
         addColumn(SSBundle.getBundle().getString("inpaymenttable.column.3"));
         addColumn(SSBundle.getBundle().getString("inpaymenttable.column.4"));
@@ -70,14 +71,18 @@ public class SSInpaymentTableModel extends SSDefaultTableModel<SSInpayment> {
             break;
 
         case 2:
-            value = SSDateUtil.toDate(iInpayment.getLocalDate());
+            value = iInpayment.getJournalNumbers();
             break;
 
         case 3:
-            value = iInpayment.getText();
+            value = SSDateUtil.toDate(iInpayment.getLocalDate());
             break;
 
         case 4:
+            value = iInpayment.getText();
+            break;
+
+        case 5:
             value = SSInpaymentMath.getSum(iInpayment);
             break;
         }
@@ -95,12 +100,15 @@ public class SSInpaymentTableModel extends SSDefaultTableModel<SSInpayment> {
             return String.class;
 
         case 2:
-            return Date.class;
-
-        case 3:
             return String.class;
 
+        case 3:
+            return Date.class;
+
         case 4:
+            return String.class;
+
+        case 5:
             return BigDecimal.class;
         }
         return super.getColumnClass(columnIndex);
@@ -113,9 +121,10 @@ public class SSInpaymentTableModel extends SSDefaultTableModel<SSInpayment> {
     public static void setupTable(SSTable iTable) {
         iTable.getColumnModel().getColumn(0).setPreferredWidth(20);
         iTable.getColumnModel().getColumn(1).setPreferredWidth(100);
-        iTable.getColumnModel().getColumn(2).setPreferredWidth(110);
-        iTable.getColumnModel().getColumn(3).setPreferredWidth(470);
-        iTable.getColumnModel().getColumn(4).setPreferredWidth(95);
+        iTable.getColumnModel().getColumn(2).setPreferredWidth(90);
+        iTable.getColumnModel().getColumn(3).setPreferredWidth(110);
+        iTable.getColumnModel().getColumn(4).setPreferredWidth(470);
+        iTable.getColumnModel().getColumn(5).setPreferredWidth(95);
 
         iTable.setDefaultRenderer(Date.class, new SSDateCellRenderer());
 

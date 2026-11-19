@@ -195,6 +195,7 @@ public class SSCreditInvoiceFrame extends SSDefaultTableFrame {
         iModel = new SSCreditInvoiceTableModel();
         iModel.addColumn(SSCreditInvoiceTableModel.COLUMN_PRINTED);
         iModel.addColumn(SSCreditInvoiceTableModel.COLUMN_NUMBER);
+        iModel.addColumn(SSCreditInvoiceTableModel.COLUMN_JOURNALNR);
         iModel.addColumn(SSCreditInvoiceTableModel.COLUMN_CUSTOMER_NR);
         iModel.addColumn(SSCreditInvoiceTableModel.COLUMN_CUSTOMER_NAME);
         iModel.addColumn(SSCreditInvoiceTableModel.COLUMN_DATE);

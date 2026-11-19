@@ -65,6 +65,8 @@ public class SSSupplierInvoice implements SSTableSearchable {
     private boolean iStockInfluencing;
     // Om leverantörsfakturan har fakturerats via bangirocentralen
     private boolean iBGCEntered;
+    // Journalnummer
+    protected String iJournalNumbers;
 
     // The rows
     protected List<SSSupplierInvoiceRow> iRows;
@@ -174,6 +176,7 @@ public class SSSupplierInvoice implements SSTableSearchable {
         iEntered = iSupplierInvoice.iEntered;
         iCancelled = iSupplierInvoice.iCancelled;
         iBGCEntered = iSupplierInvoice.iBGCEntered;
+        iJournalNumbers = iSupplierInvoice.iJournalNumbers;
 
         iVoucher = new SSVoucher(iSupplierInvoice.iVoucher);
         iCorrection = new SSVoucher(iSupplierInvoice.iCorrection);
@@ -673,6 +676,23 @@ public class SSSupplierInvoice implements SSTableSearchable {
      */
     public void setBGCEntered() {
         iBGCEntered = true;
+    }
+
+    // //////////////////////////////////////////////////
+
+    /**
+     *
+     */
+    public String getJournalNumbers() {
+        return iJournalNumbers;
+    }
+
+    /**
+     *
+     * @param iJournalNumbers
+     */
+    public void setJournalNumbers(String iJournalNumbers) {
+        this.iJournalNumbers = iJournalNumbers;
     }
 
     // //////////////////////////////////////////////////

@@ -156,15 +156,16 @@ public class V2InpaymentRepository {
             Integer voucherId = V2RepositoryHelpers.getVoucherIdByNumber(connection, inpayment.getVoucher());
             Integer differenceVoucherId = V2RepositoryHelpers.getVoucherIdByNumber(connection, inpayment.getDifference());
             try (PreparedStatement insertStatement = connection.prepareStatement(
-                    "INSERT INTO tbl_inpayment(number,companyid,vdate,itext,entered,voucher_id,difference_voucher_id) VALUES(?,?,?,?,?,?,?)",
+                    "INSERT INTO tbl_inpayment(number,companyid,vdate,itext,entered,journal_numbers,voucher_id,difference_voucher_id) VALUES(?,?,?,?,?,?,?,?)",
                     Statement.RETURN_GENERATED_KEYS)) {
                 insertStatement.setObject(1, inpayment.getNumber());
                 insertStatement.setObject(2, currentCompany.getId());
                 bindLocalDateV2(insertStatement, 3, inpayment.getLocalDate());
                 insertStatement.setObject(4, inpayment.getText());
                 insertStatement.setObject(5, inpayment.isEntered());
-                insertStatement.setObject(6, voucherId);
-                insertStatement.setObject(7, differenceVoucherId);
+                insertStatement.setObject(6, inpayment.getJournalNumbers());
+                insertStatement.setObject(7, voucherId);
+                insertStatement.setObject(8, differenceVoucherId);
                 insertStatement.executeUpdate();
 
                 try (ResultSet keys = insertStatement.getGeneratedKeys()) {
@@ -202,14 +203,15 @@ public class V2InpaymentRepository {
             Integer voucherId = V2RepositoryHelpers.getVoucherIdByNumber(connection, inpayment.getVoucher());
             Integer differenceVoucherId = V2RepositoryHelpers.getVoucherIdByNumber(connection, inpayment.getDifference());
             try (PreparedStatement statement = connection.prepareStatement(
-                    "UPDATE tbl_inpayment SET vdate=?,itext=?,entered=?,voucher_id=?,difference_voucher_id=? WHERE number=? AND companyid=?")) {
+                    "UPDATE tbl_inpayment SET vdate=?,itext=?,entered=?,journal_numbers=?,voucher_id=?,difference_voucher_id=? WHERE number=? AND companyid=?")) {
                 bindLocalDateV2(statement, 1, inpayment.getLocalDate());
                 statement.setObject(2, inpayment.getText());
                 statement.setObject(3, inpayment.isEntered());
-                statement.setObject(4, voucherId);
-                statement.setObject(5, differenceVoucherId);
-                statement.setObject(6, inpayment.getNumber());
-                statement.setObject(7, currentCompany.getId());
+                statement.setObject(4, inpayment.getJournalNumbers());
+                statement.setObject(5, voucherId);
+                statement.setObject(6, differenceVoucherId);
+                statement.setObject(7, inpayment.getNumber());
+                statement.setObject(8, currentCompany.getId());
                 statement.executeUpdate();
             }
 
@@ -334,6 +336,7 @@ public class V2InpaymentRepository {
 
         inpayment.setText(resultSet.getString("itext"));
         inpayment.setEntered(resultSet.getBoolean("entered"));
+        inpayment.setJournalNumbers(resultSet.getString("journal_numbers"));
 
         Integer voucherId = (Integer) resultSet.getObject("voucher_id");
         Integer voucherNumber = V2RepositoryHelpers.getVoucherNumberForId(connection, voucherId);

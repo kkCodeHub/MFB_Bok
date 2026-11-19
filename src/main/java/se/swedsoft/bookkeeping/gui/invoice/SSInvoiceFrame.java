@@ -93,6 +93,10 @@ public class SSInvoiceFrame extends SSDefaultTableFrame {
 
     private SSInvoiceTableModel iModel;
 
+    private SSTable iJournalTable;
+
+    private SSInvoiceTableModel iJournalModel;
+
     private SSInvoiceSearchPanel iSearchPanel;
 
     private SSButton iReminderButton;
@@ -392,6 +396,52 @@ public class SSInvoiceFrame extends SSDefaultTableFrame {
         iTabbedPane.add(SSBundle.getBundle().getString("invoiceframe.filter.3"),
                 new SSTabbedPanePanel());
 
+        // Journalnr-flik: egen tabell/modell eftersom kolumnuppsättningen skiljer sig
+        // från de övriga flikarna (som delar iTable/iModel).
+        iJournalTable = new SSTable();
+
+        iJournalModel = new SSInvoiceTableModel();
+        iJournalModel.addColumn(SSInvoiceTableModel.COLUMN_PRINTED);
+        iJournalModel.addColumn(SSInvoiceTableModel.COLUMN_NUMBER);
+        iJournalModel.addColumn(SSInvoiceTableModel.COLUMN_JOURNALNR);
+        iJournalModel.addColumn(SSInvoiceTableModel.COLUMN_TYPE);
+        iJournalModel.addColumn(SSInvoiceTableModel.COLUMN_CUSTOMER_NR);
+        iJournalModel.addColumn(SSInvoiceTableModel.COLUMN_CUSTOMER_NAME);
+        iJournalModel.addColumn(SSInvoiceTableModel.COLUMN_DATE);
+        iJournalModel.addColumn(SSInvoiceTableModel.COLUMN_DUEDATE);
+        iJournalModel.addColumn(SSInvoiceTableModel.COLUMN_NET_SUM);
+        iJournalModel.addColumn(SSInvoiceTableModel.COLUMN_TOTAL_SUM);
+        iJournalModel.addColumn(SSInvoiceTableModel.getSaldoColumn());
+
+        iJournalModel.setupTable(iJournalTable);
+        ((SSTableSorter) iJournalTable.getModel()).setSortingStatus(1, SSTableSorter.ASCENDING);
+
+        iJournalTable.addDblClickListener(
+                e -> {
+
+                        SSInvoice iSelected = iJournalModel.getSelectedRow(iJournalTable);
+                        Integer iNumber;
+
+                        if (iSelected != null) {
+                            iNumber = iSelected.getNumber();
+                            iSelected = getInvoice(iSelected);
+                        } else {
+                            return;
+                        }
+                        if (iSelected != null) {
+                            SSInvoiceDialog.editDialog(getMainFrame(), iSelected);
+                        } else {
+                            new SSErrorDialog(getMainFrame(), "invoiceframe.invoicegone", iNumber);
+                        }
+
+                    });
+
+        JPanel iJournalPanel = new JPanel();
+        iJournalPanel.setLayout(new BorderLayout());
+        iJournalPanel.add(new JScrollPane(iJournalTable), BorderLayout.CENTER);
+
+        iTabbedPane.add(SSBundle.getBundle().getString("invoiceframe.filter.4"), iJournalPanel);
+
         iTabbedPane.addChangeListener(e -> iSearchPanel.ApplyFilter(SSSalesContext.getInvoices()));
 
         JPanel iPanel = new JPanel();
@@ -413,6 +463,16 @@ public class SSInvoiceFrame extends SSDefaultTableFrame {
      * @param iInvoices
      */
     public void setFilterIndex(int index, List<SSInvoice> iInvoices) {
+        // The Journalnr tab uses its own table/model and scroll pane, so it is not part
+        // of the shared scroll pane relocation logic used by the other tabs.
+        if (index == 3) {
+            iJournalModel.setObjects(iInvoices);
+            iTabbedPane.revalidate();
+            iTabbedPane.repaint();
+            updateReminderActionsState();
+            return;
+        }
+
         JPanel iPanel = (JPanel) iTabbedPane.getComponentAt(index);
 
         // Move the shared scroll pane to the selected tab panel, if needed.

@@ -398,4 +398,28 @@ public class SSSupplierInvoiceTableModel extends SSTableModel<SSSupplierInvoice>
         }
     };
 
+    /**
+     *  Journalnr
+     */
+    public static SSTableColumn<SSSupplierInvoice> COLUMN_JOURNALNR = new SSTableColumn<>(
+            SSBundle.getBundle().getString("supplierinvoicetable.column.13")) {
+        @Override
+        public Object getValue(SSSupplierInvoice iObject) {
+            return iObject.getJournalNumbers();
+        }
+
+        @Override
+        public void setValue(SSSupplierInvoice iObject, Object iValue) {}
+
+        @Override
+        public Class getColumnClass() {
+            return String.class;
+        }
+
+        @Override
+        public int getDefaultWidth() {
+            return 90;
+        }
+    };
+
 }

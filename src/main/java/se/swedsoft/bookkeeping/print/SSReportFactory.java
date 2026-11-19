@@ -2441,6 +2441,7 @@ public class SSReportFactory {    private static final Logger LOG = LoggerFactor
                 }
                 // Mark all invoices as entered
                 for (SSInpayment iInpayment : iFiltered) {
+                    iInpayment.setJournalNumbers(String.valueOf(iNumber));
                     iInpayment.setEntered();
                     Repositories.inpayments().update(iInpayment);
                 }
@@ -2582,7 +2583,7 @@ public class SSReportFactory {    private static final Logger LOG = LoggerFactor
                    return;
                }
 
-               registerCombinedSupplierJournalEntries(iFiltered, iVoucher1);
+               registerCombinedSupplierJournalEntries(iFiltered, String.valueOf(iNumber), iVoucher1);
 
                SSNewCompany iCurrentCompany = se.swedsoft.bookkeeping.data.system.SSCompanyYearContext
                        .getCurrentCompany();
@@ -2630,18 +2631,21 @@ public class SSReportFactory {    private static final Logger LOG = LoggerFactor
     }
 
     static void registerCombinedSupplierJournalEntries(List<SSSupplierInvoice> pInvoices,
+                                                       String pJournalNumbers,
                                                        SSVoucher pVoucher) {
-        registerCombinedSupplierJournalEntries(pInvoices, pVoucher,
+        registerCombinedSupplierJournalEntries(pInvoices, pJournalNumbers, pVoucher,
                 SSReportFactory::persistJournaledSupplierInvoice);
     }
 
     static void registerCombinedSupplierJournalEntries(List<SSSupplierInvoice> pInvoices,
+                                                       String pJournalNumbers,
                                                        SSVoucher pVoucher,
                                                        Consumer<SSSupplierInvoice> pPersistAction) {
         for (SSSupplierInvoice iInvoice : pInvoices) {
             if (iInvoice.isEntered()) {
                 continue;
             }
+            iInvoice.setJournalNumbers(pJournalNumbers);
             iInvoice.setVoucher(pVoucher);
             iInvoice.setEntered();
             pPersistAction.accept(iInvoice);
@@ -2726,6 +2730,7 @@ public class SSReportFactory {    private static final Logger LOG = LoggerFactor
 
                 // Mark all outpayments as entered
                 for (SSOutpayment iOutpayment : iFiltered) {
+                    iOutpayment.setJournalNumbers(String.valueOf(iNumber));
                     iOutpayment.setEntered();
                     Repositories.outpayments().update(iOutpayment);
                 }

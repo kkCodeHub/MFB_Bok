@@ -159,6 +159,35 @@ public class SSInvoiceTableModel extends SSTableModel<SSInvoice> {
     };
 
     /**
+     *  Journalnr
+     */
+    public static SSTableColumn<SSInvoice> COLUMN_JOURNALNR = new SSTableColumn<>(
+            SSBundle.getBundle().getString("invoicetable.column.14")) {
+        @Override
+        public Object getValue(SSInvoice iInvoice) {
+            String iJournalNumbers = iInvoice.getJournalNumbers();
+            if (iJournalNumbers == null || iJournalNumbers.isEmpty()) {
+                return null;
+            }
+            java.util.regex.Matcher iMatcher = java.util.regex.Pattern.compile("\\d+").matcher(iJournalNumbers);
+            return iMatcher.find() ? iMatcher.group() : null;
+        }
+
+        @Override
+        public void setValue(SSInvoice iInvoice, Object iValue) {}
+
+        @Override
+        public Class getColumnClass() {
+            return String.class;
+        }
+
+        @Override
+        public int getDefaultWidth() {
+            return 80;
+        }
+    };
+
+    /**
      *  Fakturayp
      */
     public static SSTableColumn<SSInvoice> COLUMN_TYPE = new SSTableColumn<>(

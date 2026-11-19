@@ -152,6 +152,7 @@ public class SSOutpaymentFrame extends SSDefaultTableFrame {
         iModel = new SSOutpaymentTableModel();
         iModel.addColumn(SSOutpaymentTableModel.COLUMN_ENTERED);
         iModel.addColumn(SSOutpaymentTableModel.COLUMN_NUMBER);
+        iModel.addColumn(SSOutpaymentTableModel.COLUMN_JOURNALNR);
         iModel.addColumn(SSOutpaymentTableModel.COLUMN_DATE);
         iModel.addColumn(SSOutpaymentTableModel.COLUMN_TEXT);
         iModel.addColumn(SSOutpaymentTableModel.COLUMN_SUM);

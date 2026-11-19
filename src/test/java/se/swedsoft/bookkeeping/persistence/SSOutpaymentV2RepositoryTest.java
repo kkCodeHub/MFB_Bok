@@ -135,6 +135,33 @@ class SSOutpaymentV2RepositoryTest {
         assertThat(all).extracting(SSOutpayment::getNumber).doesNotContain(number);
     }
 
+    @Test
+    void journalNumberPersistsOnOutpayment() {
+        SSOutpayment outpayment = outpayment("Journal tracking outpayment");
+        outpayment.setJournalNumbers("123");
+        outpayment.setEntered(true);
+        outpayment.getRows().add(row(21005, "SEK", "1.000000", "600.00", "1.000000"));
+
+        Repositories.outpayments().add(outpayment);
+
+        se.swedsoft.bookkeeping.data.system.SSEventTriggerSyncContext.clearCachedLists();
+        Optional<SSOutpayment> fetched = Repositories.outpayments().findByOutpayment(outpayment);
+        assertThat(fetched).isPresent();
+        assertThat(fetched.get().getJournalNumbers()).isEqualTo("123");
+        assertThat(fetched.get().isEntered()).isTrue();
+
+        SSOutpayment updatedOutpayment = fetched.get();
+        updatedOutpayment.setJournalNumbers("456");
+        Repositories.outpayments().update(updatedOutpayment);
+
+        se.swedsoft.bookkeeping.data.system.SSEventTriggerSyncContext.clearCachedLists();
+        Optional<SSOutpayment> updated = Repositories.outpayments().findByOutpayment(outpayment);
+        assertThat(updated).isPresent();
+        assertThat(updated.get().getJournalNumbers()).isEqualTo("456");
+
+        Repositories.outpayments().delete(updated.get());
+    }
+
     private static SSOutpayment outpayment(String text) {
         SSOutpayment outpayment = new SSOutpayment();
         outpayment.setLocalDate(LocalDate.of(2025, 8, 12));

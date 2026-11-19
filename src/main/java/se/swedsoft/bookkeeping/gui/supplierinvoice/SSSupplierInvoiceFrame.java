@@ -82,6 +82,10 @@ public class SSSupplierInvoiceFrame extends SSDefaultTableFrame {
 
     private SSSupplierInvoiceTableModel iModel;
 
+    private SSTable iJournalTable;
+
+    private SSSupplierInvoiceTableModel iJournalModel;
+
     private JTabbedPane iTabbedPane;
 
     private SSSupplierInvoiceSearchPanel iSearchPanel;
@@ -348,6 +352,53 @@ public class SSSupplierInvoiceFrame extends SSDefaultTableFrame {
         iTabbedPane.add(SSBundle.getBundle().getString("supplierinvoiceframe.filter.3"),
                 new SSTabbedPanePanel());
 
+        // Journalnr-flik: egen tabell/modell eftersom kolumnuppsättningen skiljer sig
+        // från de övriga flikarna (som delar iTable/iModel).
+        iJournalTable = new SSTable();
+
+        iJournalModel = new SSSupplierInvoiceTableModel();
+        iJournalModel.addColumn(SSSupplierInvoiceTableModel.COLUMN_STATE);
+        iJournalModel.addColumn(SSSupplierInvoiceTableModel.COLUMN_NUMBER);
+        iJournalModel.addColumn(SSSupplierInvoiceTableModel.COLUMN_JOURNALNR);
+        iJournalModel.addColumn(SSSupplierInvoiceTableModel.COLUMN_SUPPLIER_NUMBER);
+        iJournalModel.addColumn(SSSupplierInvoiceTableModel.COLUMN_SUPPLIER_NAME);
+        iJournalModel.addColumn(SSSupplierInvoiceTableModel.COLUMN_DATE);
+        iJournalModel.addColumn(SSSupplierInvoiceTableModel.COLUMN_DUEDATE);
+        iJournalModel.addColumn(SSSupplierInvoiceTableModel.COLUMN_NETSUM);
+        iJournalModel.addColumn(SSSupplierInvoiceTableModel.COLUMN_CURRENCY);
+        iJournalModel.addColumn(SSSupplierInvoiceTableModel.COLUMN_TOTALSUM);
+        iJournalModel.addColumn(SSSupplierInvoiceTableModel.COLUMN_SALDO);
+
+        iJournalModel.setupTable(iJournalTable);
+
+        iJournalTable.addDblClickListener(
+                e -> {
+
+                        SSSupplierInvoice iSelected = iJournalModel.getSelectedRow(iJournalTable);
+                        Integer iNumber;
+
+                        if (iSelected != null) {
+                            iNumber = iSelected.getNumber();
+                            iSelected = getSupplierInvoice(iSelected);
+                        } else {
+                            return;
+                        }
+                        if (iSelected != null) {
+                            SSSupplierInvoiceDialog.editDialog(getMainFrame(), iSelected, iModel);
+                        } else {
+                            new SSErrorDialog(getMainFrame(),
+                                    "supplierinvoiceframe.supplierinvoicegone", iNumber);
+                        }
+
+                    });
+
+        JPanel iJournalPanel = new JPanel();
+        iJournalPanel.setLayout(new BorderLayout());
+        iJournalPanel.add(new JScrollPane(iJournalTable), BorderLayout.CENTER);
+
+        iTabbedPane.add(SSBundle.getBundle().getString("supplierinvoiceframe.filter.4"),
+                iJournalPanel);
+
         iTabbedPane.addChangeListener(e -> iSearchPanel.ApplyFilter(SSPurchaseContext.getSupplierInvoices()));
 
         JPanel iPanel = new JPanel();
@@ -367,6 +418,15 @@ public class SSSupplierInvoiceFrame extends SSDefaultTableFrame {
      * @param iInvoices
      */
     public void setFilterIndex(int index, List<SSSupplierInvoice> iInvoices) {
+        // The Journalnr tab uses its own table/model and scroll pane, so it is not part
+        // of the shared scroll pane relocation logic used by the other tabs.
+        if (index == 3) {
+            iJournalModel.setObjects(iInvoices);
+            iTabbedPane.revalidate();
+            iTabbedPane.repaint();
+            return;
+        }
+
         JPanel iPanel = (JPanel) iTabbedPane.getComponentAt(index);
 
         // Move the shared scroll pane to the selected tab panel, if needed.

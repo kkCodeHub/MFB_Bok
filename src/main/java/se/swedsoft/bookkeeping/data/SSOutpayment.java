@@ -42,6 +42,9 @@ public class SSOutpayment implements SSTableSearchable {
     // Bokförd
     private boolean iEntered;
 
+    // Journalnummer
+    private String iJournalNumbers;
+
     // Standard konton
     protected Map<SSDefaultAccount, Integer> iDefaultAccounts;
 
@@ -93,6 +96,7 @@ public class SSOutpayment implements SSTableSearchable {
         iDate = iOutpayment.iDate;
         iText = iOutpayment.iText;
         iEntered = iOutpayment.iEntered;
+        iJournalNumbers = iOutpayment.iJournalNumbers;
         iVoucher = new SSVoucher(iOutpayment.iVoucher);
         iDifference = new SSVoucher(iOutpayment.iDifference);
         iRows = new LinkedList<>();
@@ -307,6 +311,23 @@ public class SSOutpayment implements SSTableSearchable {
      */
     public void setEntered() {
         iEntered = true;
+    }
+
+    // //////////////////////////////////////////////////
+
+    /**
+     *
+     */
+    public String getJournalNumbers() {
+        return iJournalNumbers;
+    }
+
+    /**
+     *
+     * @param iJournalNumbers
+     */
+    public void setJournalNumbers(String iJournalNumbers) {
+        this.iJournalNumbers = iJournalNumbers;
     }
 
     // //////////////////////////////////////////////////

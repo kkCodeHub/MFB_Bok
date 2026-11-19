@@ -136,6 +136,34 @@ class SSSupplierInvoiceV2RepositoryTest {
         assertThat(all).extracting(SSSupplierInvoice::getNumber).doesNotContain(number);
     }
 
+    @Test
+    void journalNumberPersistsOnSupplierInvoice() {
+        SSSupplierInvoice supplierInvoice = supplierInvoice(
+                "SUP-REPO-003", "Journal Tracking Supplier AB", "REF-REPO-003");
+        supplierInvoice.setJournalNumbers("123");
+        supplierInvoice.setEntered(true);
+        supplierInvoice.getRows().add(invoiceRow("P-REPO-004", "Journal row", new BigDecimal("250.00"), 1, 4010));
+
+        Repositories.supplierInvoices().add(supplierInvoice);
+
+        se.swedsoft.bookkeeping.data.system.SSEventTriggerSyncContext.clearCachedLists();
+        Optional<SSSupplierInvoice> fetched = Repositories.supplierInvoices().findBySupplierInvoice(supplierInvoice);
+        assertThat(fetched).isPresent();
+        assertThat(fetched.get().getJournalNumbers()).isEqualTo("123");
+        assertThat(fetched.get().isEntered()).isTrue();
+
+        SSSupplierInvoice updatedInvoice = fetched.get();
+        updatedInvoice.setJournalNumbers("456");
+        Repositories.supplierInvoices().update(updatedInvoice);
+
+        se.swedsoft.bookkeeping.data.system.SSEventTriggerSyncContext.clearCachedLists();
+        Optional<SSSupplierInvoice> updated = Repositories.supplierInvoices().findBySupplierInvoice(supplierInvoice);
+        assertThat(updated).isPresent();
+        assertThat(updated.get().getJournalNumbers()).isEqualTo("456");
+
+        Repositories.supplierInvoices().delete(updated.get());
+    }
+
     private static SSSupplierInvoice supplierInvoice(String supplierNr, String supplierName, String referenceNumber) {
         SSSupplierInvoice supplierInvoice = new SSSupplierInvoice();
         supplierInvoice.setSupplierNr(supplierNr);

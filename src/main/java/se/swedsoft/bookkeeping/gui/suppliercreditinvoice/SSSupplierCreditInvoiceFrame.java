@@ -190,6 +190,7 @@ public class SSSupplierCreditInvoiceFrame extends SSDefaultTableFrame {
         iModel = new SSSupplierCreditinvoiceTableModel();
         iModel.addColumn(SSSupplierCreditinvoiceTableModel.COLUMN_STATE);
         iModel.addColumn(SSSupplierCreditinvoiceTableModel.COLUMN_NUMBER);
+        iModel.addColumn(SSSupplierCreditinvoiceTableModel.COLUMN_JOURNALNR);
         iModel.addColumn(SSSupplierCreditinvoiceTableModel.COLUMN_CREDITNING);
         iModel.addColumn(SSSupplierCreditinvoiceTableModel.COLUMN_SUPPLIER_NUMBER);
         iModel.addColumn(SSSupplierCreditinvoiceTableModel.COLUMN_SUPPLIER_NAME);

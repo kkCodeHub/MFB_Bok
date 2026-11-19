@@ -127,6 +127,35 @@ public class SSCreditInvoiceTableModel extends SSTableModel<SSCreditInvoice> {
     };
 
     /**
+     *  Journalnr
+     */
+    public static SSTableColumn<SSCreditInvoice> COLUMN_JOURNALNR = new SSTableColumn<>(
+            SSBundle.getBundle().getString("creditinvoicetable.column.9")) {
+        @Override
+        public Object getValue(SSCreditInvoice iCreditInvoice) {
+            String iJournalNumbers = iCreditInvoice.getJournalNumbers();
+            if (iJournalNumbers == null || iJournalNumbers.isEmpty()) {
+                return null;
+            }
+            java.util.regex.Matcher iMatcher = java.util.regex.Pattern.compile("\\d+").matcher(iJournalNumbers);
+            return iMatcher.find() ? iMatcher.group() : null;
+        }
+
+        @Override
+        public void setValue(SSCreditInvoice iCreditInvoice, Object iValue) {}
+
+        @Override
+        public Class getColumnClass() {
+            return String.class;
+        }
+
+        @Override
+        public int getDefaultWidth() {
+            return 80;
+        }
+    };
+
+    /**
      *  Kund nummer
      */
     public static SSTableColumn<SSCreditInvoice> COLUMN_CUSTOMER_NR = new SSTableColumn<>(

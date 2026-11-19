@@ -135,6 +135,33 @@ class SSInpaymentV2RepositoryTest {
         assertThat(all).extracting(SSInpayment::getNumber).doesNotContain(number);
     }
 
+    @Test
+    void journalNumberPersistsOnInpayment() {
+        SSInpayment inpayment = inpayment("Journal tracking inpayment");
+        inpayment.setJournalNumbers("123");
+        inpayment.setEntered(true);
+        inpayment.getRows().add(row(11005, "SEK", "1.000000", "400.00", "1.000000"));
+
+        Repositories.inpayments().add(inpayment);
+
+        se.swedsoft.bookkeeping.data.system.SSEventTriggerSyncContext.clearCachedLists();
+        Optional<SSInpayment> fetched = Repositories.inpayments().findByInpayment(inpayment);
+        assertThat(fetched).isPresent();
+        assertThat(fetched.get().getJournalNumbers()).isEqualTo("123");
+        assertThat(fetched.get().isEntered()).isTrue();
+
+        SSInpayment updatedInpayment = fetched.get();
+        updatedInpayment.setJournalNumbers("456");
+        Repositories.inpayments().update(updatedInpayment);
+
+        se.swedsoft.bookkeeping.data.system.SSEventTriggerSyncContext.clearCachedLists();
+        Optional<SSInpayment> updated = Repositories.inpayments().findByInpayment(inpayment);
+        assertThat(updated).isPresent();
+        assertThat(updated.get().getJournalNumbers()).isEqualTo("456");
+
+        Repositories.inpayments().delete(updated.get());
+    }
+
     private static SSInpayment inpayment(String text) {
         SSInpayment inpayment = new SSInpayment();
         inpayment.setLocalDate(LocalDate.of(2025, 7, 30));

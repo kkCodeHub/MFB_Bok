@@ -156,15 +156,16 @@ public class V2OutpaymentRepository {
             Integer voucherId = V2RepositoryHelpers.getVoucherIdByNumber(connection, outpayment.getVoucher());
             Integer differenceVoucherId = V2RepositoryHelpers.getVoucherIdByNumber(connection, outpayment.getDifference());
             try (PreparedStatement insertStatement = connection.prepareStatement(
-                    "INSERT INTO tbl_outpayment(number,companyid,vdate,itext,entered,voucher_id,difference_voucher_id) VALUES(?,?,?,?,?,?,?)",
+                    "INSERT INTO tbl_outpayment(number,companyid,vdate,itext,entered,journal_numbers,voucher_id,difference_voucher_id) VALUES(?,?,?,?,?,?,?,?)",
                     Statement.RETURN_GENERATED_KEYS)) {
                 insertStatement.setObject(1, outpayment.getNumber());
                 insertStatement.setObject(2, currentCompany.getId());
                 bindLocalDateV2(insertStatement, 3, outpayment.getLocalDate());
                 insertStatement.setObject(4, outpayment.getText());
                 insertStatement.setObject(5, outpayment.isEntered());
-                insertStatement.setObject(6, voucherId);
-                insertStatement.setObject(7, differenceVoucherId);
+                insertStatement.setObject(6, outpayment.getJournalNumbers());
+                insertStatement.setObject(7, voucherId);
+                insertStatement.setObject(8, differenceVoucherId);
                 insertStatement.executeUpdate();
 
                 try (ResultSet keys = insertStatement.getGeneratedKeys()) {
@@ -202,14 +203,15 @@ public class V2OutpaymentRepository {
             Integer voucherId = V2RepositoryHelpers.getVoucherIdByNumber(connection, outpayment.getVoucher());
             Integer differenceVoucherId = V2RepositoryHelpers.getVoucherIdByNumber(connection, outpayment.getDifference());
             try (PreparedStatement statement = connection.prepareStatement(
-                    "UPDATE tbl_outpayment SET vdate=?,itext=?,entered=?,voucher_id=?,difference_voucher_id=? WHERE number=? AND companyid=?")) {
+                    "UPDATE tbl_outpayment SET vdate=?,itext=?,entered=?,journal_numbers=?,voucher_id=?,difference_voucher_id=? WHERE number=? AND companyid=?")) {
                 bindLocalDateV2(statement, 1, outpayment.getLocalDate());
                 statement.setObject(2, outpayment.getText());
                 statement.setObject(3, outpayment.isEntered());
-                statement.setObject(4, voucherId);
-                statement.setObject(5, differenceVoucherId);
-                statement.setObject(6, outpayment.getNumber());
-                statement.setObject(7, currentCompany.getId());
+                statement.setObject(4, outpayment.getJournalNumbers());
+                statement.setObject(5, voucherId);
+                statement.setObject(6, differenceVoucherId);
+                statement.setObject(7, outpayment.getNumber());
+                statement.setObject(8, currentCompany.getId());
                 statement.executeUpdate();
             }
 
@@ -334,6 +336,7 @@ public class V2OutpaymentRepository {
 
         outpayment.setText(resultSet.getString("itext"));
         outpayment.setEntered(resultSet.getBoolean("entered"));
+        outpayment.setJournalNumbers(resultSet.getString("journal_numbers"));
 
         Integer voucherId = (Integer) resultSet.getObject("voucher_id");
         Integer voucherNumber = V2RepositoryHelpers.getVoucherNumberForId(connection, voucherId);
