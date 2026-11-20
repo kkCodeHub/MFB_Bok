@@ -207,8 +207,12 @@ public class SSInpayment implements SSTableSearchable {
      * @param iDefaultAccount
      */
     public Optional<SSAccount> getDefaultAccount(SSAccountPlan iAccountPlan, SSDefaultAccount iDefaultAccount) {
-        Integer iAccountNumber = iDefaultAccounts.get(iDefaultAccount);
+        Map<SSDefaultAccount, Integer> iAccounts = getDefaultAccounts();
+        Integer iAccountNumber = iAccounts == null ? null : iAccounts.get(iDefaultAccount);
 
+        if (iAccountNumber == null) {
+            iAccountNumber = iDefaultAccount.getDefaultAccountNumber();
+        }
         if (iAccountNumber == null) {
             return Optional.empty();
         }

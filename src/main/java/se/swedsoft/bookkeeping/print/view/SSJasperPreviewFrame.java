@@ -144,10 +144,13 @@ public class SSJasperPreviewFrame extends SSDefaultTableFrame implements Propert
         // ***************************
         iButton = new SSButton("ICON_PRINT", "printpreviewframe.printbutton",
                 e -> {
-                        fireOutputAction();
-
                         try {
-                            SSPrintJob.print(iPrinter, getPrintJobName());
+                            // Only mark as printed once the user has confirmed the print
+                            // dialog (printer/destination) and printing actually happened;
+                            // cancelling the dialog must not mark the document as printed.
+                            if (SSPrintJob.print(iPrinter, getPrintJobName())) {
+                                fireOutputAction();
+                            }
                         } catch (JRException ex) {
                             LOG.error("Unexpected error", ex);
                         }

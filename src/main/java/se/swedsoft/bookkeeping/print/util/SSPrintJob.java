@@ -30,9 +30,11 @@ public final class SSPrintJob {
      *
      * @param pPrint the filled report
      * @param pJobName print job name, also suggested as file name by PDF printers
+     * @return true if the user confirmed the print dialog and the document was printed,
+     *         false if the dialog was cancelled (no printing took place)
      * @throws JRException if printing fails
      */
-    public static void print(JasperPrint pPrint, String pJobName) throws JRException {
+    public static boolean print(JasperPrint pPrint, String pJobName) throws JRException {
         PrinterJob iJob = PrinterJob.getPrinterJob();
 
         iJob.setJobName(pJobName);
@@ -61,7 +63,10 @@ public final class SSPrintJob {
             } catch (PrinterException e) {
                 throw new JRException(e);
             }
+            return true;
         }
+
+        return false;
     }
 
     private static final class JasperPrintable implements Printable {

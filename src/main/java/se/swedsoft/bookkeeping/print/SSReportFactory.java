@@ -2289,6 +2289,42 @@ public class SSReportFactory {    private static final Logger LOG = LoggerFactor
                         iInvoiceNumbers);
     }
 
+    static String buildOutpaymentJournalVoucherDescription(Integer pJournalNumber,
+                                                           Collection<Integer> pInvoiceNumbers) {
+        String iDescription = String.format(
+                SSBundle.getBundle().getString("outpaymentjournal.voucher.description"),
+                pJournalNumber);
+        String iInvoiceNumbers = joinInpaymentInvoiceNumbers(pInvoiceNumbers);
+
+        if (iInvoiceNumbers.isEmpty()) {
+            return iDescription;
+        }
+        return iDescription + ", "
+                + String.format(
+                        SSBundle.getBundle().getString("outpaymentjournal.voucher.invoicedescription"),
+                        iInvoiceNumbers);
+    }
+
+    private static Set<Integer> collectOutpaymentInvoiceNumbers(List<SSOutpayment> pOutpayments) {
+        Set<Integer> iInvoiceNumbers = new LinkedHashSet<>();
+
+        if (pOutpayments == null) {
+            return iInvoiceNumbers;
+        }
+        for (SSOutpayment iOutpayment : pOutpayments) {
+            if (iOutpayment == null || iOutpayment.getRows() == null) {
+                continue;
+            }
+            for (SSOutpaymentRow iRow : iOutpayment.getRows()) {
+                if (iRow == null || iRow.getInvoiceNr() == null) {
+                    continue;
+                }
+                iInvoiceNumbers.add(iRow.getInvoiceNr());
+            }
+        }
+        return iInvoiceNumbers;
+    }
+
     private static Set<Integer> collectInpaymentInvoiceNumbers(List<SSInpayment> pInpayments) {
         Set<Integer> iInvoiceNumbers = new LinkedHashSet<>();
 
@@ -2431,7 +2467,14 @@ public class SSReportFactory {    private static final Logger LOG = LoggerFactor
                         SSAccountingContext.VOUCHER_EVENT_CODE_INPAYMENT));
         assignNextVoucherNumberForSeries(iVoucher1);
 
+        final boolean[] iHasOutput = {false};
+        final Runnable iOnOutputAction = () -> iHasOutput[0] = true;
+
         final ActionListener iCloseListener = e -> {
+                if (!canRegisterCombinedJournal(iHasOutput[0],
+                        () -> SSInformationDialog.showDialog(iMainFrame, "inpaymentjournal.dialog.requiresoutput"))) {
+                    return;
+                }
 
                 SSQueryDialog iDialog1 = new SSQueryDialog(iMainFrame, SSBundle.getBundle(),
                         "inpaymentjournal.dialog.register", iNumber, iVoucher1.getNumber());
@@ -2474,7 +2517,7 @@ public class SSReportFactory {    private static final Logger LOG = LoggerFactor
                         iPrinter.addReport(iPrinter1);
                         iPrinter.addReport(iPrinter2);
 
-                        iPrinter.preview(iMainFrame, iCloseListener);
+                        iPrinter.preview(iMainFrame, iCloseListener, iOnOutputAction);
 
                     });
 
@@ -2569,7 +2612,14 @@ public class SSReportFactory {    private static final Logger LOG = LoggerFactor
                        SSAccountingContext.VOUCHER_EVENT_CODE_SUPPLIER_INVOICE));
        assignNextVoucherNumberForSeries(iVoucher1);
 
+       final boolean[] iHasOutput = {false};
+       final Runnable iOnOutputAction = () -> iHasOutput[0] = true;
+
        final ActionListener iCloseListener = e -> {
+               if (!canRegisterCombinedJournal(iHasOutput[0],
+                       () -> SSInformationDialog.showDialog(iMainFrame, "supplierinvoicejournal.dialog.requiresoutput"))) {
+                   return;
+               }
                if (!hasOpenAccountingYearForVoucherDate(iVoucher1)) {
                    SSInformationDialog.showDialog(iMainFrame, "invoiceframe.voucher.badyear",
                            getVoucherAccountingYearLabel(iVoucher1));
@@ -2608,7 +2658,7 @@ public class SSReportFactory {    private static final Logger LOG = LoggerFactor
                        iPrinter.addReport(iReportPrinter);
                        iPrinter.addReport(iPrinter2);
 
-                       iPrinter.preview(iMainFrame, iCloseListener);
+                      iPrinter.preview(iMainFrame, iCloseListener, iOnOutputAction);
                    });
     }
 
@@ -2701,11 +2751,9 @@ public class SSReportFactory {    private static final Logger LOG = LoggerFactor
 
         SSVoucher iVoucher = new SSVoucher();
 
-        iVoucher.setDescription(
-                String.format(
-                        SSBundle.getBundle().getString(
-                                "outpaymentjournal.voucher.description"),
-                                iNumber));
+        iVoucher.setDescription(buildOutpaymentJournalVoucherDescription(
+                iNumber,
+                collectOutpaymentInvoiceNumbers(iFiltered)));
         iVoucher.setLocalDate(iTo);
 
         for (SSOutpayment iOutpayment : iFiltered) {
@@ -2716,8 +2764,19 @@ public class SSReportFactory {    private static final Logger LOG = LoggerFactor
             }
         }
         final SSVoucher iVoucher1 = SSVoucherMath.compress(iVoucher);
+        iVoucher1.setSeries(
+                SSAccountingContext.resolveVoucherSeriesForEventCode(
+                        SSAccountingContext.VOUCHER_EVENT_CODE_OUTPAYMENT));
+        assignNextVoucherNumberForSeries(iVoucher1);
+
+        final boolean[] iHasOutput = {false};
+        final Runnable iOnOutputAction = () -> iHasOutput[0] = true;
 
         final ActionListener iCloseListener = e -> {
+                if (!canRegisterCombinedJournal(iHasOutput[0],
+                        () -> SSInformationDialog.showDialog(iMainFrame, "outpaymentjournal.dialog.requiresoutput"))) {
+                    return;
+                }
 
                 SSQueryDialog iDialog1 = new SSQueryDialog(iMainFrame, SSBundle.getBundle(),
                         "outpaymentjournal.dialog.register", iNumber,
@@ -2762,7 +2821,7 @@ public class SSReportFactory {    private static final Logger LOG = LoggerFactor
                         iPrinter.addReport(iPrinter1);
                         iPrinter.addReport(iPrinter2);
 
-                        iPrinter.preview(iMainFrame, iCloseListener);
+                        iPrinter.preview(iMainFrame, iCloseListener, iOnOutputAction);
 
                     });
 
