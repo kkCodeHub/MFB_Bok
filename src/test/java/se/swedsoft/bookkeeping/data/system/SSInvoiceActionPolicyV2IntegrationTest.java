@@ -358,6 +358,45 @@ class SSInvoiceActionPolicyV2IntegrationTest {
         Repositories.invoices().delete(negativeSaldoInvoice);
     }
 
+    @Test
+    void creditInvoiceSharingNumberWithPaidInvoiceIsNotLockedAsPaid() {
+        SSInvoice paidInvoice = persistInvoice("POL-NR-001", "Policy Number Clash Paid");
+        SSInvoice creditedInvoice = persistInvoice("POL-NR-002", "Policy Number Clash Credited");
+
+        SSInpayment inpayment = new SSInpayment();
+        inpayment.setLocalDate(LocalDate.of(2025, 8, 1));
+        SSInpaymentRow row = new SSInpaymentRow();
+        row.setInvoiceNr(paidInvoice.getNumber());
+        row.setValue(new BigDecimal("500.00"));
+        row.setCurrencyRate(BigDecimal.ONE);
+        inpayment.getRows().add(row);
+        Repositories.inpayments().add(inpayment);
+        SSEventTriggerSyncContext.clearCachedLists();
+
+        SSCreditInvoice creditInvoice = new SSCreditInvoice(creditedInvoice);
+        creditInvoice.setNumber(paidInvoice.getNumber());
+
+        assertThat(SSInvoiceActionPolicy.canEdit(paidInvoice)).isFalse();
+        assertThat(row.isPaying(creditInvoice)).isFalse();
+        assertThat(SSInvoiceActionPolicy.canCancel(creditInvoice)).isTrue();
+        assertThat(SSInvoiceActionPolicy.canDeletePhysically(creditInvoice, List.of(creditInvoice))).isTrue();
+
+        Repositories.inpayments().delete(inpayment);
+        Repositories.invoices().delete(creditedInvoice);
+        Repositories.invoices().delete(paidInvoice);
+    }
+
+    @Test
+    void creditInvoiceIsNeverEligibleForReminderOrInterest() {
+        SSInvoice invoice = persistInvoice("POL-RM-001", "Policy Reminder Customer");
+        SSCreditInvoice creditInvoice = new SSCreditInvoice(invoice);
+
+        assertThat(SSInvoiceActionPolicy.canCreateReminder(creditInvoice)).isFalse();
+        assertThat(SSInvoiceActionPolicy.canSelectForInterestInvoicing(creditInvoice)).isFalse();
+
+        Repositories.invoices().delete(invoice);
+    }
+
     private static SSInvoice persistInvoice(String customerNr, String customerName) {
         SSInvoice invoice = invoiceTemplate(customerNr, customerName);
         invoice.getRows().add(invoiceRow("P-" + customerNr, "Policy row", new BigDecimal("500.00"), 1, 3010));

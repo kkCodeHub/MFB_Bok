@@ -230,13 +230,18 @@ public class SSInpaymentRow implements SSTableSearchable {
     /**
      * Returns if this row is paying the selected sales
      *
+     * <p>Credit invoices are never a valid inpayment target (they live in a separate
+     * number series and can coincidentally share a number with a regular invoice), so
+     * they are explicitly excluded here to avoid cross-matching a payment intended for
+     * a regular invoice with a credit invoice of the same number.</p>
+     *
      * @param pInvoice
      * @return if the row is paying the sales
      */
     public boolean isPaying(SSInvoice pInvoice) {
         boolean answer = false;
 
-        if (pInvoice != null) {
+        if (pInvoice != null && !(pInvoice instanceof SSCreditInvoice)) {
             answer = pInvoice.getNumber().equals(iInvoiceNr);
         }
         return answer;

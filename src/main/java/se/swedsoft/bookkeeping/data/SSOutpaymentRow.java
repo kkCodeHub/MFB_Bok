@@ -226,13 +226,16 @@ public class SSOutpaymentRow implements SSTableSearchable {
     /**
      * Returns if this row is paying the selected sales
      *
+     * <p>Supplier credit invoices are never a valid outpayment target (separate number series that can
+     * coincidentally share a number with a supplier invoice), so they are excluded here.</p>
+     *
      * @param iInvoice
      * @return if the row is paying the sales
      */
     public boolean isPaying(SSSupplierInvoice iInvoice) {
         boolean answer = false;
 
-        if (iInvoice != null) {
+        if (iInvoice != null && !(iInvoice instanceof SSSupplierCreditInvoice)) {
             answer = iInvoice.getNumber().equals(iInvoiceNr);
         }
         return answer;

@@ -157,8 +157,7 @@ public final class SSSupplierInvoiceActionPolicy {
     }
 
     private static boolean canDelete(SSSupplierCreditInvoice pInvoice) {
-        return !pInvoice.isEntered()
-                && !hasPositiveValue(SSOutpaymentMath.getSumForInvoice(pInvoice));
+        return !pInvoice.isEntered();
     }
 
     private static boolean hasPositiveValue(BigDecimal pValue) {

@@ -191,7 +191,8 @@ public final class SSInvoiceActionPolicy {
      */
     public static boolean canCreateReminder(SSInvoice pInvoice) {
         verifyNotNull("invoice", pInvoice);
-        return canSelectForReminder(pInvoice)
+        return !(pInvoice instanceof SSCreditInvoice)
+                && canSelectForReminder(pInvoice)
                 && SSInvoiceMath.expired(pInvoice)
                 && SSInvoiceMath.getSaldo(pInvoice.getNumber()).signum() > 0;
     }
@@ -203,7 +204,7 @@ public final class SSInvoiceActionPolicy {
      * @return true if interest flow selection is allowed
      */
     public static boolean canSelectForInterestInvoicing(SSInvoice pInvoice) {
-        return canPrint(pInvoice);
+        return !(pInvoice instanceof SSCreditInvoice) && canPrint(pInvoice);
     }
 
     /**
@@ -239,7 +240,8 @@ public final class SSInvoiceActionPolicy {
                 && hasPositiveValue(SSCreditInvoiceMath.getSumForInvoice(pInvoice))) {
             iReasons.add(SSInvoiceLockReason.CREDITED);
         }
-        if (hasPositiveValue(SSInpaymentMath.getSumForInvoice(pInvoice))) {
+        if (!(pInvoice instanceof SSCreditInvoice)
+                && hasPositiveValue(SSInpaymentMath.getSumForInvoice(pInvoice))) {
             iReasons.add(SSInvoiceLockReason.PAID);
         }
 

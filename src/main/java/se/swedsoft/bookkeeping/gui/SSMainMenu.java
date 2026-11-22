@@ -1028,8 +1028,8 @@ public class SSMainMenu {    private static final Logger LOG = LoggerFactory.get
                         }
 
                         for(SSSupplierCreditInvoice iSupplierCreditInvoice : Repositories.supplierCreditInvoices().findAll()){
-                            if(iSupplierCreditInvoice.getLocalDate().isBefore(iCutoffDate) && iSaldoMap.containsKey(iSupplierCreditInvoice.getCreditingNr())){
-                                BigDecimal iSaldo = iSaldoMap.get(iSupplierCreditInvoice.getCreditingNr());
+                            if(iSupplierCreditInvoice.getLocalDate().isBefore(iCutoffDate) &&                             iPurchaseSaldoMap.containsKey(iSupplierCreditInvoice.getCreditingNr())){
+                                                            BigDecimal iSaldo = iPurchaseSaldoMap.get(iSupplierCreditInvoice.getCreditingNr());
                                 if(iSaldo.signum() == 0) Repositories.supplierCreditInvoices().delete(iSupplierCreditInvoice);
                             }
                             else if(iSupplierCreditInvoice.getLocalDate().isBefore(iCutoffDate)){
