@@ -90,6 +90,13 @@ public class SSInpaymentFrame extends SSDefaultTableFrame {
 
         toolBar.add(iButton);
 
+        // Debt refund (outpayment)
+        // ***************************
+        iButton = new SSButton("ICON_COINS24", "inpaymentframe.refundbutton",
+                e -> SSInpaymentDialog.newDebtRefundDialog(getMainFrame(), iModel));
+
+        toolBar.add(iButton);
+
         // Edit
         // ***************************
         iButton = new SSButton("ICON_EDITITEM", "inpaymentframe.editbutton",

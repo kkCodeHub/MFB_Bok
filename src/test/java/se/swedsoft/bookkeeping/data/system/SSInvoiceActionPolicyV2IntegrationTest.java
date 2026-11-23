@@ -297,6 +297,44 @@ class SSInvoiceActionPolicyV2IntegrationTest {
     }
 
     @Test
+    void creditInvoiceRequiresPrintedOrEnteredInvoice() {
+        SSInvoice plain = new SSInvoice();
+        SSInvoice printed = new SSInvoice();
+        printed.setPrinted();
+        SSInvoice entered = new SSInvoice();
+        entered.setEntered();
+
+        assertThat(SSInvoiceActionPolicy.canCreateCreditInvoice(plain)).isFalse();
+        assertThat(SSInvoiceActionPolicy.canCreateCreditInvoice(printed)).isTrue();
+        assertThat(SSInvoiceActionPolicy.canCreateCreditInvoice(entered)).isTrue();
+    }
+
+    @Test
+    void paidInvoiceIsCreditableEvenIfNotPrintedOrEntered() {
+        SSInvoice unprintedUnenteredInvoice = persistInvoiceWithBalance("POL-PD-001", "Paid Unprinted Customer");
+        assertThat(unprintedUnenteredInvoice.isPrinted()).isFalse();
+        assertThat(unprintedUnenteredInvoice.isEntered()).isFalse();
+
+        SSInpayment inpayment = new SSInpayment();
+        inpayment.setLocalDate(LocalDate.of(2025, 8, 1));
+        SSInpaymentRow row = new SSInpaymentRow();
+        row.setInvoiceNr(unprintedUnenteredInvoice.getNumber());
+        row.setValue(new BigDecimal("1000.00"));
+        row.setCurrencyRate(BigDecimal.ONE);
+        inpayment.getRows().add(row);
+        Repositories.inpayments().add(inpayment);
+        SSEventTriggerSyncContext.clearCachedLists();
+
+        assertThat(SSInvoiceActionPolicy.canCreateCreditInvoice(unprintedUnenteredInvoice)).isTrue();
+
+        unprintedUnenteredInvoice.setCancelled();
+        assertThat(SSInvoiceActionPolicy.canCreateCreditInvoice(unprintedUnenteredInvoice)).isFalse();
+
+        Repositories.inpayments().delete(inpayment);
+        Repositories.invoices().delete(unprintedUnenteredInvoice);
+    }
+
+    @Test
     void cancelledCreditInvoiceDoesNotReduceSaldo() {
         SSInvoice invoice = persistInvoiceWithBalance("POL-SD-001", "Saldo Credit Customer");
 

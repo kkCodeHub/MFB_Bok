@@ -28,6 +28,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.math.BigDecimal;
+import java.util.Optional;
 
 
 /**
@@ -74,6 +75,7 @@ public class SSInpaymentPanel {
     private boolean iAutoUpdateDescriptionFromInvoice;
     private boolean iVoucherGenerated;
     private boolean iReadOnlyMode;
+    private boolean iDebtRefundMode;
     protected JTabbedPane iTabbedPane;
     private ChangeListener iTabbedPaneChangeListener;
 
@@ -82,19 +84,38 @@ public class SSInpaymentPanel {
      * @param iDialog
      */
     public SSInpaymentPanel(SSDialog iDialog) {
+        this(iDialog, false);
+    }
+
+    /**
+     *
+     * @param iDialog
+     * @param pDebtRefundMode true if this panel should be set up for debt refund
+     *                        (outpayment against invoices with negative saldo)
+     *                        instead of a regular inpayment
+     */
+    public SSInpaymentPanel(SSDialog iDialog, boolean pDebtRefundMode) {
+
+        iDebtRefundMode = pDebtRefundMode;
 
         iModel = new SSInpaymentRowTableModel();
-        iModel.addColumn(SSInpaymentRowTableModel.COLUMN_INVOICE, true);
+        iModel.addColumn(iDebtRefundMode
+                ? SSInpaymentRowTableModel.COLUMN_INVOICE_DEBTREFUND
+                : SSInpaymentRowTableModel.COLUMN_INVOICE, true);
         iModel.addColumn(SSInpaymentRowTableModel.COLUMN_CURRENCY);
         iModel.addColumn(SSInpaymentRowTableModel.COLUMN_INVOICE_CURRENCYRATE);
-        iModel.addColumn(SSInpaymentRowTableModel.COLUMN_VALUE);
+        iModel.addColumn(iDebtRefundMode
+                ? SSInpaymentRowTableModel.COLUMN_VALUE_DEBTREFUND
+                : SSInpaymentRowTableModel.COLUMN_VALUE);
         iModel.addColumn(SSInpaymentRowTableModel.COLUMN_CURRENCYRATE, true);
         iModel.addColumn(SSInpaymentRowTableModel.COLUMN_PAYED, true);
         iModel.addColumn(SSInpaymentRowTableModel.COLUMN_CURRENCYRATEDIFFERENCE);
         iModel.setupTable(iTable);
 
         iTable.setDefaultEditor(SSInvoice.class,
-                new SSInvoiceCellEditor(SSInvoiceMath.getNonPayedOrCreditedInvoices()));
+                new SSInvoiceCellEditor(iDebtRefundMode
+                        ? SSInvoiceMath.getNegativeSaldoInvoices()
+                        : SSInvoiceMath.getNonPayedOrCreditedInvoices()));
 
         iTable.setColorReadOnly(true);
         iTable.setSingleSelect();
@@ -445,7 +466,10 @@ public class SSInpaymentPanel {
         if (!iAutoUpdateDescriptionFromInvoice || iInpayment == null) {
             return;
         }
-        iText.setText(iInpayment.getDefaultDescription().orElse(""));
+        Optional<String> iDescription = iDebtRefundMode
+                ? iInpayment.getDebtRefundDescription()
+                : iInpayment.getDefaultDescription();
+        iText.setText(iDescription.orElse(""));
     }
 
     /**

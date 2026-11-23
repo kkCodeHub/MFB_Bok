@@ -421,6 +421,38 @@ public class SSInvoiceMath extends SSSaleMath {    private static final Logger L
     }
 
     /**
+     * Returns the invoices where the saldo is negative, i.e. the company owes
+     * the customer money (typically caused by a credit invoice overcrediting
+     * the original invoice). Cancelled invoices are excluded.
+     *
+     * @return list of invoices
+     */
+    public static List<SSInvoice> getNegativeSaldoInvoices() {
+        return getNegativeSaldoInvoices(se.swedsoft.bookkeeping.data.system.SSSalesContext.getInvoices());
+    }
+
+    /**
+     * Returns the invoices where the saldo is negative, i.e. the company owes
+     * the customer money (typically caused by a credit invoice overcrediting
+     * the original invoice). Cancelled invoices are excluded.
+     *
+     * @param iInvoices invoices to filter
+     * @return list of invoices
+     */
+    public static List<SSInvoice> getNegativeSaldoInvoices(List<SSInvoice> iInvoices) {
+        List<SSInvoice> iFiltered = new LinkedList<>();
+
+        for (SSInvoice iInvoice : iInvoices) {
+            BigDecimal iSaldo = getSaldo(iInvoice.getNumber());
+
+            if (iSaldo.signum() < 0 && SSInvoiceActionPolicy.canPrint(iInvoice)) {
+                iFiltered.add(iInvoice);
+            }
+        }
+        return iFiltered;
+    }
+
+    /**
      * Returns the number of days between the due date and the last payment date.
      *
      * @param iInvoice the invoice

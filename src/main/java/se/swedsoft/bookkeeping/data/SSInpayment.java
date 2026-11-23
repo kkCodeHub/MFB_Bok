@@ -385,6 +385,21 @@ public class SSInpayment implements SSTableSearchable {
         return Optional.of(String.format(iTemplate, iJoinedInvoiceNumbers.get()));
     }
 
+    /**
+     * Builds the default description for a debt refund (outpayment), e.g.
+     * "Utbetalning skuld kundfaktura X", analogous to {@link #getDefaultDescription()}.
+     *
+     * @return the debt refund description, or empty if no invoice is selected
+     */
+    public Optional<String> getDebtRefundDescription() {
+        Optional<String> iJoinedInvoiceNumbers = getJoinedInvoiceNumbers();
+        if (iJoinedInvoiceNumbers.isEmpty()) {
+            return Optional.empty();
+        }
+        String iTemplate = SSBundle.getBundle().getString("inpaymentframe.refund.defaultdescription");
+        return Optional.of(String.format(iTemplate, iJoinedInvoiceNumbers.get()));
+    }
+
     // //////////////////////////////////////////////////
 
     public String toString() {

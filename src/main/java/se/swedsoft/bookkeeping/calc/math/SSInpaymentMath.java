@@ -250,6 +250,27 @@ public class SSInpaymentMath {
     }
 
     /**
+     * Resolve default outpayment amount from invoice saldo.
+     * Returns the invoice's actual (negative) saldo if it is negative,
+     * otherwise zero. This is the mirrored counterpart of
+     * {@link #getInpaymentAmountForInvoice(SSInvoice)}, which clamps negative
+     * saldo to zero.
+     *
+     * @param iInvoice the invoice
+     * @return default outpayment amount
+     */
+    public static BigDecimal getOutpaymentAmountForInvoice(SSInvoice iInvoice) {
+        if (iInvoice == null) {
+            return BigDecimal.ZERO.setScale(2);
+        }
+        BigDecimal iSaldo = SSInvoiceMath.getSaldo(iInvoice);
+        if (iSaldo.signum() < 0) {
+            return iSaldo;
+        }
+        return BigDecimal.ZERO.setScale(2);
+    }
+
+    /**
      * Get the difference between the value of the sales in the sales currency and the payed value, in the company currency such as
      *
      * return (Value of row) * (payment currency rate - sales currency rate)

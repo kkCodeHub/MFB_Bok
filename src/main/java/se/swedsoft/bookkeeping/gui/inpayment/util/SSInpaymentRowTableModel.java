@@ -93,6 +93,34 @@ public class SSInpaymentRowTableModel extends SSTableModel<SSInpaymentRow> {
     };
 
     /**
+     * Supplier invoice column for debt refund (outpayment) mode.
+     * Same as {@link #COLUMN_INVOICE} but uses {@link SSInpaymentRow#setInvoiceForDebtRefund(SSInvoice)}
+     * so the proposed value reflects the invoice's actual (negative) saldo.
+     */
+    public static SSTableColumn<SSInpaymentRow> COLUMN_INVOICE_DEBTREFUND = new SSTableColumn<>(
+            SSBundle.getBundle().getString("outpaymentrowtable.column.1")) {
+        @Override
+        public Object getValue(SSInpaymentRow iObject) {
+            return iObject.getInvoice(se.swedsoft.bookkeeping.data.system.SSSalesContext.getInvoices());
+        }
+
+        @Override
+        public void setValue(SSInpaymentRow iObject, Object iValue) {
+            iObject.setInvoiceForDebtRefund((SSInvoice) iValue);
+        }
+
+        @Override
+        public Class getColumnClass() {
+            return SSInvoice.class;
+        }
+
+        @Override
+        public int getDefaultWidth() {
+            return 80;
+        }
+    };
+
+    /**
      * Currency column
      */
     public static SSTableColumn<SSInpaymentRow> COLUMN_CURRENCY = new SSTableColumn<>(
@@ -172,6 +200,38 @@ public class SSInpaymentRowTableModel extends SSTableModel<SSInpaymentRow> {
                 return iObject.getValue();
             }
             return SSInpaymentMath.getInpaymentAmountForInvoice(iInvoice);
+        }
+
+        @Override
+        public void setValue(SSInpaymentRow iOutpaymentRow, Object iValue) {
+            // Fakturabelopp följer fakturans saldo och sätts via fakturaval.
+        }
+
+        @Override
+        public Class getColumnClass() {
+            return BigDecimal.class;
+        }
+
+        @Override
+        public int getDefaultWidth() {
+            return 130;
+        }
+    };
+
+    /**
+     * Value column for debt refund (outpayment) mode.
+     * Same as {@link #COLUMN_VALUE} but uses {@link SSInpaymentMath#getOutpaymentAmountForInvoice(SSInvoice)}
+     * so the displayed/proposed amount reflects the invoice's actual (negative) saldo.
+     */
+    public static SSTableColumn<SSInpaymentRow> COLUMN_VALUE_DEBTREFUND = new SSTableColumn<>(
+            SSBundle.getBundle().getString("outpaymentrowtable.column.4")) {
+        @Override
+        public Object getValue(SSInpaymentRow iObject) {
+            SSInvoice iInvoice = iObject.getInvoice(se.swedsoft.bookkeeping.data.system.SSSalesContext.getInvoices());
+            if (iInvoice == null) {
+                return iObject.getValue();
+            }
+            return SSInpaymentMath.getOutpaymentAmountForInvoice(iInvoice);
         }
 
         @Override

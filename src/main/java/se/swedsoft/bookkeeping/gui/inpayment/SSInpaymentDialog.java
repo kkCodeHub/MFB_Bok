@@ -234,6 +234,98 @@ public class SSInpaymentDialog {
     }
 
     /**
+     * Opens a dialog for creating a new debt refund (outpayment) against a customer
+     * invoice with negative saldo. Mirrors {@link #newDialog(SSMainFrame, SSDefaultTableModel)}
+     * but uses the refund panel/title; saving, bookkeeping and frame updates are identical.
+     *
+     * @param iMainFrame
+     * @param pModel
+     */
+    public static void newDebtRefundDialog(final SSMainFrame iMainFrame, final SSDefaultTableModel<SSInpayment> pModel) {
+        final SSDialog         iDialog = new SSDialog(iMainFrame,
+                SSBundle.getBundle().getString("inpaymentframe.refund.title"));
+        final SSInpaymentPanel iPanel = new SSInpaymentPanel(iDialog, true);
+        iPanel.setAutoUpdateDescriptionFromInvoice(true);
+
+        SSInpayment iInpayment = new SSInpayment();
+        assignNextNumberIfMissing(iInpayment);
+        applyDefaultDescription(iInpayment);
+
+        iPanel.setInpayment(iInpayment);
+
+        iDialog.add(iPanel.getPanel(), BorderLayout.CENTER);
+
+        final ActionListener iSaveAction = e -> {
+
+                SSInpayment iInpayment1 = iPanel.getInpayment();
+                boolean iSaveVoucher = false;
+
+                if (iPanel.isVoucherGenerated() && !iInpayment1.isEntered()) {
+                    int iResponse = SSQueryDialog.showDialog(iMainFrame, SSBundle.getBundle(),
+                            "inpaymentframe.voucher.saveonclose");
+                    iSaveVoucher = iResponse == JOptionPane.OK_OPTION;
+                } else if (iInpayment1.isEntered()) {
+                    new SSInformationDialog(iMainFrame, "inpaymentframe.entered");
+                }
+                iSaveVoucher = iSaveVoucher && hasPostableInpaymentAmounts(iInpayment1);
+
+                if (iSaveVoucher) {
+                    if (!hasOpenAccountingYearForVoucherDate(iInpayment1.getVoucher())) {
+                        SSInformationDialog.showDialog(iMainFrame, "invoiceframe.voucher.badyear",
+                                getVoucherAccountingYearLabel(iInpayment1.getVoucher()));
+                        return;
+                    }
+                    iInpayment1.getVoucher().setSeries(
+                            SSAccountingContext.resolveVoucherSeriesForEventCode(
+                                    SSAccountingContext.VOUCHER_EVENT_CODE_INPAYMENT));
+                    SSAccountingContext.addVoucher(iInpayment1.getVoucher(), false);
+                    iInpayment1.setEntered();
+                } else if (!iInpayment1.isEntered()) {
+                    iInpayment1.setVoucher(new SSVoucher());
+                }
+
+                Repositories.inpayments().add(iInpayment1);
+                SSInvoiceFrame.fireTableDataChanged();
+                SSInpaymentFrame.fireTableDataChanged();
+
+                if (SSInvoiceFrame.getInstance() != null) {
+                    SSInvoiceFrame.getInstance().updateFrame();
+                }
+
+                iPanel.dispose();
+                iDialog.closeDialog();
+
+            };
+
+        iPanel.addOkAction(iSaveAction);
+
+        iPanel.addCancelAction(e -> {
+
+                iPanel.dispose();
+                iDialog.closeDialog();
+
+            });
+        iDialog.addWindowListener(
+                new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                if (SSQueryDialog.showDialog(iMainFrame, SSBundle.getBundle(),
+                        "inpaymentframe.saveonclose")
+                        != JOptionPane.OK_OPTION) {
+                    return;
+                }
+
+                iSaveAction.actionPerformed(null);
+            }
+        });
+
+        iDialog.setSize(800, 600);
+        iDialog.setLocationRelativeTo(iMainFrame);
+        iDialog.setVisible();
+
+    }
+
+    /**
      *
      * @param iMainFrame
      * @param iInpayment

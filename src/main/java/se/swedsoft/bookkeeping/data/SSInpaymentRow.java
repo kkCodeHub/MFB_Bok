@@ -225,6 +225,28 @@ public class SSInpaymentRow implements SSTableSearchable {
         }
     }
 
+    /**
+     * Sets the invoice for a debt refund (outpayment) row, i.e. a payment against
+     * an invoice with a negative saldo. Behaves like {@link #setInvoice(SSInvoice)}
+     * except the proposed value is the invoice's actual (negative) saldo instead
+     * of the clamped inpayment amount.
+     *
+     * @param iInvoice the invoice to refund
+     */
+    public void setInvoiceForDebtRefund(SSInvoice iInvoice) {
+        this.iInvoice = iInvoice;
+        iInvoiceNr = iInvoice == null ? null : iInvoice.getNumber();
+
+        if (iInvoice != null) {
+            BigDecimal iInvoiceAmount = SSInpaymentMath.getOutpaymentAmountForInvoice(iInvoice);
+
+            iInvoiceCurrency = iInvoice.getCurrency();
+            iInvoiceCurrencyRate = iInvoice.getCurrencyRate();
+            iValue = iInvoiceAmount;
+            iCurrencyRate = iInvoice.getCurrencyRate();
+        }
+    }
+
     // //////////////////////////////////////////////////
 
     /**

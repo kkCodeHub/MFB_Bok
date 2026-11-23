@@ -219,12 +219,15 @@ public final class SSInvoiceActionPolicy {
 
     /**
      * Returns true when the invoice can be used in credit invoice flow.
+     * The invoice must not be cancelled, and must be printed, entered, or already have
+     * a registered inpayment (an invoice that has been paid can always be credited).
      *
      * @param pInvoice invoice to evaluate
      * @return true if crediting is allowed
      */
     public static boolean canCreateCreditInvoice(SSInvoice pInvoice) {
-        return canPrint(pInvoice);
+        return canPrint(pInvoice)
+                && (pInvoice.isPrinted() || pInvoice.isEntered() || hasPositiveValue(SSInpaymentMath.getSumForInvoice(pInvoice)));
     }
 
     private static EnumSet<SSInvoiceLockReason> getHardLockReasons(SSInvoice pInvoice) {
