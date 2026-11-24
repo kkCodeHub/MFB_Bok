@@ -90,6 +90,8 @@ public class SSSupplierInvoiceFrame extends SSDefaultTableFrame {
 
     private SSSupplierInvoiceSearchPanel iSearchPanel;
 
+    private SSButton iCreditInvoiceButton;
+
     /**
      * Constructor.
      *
@@ -209,6 +211,7 @@ public class SSSupplierInvoiceFrame extends SSDefaultTableFrame {
                         }
 
                     });
+        iCreditInvoiceButton = iButton;
         iTable.addSelectionDependentComponent(iButton);
         iToolBar.add(iButton);
 
@@ -292,7 +295,31 @@ public class SSSupplierInvoiceFrame extends SSDefaultTableFrame {
 
         iToolBar.add(iMenuButton);
 
+        iTable.addSelectionListener(e -> SwingUtilities.invokeLater(this::updateCreditInvoiceButtonState));
+        updateCreditInvoiceButtonState();
+
         return iToolBar;
+    }
+
+    /**
+     * Enables the "create credit invoice" button only when exactly one supplier invoice is
+     * selected and it is allowed to be credited (entered/konterad and not cancelled/makulerad).
+     */
+    private void updateCreditInvoiceButtonState() {
+        if (iCreditInvoiceButton == null || iModel == null || iTable == null) {
+            return;
+        }
+
+        List<SSSupplierInvoice> iSelected = iModel.getObjects(iTable.getSelectedRows());
+        iCreditInvoiceButton.setEnabled(hasSingleSupplierInvoiceAllowedForCredit(iSelected));
+    }
+
+    private boolean hasSingleSupplierInvoiceAllowedForCredit(List<SSSupplierInvoice> iInvoices) {
+        if (iInvoices.size() != 1) {
+            return false;
+        }
+        SSSupplierInvoice iCurrent = getSupplierInvoice(iInvoices.get(0));
+        return iCurrent != null && SSSupplierInvoiceActionPolicy.canCreateCreditInvoice(iCurrent);
     }
 
     /**
@@ -618,6 +645,7 @@ public class SSSupplierInvoiceFrame extends SSDefaultTableFrame {
             SSSupplierInvoiceMath.calculateSaldos();
         }
         iSearchPanel.ApplyFilter(SSPurchaseContext.getSupplierInvoices());
+        updateCreditInvoiceButtonState();
         SSProductFrame.fireTableDataChanged();
     }
 

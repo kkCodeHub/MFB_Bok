@@ -141,13 +141,14 @@ public final class SSSupplierInvoiceActionPolicy {
 
     /**
      * Returns true when the supplier invoice can be used to create a supplier credit invoice.
+     * The invoice must be entered (konterad) and must not be cancelled (makulerad).
      *
      * @param pInvoice invoice to evaluate
      * @return true if supplier credit creation is allowed
      */
     public static boolean canCreateCreditInvoice(SSSupplierInvoice pInvoice) {
         verifyNotNull("invoice", pInvoice);
-        return !pInvoice.isCancelled();
+        return pInvoice.isEntered() && !pInvoice.isCancelled();
     }
 
     private static boolean canDelete(SSSupplierInvoice pInvoice) {

@@ -12,12 +12,26 @@ class SSSelectSupplierInvoiceDialogTest {
     @Test
     void shouldFilterOutCancelledSupplierInvoices() {
         SSSupplierInvoice active = supplierInvoice(1001, false);
+        active.setEntered(true);
         SSSupplierInvoice cancelled = supplierInvoice(1002, true);
+        cancelled.setEntered(true);
 
         List<SSSupplierInvoice> filtered = SSSelectSupplierInvoiceDialog
                 .filterSelectableSupplierInvoices(List.of(active, cancelled));
 
         assertThat(filtered).containsExactly(active);
+    }
+
+    @Test
+    void shouldFilterOutUnenteredSupplierInvoices() {
+        SSSupplierInvoice entered = supplierInvoice(2001, false);
+        entered.setEntered(true);
+        SSSupplierInvoice unentered = supplierInvoice(2002, false);
+
+        List<SSSupplierInvoice> filtered = SSSelectSupplierInvoiceDialog
+                .filterSelectableSupplierInvoices(List.of(entered, unentered));
+
+        assertThat(filtered).containsExactly(entered);
     }
 
     private static SSSupplierInvoice supplierInvoice(int pNumber, boolean pCancelled) {

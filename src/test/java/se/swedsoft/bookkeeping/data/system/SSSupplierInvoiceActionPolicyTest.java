@@ -138,10 +138,24 @@ class SSSupplierInvoiceActionPolicyTest {
 
     @Test
     void cancelledSupplierInvoiceCannotBeSelectedForCreditCreation() {
-        SSSupplierInvoice invoice = supplierInvoice(5101, false);
+        SSSupplierInvoice invoice = supplierInvoice(5101, true);
         invoice.setCancelled();
 
         assertThat(SSSupplierInvoiceActionPolicy.canCreateCreditInvoice(invoice)).isFalse();
+    }
+
+    @Test
+    void unenteredSupplierInvoiceCannotBeSelectedForCreditCreation() {
+        SSSupplierInvoice invoice = supplierInvoice(5102, false);
+
+        assertThat(SSSupplierInvoiceActionPolicy.canCreateCreditInvoice(invoice)).isFalse();
+    }
+
+    @Test
+    void enteredAndNotCancelledSupplierInvoiceCanBeSelectedForCreditCreation() {
+        SSSupplierInvoice invoice = supplierInvoice(5103, true);
+
+        assertThat(SSSupplierInvoiceActionPolicy.canCreateCreditInvoice(invoice)).isTrue();
     }
 
     @Test

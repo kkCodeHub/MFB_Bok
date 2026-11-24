@@ -211,6 +211,12 @@ class SSInpaymentDebtRefundIntegrationTest {
         assertThat(refundPaymentRow.getCredit()).isEqualByComparingTo("300.00");
         assertThat(refundPaymentRow.getDebet()).isNull();
 
+        // Voucher descriptions differ: regular inpayment vs. debt refund outpayment.
+        assertThat(regularVoucher.getDescription())
+                .isEqualTo("Kontering för inbetalning 1, Faktura " + negativeSaldoInvoice.getNumber());
+        assertThat(refundVoucher.getDescription())
+                .isEqualTo("Kontering för utbetalning 2, skuld kundfaktura " + negativeSaldoInvoice.getNumber());
+
         Repositories.invoices().delete(negativeSaldoInvoice);
         SSSalesContext.deleteCreditInvoice(creditInvoice);
     }

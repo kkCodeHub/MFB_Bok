@@ -54,6 +54,7 @@ public class SSCreditInvoice extends SSInvoice {
         iDate = SSDateUtil.today();
         iEntered = false;
         iPrinted = false;
+        setJournalNumbers(null);
 
         SSNewCompany iCompany = se.swedsoft.bookkeeping.data.system.SSCompanyYearContext.getCurrentCompany();
 

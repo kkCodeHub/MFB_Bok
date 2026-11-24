@@ -363,7 +363,8 @@ public class SSInvoiceFrame extends SSDefaultTableFrame {
 
         iModel.setupTable(iTable);
         ((SSTableSorter) iTable.getModel()).setSortingStatus(1, SSTableSorter.ASCENDING);
-        iTable.addSelectionListener(e -> updateReminderActionsState());
+        // Deferred so it runs after SSTable re-enables selection dependent components
+        iTable.addSelectionListener(e -> SwingUtilities.invokeLater(this::updateReminderActionsState));
 
         iTableScrollPane = new JScrollPane(iTable);
 

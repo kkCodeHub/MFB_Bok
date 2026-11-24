@@ -67,6 +67,7 @@ public class SSSupplierCreditInvoice extends SSSupplierInvoice {
         iDate = SSDateUtil.today();
         iCreditingNr = iSupplierInvoice.getNumber();
         iCrediting = iSupplierInvoice;
+        iJournalNumbers = null;
 
 //        LOG.info("Copying supplier invoice to supplier credit invoice: sourceNumber={}, sourceDate={}, dueDate={}, supplierNr={}, supplierName={}, referenceNumber={}, currency={}, currencyRate={}, taxSum={}, roundingSum={}, stockInfluencing={}, entered={}, cancelled={}, bgcEntered={}, voucher={}, correction={}, defaultAccounts={}, rows={}",
 //                iSupplierInvoice.getNumber(),

@@ -431,14 +431,19 @@ public class SSInpayment implements SSTableSearchable {
      *
      */
     public SSVoucher generateVoucher() {
-        String iDescriptionTemplate = SSBundle.getBundle().getString(
-                "inpaymentframe.voucherdescription");
-        String iInvoiceDescriptionTemplate = SSBundle.getBundle().getString(
-                "inpaymentframe.voucherinvoicedescription");
-
         SSAccountPlan iAccountPlan = se.swedsoft.bookkeeping.data.system.SSAccountingContext.getCurrentAccountPlan();
 
         BigDecimal iSum = SSInpaymentMath.getSum(this);
+
+        // A debt refund (outpayment of a negative customer invoice saldo) is recognized
+        // by its negative row sum, as opposed to a regular inpayment which is positive.
+        boolean iIsDebtRefund = iSum.signum() < 0;
+
+        String iDescriptionTemplate = SSBundle.getBundle().getString(
+                iIsDebtRefund ? "inpaymentframe.voucherrefunddescription" : "inpaymentframe.voucherdescription");
+        String iInvoiceDescriptionTemplate = SSBundle.getBundle().getString(
+                iIsDebtRefund ? "inpaymentframe.voucherrefundinvoicedescription" : "inpaymentframe.voucherinvoicedescription");
+
         BigDecimal iDifferenceSum = SSVoucherMath.getCreditMinusDebetSum(iDifference);
 
         iSum = iSum.subtract(iDifferenceSum);
